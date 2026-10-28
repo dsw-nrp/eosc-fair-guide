@@ -7,6 +7,14 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: maintenance observations move to one **Maintenance digest**; follow it instead of the per-finding `guide-health` issues.
+- Breaking: the Guide's own term and RO-Crate profile IRIs move from `https://fair.eosc.cz/` to the reviewed
+  `namespace` in `content/guide.toml`, now `https://dsw-nrp.github.io/eosc-fair-guide/terms#` and `…/profile/0.1`.
+  The preview carries them from this change, production from the next release. Record IDs and external IRIs are
+  unchanged and earlier archives keep their IRIs; read each artifact's own context and profile.
+
 ## [1.0.0-alpha.3] - 2026-10-25
 
 ### Changed

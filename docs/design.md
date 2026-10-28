@@ -1,3 +1,4 @@
+<!-- type: explanation -->
 # Design
 
 This document describes the current FAIR Data Guide and the principles that govern changes to it.
@@ -38,9 +39,13 @@ Static API retrieval and Swagger documentation require HTTP hosting; the applica
 **The page and machine data share one model.** The complete RO-Crate 1.2 JSON-LD serves harvesters;
 generated classic scripts serve the page and support file and iframe operation without fetching JSON.
 The page is also `ro-crate-preview.html`. A short schema.org description in its head supports discovery.
-`baseUrl` in Guide metadata, optionally overridden by `FAIR_GUIDE_BASE_URL`, owns the publication address,
-vocabulary and profile IRIs; profile shapes derive from it. Relocation must leave no stale publication
-address in generated records. Production and preview share canonical entity identities.
+Two build inputs carry addresses. The publication location, `baseUrl` in Guide metadata or the actual Pages
+location in `FAIR_GUIDE_BASE_URL`, gives the recorded page address and discovery files. The reviewed `namespace`
+names the Guide's own terms and RO-Crate profile; profile shapes derive from it, and moving the site renames no
+term. A namespace change reaches the preview first and production at the next release
+([deployment](deployment.md#publication-location-and-guide-namespace)). Runtime links follow the serving window.
+Relocation must leave no stale publication address in generated records. Production and preview share canonical
+entity identities.
 
 **The first download is bounded.** The build measures gzip bytes from the actual script and stylesheet
 tags and selected-language data against the 300 KB budget. Neutral structure and one language load first.
@@ -78,7 +83,7 @@ flowchart LR
   subgraph OUT["_site/ (not committed)"]
     direction TB
     CRATE["ro-crate-metadata.json"]
-    DATA["assets/data: kb.js, parts,<br/>language values, ui.js"]
+    DATA["data scripts: core, parts,<br/>language values and interface"]
     API["api/ and openapi.json"]
     HEALTH["health/ report"]
     PAGE["index.html and assets"]
@@ -138,8 +143,9 @@ Reader data enter public addresses only through explicit result sharing.
 
 **Embedding exchanges only view and size.** Dependency-free host and child code in `assets/js/embed.js`
 accepts configured exact origins and the expected sending window, bounds messages, reports height growth
-and shrink, and mirrors the view into the host address so shared host links reopen it. Answers and
-reports do not travel in this protocol. [embedding.md](embedding.md) owns the host snippet and contract.
+and shrink, and mirrors the view into the host address so shared host links reopen it. Ordinary navigation carries
+no answers or reports. An explicitly shared result address contains encoded result data, which travels as part
+of that view and host address. [embedding.md](embedding.md) owns the host snippet and contract.
 
 ## Reader navigation and presentation
 
@@ -284,9 +290,8 @@ registry offers no suitable conformance test. Selection and health edits carry t
 ## Optional evaluators
 
 Repository samples retain quick discovery and the existing FAIR Champion tests. FAIR-Checker and F-UJI
-assess one object at a time; running them over every sample record is explicitly deferred follow-up work
-. The maturity check's evidence cards describe the supported sample
-checks and do not promise that deferred batch evaluation.
+assess one object at a time. The maturity check's evidence cards describe the supported sample checks;
+they do not claim batch evaluation by either evaluator.
 
 An object check offers an external evaluator only when its reviewed mappings cover at least one question in the
 selected mode and tier scope. The current mappings support published-dataset questions; CDIF and FDO retain their
@@ -451,8 +456,9 @@ JSON-LD/FTR RO-Crate and Markdown exports carry reloadable state, Guide version,
 targets and evidence. Markdown's hidden comment restores full state; earlier answer-only summaries
 remain readable. Shared links carry compact answers and open as previews. Files also preview before
 replacing that check's answers on request. Foreign, damaged, newer-format and unknown-check files get
-different explanations; unknown historical question IDs are skipped with notice. Public share links use
-the publication address, never local files. Result reuse licensing is chosen by the person exporting,
+different explanations; unknown historical question IDs are skipped with notice. Share links and exported
+references use the address serving the Guide; from a local file they use the recorded publication location or stay
+relative, never a filesystem path. Result reuse licensing is chosen by the person exporting,
 not assigned by the Guide. Delete-all removes saved state and visit-only reports after confirmation.
 
 ## Visuals, accessibility and machine interfaces
@@ -489,7 +495,7 @@ exception named in the public statement; the accessible machines page lists the 
 fresh provenance, duplicates, metadata, unit/browser contracts, accessibility, API, diagrams, licensing,
 assets and crate validators. Opt-in live checks stay separate. Health distinguishes passed, failed,
 blocked and unrun jobs; offline success establishes no live availability. Initial builds are inventory;
-completed runs expose their actual revision and outcomes through the dashboard and `api/health.json`.
+completed runs expose their actual revision and outcomes through the dashboard and `_site/api/health.json`.
 Repository hygiene scans the guide's own text and the delivered tooling: a machine-specific path, a hub-internal
 name or a private planning reference fails with its file and line, while the repository's own relative runtime
 scratch convention does not. That scratch area is a declared runtime path, so hand-offs stay outside ownership and
@@ -574,7 +580,10 @@ a new row whose derived slug is already taken receives a non-colliding suffix, a
 still needs review rejects the replacement instead of writing it.
 
 `source-refresh.yml` runs weekly, on dispatch, or when the comment-command workflow calls it for an exact
-`/refresh <source>` PR comment from a currently authorized writer; that run replies with each source's result.
+`/refresh <source>` issue or PR comment from a currently authorized writer; it needs no existing refresh PR.
+The reply links each open proposal from the initiating thread. A separate reply job uses the repository token's
+issue-write and PR-read permissions; the refresh App retains only its snapshot/PR permissions. Replies can report
+an App failure too, without claiming that a partially failed publication made no changes.
 Its refresh job waits in one shared queue (`queue: max`) because sources read each other's snapshots, so a
 waiting request is kept rather than replaced. Trusted default-branch code parses the command and proposes one reserved
 `refresh/<source>` branch per source through the repository-scoped App. Identical proposals are reused,
@@ -610,8 +619,9 @@ Atomicity is per file; process termination is not a multi-file filesystem transa
 `commands.yml` is the only workflow that comments start. Its first job runs only for a comment that begins with
 `/`, with the read-only token and no concurrency group, so ordinary comments cannot cancel or displace a waiting
 command. `.github/scripts/commands.cjs` names the command, answers `/help` and near misses in one bot-maintained
-comment per thread, and decides eligibility (current write access, a pull-request comment, a same-repository PR
-targeting the default branch for repairs, a configured App) with the same function for `/help` and the gate.
+comment per thread, and decides eligibility with the same function for `/help` and the gate: both privileged
+commands need current write access and a configured App; repairs additionally need an open same-repository PR
+targeting the default branch, while refresh can start from an ordinary issue.
 An accepted command gets an `eyes` reaction, runs the trusted workflow that owns it, and ends with a `rocket`
 reaction or a reply that names the run; a refused one gets the reasons and what to do instead.
 
@@ -626,9 +636,9 @@ head read, as well as retaining the final head recheck. It resolves the
 commenter to an existing `[[person]]` by `github` and refuses if there is none; the action names that person,
 the `duplicate-fix` instrument, the consulted registry source and the changed entry. It registers only the
 new action ID before content validation and commits that register update with the link and provenance;
-unrelated missing IDs still fail validation. The App secrets are
-`SOURCE_REFRESH_CLIENT_ID` and `SOURCE_REFRESH_APP_PRIVATE_KEY`; without them the workflow fails before any
-write. The command never runs on schedules or forks, never merges and never pushes the default branch. Rollback
+unrelated missing IDs still fail validation. The App's client ID is the repository variable
+`SOURCE_REFRESH_CLIENT_ID` and its private key the secret `SOURCE_REFRESH_APP_PRIVATE_KEY`; without them the
+workflow fails before any write. The command never runs on schedules or forks, never merges and never pushes the default branch. Rollback
 is a revert of its commit or removal of the workflow; a stale head is a no-op. The local `--fix` remains the
 fallback when the command is unavailable.
 The App's diff and content-error comments use bounded, safely closed fences that contain authored Markdown,
@@ -637,10 +647,10 @@ directs the maintainer to inspect the branch and run because the commit may have
 failed. It does not imply an unchanged branch or automatically undo an already published repair.
 
 `health-watch.yml` checks links, connectors, stale dates and watched EOSC CZ page content, excluding
-navigation/header/footer. Champion remeasurement is monthly or requested. Repeated failures precede
-issues; recovery closes them. Changed page items and core-test health changes have stable issue keys.
-Candidates are proposed for review, never selected automatically. The issue publisher has narrow issue
-write access and a per-run bound. Historical observations keep their source dates.
+navigation, headers, footers and pagination. Champion remeasurement is monthly or requested. A
+read-only job observes; the only writer rebuilds one maintenance digest issue from versioned state,
+comments only on a meaningful change and attaches maintainers' keyed tasks as sub-issues. Candidates are
+proposed for review, never selected automatically. Historical observations keep their source dates.
 
 ### Production, preview and release
 
@@ -652,15 +662,29 @@ Swagger uses its own relative API. Before a verified first release, the root exp
 links to the preview instead of presenting default-branch work as production.
 
 ```mermaid
-flowchart LR
+flowchart TD
   accTitle: Production and preview delivery
-  accDescr: Default-branch work builds a preview. A separate release tag checks and packages production once. Assembly combines checked production and the preview into one Pages deployment, and the draft release reuses production bytes.
-  M[Default-branch push] --> N[Check preview]
+  accDescr: Default-branch work checks a preview. A separately authorized release tag checks and packages production; new production bytes wait for human approval. Assembly combines the newest approved release with the checked preview of the current default-branch head. Successful Pages publication precedes image publication, which precedes the draft release. Refusal retains the previous production; repairs and retries reuse the reviewed release procedure.
+  M[Default-branch push] --> N[Check the preview]
   R[Merged release PR] --> T[Separate tag dispatch] --> P[Check and package tagged source]
-  P --> A[Assemble production and next]
+  P --> H{Production approval recorded?}
+  H -->|No| K[Retain previous production]
+  H -->|Yes| A[Assemble production and next]
   N --> A --> D[One Pages deployment]
-  P --> F[Draft release with same artifact]
+  D --> B{Published release bound?}
+  B -->|No release| E[Preview publication complete]
+  B -->|Yes| I[Publish image from the same artifact]
+  I --> F[Draft release with same artifact]
 ```
+
+Tag creation requires the reviewed checks and deployment gates. Failed preparation or withheld approval leaves
+the previous production available. Publication assembles the newest approved release with the checked preview of
+the current default-branch head; an obsolete or still-preparing head produces no publication. Between a namespace
+change and the next release the two channels name different namespaces, and the publication summary says so. A
+successful publication records the deployed
+release before the image workflow runs, and the draft waits for that image. A publication without a bound release
+ends after Pages. Retries reuse verified artifacts
+and existing approval; the [release runbook](runbooks/release.md) owns refusal and recovery steps.
 
 `release_versions.py` is the standard-library owner of Guide/citation/npm/lockfile/Python versions and
 release dates, and of the release changelog: curated `[Unreleased]` notes followed by the generated merged-PR and
@@ -678,7 +702,7 @@ installed repository functionality, not release preparation. Minimal agent tooli
 editing skill with an identical Claude copy. Behavior/data/API/CI changes follow the accepted planning
 contract.
 
-## Final candidate maintenance
+## Quality and maintenance
 
 Run the final review through architecture/data representation, bilingual text/source fidelity, UX/GUI/design
 and code hygiene. Fix bounded defects and obsolete behaviour; module size alone does not justify a rewrite.

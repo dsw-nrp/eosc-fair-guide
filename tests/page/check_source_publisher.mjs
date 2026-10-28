@@ -3,7 +3,8 @@
 // again, and commands only from accounts with write access.
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-const { SOURCES, parseCommand, select, publish, reply, hashOf, markerOf } = createRequire(import.meta.url)("../../.github/scripts/source-publisher.cjs");
+const { SOURCES, parseCommand, select, publish, reply, summarize, hashOf, markerOf } = createRequire(import.meta.url)("../../.github/scripts/source-publisher.cjs");
+const commands = createRequire(import.meta.url)("../../.github/scripts/commands.cjs");
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const bot = "fair-guide-refresh[bot]";
@@ -33,7 +34,12 @@ function fakeGithub({ open = [], closed = [], commits = [], branches = [], permi
       pulls: {
         list: ({ state, head }) => (state === "open" ? open : closed).filter((pr) => pr.head === head),
         listCommits: () => commits,
-        create: async (options) => { writes.push(["createPull", options]); return { data: { number: 7, labels: [] } }; },
+        create: async (options) => {
+          writes.push(["createPull", options]);
+          const created = { number: 7, labels: [], head: `${repo.owner}:${options.head}`, body: options.body };
+          open.push(created);
+          return { data: created };
+        },
         update: async (options) => writes.push(["updatePull", options]),
       },
       issues: {
@@ -46,6 +52,8 @@ function fakeGithub({ open = [], closed = [], commits = [], branches = [], permi
         },
       },
       repos: { getCollaboratorPermissionLevel: async () => ({ data: { permission, role_name: permission } }) },
+      actions: { listWorkflowRuns: async () => ({ data: { workflow_runs: [] } }) },
+      reactions: { createForIssueComment: async (options) => writes.push(["reaction", options]) },
       git: {
         getRef: async ({ ref }) => {
           if (ref === "heads/main") return { data: { object: { sha: "m".repeat(40) } } };
@@ -153,18 +161,18 @@ github.rest.pulls.listCommits = () => { throw Error("inventory unavailable"); };
 await publish({ github, context, core }, read(changed), exists, bot);
 assert.deepEqual(writes.map(([kind]) => kind), ["comment"], "failed inventory cannot replace a branch");
 
-// Commands: exactly "/refresh <reviewed key>", from a current writer, on a pull request.
+// Commands: exactly "/refresh <reviewed key>", from a current writer, on an issue or pull request.
 assert.equal(parseCommand("/refresh heslar"), "heslar");
 for (const body of ["/refresh heslar now", "/refresh heslar; rm -rf /", "/refresh https://evil.example/", "/refresh ../main", "/refresh other", "refresh heslar", "/refresh  heslar"]) {
   assert.equal(parseCommand(body), null, body);
 }
 const comment = (permission, body = "/refresh fip-dashboard") => select({ github: fakeGithub({ permission }).github, core,
-  context: { repo, eventName: "issue_comment", payload: { issue: { pull_request: {} }, comment: { body, user: { login: "someone" } } } } });
+  context: { repo, eventName: "issue_comment", payload: { issue: { number: 12, pull_request: {} }, comment: { body, user: { login: "someone" } } } } });
 assert.equal(await comment("write"), "fip-dashboard");
 assert.equal(await comment("maintain"), "fip-dashboard");
 assert.equal(await comment("read"), "", "an account without current write access cannot start a refresh");
 assert.equal(await comment("none", "/refresh heslar"), "");
-assert.equal(await select({ github, core, context: { repo, eventName: "issue_comment", payload: { issue: {}, comment: { body: "/refresh heslar", user: { login: "x" } } } } }), "", "issue comments are not refresh commands");
+assert.equal(await select({ github, core, context: { repo, eventName: "issue_comment", payload: { issue: { number: 12 }, comment: { body: "/refresh heslar", user: { login: "x" } } } } }), "heslar", "an ordinary issue can start refresh");
 assert.equal(await select({ github, core, context: { repo, eventName: "workflow_dispatch", payload: { inputs: { source: "re3data" } } } }), "re3data");
 assert.equal(await select({ github, core, context: { repo, eventName: "workflow_dispatch", payload: { inputs: { source: "x; y" } } } }), "");
 assert.equal(await select({ github, core, context: { repo, eventName: "schedule", payload: {} } }), Object.keys(SOURCES).join(" "));
@@ -184,4 +192,69 @@ assert.match(await reply({ github, context: commanded }, "{not json", "0"), /did
 const stopped = await reply({ github, context: commanded }, "", "0", "failure");
 assert.match(stopped, /stopped during publication, so its refresh branch or pull request may already have changed/);
 assert(!stopped.includes("no pull request was changed"), "a publication that failed part-way is never reported as no change");
-console.log("check_source_publisher: one bot-owned PR per source, an atomically guarded branch head, current-main refresh, no default-branch write or merge, kept human edits, suppressed rejected content, a label a person's removal keeps off and authorized exact commands pass");
+
+// The real command parser/gate, selector, publisher and reply cooperate before a refresh PR exists.
+for (const fromPull of [false, true]) {
+  const event = { ...context, eventName: "issue_comment", serverUrl: "https://github.com", runId: 88,
+    payload: { ...context.payload, issue: { number: 99, ...(fromPull ? { pull_request: {} } : {}) },
+      comment: { id: 41, body: "/refresh heslar", user: { login: "maintainer" } } } };
+  ({ github, writes } = fakeGithub());
+  assert.equal(commands.parse(event.payload.comment.body).command, "refresh");
+  assert.equal(await commands.acknowledge({ github, context: event, core }, true), true);
+  assert.equal(await select({ github, context: event, core }), "heslar");
+  const results = await publish({ github, context: event, core }, read(changed), exists, bot);
+  const body = await reply({ github, context: event }, JSON.stringify(results), "0", "success");
+  assert.match(body, /Proposal #7\]\(https:\/\/github.com\/dsw-nrp\/eosc-fair-guide\/pull\/7\)/);
+  const answer = writes.find(([kind]) => kind === "comment")[1];
+  assert.equal(answer.issue_number, 99, "reply stays in the initiating thread");
+  assert.match(answer.body, /actions\/runs\/88/);
+  assert.deepEqual(refMoves(writes), ["refs/heads/refresh/heslar"]);
+
+  for (const [permission, text] of [["read", "/refresh heslar"], ["write", "/refresh unknown"]]) {
+    const denied = { ...event, payload: { ...event.payload, comment: { ...event.payload.comment, body: text } } };
+    ({ github, writes } = fakeGithub({ permission }));
+    assert.equal(await commands.acknowledge({ github, context: denied, core }, true), false);
+    assert.equal(await select({ github, context: denied, core }), "");
+    assert(!writes.some(([kind]) => ["commit", "tree", "refUpdate", "createPull"].includes(kind)));
+  }
+}
+for (const invalid of ["null", "[]", "true"]) {
+  assert.match(await reply({ github, context: commanded }, invalid, "0"), /did not reach publication/);
+}
+
+// Every run's summary names each source's outcome, reason and who acts. Only a source that needs a maintainer fails
+// the run; one the next scheduled refresh retries is a warning (26 October 2026: heslar and nkr timed out, and the run
+// ended red with its reasons only in an artifact).
+{
+  const run = async (options) => {
+    const state = { failed: "", warned: "", text: "" };
+    const runCore = { summary: { addRaw(text) { state.text += text; return this; }, async write() {} },
+      setFailed: (message) => { state.failed = message; }, warning: (message) => { state.warned = message; } };
+    const text = await summarize({ core: runCore }, options);
+    assert.equal(state.text, text + "\n", "the summary is written to the run");
+    return { ...state, text };
+  };
+  const retried = await run({ results: JSON.stringify({ heslar: "failed", nkr: "failed", re3data: "proposed" }), publication: "success",
+    report: { outcomes: [{ source: "heslar", status: "failed", reason: "timed out" }, { source: "nkr", status: "failed", reason: "HTTP 503" },
+      { source: "re3data", status: "changed" }] } });
+  assert.equal(retried.failed, "", "a source that was not retrieved does not fail the run");
+  assert.match(retried.warned, /next scheduled refresh retries them/);
+  assert.match(retried.text, /\| `heslar` \| not retrieved[^|]*\| Retry \| timed out \|/);
+  assert.match(retried.text, /\| `re3data` \| proposed as a new refresh pull request[^|]*\| — \|/);
+  assert.match(retried.text, /\*\*Next:\*\* nothing now/);
+  assert.doesNotMatch(retried.text, /artifact gives|artifact names/, "the reason is in the summary itself");
+  const rejected = await run({ results: JSON.stringify({ heslar: "rejected" }), publication: "success",
+    report: { outcomes: [{ source: "heslar", status: "rejected", reason: "3 terms lack an identifier" }] } });
+  assert.match(rejected.failed, /needs a maintainer/);
+  assert.match(rejected.text, /\*\*Act\*\* \| 3 terms lack an identifier \|/);
+  assert.match(rejected.text, /\*\*Done when:\*\* a rerun marks no source \*\*Act\*\*/);
+  const unpublished = await run({ results: "", publication: "failure", report: { outcomes: [{ source: "re3data", status: "changed" }] } });
+  assert.match(unpublished.failed, /needs a maintainer/);
+  assert.match(unpublished.text, /Publication did not complete/);
+  assert.match(unpublished.text, /changed, but publication did not complete \| \*\*Act\*\*/);
+  const proposed = await run({ results: JSON.stringify({ re3data: "proposed" }), publication: "success",
+    report: { outcomes: [{ source: "re3data", status: "changed" }] } });
+  assert.deepEqual([proposed.failed, proposed.warned], ["", ""]);
+  assert.match(proposed.text, /reviews each proposed or updated refresh pull request as content/);
+}
+console.log("check_source_publisher: one bot-owned PR per source, an atomically guarded branch head, current-main refresh, no default-branch write or merge, kept human edits, suppressed rejected content, a label a person's removal keeps off, authorized exact commands and run summaries that fail only when a maintainer acts pass");

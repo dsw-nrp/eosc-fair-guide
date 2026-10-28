@@ -2,43 +2,72 @@
 
 from __future__ import annotations
 
+import ast
 import fnmatch
+import importlib.metadata
 import json
+import os
 import re
 import subprocess
 import sys
+import tempfile
 import tomllib
 import unittest
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
+import check_all  # noqa: E402
 import check_ci  # noqa: E402
+from ci_catalogue import token_requests  # noqa: E402
 
 
 def load(path: str) -> dict:
     return yaml.load((ROOT / path).read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
 
 
-def token_requests() -> dict[tuple[str, str], tuple[dict | None, dict]]:
-    """Each workflow job's GITHUB_TOKEN permissions (its own block, else the workflow's) and App-token requests."""
-    found = {}
-    for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
-        workflow = load(path.relative_to(ROOT).as_posix())
-        for name, job in workflow["jobs"].items():
-            app = {}
-            for step in job.get("steps", []):
-                if step.get("uses", "").startswith("actions/create-github-app-token@"):
-                    requested = step.get("with", {}).items()
-                    app |= {
-                        key.removeprefix("permission-"): value
-                        for key, value in requested
-                        if key.startswith("permission-")
-                    }
-            found[(path.name, name)] = (job.get("permissions", workflow.get("permissions")), app)
+def third_party_imports(script: Path, seen: set[Path] | None = None) -> set[str]:
+    """Top-level modules a script imports from outside the standard library, following the scripts it imports."""
+    seen = set() if seen is None else seen
+    if script in seen:
+        return set()
+    seen.add(script)
+    found = set()
+    for node in ast.walk(ast.parse(script.read_text(encoding="utf-8"))):
+        if isinstance(node, ast.Import):
+            names = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom) and not node.level and node.module:
+            names = [node.module]
+        else:
+            continue
+        for top in {name.split(".")[0] for name in names}:
+            local = ROOT / "scripts" / f"{top}.py"
+            if local.exists():
+                found |= third_party_imports(local, seen)
+            elif top not in sys.stdlib_module_names:
+                found.add(top)
     return found
+
+
+def quick_check_distributions() -> dict[str, set[str]]:
+    """The distributions each quick check imports, read from its command: `python -m <module>` or a script."""
+    providers = importlib.metadata.packages_distributions()
+    needed = {}
+    for job in check_all.jobs("", False):
+        if job.name not in check_ci.QUICK:
+            continue
+        command = [str(part) for part in job.command]
+        if command[1:2] == ["-m"]:
+            modules = {command[2]}
+        elif len(command) > 1 and command[1].endswith(".py"):
+            modules = third_party_imports(ROOT / command[1])
+        else:
+            continue  # npm scripts: `npm ci` installs every locked Node package
+        needed[job.name] = {name for module in modules for name in providers.get(module, [module])}
+    return needed
 
 
 def reviewed_tokens() -> dict[tuple[str, str], tuple[dict, dict]]:
@@ -76,6 +105,59 @@ def token_differences(reviewed: dict, actual: dict) -> list[str]:
 
 
 class WorkflowContracts(unittest.TestCase):
+    def test_publication_rechecks_the_pages_root_and_pairs_no_release_with_a_preview(self):
+        # The Guide's namespace is a reviewed content setting (decision 28, revised): no job reads the live site or a
+        # release archive to choose one, and a release is published beside the latest checked staging site.
+        deploy = load(".github/workflows/deploy.yml")
+        self.assertFalse({"pair-head", "paired-preview"} & set(deploy["jobs"]))
+        for path in ("deploy.yml", "partitioned-checks.yml", "publish.yml", "checks.yml"):
+            text = (ROOT / ".github/workflows" / path).read_text(encoding="utf-8")
+            for removed in (
+                "SEMANTIC",
+                "semantic-",
+                "publication_inputs",
+                "buildLocation",
+                "paired",
+                "inputs.revision",
+            ):
+                self.assertNotIn(removed, text, f"{path} still names {removed}")
+        steps = load(".github/workflows/publish.yml")["jobs"]["publish"]["steps"]
+        guard = next(
+            index for index, step in enumerate(steps) if "assertPublication" in step.get("with", {}).get("script", "")
+        )
+        publish = next(index for index, step in enumerate(steps) if step.get("id") == "deployment")
+        self.assertEqual(guard + 1, publish, "the actual Pages root is rechecked immediately before deployment")
+        # Against the root the staging site was built for, which assembly writes, never a read made at resolve time.
+        self.assertNotIn("env", steps[guard])
+        self.assertIn("readFileSync('.cache/publication-root.txt'", steps[guard]["with"]["script"])
+        resolve = load(".github/workflows/publish.yml")["jobs"]["resolve"]
+        self.assertNotIn("publication_url", resolve["outputs"])
+        assembly = next(step for step in steps if "assemble_pages.py" in step.get("run", ""))
+        self.assertIn("--notes .cache/assembly-notes.md", assembly["run"])
+        self.assertIn("--root-out .cache/publication-root.txt", assembly["run"])
+        self.assertIn('>> "$GITHUB_STEP_SUMMARY"', assembly["run"], "a namespace notice reaches the run summary")
+
+    def test_publication_hand_offs_name_the_documented_retry(self) -> None:
+        # A re-run publish run uploads its fixed-name Pages artifacts a second time; a dispatched deployment does not.
+        step = next(
+            step
+            for step in load(".github/workflows/publish.yml")["jobs"]["publish"]["steps"]
+            if step.get("name") == "Record the live channels"
+        )
+        script = step["with"]["script"]
+        self.assertNotIn("re-run this run", script)
+        self.assertEqual(script.count("run Deploy the verified site on the default branch"), 2)
+        catalogue = tomllib.loads((ROOT / ".github/ci-catalogue.toml").read_text(encoding="utf-8"))
+        self.assertIn("Do not rerun a publish run", catalogue["workflow"]["publish.yml"]["rerun"])
+        # After approval a successful tag run has no failed jobs to re-run; a dispatched deployment publishes it.
+        approval = next(
+            step
+            for step in load(".github/workflows/deploy.yml")["jobs"]["approve-production"]["steps"]
+            if step.get("name") == "Record the approved production bytes"
+        )["run"]
+        self.assertIn("when this run fails, re-run its failed jobs", approval)
+        self.assertIn("no publication starts, run Deploy the verified site on the default branch", approval)
+
     def test_publication_follows_only_successful_deployments_where_no_cancellation_reaches(self) -> None:
         deploy = load(".github/workflows/deploy.yml")
         for job in deploy["jobs"].values():
@@ -115,13 +197,18 @@ class WorkflowContracts(unittest.TestCase):
         )
         self.assertEqual(publish["environment"]["name"], "github-pages")
         self.assertEqual(
-            publish["permissions"], {"actions": "read", "contents": "read", "id-token": "write", "pages": "write"}
+            publish["permissions"],
+            {"actions": "read", "contents": "read", "deployments": "write", "id-token": "write", "pages": "write"},
         )
         steps = publish["steps"]
         self.assertEqual(steps[0]["with"]["ref"], "${{ github.event.repository.default_branch }}", "trusted code")
         pages = next(step for step in steps if step.get("id") == "deployment")
         record = next(step for step in steps if step.get("with", {}).get("name") == "pages-identity")
         self.assertGreater(steps.index(record), steps.index(pages), "the record exists only after a Pages deployment")
+        # The staging and production records say what is live, so they follow the Pages deployment too.
+        channels = next(step for step in steps if "recordChannels" in step.get("with", {}).get("script", ""))
+        self.assertGreater(steps.index(channels), steps.index(pages), "a channel is recorded only once it is live")
+        self.assertEqual(channels["env"], {"PAGE_URL": "${{ steps.deployment.outputs.page_url }}"})
         self.assertEqual(record["with"]["path"], ".cache/published/identity.json")
         writer = (ROOT / ".github/scripts/release-artifact.cjs").read_text(encoding="utf-8")
         self.assertIn('const PUBLISHED = ".cache/published/identity.json";', writer, "the reader names the same file")
@@ -170,6 +257,18 @@ class WorkflowContracts(unittest.TestCase):
         latest_move = promotion_run.index('--tag "$IMAGE:latest"')
         self.assertLess(release_move, release_assert, "the release tag is promoted before it is verified")
         self.assertLess(release_assert, latest_move, "no moving alias is touched before the release digest is verified")
+        # Decision 30: the recheck decides which aliases move and never fails the job for a newer release, so the
+        # release tag is always pushed and Release drafts the release; the summary names who holds a kept alias.
+        recheck = next(step for step in steps if step.get("name") == "Recheck production eligibility before promotion")
+        self.assertEqual(recheck["id"], "promotion")
+        self.assertIn("await promotion(", recheck["with"]["script"])
+        promote = next(step for step in steps if step.get("name") == "Promote the audited digest")
+        for alias in ("latest", "stable"):
+            self.assertEqual(promote["env"][f"MOVE_{alias.upper()}"], f"${{{{ steps.promotion.outputs.{alias} }}}}")
+        self.assertNotIn("if", promote, "the release tag is pushed whether or not an alias moves")
+        report = next(step for step in steps if step.get("name") == "Report the image")
+        self.assertEqual(report["env"], {"KEPT": "${{ steps.promotion.outputs.kept }}"})
+        self.assertEqual(release["jobs"]["release"]["needs"], ["bind", "publish"])
         self.assertIn("--raw", promotion_run)
         self.assertNotIn("--prefer-index=false", promotion_run)
         self.assertNotIn(".Manifest.Digest", promotion_run)
@@ -195,11 +294,13 @@ class WorkflowContracts(unittest.TestCase):
     def test_release_dispatches_use_trusted_source_and_separate_app_delivery(self) -> None:
         for name in ("prepare-release", "tag-release"):
             workflow = load(f".github/workflows/{name}.yml")
-            self.assertEqual(set(workflow["on"]), {"workflow_dispatch"})
+            # Tag release calls Prepare release to complete an untagged release; nothing else can trigger either.
+            triggers = {"workflow_dispatch", "workflow_call"} if name == "prepare-release" else {"workflow_dispatch"}
+            self.assertEqual(set(workflow["on"]), triggers)
             self.assertEqual(workflow["permissions"]["contents"], "read")
             job = next(iter(workflow["jobs"].values()))
-            self.assertIn("github.event.repository.default_branch", job["if"])
-            self.assertIn("github.ref", job["if"])
+            # The default-branch requirement is the first step, which fails visibly rather than skipping (decision 30).
+            self.assertIn('"$GITHUB_REF" != "refs/heads/$DEFAULT_BRANCH"', job["steps"][0]["run"])
             steps = job["steps"]
             app = next(step for step in steps if step.get("id") == "app")
             self.assertEqual(app["with"]["permission-contents"], "write")
@@ -219,7 +320,69 @@ class WorkflowContracts(unittest.TestCase):
                 gate = next(step for step in steps if ".deployed(" in step.get("with", {}).get("script", ""))
                 self.assertLess(steps.index(gate), steps.index(app), "the deployment check precedes the App token")
                 self.assertNotIn("github-token", gate["with"], "it reads runs with the job's read-only token")
-                self.assertEqual(job["permissions"], {"contents": "read", "actions": "read", "deployments": "read"})
+                self.assertEqual(
+                    job["permissions"],
+                    {"contents": "read", "actions": "read", "deployments": "read", "pull-requests": "read"},
+                )
+
+    def test_tag_release_completes_a_changelog_that_misses_changes_instead_of_tagging(self) -> None:
+        tag = load(".github/workflows/tag-release.yml")
+        prepare = load(".github/workflows/prepare-release.yml")
+        # A caller and a called workflow holding one workflow-level group deadlock, so both hold it per job.
+        for workflow, job in ((tag, "tag"), (prepare, "prepare")):
+            self.assertNotIn("concurrency", workflow)
+            self.assertEqual(
+                workflow["jobs"][job]["concurrency"], {"group": "release-preparation", "cancel-in-progress": "false"}
+            )
+        steps = tag["jobs"]["tag"]["steps"]
+        lineage = next(step for step in steps if step.get("id") == "lineage")
+        self.assertIn("release_versions.py lineage", lineage["run"])
+        self.assertIn('--summary "$GITHUB_STEP_SUMMARY"', lineage["run"])
+        self.assertIn('3) echo "complete=false"', lineage["run"], "exit 3 means a gap, any other failure stops")
+        for step in steps[steps.index(lineage) + 1 :]:
+            self.assertEqual(step["if"], "steps.lineage.outputs.complete == 'true'", "no App token or tag on a gap")
+        complete = tag["jobs"]["complete"]
+        self.assertEqual(complete["uses"], "./.github/workflows/prepare-release.yml")
+        self.assertEqual(complete["if"], "needs.tag.outputs.complete == 'false'")
+        self.assertEqual(complete["with"], {"version": "${{ inputs.version }}"})
+        self.assertEqual(complete["secrets"], "inherit")
+        refusal = tag["jobs"]["not-tagged"]
+        self.assertEqual(refusal["if"], "always() && needs.tag.outputs.complete == 'false'")
+        self.assertIn("exit 1", refusal["steps"][0]["run"], "a refused tag never reads as a successful run")
+        self.assertEqual(
+            prepare["on"]["workflow_call"]["outputs"]["pull-request"]["value"],
+            "${{ jobs.prepare.outputs.pull-request }}",
+        )
+        propose = next(step for step in prepare["jobs"]["prepare"]["steps"] if step.get("id") == "propose")
+        self.assertEqual(propose["env"]["RELEASE_BOT_LOGIN"], "${{ steps.app.outputs.app-slug }}[bot]")
+
+    def test_release_dispatches_fail_on_another_branch_before_any_checkout(self) -> None:
+        # Decision 30: a job-level condition skipped every job, so a dispatch on another branch ended without a tag
+        # and without a failure.
+        for path, job, heading in (
+            ("tag-release.yml", "tag", "Not tagged"),
+            ("prepare-release.yml", "prepare", "Not prepared"),
+        ):
+            with self.subTest(workflow=path):
+                definition = load(f".github/workflows/{path}")["jobs"][job]
+                self.assertNotIn("if", definition)
+                guard = definition["steps"][0]
+                self.assertEqual(guard["name"], "Require the default branch")
+                self.assertEqual(guard["env"], {"DEFAULT_BRANCH": "${{ github.event.repository.default_branch }}"})
+                for text in (f"### {heading}", "**Next:**", "**If blocked:**", "**Done when:**", "exit 1"):
+                    self.assertIn(text, guard["run"])
+                if sys.platform == "win32":
+                    continue  # the runner's bash; Windows may resolve bash to another environment
+                with tempfile.TemporaryDirectory() as temp:
+                    summary = Path(temp) / "summary.md"
+                    for ref, code in (("refs/heads/main", 0), ("refs/heads/feature", 1)):
+                        environment = {"PATH": os.environ["PATH"], "DEFAULT_BRANCH": "main", "GITHUB_REF": ref}
+                        environment["GITHUB_STEP_SUMMARY"] = str(summary)
+                        command = ["bash", "-e", "-c", guard["run"]]
+                        result = subprocess.run(command, check=False, env=environment, capture_output=True, text=True)
+                        self.assertEqual(result.returncode, code, ref)
+                    self.assertIn("set to `main`", summary.read_text(encoding="utf-8"))
+                    self.assertIn("refs/heads/feature", result.stdout)
 
     def test_release_status_is_a_tag_input_and_never_a_repository_variable(self) -> None:
         tag = load(".github/workflows/tag-release.yml")
@@ -243,6 +406,7 @@ class WorkflowContracts(unittest.TestCase):
         self.assertIn("before implementation", shared)
         release = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
         release += (ROOT / "docs/deployment.md").read_text(encoding="utf-8")
+        release += (ROOT / "docs/runbooks/release.md").read_text(encoding="utf-8")
         for fact in (
             "content/guide.toml",
             "datePublished",
@@ -286,7 +450,7 @@ class WorkflowContracts(unittest.TestCase):
         self.assertEqual(lanes["strategy"]["fail-fast"], "false")
         self.assertEqual(lanes["strategy"]["matrix"]["lane"], list(check_ci.LANES))
         for job in [*workflow["jobs"].values(), *partitioned["jobs"].values()]:
-            self.assertNotIn("permissions", job)
+            self.assertLessEqual(set(job.get("permissions", {}).values()), {"read"})
             for step in job.get("steps", []):
                 if step.get("uses", "").startswith("actions/checkout@"):
                     self.assertEqual(step["with"]["persist-credentials"], "false")
@@ -330,9 +494,23 @@ class WorkflowContracts(unittest.TestCase):
         self.assertEqual(len(review_steps), 3)
         for step in review_steps:
             self.assertEqual(step["if"], "always() && inputs.review", "merge groups prepare no review data")
-        # The trusted review comment answers pull-request runs only, never merge-group runs.
+        # The trusted review comment answers pull-request runs only, never merge-group runs, and never a cancelled run:
+        # its collector, which uploads the review data, does not run in a cancelled run (task 7.8), and a newer run of
+        # the same branch comments instead. Runs 40198033937 and 40198114056 failed on exactly that missing artifact.
         comment = load(".github/workflows/pr-summary.yml")["jobs"]["comment"]
-        self.assertEqual(comment["if"], "github.event.workflow_run.event == 'pull_request'")
+        self.assertEqual(
+            comment["if"],
+            "github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion != 'cancelled'",
+        )
+        collector = load(".github/workflows/partitioned-checks.yml")["jobs"]
+        uploads = [
+            name
+            for name, job in collector.items()
+            for step in job.get("steps", [])
+            if step.get("with", {}).get("name", "").startswith("guide-review-")
+        ]
+        self.assertEqual(len(uploads), 1)
+        self.assertIn("!cancelled()", collector[uploads[0]]["if"], "the reason a cancelled run has no review data")
 
     def test_pull_requests_merge_groups_and_the_deployment_fallback_share_one_partitioned_check(self) -> None:
         callers = {}
@@ -345,7 +523,11 @@ class WorkflowContracts(unittest.TestCase):
                         self.assertIn(path.name, ("partitioned-checks.yml", "deploy.yml"), "one owner of the lanes")
         self.assertEqual(set(callers), {("checks.yml", "partitioned"), ("deploy.yml", "fallback-checks")})
         fallback = callers[("deploy.yml", "fallback-checks")]
-        self.assertEqual(fallback, {"channel": "preview", "staging": "true"}, "a trusted run restores no cache")
+        self.assertEqual(
+            fallback,
+            {"channel": "preview", "staging": "true", "publication-url": "${{ needs.stage.outputs.publication-url }}"},
+            "a trusted run restores no cache and retains the already resolved publication location",
+        )
         staging = next(
             step
             for step in load(".github/workflows/partitioned-checks.yml")["jobs"]["collect"]["steps"]
@@ -363,6 +545,19 @@ class WorkflowContracts(unittest.TestCase):
         self.assertIn("grep -E '^ruff==' requirements-dev.txt", install, "Ruff keeps its single pinned version")
         self.assertNotIn("-r requirements-dev.txt", install)
         self.assertTrue(any("cat .cache/quick/summary.md" in run for run in runs))
+
+    def test_quick_feedback_installs_every_module_its_checks_import(self) -> None:
+        # Locally every requirement is installed, so a quick check that imports a module the job leaves out passes
+        # here and fails only on the hosted runner. The job's needs are therefore derived from the checks themselves.
+        quick = load(".github/workflows/checks.yml")["jobs"]["quick"]
+        install = next(step["run"] for step in quick["steps"] if "pip install" in step.get("run", ""))
+        installed = {name.lower() for name in re.findall(r"\^([A-Za-z0-9_.-]+)==", install)}
+        needed = quick_check_distributions()
+        self.assertIn("ruff", {name.lower() for names in needed.values() for name in names})
+        for job, distributions in sorted(needed.items()):
+            for distribution in sorted(distributions):
+                message = f"quick check {job} imports {distribution}, which the job does not install"
+                self.assertIn(distribution.lower(), installed, message)
 
     def test_dependency_caches_follow_the_lockfiles_and_stay_out_of_trusted_runs(self) -> None:
         checks = load(".github/workflows/partitioned-checks.yml")
@@ -396,7 +591,11 @@ class WorkflowContracts(unittest.TestCase):
         lane = next(step for step in lane_steps if "check_ci.py lane" in step.get("run", ""))
         self.assertEqual(lane["env"]["CHECK_CACHE_PIP"], "${{ steps.python.outputs.cache-hit }}")
         self.assertEqual(lane["env"]["CHECK_CACHE_NPM"], "${{ steps.node.outputs.cache-hit }}")
-        self.assertNotIn("env", checks["jobs"]["collect"], "the collector launches no browser")
+        self.assertEqual(
+            checks["jobs"]["collect"]["env"],
+            {"FAIR_GUIDE_BASE_URL": "${{ needs.build.outputs.publication-url }}"},
+            "the collector retains the resolved build location without browser configuration",
+        )
         # Pull-request caches are scoped to their ref; trusted workflows restore no dependency cache, so a pull
         # request's packages never reach them. The reusable checks cache only when their caller asks, and only
         # checks.yml asks. (The health watch keeps only its own run state in a cache.)
@@ -443,8 +642,10 @@ class WorkflowContracts(unittest.TestCase):
         self.assertNotIn("concurrency", workflow)
         self.assertEqual(workflow["jobs"]["refresh"]["concurrency"], {"group": "source-refresh", "queue": "max"})
         self.assertNotIn("pull_request_target", text)
-        for job in workflow["jobs"].values():
-            self.assertNotIn("permissions", job, "no job widens the read-only token")
+        self.assertNotIn("if", workflow["jobs"]["select"], "the trusted selector admits issues and PRs itself")
+        for name, job in workflow["jobs"].items():
+            if name != "reply":
+                self.assertNotIn("permissions", job, "snapshot selection/publication keep the read-only token")
             for step in job["steps"]:
                 if step.get("uses", "").startswith("actions/checkout@"):
                     self.assertEqual(step["with"]["ref"], "${{ github.event.repository.default_branch }}")
@@ -459,13 +660,25 @@ class WorkflowContracts(unittest.TestCase):
         )
         publish = next(step for step in steps if "publish(" in step.get("with", {}).get("script", ""))
         self.assertEqual(publish["with"]["github-token"], "${{ steps.app.outputs.token }}")
-        answer = next(step for step in steps if step.get("name") == "Reply to the refresh command")
-        self.assertIn("always()", answer["if"])
-        self.assertIn("github.event_name == 'issue_comment'", answer["if"])
-        self.assertEqual(answer["with"]["github-token"], "${{ steps.app.outputs.token }}")
-        self.assertLess(
-            steps.index(answer), steps.index(next(s for s in steps if s.get("name", "").startswith("Report")))
-        )
+        # Every run ends with each source's outcome and who acts; the summary, not an exit code, decides red or a
+        # warning, so no step fails the run merely because a source could not be retrieved (decision 29).
+        self.assertIn("summarize(", steps[-1]["with"]["script"])
+        self.assertEqual(steps[-1]["if"], "always()")
+        self.assertEqual(steps[-1]["env"]["PUBLICATION"], "${{ steps.publish.outcome }}")
+        run = [step.get("run", "") for step in steps]
+        failing = [text for text in run if "exit 1" in text and "unexpected source list" not in text]
+        self.assertEqual(failing, [], "only malformed input fails a shell step; the summary judges the outcomes")
+        reply = workflow["jobs"]["reply"]
+        self.assertIn("always()", reply["if"])
+        self.assertIn("github.event_name == 'issue_comment'", reply["if"])
+        self.assertIn("needs.select.outputs.sources != ''", reply["if"])
+        self.assertEqual(reply["needs"], ["select", "refresh"])
+        expected = {"contents": "read", "issues": "write", "pull-requests": "read"}
+        self.assertEqual(reply["permissions"], expected)
+        self.assertEqual(load(".github/workflows/commands.yml")["jobs"]["refresh"]["permissions"], expected)
+        answer = next(step for step in reply["steps"] if step.get("name") == "Reply to the refresh command")
+        self.assertEqual(answer["with"]["github-token"], "${{ github.token }}")
+        self.assertEqual(answer["env"]["RESULTS"], "${{ needs.refresh.outputs.results }}")
         self.assertNotIn("git push", text)
         self.assertNotIn("merge", text.lower().replace("never merges", ""))
 
@@ -562,17 +775,158 @@ class WorkflowContracts(unittest.TestCase):
         workflow = load(".github/workflows/health-watch.yml")
         self.assertEqual(set(workflow["on"]), {"schedule", "workflow_dispatch"})
         self.assertEqual(workflow["permissions"], {"contents": "read"})
-        job = workflow["jobs"]["watch"]
-        self.assertEqual(job["permissions"], {"contents": "read", "issues": "write"})
-        checkout = next(step for step in job["steps"] if step.get("uses", "").startswith("actions/checkout@"))
-        self.assertEqual(checkout["with"]["ref"], "${{ github.event.repository.default_branch }}")
-        self.assertEqual(checkout["with"]["persist-credentials"], "false")
-        self.assertIn("scripts/watch_sources.py", text)
+        jobs = workflow["jobs"]
+        # The watch observes with a read-only token; the publisher is the only writer, and it writes only issues. It
+        # reads the latest scheduled refresh report, so the digest lists the sources not refreshed.
+        self.assertEqual(jobs["watch"]["permissions"], {"actions": "read", "contents": "read"})
+        self.assertEqual(jobs["publish"]["permissions"], {"actions": "read", "contents": "read", "issues": "write"})
+        steps = jobs["publish"]["steps"]
+        lookup = next(index for index, step in enumerate(steps) if step.get("id") == "refresh")
+        download = steps[lookup + 1]
+        self.assertEqual(download["if"], "steps.refresh.outputs.artifact != ''")
+        self.assertEqual(download["continue-on-error"], "true", "a missing report is an unknown outcome, not a failure")
+        render = next(step for step in steps if "watch_sources.py render" in step.get("run", ""))
+        self.assertIn('--refresh-run "$REFRESH_RUN"', render["run"])
+        self.assertIn("--refresh .cache/refresh/report.json", render["run"])
+        for name in ("watch", "publish"):
+            job = jobs[name]
+            checkout = next(step for step in job["steps"] if step.get("uses", "").startswith("actions/checkout@"))
+            self.assertEqual(checkout["with"]["ref"], "${{ github.event.repository.default_branch }}")
+            self.assertEqual(checkout["with"]["persist-credentials"], "false")
+            self.assertNotIn("secrets.", json.dumps(job), f"the {name} job holds no credential")
+        self.assertIn("scripts/watch_sources.py observe", text)
+        self.assertIn("scripts/watch_sources.py render", text)
         self.assertIn("scripts/probe_champion.mjs --jobs 4", text)
-        self.assertNotIn("secrets.", json.dumps(job), "the watch holds no credential")
         self.assertNotIn("git push", text)
         # Live monitoring stays out of the deterministic pull-request checks.
         self.assertNotIn("watch_sources", (ROOT / ".github/workflows/checks.yml").read_text(encoding="utf-8"))
+
+    def test_the_weekly_jobs_are_ready_by_monday_morning_in_prague(self) -> None:
+        # Scheduled starts ran about five hours late in October 2026. Started six hours late and running to their full
+        # timeouts, the weekly jobs still finish before Monday 06:00 UTC: 08:00 in Prague in summer, 07:00 in winter.
+        deadline, delay = (24 + 6) * 60, 6 * 60  # minutes after Sunday 00:00 UTC
+        starts = {}
+        for name in ("source-refresh", "health-watch"):
+            workflow = load(f".github/workflows/{name}.yml")
+            crons = [entry["cron"] for entry in workflow["on"]["schedule"]]
+            self.assertEqual(len(crons), 1, f"{name} has one weekly schedule")
+            minute, hour, day, month, weekday = crons[0].split()
+            self.assertEqual((day, month, weekday), ("*", "*", "0"), f"{name} starts on Sunday")
+            jobs = workflow["jobs"]
+
+            def finish(job: str, jobs: dict = jobs) -> int:
+                needs = jobs[job].get("needs", [])
+                needs = [needs] if isinstance(needs, str) else needs
+                return int(jobs[job]["timeout-minutes"]) + max((finish(need) for need in needs), default=0)
+
+            starts[name] = int(hour) * 60 + int(minute)
+            longest = max(finish(job) for job in jobs)
+            self.assertLessEqual(starts[name] + delay + longest, deadline, name)
+        for entry in load(".github/dependabot.yml")["updates"]:
+            schedule = entry["schedule"]
+            self.assertEqual((schedule["day"], schedule["timezone"]), ("sunday", "Europe/Prague"))
+            hours, minutes = map(int, schedule["time"].split(":"))
+            summer, winter = hours * 60 + minutes - 120, hours * 60 + minutes - 60  # in UTC
+            self.assertLess(starts["source-refresh"], summer, "source refresh starts first, in summer too")
+            self.assertLess(winter, starts["health-watch"], "health watch starts last, in winter too")
+            self.assertLessEqual(winter + delay, deadline)
+
+    def test_the_first_weekly_watch_of_each_month_remeasures_the_champion_tests(self) -> None:
+        watch = load(".github/workflows/health-watch.yml")["jobs"]["watch"]
+        scope = next(step for step in watch["steps"] if step.get("id") == "scope")
+        self.assertIn("date -u -d '8 hours ago' +%-d)\" -le 7", scope["run"])
+        self.assertIn('[ "$REQUESTED" = true ]', scope["run"], "a manual run can still ask for it")
+        for step in watch["steps"]:
+            if "probe_champion" in step.get("run", "") or step.get("uses", "").startswith("actions/setup-node@"):
+                self.assertEqual(step["if"], "steps.scope.outputs.champion == 'true'")
+        # The rule the step applies: the run's date eight hours earlier is its Sunday, even when GitHub starts the
+        # 22:41 run up to six hours late, so exactly one run a month qualifies.
+        sundays = [date(2026, 1, 4) + timedelta(weeks=week) for week in range(104)]
+        for sunday in sundays:
+            for late in (0, 3, 6):
+                started = datetime(sunday.year, sunday.month, sunday.day, 22, 41) + timedelta(hours=late)
+                self.assertEqual((started - timedelta(hours=8)).date(), sunday)
+        months = {(sunday.year, sunday.month) for sunday in sundays}
+        for month in months:
+            qualifying = [sunday for sunday in sundays if (sunday.year, sunday.month) == month and sunday.day <= 7]
+            self.assertEqual(len(qualifying), 1, month)
+
+    def test_a_manual_health_watch_runs_the_parts_it_is_asked_for(self) -> None:
+        workflow = load(".github/workflows/health-watch.yml")
+        parts = workflow["on"]["workflow_dispatch"]["inputs"]["parts"]
+        self.assertEqual(
+            (parts["type"], parts["options"], parts["default"]), ("choice", ["both", "audit", "watch"], "both")
+        )
+        jobs = workflow["jobs"]
+        self.assertEqual(jobs["watch"]["if"], "github.event_name == 'schedule' || inputs.parts != 'audit'")
+        self.assertEqual(jobs["audit"]["if"], "github.event_name == 'schedule' || inputs.parts != 'watch'")
+        # The audit alone opens, edits and closes no issue: it holds no write permission, and the publisher runs only
+        # after a watch that succeeded.
+        self.assertFalse([value for value in jobs["audit"]["permissions"].values() if value == "write"])
+        self.assertEqual(jobs["publish"]["if"], "always() && needs.watch.result == 'success'")
+
+    def test_the_watch_state_continues_only_from_trusted_runs(self) -> None:
+        jobs = load(".github/workflows/health-watch.yml")["jobs"]
+        steps = {step.get("id") or step.get("name"): step for step in jobs["watch"]["steps"]}
+        self.assertIn("previousState", steps["previous"]["with"]["script"])
+        download = steps["Download the previous watch state"]
+        self.assertEqual(download["if"], "steps.previous.outputs.run != ''")
+        self.assertEqual(
+            (download["with"]["name"], download["with"]["run-id"]),
+            ("health-watch-state", "${{ steps.previous.outputs.run }}"),
+        )
+        # The version 1 cache is only a fallback until the first state artifact exists; nothing saves to it now.
+        self.assertEqual(steps["Restore the version 1 watch state"]["if"], "steps.previous.outputs.run == ''")
+        workflow = (ROOT / ".github/workflows/health-watch.yml").read_text(encoding="utf-8")
+        self.assertNotIn("actions/cache/save@", workflow)
+        publish = jobs["publish"]
+        self.assertEqual(publish["needs"], ["watch", "audit"])
+        steps = {step.get("id") or step.get("name"): step for step in publish["steps"]}
+        self.assertIn("--predecessor", steps["Render the digest"]["run"])
+        # Only a published digest advances what counts as reported; a refusal or failure keeps the observed state.
+        choose = steps["Choose the state the next run continues"]
+        self.assertEqual(
+            (choose["if"], choose["env"]["PUBLISHED"]), ("always()", "${{ steps.publish.outputs.published }}")
+        )
+        self.assertIn(
+            'if [ "$PUBLISHED" = true ]; then source=.cache/digest/state.json; else source=.cache/watch/state.json',
+            choose["run"],
+        )
+        save = steps["Save the watch state for the next run"]
+        self.assertEqual(
+            {key: save["with"][key] for key in ("name", "retention-days", "overwrite", "if-no-files-found")},
+            {"name": "health-watch-state", "retention-days": "90", "overwrite": "true", "if-no-files-found": "error"},
+        )
+
+    def test_inline_run_summaries_end_with_a_next_step(self) -> None:
+        # Summaries written in the workflow itself; the publishers' own outputs are covered by their fixtures.
+        steps = {
+            ("checks.yml", "checks", "Require the complete partitioned result"),
+            ("checks.yml", "quick", "Publish the quick summary"),
+            ("partitioned-checks.yml", "collect", "Publish the run summary"),
+            ("deploy.yml", "approve-production", "Record the approved production bytes"),
+            ("tag-release.yml", "not-tagged", "Report that no tag was created"),
+            ("tag-release.yml", "tag", "Require the default branch"),
+            ("prepare-release.yml", "prepare", "Require the default branch"),
+            ("publish-image.yml", "image", "Report the image"),
+            ("release.yml", "release", "Create the draft release with the same artifact"),
+            ("publish.yml", "publish", "Record the live channels"),
+        }
+        for workflow, job, name in sorted(steps):
+            with self.subTest(workflow=workflow, step=name):
+                step = next(
+                    step
+                    for step in load(f".github/workflows/{workflow}")["jobs"][job]["steps"]
+                    if step.get("name") == name
+                )
+                text = step.get("run", "") + step.get("with", {}).get("script", "")
+                if "handoff(" not in text:
+                    for label in ("**Next:**", "**If blocked:**", "**Done when:**"):
+                        self.assertIn(label, text)
+        collect = (ROOT / ".github/workflows/partitioned-checks.yml").read_text(encoding="utf-8")
+        self.assertIn(
+            'cat .cache/health/next.md >> "$GITHUB_STEP_SUMMARY"', collect, "the collector's next step is shown"
+        )
 
     def test_adoption_steps_preserve_failure_before_writing_the_summary(self) -> None:
         # Check adoption itself: condition layout and shell selection cannot bypass this invariant.
@@ -593,19 +947,39 @@ class WorkflowContracts(unittest.TestCase):
         checkout = next(step for step in audit["steps"] if step.get("uses", "").startswith("actions/checkout@"))
         self.assertEqual(checkout["with"]["ref"], "${{ github.event.repository.default_branch }}")
         self.assertEqual(checkout["with"]["persist-credentials"], "false")
-        app = next(
-            step for step in audit["steps"] if step.get("uses", "").startswith("actions/create-github-app-token@")
+        apps = {
+            step["id"]: step
+            for step in audit["steps"]
+            if step.get("uses", "").startswith("actions/create-github-app-token@")
+        }
+        # One token per permission set: GitHub refuses a token request as a whole when the installation has not
+        # accepted one of its permissions, so the accepted Project read must not share a request with newer reads.
+        self.assertEqual(
+            {
+                name: {key: value for key, value in step["with"].items() if key.startswith("permission-")}
+                for name, step in apps.items()
+            },
+            {
+                "project": {"permission-organization-projects": "read"},
+                "organization": {"permission-issue-types": "read", "permission-issue-fields": "read"},
+            },
         )
-        self.assertEqual(app["continue-on-error"], "true", "a token the App cannot issue is reported, not fatal")
-        requested = {key: value for key, value in app["with"].items() if key.startswith("permission-")}
-        self.assertEqual(requested, {"permission-organization-projects": "read"})
-        self.assertEqual(app["with"]["owner"], "${{ github.repository_owner }}", "Projects belong to the organization")
-        self.assertEqual(re.findall(r"secrets\.\w+", json.dumps(audit)), ["secrets.SOURCE_REFRESH_APP_PRIVATE_KEY"])
+        for name, app in apps.items():
+            with self.subTest(token=name):
+                self.assertEqual(app["continue-on-error"], "true", "a token that cannot be issued is reported")
+                self.assertEqual(app["with"]["owner"], "${{ github.repository_owner }}", "both read the organization")
+        self.assertEqual(re.findall(r"secrets\.\w+", json.dumps(audit)), ["secrets.SOURCE_REFRESH_APP_PRIVATE_KEY"] * 2)
         run = next(step for step in audit["steps"] if "audit_repository.py" in step.get("run", ""))
         self.assertEqual(
             run["env"],
-            {"GH_TOKEN": "${{ github.token }}", "GH_PROJECT_TOKEN": "${{ steps.app.outputs.token }}"},
-            "the App token reads only the Project; everything else uses the job's token",
+            {
+                "GH_TOKEN": "${{ github.token }}",
+                "GH_PROJECT_TOKEN": "${{ steps.project.outputs.token }}",
+                "GH_PROJECT_TOKEN_OUTCOME": "${{ steps.project.outcome }}",
+                "GH_ORGANIZATION_TOKEN": "${{ steps.organization.outputs.token }}",
+                "GH_ORGANIZATION_TOKEN_OUTCOME": "${{ steps.organization.outcome }}",
+            },
+            "the App tokens read only Project and organization definitions; repository reads use the job's token",
         )
         self.assertIn("--digest .cache/audit/project-and-settings.md > /dev/null", run["run"])
         self.assertNotIn("--fix", run["run"], "the weekly audit never writes")
@@ -622,7 +996,9 @@ class WorkflowContracts(unittest.TestCase):
         deploy = load(".github/workflows/deploy.yml")
         self.assertEqual(set(deploy["on"]), {"push", "workflow_dispatch"})
         self.assertEqual(deploy["permissions"], {"contents": "read"})
-        self.assertEqual(deploy["jobs"]["sources"]["permissions"], {"contents": "read", "actions": "read"})
+        self.assertEqual(
+            deploy["jobs"]["sources"]["permissions"], {"contents": "read", "actions": "read", "pages": "read"}
+        )
         self.assertEqual(deploy["on"]["push"], {"branches": ["main"], "tags": ["v*"]})
         verify = [step.get("run", "") + step.get("uses", "") for step in deploy["jobs"]["production"]["steps"]]
         order = [
@@ -636,6 +1012,15 @@ class WorkflowContracts(unittest.TestCase):
                 self.assertEqual(step["if"], "needs.sources.outputs.build == 'true'", "only a tag rebuilds production")
         stage = deploy["jobs"]["stage"]
         self.assertEqual(stage["if"], "needs.sources.outputs.kind == 'branch'", "a tag run prepares no staging site")
+        # Nothing reads a branch run's copy of the release, and its failure would block the preview's publication.
+        self.assertEqual(
+            deploy["jobs"]["production"]["if"],
+            "needs.sources.outputs.kind == 'tag'",
+            "a branch run prepares no production artifact",
+        )
+        for name in ("stage", "fallback-checks"):
+            needs = deploy["jobs"][name]["needs"]
+            self.assertNotIn("production", [needs] if isinstance(needs, str) else needs, f"{name} stages without it")
         self.assertEqual(stage["env"], {"FAIR_GUIDE_BUILD_CHANNEL": "preview"}, "the bytes the merge queue checks")
         runs = [step.get("run", "") for step in stage["steps"]]
         self.assertIn("python scripts/check_ci.py build", runs)
@@ -690,6 +1075,8 @@ class WorkflowContracts(unittest.TestCase):
         self.assertEqual(release["jobs"]["release"]["permissions"], {"contents": "write", "actions": "read"})
         self.assertEqual(release["jobs"]["publish"]["uses"], "./.github/workflows/publish-image.yml")
         self.assertEqual(release["jobs"]["publish"]["if"], "needs.bind.outputs.tag != ''")
+        self.assertEqual(release["jobs"]["publish"]["needs"], "bind")
+        self.assertEqual(release["jobs"]["release"]["needs"], ["bind", "publish"])
         text = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
         self.assertNotIn("build_site", text)
         self.assertNotIn("check_all", text)
@@ -711,7 +1098,8 @@ class WorkflowContracts(unittest.TestCase):
             "a newer push cancels older preparation; nothing cancels a release tag",
         )
         approval = deploy["jobs"]["approve-production"]
-        self.assertEqual(approval["environment"], {"name": "production"})
+        # The gate only: publication records production once the release is live, never at approval.
+        self.assertEqual(approval["environment"], {"name": "production", "deployment": "false"})
         self.assertEqual(approval["if"], "needs.sources.outputs.kind == 'tag' && needs.sources.outputs.build == 'true'")
         self.assertEqual(approval["permissions"], {})
         environments = {
@@ -733,7 +1121,7 @@ class WorkflowContracts(unittest.TestCase):
         for name, helper in (
             ("deploy.yml", "reuse"),
             ("release.yml", "draftRelease"),
-            ("publish-image.yml", "assertPromotion"),
+            ("publish-image.yml", "promotion"),
         ):
             text = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
             self.assertIn("refContext", text, f"{name} derives the {helper} context through refContext")
@@ -752,6 +1140,8 @@ class WorkflowContracts(unittest.TestCase):
         for part in ("## Sources and paradata", "## Checks", "## AI assistance", "## Related issues"):
             self.assertIn(part, template)
         guide = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+        guide += (ROOT / "docs/contribution-reference.md").read_text(encoding="utf-8")
+        guide += (ROOT / "docs/deployment.md").read_text(encoding="utf-8")
         for fact in (
             "independent eligible reviewer",
             "explicit acceptance before tagging",
@@ -791,7 +1181,10 @@ class WorkflowContracts(unittest.TestCase):
         )
         for entry in updates:
             with self.subTest(ecosystem=entry["package-ecosystem"]):
-                self.assertEqual(entry["schedule"], {"interval": "weekly"})
+                self.assertEqual(
+                    entry["schedule"],
+                    {"interval": "weekly", "day": "sunday", "time": "22:00", "timezone": "Europe/Prague"},
+                )
                 self.assertEqual(entry["open-pull-requests-limit"], "30")
                 # Patch and minor versions share one PR per ecosystem; a major update and security updates stay alone.
                 self.assertEqual(
@@ -845,6 +1238,20 @@ class TokenPermissions(unittest.TestCase):
                 name = permission.replace("-", "_")
                 with self.subTest(workflow=workflow, job=job, permission=permission):
                     self.assertGreaterEqual(rank.get(registered.get(name), 0), rank[access])
+
+    def test_organization_definition_reads_cannot_spread_or_gain_write_access(self) -> None:
+        actual = token_requests()
+        github, app = actual[("health-watch.yml", "audit")]
+        actual[("health-watch.yml", "audit")] = (github, {**app, "issue-fields": "write"})
+        github, app = actual[("health-watch.yml", "watch")]
+        actual[("health-watch.yml", "watch")] = (github, {**app, "issue-types": "read"})
+        self.assertEqual(
+            token_differences(reviewed_tokens(), actual),
+            [
+                "health-watch.yml job audit: App token requests issue-fields: write, reviewed read",
+                "health-watch.yml job watch: App token requests issue-types: read, reviewed none",
+            ],
+        )
 
 
 if __name__ == "__main__":

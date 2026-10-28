@@ -1,15 +1,14 @@
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
+# delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00
 
 """Shared repo-local runtime paths.
 
-Label-scoped temp and cache directories under the gitignored ``.venv/.cache/``
-tree for validation runners and their child processes, not the system temp
-directory or divergent per-runner layouts.
+Label-scoped temp and cache directories under the gitignored ``.venv/.cache/`` tree for validation runners and their
+child processes, not the system temp directory or divergent per-runner layouts.
 
-On POSIX, ``temp_dir`` may shorten a label path to ``.venv/.cache/t/<8-hex>``
-so ``unittest_parallel`` multiprocessing Managers can bind AF_UNIX sockets
-within the ``sun_path`` byte budget.
+On POSIX, ``temp_dir`` may shorten a label path to ``.venv/.cache/t/<8-hex>`` so ``unittest_parallel`` multiprocessing
+Managers can bind AF_UNIX sockets within the ``sun_path`` byte budget.
 
 Contract: pipeline/testing-pipeline-maintenance
 Class: library
@@ -53,11 +52,9 @@ def resolve_venv_dir(root: Path) -> Optional[Path]:
 def resolve_venv_python(root: Path) -> Optional[str]:
     """Return the repository-local virtualenv interpreter path, or None if absent.
 
-    Git-installed pre-commit hooks and IDE terminals invoke ``python`` from the
-    caller's PATH, which on Windows is routinely a system interpreter carrying
-    different tool versions than ``requirements-ci.txt`` pins. Hook shims resolve
-    the interpreter through this helper so a check cannot silently report against
-    an unpinned instrument.
+    Git-installed pre-commit hooks and IDE terminals invoke ``python`` from the caller's PATH, which on Windows is
+    routinely a system interpreter carrying different tool versions than ``requirements-ci.txt`` pins. Hook shims
+    resolve the interpreter through this helper so a check cannot silently report against an unpinned instrument.
     """
     for candidate in (
         root / ".venv" / "Scripts" / "python.exe",
@@ -73,9 +70,8 @@ def resolve_venv_python(root: Path) -> Optional[str]:
 def cache_root(root: Path) -> Path:
     """Return the canonical repo-local cache root ``<venv>/.cache``.
 
-    Prefers an existing virtualenv directory (``.venv`` or ``venv``) and falls
-    back to ``<root>/.venv`` so the layout is stable for documentation and
-    gitignore even before the virtualenv is created.
+    Prefers an existing virtualenv directory (``.venv`` or ``venv``) and falls back to ``<root>/.venv`` so the layout is
+    stable for documentation and gitignore even before the virtualenv is created.
     """
     venv_dir = resolve_venv_dir(root) or (root / ".venv")
     return venv_dir / ".cache"
@@ -130,9 +126,8 @@ def af_unix_temp_budget() -> int:
 def temp_dir(root: Path, label: str = DEFAULT_LABEL, *, create: bool = False) -> Path:
     """Return the label-scoped temp directory under ``<venv>/.cache/``.
 
-    Prefers ``tmp/<label>``. On POSIX, when that path would leave too little room
-    for multiprocessing AF_UNIX sockets, falls back to ``t/<8-hex>`` so runners
-    such as ``unittest_parallel`` can still bind their Manager listener.
+    Prefers ``tmp/<label>``. On POSIX, when that path would leave too little room for multiprocessing AF_UNIX sockets,
+    falls back to ``t/<8-hex>`` so runners such as ``unittest_parallel`` can still bind their Manager listener.
     """
     canonical = cache_dir(root, "tmp", label, create=False)
     if os.name != "nt" and len(str(canonical)) > af_unix_temp_budget():
@@ -195,11 +190,9 @@ def build_runtime_env(  # pylint: disable=too-many-arguments
 ) -> Dict[str, str]:
     """Build a child-process environment with repo-local temp/cache paths.
 
-    Always redirects the standard temp env vars under the label-scoped
-    ``temp_dir`` path (``tmp/<label>``, or ``t/<8-hex>`` when that path would
-    overflow the POSIX AF_UNIX socket budget). Optionally sets ``PYLINTHOME``
-    under the same label, prepends ``PYTHONPATH`` entries, and prepends the venv
-    ``Scripts``/``bin`` directory to ``PATH``.
+    Always redirects the standard temp env vars under the label-scoped ``temp_dir`` path (``tmp/<label>``, or
+    ``t/<8-hex>`` when that path would overflow the POSIX AF_UNIX socket budget). Optionally sets ``PYLINTHOME`` under
+    the same label, prepends ``PYTHONPATH`` entries, and prepends the venv ``Scripts``/``bin`` directory to ``PATH``.
     """
     env: Dict[str, str] = dict(os.environ if base_env is None else base_env)
     apply_temp_env(env, temp_dir(root, label, create=create))

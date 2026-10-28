@@ -6,9 +6,10 @@
 `CHANGELOG.md` keeps exactly one `## [Unreleased]` section above the releases. Its entries are curated by
 people; an empty section is valid, but category headings without entries or placeholder text are not. With
 `--base`, every released section must keep its bytes from where this branch left the base, as in a pull request.
-The one accepted history change is a complete release transition: one new dated section, directly below an empty
-`[Unreleased]`, that starts with the base's unpublished notes. Release preparation reuses this parser to keep
-those notes. The check reads no pull-request text and never edits the changelog.
+The accepted history changes are a complete release transition, one new dated section directly below an empty
+`[Unreleased]` that starts with the base's unpublished notes, and the completion of a prepared release whose tag
+does not exist yet: its newest section may gain generated lineage entries, and nothing else. Release preparation
+reuses this parser to keep those notes. The check reads no pull-request text and never edits the changelog.
 """
 
 from __future__ import annotations
@@ -30,6 +31,10 @@ HEADING = re.compile(r"(?m)^## (?P<title>[^\r\n]*)$")
 CATEGORY = re.compile(r"^#{3,} +(?P<title>.+?)\s*#*\s*$")
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 PLACEHOLDER = re.compile(r"(?i)^[-*+]?\s*(?:tbd|todo|tba|n/?a|none|\.\.\.|…)?\s*\.?$")
+# A generated lineage entry: a linked merged pull request or direct commit, as release preparation writes it.
+LINEAGE_ENTRY = re.compile(
+    r"- .+ \(\[(?:#\d+|[0-9a-f]{7})\]\(https://github\.com/[\w.-]+/[\w.-]+/(?:pull/\d+|commit/[0-9a-f]{40})\)\)"
+)
 
 
 @dataclass(frozen=True)
@@ -129,11 +134,26 @@ def structure_errors(text: str) -> list[str]:
     return errors
 
 
-def history_errors(previous: str, text: str, base_label: str) -> list[str]:
-    """Released sections keep their bytes; a single complete release transition is the only addition."""
+def lineage_extension(original: str, current: str) -> bool:
+    """`current` keeps every line of `original` in order and adds only generated lineage: linked pull-request or
+    commit entries, their two headings and blank lines. Completing a prepared release produces exactly this."""
+    old, added, index = original.split("\n"), [], 0
+    for line in current.split("\n"):
+        if index < len(old) and line == old[index]:
+            index += 1
+        else:
+            added.append(line)
+    allowed = {"", *(f"### {name}" for name in RESERVED)}
+    return index == len(old) and bool(added) and all(line in allowed or LINEAGE_ENTRY.fullmatch(line) for line in added)
+
+
+def history_errors(previous: str, text: str, base_label: str, tagged: set[str] | None = None) -> list[str]:
+    """Released sections keep their bytes; a single complete release transition is the only addition. With the
+    `tagged` versions known, the newest section of an untagged version may also gain generated lineage entries."""
     _, base_sections = parse(previous)
     _, sections = parse(text)
     base_released = {section.key: section.text for section in base_sections if not section.unreleased}
+    newest = next(iter(base_released), None)
     released = [section for section in sections if not section.unreleased]
     current = {section.key: section.text for section in released}
     errors = []
@@ -141,6 +161,9 @@ def history_errors(previous: str, text: str, base_label: str) -> list[str]:
         if key not in current:
             errors.append(f"release `{key}` was removed since {base_label}; published history is not rewritten")
         elif current[key] != original:
+            completing = tagged is not None and key == newest and key not in tagged
+            if completing and lineage_extension(original, current[key]):
+                continue
             errors.append(
                 f"release `{key}` changed since {base_label}; record the correction in `[{UNRELEASED}]` for the "
                 "next release instead"
@@ -186,7 +209,8 @@ def check(root: Path, base: str | None = None) -> tuple[list[str], str]:
     previous, label = base_text(root, base)
     if previous is None:
         return errors, f"history not compared: {FILE} is new since {label}"
-    return [*errors, *history_errors(previous, text, label)], f"compared with {label}"
+    tagged = {name.removeprefix("v") for name in git(root, "tag", "--list", "v*").split()}
+    return [*errors, *history_errors(previous, text, label, tagged)], f"compared with {label}"
 
 
 def main(argv: list[str] | None = None) -> int:

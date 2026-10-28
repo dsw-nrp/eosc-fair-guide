@@ -32,6 +32,7 @@ import urllib.parse
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree
 
 import build_identity
 from catalogue_identity import (
@@ -46,6 +47,7 @@ from catalogue_identity import (
     validate_identity,
 )
 from corrections import apply as apply_corrections
+from publication_location import base_url as publication_base
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
@@ -473,12 +475,21 @@ def load_toml(path: Path) -> dict[str, Any]:
 
 
 def apply_base_url(guide: dict[str, Any]) -> None:
-    """Derive every address of the guide from the one it is published at: the page, the vocabulary of its own terms
-    and its RO-Crate profile. `FAIR_GUIDE_BASE_URL` gives a build another address than the content's `baseUrl`."""
-    base = (os.environ.get(BASE_URL_ENV) or guide.get("baseUrl") or "").rstrip("/") + "/"
-    guide["pageUrl"] = base
-    guide["vocabularyBase"] = base + "terms#"
-    guide["profile"] = f"{base}profile/{guide.get('profileVersion', '')}"
+    """Derive the page's address from where the guide is published, and its vocabulary and profile from its reviewed
+    `namespace`, so that moving the site never renames a term. `FAIR_GUIDE_BASE_URL` gives a build its actual
+    publication location instead of the content's `baseUrl`; nothing overrides the namespace. Content from before the
+    setting existed named its terms under its own `baseUrl`, so that value, never the environment, is its namespace."""
+
+    def resolved(key: str, value: str | None) -> str:
+        try:
+            return publication_base(value or "")
+        except ValueError as error:
+            raise ContentError(f"guide.{key}: {error}") from error
+
+    namespace = resolved("namespace", guide.get("namespace") or guide.get("baseUrl"))
+    guide["pageUrl"] = resolved("baseUrl", os.environ.get(BASE_URL_ENV) or guide.get("baseUrl"))
+    guide["vocabularyBase"] = namespace + "terms#"
+    guide["profile"] = f"{namespace}profile/{guide.get('profileVersion', '')}"
 
 
 def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
@@ -2087,6 +2098,12 @@ def build_callouts(graph: Graph, callouts: list[dict[str, Any]], all_lenses: lis
     return callout_ids
 
 
+def champion_endpoint(champion: dict[str, Any], test: dict[str, Any]) -> str | None:
+    """A curated test's invocation URL: its own endpoint, or the service endpoint with the provider's test ID."""
+    native, base = alternate_id(test, "fair-champion"), champion.get("endpoint")
+    return test.get("endpoint") or (base.rstrip("/") + "/" + native if base and native else None)
+
+
 def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
     champion = live.get("champion", {})
     test_ids = []
@@ -2101,7 +2118,7 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
                 "additionalType": FTR_TEST,
                 "identifier": test["id"],
                 "name": text(test.get("label")) or test["id"],
-                "url": test.get("endpoint") or (champion["endpoint"].rstrip("/") + "/" + native if native else None),
+                "url": champion_endpoint(champion, test),
                 "description": text(test.get("description")),
                 "subjectOf": refs(
                     [test.get("record") or champion["testRecord"].format(id=native), champion["documentation"]]
@@ -2719,7 +2736,10 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             "url": guide.get("url"),
             "license": ref(LICENSES["MIT"][0]),
             "author": refs([people[person] for person in guide.get("editors", [])]),
-            "runtimePlatform": "Web browser; Python 3.11 or later for the build; Node.js for development checks",
+            "runtimePlatform": (
+                "Web browser; Python 3.11 or later and the pinned Node.js packages for the build; "
+                "Node.js for development checks"
+            ),
             "softwareHelp": guide.get("url", "").rstrip("/") + "/blob/HEAD/README_en.md",
             "hasPart": refs(["#guide-source", "./"]),
             "subjectOf": ref("./"),
@@ -3783,6 +3803,31 @@ def render_page(page: str, content: dict[str, Any], crate: dict[str, Any], sprit
 # Entry point
 
 
+# The Guide root and its API documentation: every view of the Guide is a fragment of the root, so it has no other page.
+SITEMAP_PATHS = ("", "api/index.html")
+# Assembly publishes the default-branch preview under this path, beside the release.
+PREVIEW_PATH = "next/"
+CRAWLER_FILES = ("robots.txt", "sitemap.xml")
+
+
+def crawler_files(base: str) -> dict[str, str]:
+    """Discovery at the actual publication root. A subpath cannot publish the origin's robots policy.
+
+    Preview HTML remains crawlable so its noindex can be read. Only root hosting emits robots.txt; either hosting
+    mode emits the production sitemap, without fragments, preview URLs or invented modification dates.
+    """
+    base = publication_base(base)
+    urlset = ElementTree.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+    for path in SITEMAP_PATHS:
+        ElementTree.SubElement(ElementTree.SubElement(urlset, "url"), "loc").text = base + path
+    ElementTree.indent(urlset)
+    sitemap = ElementTree.tostring(urlset, encoding="unicode", xml_declaration=True) + "\n"
+    files = {"sitemap.xml": sitemap}
+    if urllib.parse.urlsplit(base).path == "/":
+        files["robots.txt"] = f"User-agent: *\nAllow: /\n\nSitemap: {base}sitemap.xml\n"
+    return files
+
+
 def outputs(
     root: Path = ROOT,
     *,
@@ -3871,9 +3916,10 @@ def outputs(
             for name, paths in PART_LANGUAGE_SCRIPTS.items()
             for lang, path in paths.items()
         }
-        | profile_shapes(root, content["guide"]["guide"]["pageUrl"])
+        | profile_shapes(root, vocabulary_base(content["guide"]["guide"]).removesuffix("terms#"))
         | profile_page(root, content["guide"]["guide"])
         | vocabulary_page(root, content["guide"]["guide"])
+        | crawler_files(content["guide"]["guide"]["pageUrl"])
     )
 
 
@@ -3886,11 +3932,12 @@ def turtle_text(value: str) -> str:
 
 
 def vocabulary_base(guide: dict[str, Any]) -> str:
-    """The vocabulary IRI base, from the derived value or, for a caller that has not applied the base URL, the
-    content's own `baseUrl`, so the check reads the same address the build writes."""
+    """The vocabulary IRI base, from the derived value or, for a caller that has not applied the addresses, the
+    content's own `namespace`, so the check reads the same address the build writes."""
     if guide.get("vocabularyBase"):
         return str(guide["vocabularyBase"])
-    base = (os.environ.get(BASE_URL_ENV) or guide.get("baseUrl") or "").rstrip("/") + "/"
+    value = guide.get("namespace") or guide.get("baseUrl")
+    base = publication_base(value) if value else "/"
     return base + "terms#"
 
 

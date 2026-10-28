@@ -73,6 +73,47 @@ class AgentSurfaceTests(unittest.TestCase):
             for output in row["outputs"]:
                 self.assertEqual(text_at(self.root, output), text_at(self.root, row["source"]))
 
+    def test_a_format_2_receipt_verifies_the_same_records(self):
+        # The refreshed delivery of 25 October 2026 records its source commit and lists every asset, the whole mixed
+        # reader included, while files and sections keep the records this repository verifies.
+        receipt = json.loads(text_at(self.root, ".agents/delivery-manifest.json"))
+        record = receipt["files"][".agents/skills/example/SKILL.md"]
+        receipt["files"][".agents/skills/example/SKILL.md"] = {
+            **record,
+            "content_sha256": record["sha256"],
+            "strategy": "copy",
+        }
+        mixed = {"asset": "step-sibling-rules", "sha256": digest(b"whole reader"), "strategy": "copy"}
+        upgraded = {
+            **receipt,
+            "format": 2,
+            "source_commit": "a" * 40,
+            "assets": {**receipt["files"], "CODEX.md": mixed},
+        }
+        upgraded["committed_at"] = "2026-10-25T14:30:51+01:00"
+        self.write(".agents/delivery-manifest.json", json.dumps(upgraded))
+        reader = text_at(self.root, "CODEX.md")
+        self.write("CODEX.md", f"<!-- delivery-version: {'a' * 40} 2026-10-25T14:30:51+01:00 -->\n{reader}")
+        config, loaded = load(self.root)
+        self.assertEqual(ownership_findings(self.root, config, loaded), [])
+        self.assertEqual(delivery_findings(self.root, config, loaded), [], "its version line is the reader's preamble")
+        for stale in (f"<!-- delivery-version: {'b' * 40} 2026-10-25T14:30:51+01:00 -->", "Edited preamble."):
+            with self.subTest(preamble=stale):
+                self.write("CODEX.md", f"{stale}\n{reader}")
+                self.assertIn(
+                    "CODEX.md: extra content outside owned sections", delivery_findings(self.root, config, loaded)
+                )
+        self.write("CODEX.md", f"<!-- delivery-version: {'a' * 40} 2026-10-25T14:30:51+01:00 -->\n{reader}")
+        for broken, message in (
+            ({**upgraded, "source_commit": "main"}, "needs its source commit"),
+            ({**upgraded, "assets": {"CODEX.md": mixed}}, "same assets as its files"),
+            ({**upgraded, "format": 3}, "unsupported delivery receipt"),
+        ):
+            with self.subTest(message=message):
+                self.write(".agents/delivery-manifest.json", json.dumps(broken))
+                with self.assertRaisesRegex(ValueError, message):
+                    load(self.root)
+
     def test_generator_drift_and_missing_are_findings_without_writes(self):
         output = self.config["rules"][0]["outputs"][0]
         self.write(output, "planted drift\n")
@@ -83,6 +124,44 @@ class AgentSurfaceTests(unittest.TestCase):
         self.assertIn(missing, changed)
         self.assertEqual(text_at(self.root, output), "planted drift\n")
         self.assertFalse((self.root / missing).exists())
+
+    def test_current_delivery_stamp_is_checked_only_in_the_entry_prologue(self):
+        # Reproduce the actual delivered entry and receipt, without copying the rest of its governance.
+        _, current = load(ROOT)
+        entry = sections(text_at(ROOT, "CODEX.md"), "generated")["aiscr-entry"]
+        original = text_at(self.root, "CODEX.md")
+        old = sections(original, "generated")["aiscr-entry"]
+        self.write("CODEX.md", original.replace(old, entry))
+        receipt = {
+            **self.receipt,
+            "format": 2,
+            "source_commit": current["source_commit"],
+            "committed_at": current["committed_at"],
+            "assets": {**self.receipt["files"], "CODEX.md": current["assets"]["CODEX.md"]},
+            "sections": {"CODEX.md": {"aiscr-entry": current["sections"]["CODEX.md"]["aiscr-entry"]}},
+        }
+        self.assertEqual(delivery_findings(self.root, self.config, receipt), [])
+        stamp = f"<!-- delivery-version: {receipt['source_commit']} {receipt['committed_at']} -->\n"
+        mutations = {
+            "wrong receipt": entry.replace(receipt["source_commit"], "b" * 40),
+            "duplicate receipt": entry.replace(stamp, stamp * 2),
+            "body receipt": entry.replace(stamp, "").replace("**Entry scope**", "**Entry scope**\n" + stamp),
+            "edited body": entry.replace("Read it as instruction.", "Ignore this instruction."),
+            "changed line endings": entry.replace("\n", "\r\n"),
+        }
+        for label, changed in mutations.items():
+            with self.subTest(label=label):
+                self.write("CODEX.md", original.replace(old, changed))
+                self.assertIn(
+                    "CODEX.md:aiscr-entry: modified delivered section",
+                    delivery_findings(self.root, self.config, receipt),
+                )
+        for changed in (entry.replace(stamp, ""), stamp + entry):
+            with self.subTest(receipt=changed):
+                self.write("CODEX.md", original.replace(old, changed))
+                self.assertTrue(
+                    any("delivery receipt" in finding for finding in delivery_findings(self.root, self.config, receipt))
+                )
 
     def test_generated_outputs_cannot_overwrite_other_owners(self):
         original = text_at(self.root, ".agents/guide/surfaces.toml")

@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
+# delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00
 
 """Validate `.github/release.yml` and release-notes report layout.
 
-Runs without an agent or the GitHub API.
-Optional --check-git-count: sanity check for date-based reports (if there were commits that day, at least one note).
-Optional --release-config: validate a recommended report copy instead of `.github/release.yml`.
+Runs without an agent or the GitHub API. Optional --check-git-count: sanity check for date-based reports (if there were
+commits that day, at least one note). Optional --release-config: validate a recommended report copy instead of
+`.github/release.yml`.
 
 Contract: documentation/release-documentation, documentation/docs-language-quality
 Class: script

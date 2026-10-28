@@ -1,5 +1,6 @@
 // Trusted default-branch code: treats the PR artifact as bounded, escaped data and never executes it.
 const { readFileSync, statSync } = require("node:fs");
+const { handoff } = require("./handoff.cjs");
 const marker = "<!-- fair-guide-review-summary -->";
 // `/help` in commands.cjs looks for this heading to say whether `/fix-duplicates` has a repair to apply.
 const SUGGESTED_FIXES = "### Suggested fixes";
@@ -57,19 +58,60 @@ function suggestionLines(run, suggestions, repository) {
   return lines;
 }
 
+// Advisory hints for the author, derived only from the API's changed files and commit messages: never from the PR
+// body or the artifact. They decide nothing a check decides.
+const LINEAGE_BRANCH = /^(dependabot|refresh)\//;
+const PLANNING = [/^\.github\/(workflows|scripts)\//, /^\.github\/repository\.toml$/, /^scripts\//, /^assets\/js\//,
+  /^index\.html$/, /^\.(agents|claude|codex|cursor|gemini|kilo)\//, /^(AGENTS|CLAUDE|CODEX)\.md$/];
+const PLANNING_SHOWN = 8;
+
+function hints(pr, files, commits, repository) {
+  const paths = files.map((file) => file?.filename).filter((path) => typeof path === "string");
+  const bot = pr.user?.type === "Bot";
+  const branch = String(pr.head?.ref || "");
+  if (bot && branch.startsWith("release/")) return [];
+  const lines = [];
+  if (bot && LINEAGE_BRANCH.test(branch)) {
+    lines.push("- **Release notes:** the generated release lineage lists this pull request, so it needs no `[Unreleased]` line.");
+    return lines;
+  }
+  const unreleased = files.some((file) => file?.filename === "CHANGELOG.md" && /^\+[-*] /m.test(String(file.patch || "")));
+  lines.push(unreleased
+    ? "- **Release notes:** this pull request adds an `[Unreleased]` line. Keep one only for a breaking change, a required step or a security fix; commit messages feed everything else."
+    : "- **Release notes:** no `[Unreleased]` line, which is right unless this is a breaking change, a required step or a security fix. Commit messages feed the release notes, so write them for readers.");
+  const planned = paths.some((path) => path.startsWith("openspec/changes/")) ||
+    commits.some((entry) => /openspec/i.test(String(entry?.commit?.message || "")));
+  const touched = paths.filter((path) => PLANNING.some((pattern) => pattern.test(path)));
+  if (touched.length && !planned) {
+    const shown = touched.slice(0, PLANNING_SHOWN).map((path) => escape(clean(path))).join(", ");
+    const more = touched.length > PLANNING_SHOWN ? ` and ${touched.length - PLANNING_SHOWN} more` : "";
+    lines.push(`- **Planning:** this pull request changes behaviour, CI or governance paths (${shown}${more}) and neither adds nor names an OpenSpec change. A change of behaviour, a contract, CI or a governance rule is planned first, as [CONTRIBUTING.md](https://github.com/${repository}/blob/HEAD/CONTRIBUTING.md) describes; a wording, formatting or dependency change needs no plan.`);
+  }
+  return lines;
+}
+
 function matches(pr, run) {
   const source = run.head_repository?.full_name;
   return typeof source === "string" && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(source) &&
     pr.state === "open" && pr.head?.sha === run.head_sha && pr.head.repo?.full_name === source;
 }
 
-function body(run, report, repository, suggestions = null) {
+function body(run, report, repository, suggestions = null, advice = []) {
   if (!/^[0-9a-f]{40}$/.test(run.head_sha) || report.formatVersion !== 1 || report.head !== run.head_sha || !Array.isArray(report.items) || report.items.length > 200 ||
       !Number.isSafeInteger(report.total) || report.total < report.items.length || !Number.isSafeInteger(run.id) ||
       !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) throw Error("Invalid review artifact identity or bounds");
   const candidates = report.items.slice(0, 40);
   const suggestionText = suggestionLines(run, suggestions, repository).join("\n");
-  const reserved = suggestionText.length + 500;
+  const adviceText = advice.length ? ["", "### Hints", "", ...advice, "", "Hints are advisory: they never fail a check."].join("\n") : "";
+  // Only a successful run reads as one: every other conclusion leaves the checks to the author.
+  const closing = "\n\n" + (run.conclusion === "success"
+    ? handoff({ next: "a reviewer reviews the change; once it is approved, the author adds it to the merge queue.",
+      blocked: "the linked run holds the checks, health report and previews; ask a maintainer for a review.",
+      done: "the pull request is merged through the queue." })
+    : handoff({ next: "the author fixes the failed checks; the run's `partitioned / collect` summary names each one with the command that reproduces it locally.",
+      blocked: "the run's health artifact holds the complete logs; a failure this change did not cause goes to a maintainer.",
+      done: "the checks of the next push pass." }));
+  const reserved = suggestionText.length + adviceText.length + closing.length + 500;
   let shown = 0;
   const lines = [marker, "## Guide review", "", `Commit: \`${run.head_sha}\`. Run conclusion: **${escape(run.conclusion)}**.`, "",
     `[Checks, health report and desktop/mobile preview artifacts](https://github.com/${repository}/actions/runs/${run.id})`, "",
@@ -92,9 +134,11 @@ function body(run, report, repository, suggestions = null) {
       : ` Only the first ${report.items.length} changed items are in the review artifact.`;
     lines.push("", `The table shows ${shown} of ${report.total} changed items within the comment size limit.${complete}`);
   }
+  if (adviceText) lines.push(adviceText);
   if (suggestionText) lines.push(suggestionText);
   const text = lines.join("\n");
-  return text.length > COMMENT_LIMIT ? text.slice(0, COMMENT_LIMIT - 40) + "\n\n… comment truncated." : text;
+  const room = COMMENT_LIMIT - closing.length;
+  return (text.length > room ? text.slice(0, room - 40) + "\n\n… comment truncated." : text) + closing;
 }
 
 function readReport(file) {
@@ -116,12 +160,22 @@ async function comment({ github, context, core }, read = readReport) {
   const repository = context.repo.owner + "/" + context.repo.repo;
   const file = ".cache/pr-review-incoming/summary.json";
   const suggestions = readOptional(".cache/pr-review-incoming/suggestions.json", read);
-  const text = body(run, read(file), repository, suggestions);
+  const report = read(file);
+  body(run, report, repository, suggestions); // refuses an invalid artifact before any request
   const listed = run.pull_requests?.length ? run.pull_requests : await github.paginate(github.rest.pulls.list, { ...context.repo, state: "open", per_page: 100 });
   for (const candidate of listed) {
     if (!Number.isSafeInteger(candidate.number)) continue;
     const { data: pr } = await github.rest.pulls.get({ ...context.repo, pull_number: candidate.number });
     if (!matches(pr, run)) continue;
+    let advice = [];
+    try {
+      const files = await github.paginate(github.rest.pulls.listFiles, { ...context.repo, pull_number: pr.number, per_page: 100 });
+      const commits = await github.paginate(github.rest.pulls.listCommits, { ...context.repo, pull_number: pr.number, per_page: 100 });
+      advice = hints(pr, files, commits, repository);
+    } catch (error) {
+      core.warning(`PR ${pr.number}: no hints this time (${error.message})`);
+    }
+    const text = body(run, report, repository, suggestions, advice);
     const comments = await github.paginate(github.rest.issues.listComments, { ...context.repo, issue_number: pr.number, per_page: 100 });
     const own = comments.find((entry) => entry.user?.login === "github-actions[bot]" && entry.body?.startsWith(marker));
     if (own) await github.rest.issues.updateComment({ ...context.repo, comment_id: own.id, body: text });
@@ -130,4 +184,4 @@ async function comment({ github, context, core }, read = readReport) {
   }
 }
 
-module.exports = { body, matches, comment, validSuggestion, marker, SUGGESTED_FIXES };
+module.exports = { body, hints, matches, comment, validSuggestion, marker, SUGGESTED_FIXES };

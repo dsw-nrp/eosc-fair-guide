@@ -1,14 +1,16 @@
-# aiscr:canonical=
-description = "Develop a GitHub issue description into the structured, machine-readable shape the ecosystem uses, absorbing the reporter's draft and thread rather than appending to them, and capture external input such as review findings as new issues. Every write is verified against a disposition ledger so nothing is lost silently, attended or not."
+# delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00
+
+description = "Use when the user asks to shape or revise a GitHub issue, or capture external review findings as issues. Reconcile the draft and thread into the structured issue shape, verify writes against a disposition ledger, and preserve every finding."
 prompt = """
-<!-- aiscr:stop-anchor -->
+<!-- aiscr:entry-scope -->
+
 **Entry scope**
 
 - Stay in this `.gemini/commands/aiscr/` surface and its same-vendor pointers first.
 - Do not open parallel vendor trees by default just in case.
 - Cross into another vendor tree only for explicit parity checks, generator work, or governance maintenance.
 
-Develop a GitHub issue description into the structured, machine-readable shape the ecosystem uses, absorbing the reporter's draft and thread rather than appending to them, and capture external input such as review findings as new issues. Every write is verified against a disposition ledger so nothing is lost silently, attended or not.
+Use when the user asks to shape or revise a GitHub issue, or capture external review findings as issues. Reconcile the draft and thread into the structured issue shape, verify writes against a disposition ledger, and preserve every finding.
 
 Execute the AIS CR workflow `aiscr-plan-issue`. The full workflow body for this command is the repository-local skill included below; follow it as the authoritative procedure, guardrails, and verification requirements.
 

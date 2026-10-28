@@ -15,10 +15,16 @@ for (const value of ['1.2.3', '0.0.0', '1.2.3-alpha.1', '1.2.3-rc-2']) assert(va
 for (const value of ['v1.2.3', '01.2.3', '1.2.3-alpha.01', '1.2.3-a..b', '1.2.3+build', '$(id)']) assert(!validVersion(value));
 assert.throws(() => dispatch({...context, ref: 'refs/heads/feature'}), /default branch/);
 assert.throws(() => dispatch({...context, eventName: 'push'}), /dispatch/);
+const typed = value => ({...context, payload: {...context.payload, inputs: {...context.payload.inputs, version: value}}});
+for (const value of ['v1.2.3-alpha.1', ' 1.2.3-alpha.1\n'])
+  assert.deepEqual(dispatch(typed(value)), {base: 'main', version: '1.2.3-alpha.1', branch: 'release/1.2.3-alpha.1'}, value);
+for (const value of ['vv1.2.3', '1.2', '', undefined])
+  assert.throws(() => dispatch(typed(value)), /1\.0\.0-alpha\.4 or v1\.0\.0-alpha\.4/, String(value));
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function fixture() {
   const state = {refs: new Map([['heads/main', sha]]), commits: new Map([[sha, {tree: {sha: 'base'}}]]), prs: [],
-    creates: [], blobs: [], tags: new Map(), failPR: false, reads: [], outputs: {}, associations: [], failAssociations: false};
+    creates: [], updates: [], blobs: [], tags: new Map(), failPR: false, reads: [], outputs: {}, associations: [],
+    failAssociations: false, prCommits: []};
   const github = {rest: {git: {
     getRef: async ({ref}) => {if (!state.refs.has(ref)) throw Object.assign(Error('missing'), {status: 404}); return {data: {object: {sha: state.refs.get(ref)}}};},
     getCommit: async ({commit_sha}) => ({data: state.commits.get(commit_sha)}),
@@ -27,17 +33,21 @@ function fixture() {
     createCommit: async args => {const id = hash(args); state.commits.set(id, {message: args.message, tree: {sha: args.tree}, parents: args.parents.map(sha => ({sha}))}); return {data: {sha: id}};},
     createTag: async args => {const id = hash(args); state.tags.set(id, args); return {data: {sha: id}};},
     createRef: async ({ref, sha}) => {const key = ref.slice(5); if (state.refs.has(key)) throw Error('already exists'); state.refs.set(key, sha); state.creates.push(ref); return {data: {ref}};},
-  }, pulls: {list: 'pulls.list', create: async args => {
+    updateRef: async ({ref, sha, force}) => {state.updates.push({ref, sha, force}); state.refs.set(ref, sha); return {data: {ref}};},
+  }, pulls: {list: 'pulls.list', listCommits: 'pulls.commits', create: async args => {
     if (state.failPR) {state.failPR = false; throw Error('interrupted');}
     const pr = {...args, html_url: 'https://github.com/example/guide/pull/3', state: 'open'}; state.prs.push(pr); return {data: pr};
   }}, repos: {listPullRequestsAssociatedWithCommit: 'commit.pulls', listDeployments: 'deployments',
-    listDeploymentStatuses: 'deployment.statuses'},
-  actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}}), listWorkflowRuns: 'workflow.runs'}},
+    listDeploymentStatuses: 'deployment.statuses', listTags: 'tags'},
+  actions: {getWorkflowRun: async ({run_id}) => ({data: {created_at: '2026-10-14T10:00:00Z', ...(state.runInfo?.[run_id] || {})}}),
+    listWorkflowRuns: 'workflow.runs'}},
   paginate: async (method, args) => {
+    if (method === 'tags') return (state.tagList || []).map(name => ({name}));
     state.reads.push(args);
     if (method === 'deployments') return state.deployments || [];
     if (method === 'deployment.statuses') return (state.statuses || {})[args.deployment_id] || [];
     if (method === 'workflow.runs') return (state.runs || {})[args.workflow_id] || [];
+    if (method === 'pulls.commits') return state.prCommits;
     if (method === 'commit.pulls') {
       if (state.failAssociations) throw Error('Association page failed');
       return state.associations;
@@ -93,9 +103,65 @@ function fixture() {
   assert.equal(state.prs.length, 1);
   assert.equal(manifest.files.length, PREPARED_PATHS.length);
   assert(!state.creates.some(ref => ref.includes('/tags/')));
+  assert.equal(state.outputs.url, 'https://github.com/example/guide/pull/3', 'the proposal address is a step output');
   const branch = state.refs.get('heads/release/1.2.3-alpha.1');
   state.commits.get(branch).tree.sha = 'human edit';
-  await assert.rejects(propose({github, core, context}, read), /different content/);
+  await assert.rejects(propose({github, core, context}, read), /changes the preparation did not make/);
+}
+const BOT = 'fair-guide-actions[bot]';
+const ours = message => ({author: {login: BOT}, commit: {message}});
+const moved = 'c'.repeat(40);
+const later = {...context, sha: moved};
+function movedOn(state) {
+  state.refs.set('heads/main', moved);
+  state.commits.set(moved, {tree: {sha: 'later'}});
+}
+{
+  // An outdated proposal that only the automation touched is prepared again from the moved default branch.
+  const {state, github, core, read} = fixture();
+  await propose({github, core, context}, read, undefined, BOT);
+  movedOn(state);
+  state.prCommits = [ours('Prepare release 1.2.3-alpha.1\n')];
+  await propose({github, core, context: later}, read, undefined, BOT);
+  assert.equal(state.prs.length, 1, 'the pull request keeps its number');
+  assert.deepEqual(state.updates.map(update => [update.ref, update.force]), [['heads/release/1.2.3-alpha.1', true]]);
+  assert.deepEqual(state.commits.get(state.refs.get('heads/release/1.2.3-alpha.1')).parents, [{sha: moved}]);
+}
+for (const [name, commits, bot] of [
+  ['a person committed', [ours('Prepare release 1.2.3-alpha.1'), {author: {login: 'motyc'}, commit: {message: 'Fix'}}], BOT],
+  ['another message', [ours('Merge main')], BOT],
+  ['no bot identity', [ours('Prepare release 1.2.3-alpha.1')], undefined],
+  ['no commits listed', [], BOT],
+]) {
+  const {state, github, core, read} = fixture();
+  await propose({github, core, context}, read, undefined, BOT);
+  movedOn(state);
+  state.prCommits = commits;
+  await assert.rejects(propose({github, core, context: later}, read, undefined, bot), /did not make/, name);
+  assert.deepEqual(state.updates, [], `${name}: human changes are never overwritten`);
+}
+{
+  const {state, github, core, read} = fixture();
+  state.prs = [{state: 'closed', merged_at: null, html_url: 'https://github.com/example/guide/pull/2'}];
+  await assert.rejects(propose({github, core, context}, read, undefined, BOT), /closed without merging/);
+  assert.deepEqual([state.creates, state.updates], [[], []]);
+}
+{
+  // Completing a merged release: a new pull request from the release branch, which the merge deleted.
+  const {state, github, core, read, manifest} = fixture();
+  const completion = (path, encoding) => path === PREPARED ? JSON.stringify({...manifest, mode: 'complete'}) : read(path, encoding);
+  state.prs = [{state: 'closed', merged_at: '2026-10-25T02:10:54Z', html_url: 'https://github.com/example/guide/pull/2'}];
+  await propose({github, core, context}, completion, undefined, BOT);
+  const created = state.prs.at(-1);
+  assert.equal(created.title, 'Complete release 1.2.3-alpha.1');
+  assert.match(created.body, /^Completes the untagged release/);
+  assert.equal(state.commits.get(state.refs.get('heads/release/1.2.3-alpha.1')).message, 'Complete release 1.2.3-alpha.1');
+  // A branch the merge left behind is stale and reused for the next completion.
+  movedOn(state);
+  state.prs = [{state: 'closed', merged_at: '2026-10-25T02:10:54Z', html_url: 'https://github.com/example/guide/pull/2'}];
+  await propose({github, core, context: later}, completion, undefined, BOT);
+  assert.equal(state.updates.length, 1);
+  assert.equal(state.prs.at(-1).title, 'Complete release 1.2.3-alpha.1');
 }
 {
   const {state, github, core, read, manifest} = fixture();
@@ -179,6 +245,28 @@ for (const mutate of [
   assert.equal(state.tags.size, 1, 'retry cannot change the tag decision or create another annotation');
 }
 {
+  // A release follows every release tag (decision 30): a lower one is refused before anything is written.
+  const {state, github, core, read} = fixture();
+  state.tagList = ['v1.2.3', 'v1.0.0', 'not-a-release'];
+  const lower = /Version 1\.2\.3-alpha\.1 is not above the newest release tag v1\.2\.3/;
+  await assert.rejects(collect({github, core, context}, () => assert.fail('Must not write a collection'), read), lower);
+  await assert.rejects(tag({github, core, context}, read), lower);
+  assert.deepEqual([state.creates, state.tags.size], [[], 0]);
+  state.tagList = ['v1.2.3-alpha.0', 'v1.0.0'];
+  await tag({github, core, context}, read);
+  assert.deepEqual(state.creates, ['refs/tags/v1.2.3-alpha.1'], 'a higher version is tagged');
+}
+{
+  // Prerelease identifiers compare as numbers, so alpha.10 follows alpha.9.
+  const {state, github, core, read} = fixture();
+  const reading = value => (path, encoding) => path === 'package.json' && encoding ? JSON.stringify({version: value}) : read(path, encoding);
+  state.tagList = ['v1.2.3-alpha.10'];
+  await assert.rejects(tag({github, core, context: typed('1.2.3-alpha.9')}, reading('1.2.3-alpha.9')), /newest release tag v1\.2\.3-alpha\.10/);
+  state.tagList = ['v1.2.3-alpha.9'];
+  await tag({github, core, context: typed('1.2.3-alpha.10')}, reading('1.2.3-alpha.10'));
+  assert.deepEqual(state.creates, ['refs/tags/v1.2.3-alpha.10']);
+}
+{
   const {state, github, core, read} = fixture();
   const wrongVersion = (path, encoding) => path === 'package.json' ? JSON.stringify({version: '9.9.9'}) : read(path, encoding);
   await assert.rejects(tag({github, core, context}, wrongVersion), /another version/);
@@ -212,16 +300,33 @@ for (const mutate of [
   assert.deepEqual(state.creates, []);
 }
 {
-  // Tagging needs a successful github-pages deployment of the current commit, as the tag ruleset does; otherwise the
+  // Tagging needs the successful staging record of the current commit, as the tag ruleset does; otherwise the
   // refusal names the deployment or publish run to wait for.
   const {state, github, core} = fixture();
   const run = (id, conclusion, extra = {}) => ({id, conclusion, head_sha: sha, head_branch: 'main',
     html_url: `https://github.com/example/guide/actions/runs/${id}`, ...extra});
+  const publisher = {path: '.github/workflows/publish.yml', event: 'workflow_run', head_branch: 'main',
+    head_repository: {full_name: 'example/guide'}};
+  const byPublication = {state: 'success', creator: {login: 'github-actions[bot]'},
+    log_url: 'https://github.com/example/guide/actions/runs/500'};
+  state.runInfo = {500: publisher, 501: {...publisher, path: '.github/workflows/checks.yml'},
+    502: {...publisher, head_branch: 'feature'}};
   state.deployments = [{id: 41, sha}];
-  state.statuses = {41: [{state: 'inactive'}, {state: 'success'}, {state: 'in_progress'}]};
+  // A record anyone with deployments: write could create counts only when the trusted publication wrote it.
+  for (const [name, status] of [
+    ['a person created it', {...byPublication, creator: {login: 'motyc'}}],
+    ['another workflow wrote it', {...byPublication, log_url: byPublication.log_url.replace('500', '501')}],
+    ['a run on another branch wrote it', {...byPublication, log_url: byPublication.log_url.replace('500', '502')}],
+    ['it names another repository', {...byPublication, log_url: 'https://github.com/other/guide/actions/runs/500'}],
+    ['it names no run', {...byPublication, log_url: ''}],
+  ]) {
+    state.statuses = {41: [status]};
+    await assert.rejects(deployed({github, core, context}), /no successful deployment/, name);
+  }
+  state.statuses = {41: [{state: 'inactive'}, byPublication, {state: 'in_progress'}]};
   assert.equal(await deployed({github, core, context}), 41, 'a later deployment marking it inactive keeps it deployed');
   const query = state.reads.find(args => args.environment);
-  assert.deepEqual([query.environment, query.sha], ['github-pages', sha]);
+  assert.deepEqual([query.environment, query.sha], ['staging', sha]);
   state.statuses = {41: [{state: 'failure'}, {state: 'in_progress'}]};
   state.runs = {'deploy.yml': [run(8, 'success')], 'publish.yml': [run(9, null)]};
   await assert.rejects(deployed({github, core, context}), /still being deployed; wait for https:\/\/github\.com\/example\/guide\/actions\/runs\/9 to finish/);
@@ -229,7 +334,7 @@ for (const mutate of [
   await assert.rejects(deployed({github, core, context}), /no successful deployment \(latest run: .*runs\/8\); run Deploy the verified site/);
   state.runs = {};
   state.deployments = [{id: 42, sha: 'b'.repeat(40)}];
-  state.statuses = {42: [{state: 'success'}]};
+  state.statuses = {42: [byPublication]};
   await assert.rejects(deployed({github, core, context}), /no successful deployment; run Deploy the verified site/,
     'a deployment of another commit does not count');
   state.runs = {'deploy.yml': [run(7, null, {head_branch: 'v1.0.0'})]};

@@ -21,9 +21,11 @@ import re
 import tarfile
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
+from urllib.parse import urlsplit
 
 import build_crate
 import package_site
+from publication_location import preview_blocked, site_identity, verify_declaration
 
 ROOT = Path(__file__).resolve().parent.parent
 SHA = re.compile(r"[0-9a-f]{40}")
@@ -34,6 +36,20 @@ NOTICE = (
     '<span lang="cs">Náhled připravované verze.</span> '
     '<span lang="en">Preview of the next release.</span></aside>'
 )
+# Tag release always tags a commit the preview already serves, built before the tag existed: until the default branch
+# moves on, the preview is the release, and says so instead of announcing a next one.
+RELEASED_NOTICE = (
+    '<aside class="staging-notice" aria-label="Preview / Náhled">'
+    '<span lang="cs">Tento náhled je totožný s vydáním {tag} (commit {commit}).</span> '
+    '<span lang="en">This preview is identical to release {tag} (commit {commit}).</span> '
+    '<a href="{home}"><span lang="cs">Otevřít vydání</span> / <span lang="en">Open the release</span></a></aside>'
+)
+
+
+def release_notice(name: str, tag: str, commit: str) -> str:
+    """The notice of preview page `name` when its commit is the published release's, linking the release root."""
+    home = posixpath.relpath("index.html", str(PurePosixPath("next", name).parent))
+    return RELEASED_NOTICE.format(tag=html.escape(tag), commit=commit[:7], home=html.escape(home, quote=True))
 
 
 class AssemblyError(ValueError):
@@ -66,7 +82,7 @@ class PreviewMarkup(HTMLParser):
     handle_startendtag = handle_starttag
 
 
-def preview_html(data: bytes, name: str) -> bytes:
+def preview_html(data: bytes, name: str, notice: str = NOTICE) -> bytes:
     text = data.decode("utf-8")
     parsed = PreviewMarkup(text)
     if parsed.head is None or parsed.body is None:
@@ -81,7 +97,7 @@ def preview_html(data: bytes, name: str) -> bytes:
                 '\n<meta name="robots" content="noindex">'
                 f'\n<link rel="stylesheet" href="{html.escape(style, quote=True)}">',
             ),
-            (parsed.body, parsed.body, "\n" + NOTICE),
+            (parsed.body, parsed.body, "\n" + notice),
         ]
     )
     for start, end, value in sorted(changes, reverse=True):
@@ -144,6 +160,10 @@ def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]
     health = json.loads(files[package_site.HEALTH])
     if health.get("run", {}).get("status") != "passed" or health.get("revision") != commit:
         raise AssemblyError("release archive health does not name the checked commit")
+    try:
+        verify_declaration(files, manifest)
+    except ValueError as error:
+        raise AssemblyError(str(error)) from error
     return files
 
 
@@ -163,7 +183,9 @@ def assemble(
     production_tag: str | None = None,
     production_commit: str | None = None,
     root: Path = ROOT,
-) -> None:
+) -> list[str]:
+    """Assemble the release and the preview, returning the notices a maintainer should read in the summary."""
+    notices: list[str] = []
     output = build_crate.site_directory(out, root)
     stage = build_crate.require_site(staging)
     inputs = [stage, *([production.resolve()] if production else [])]
@@ -177,6 +199,30 @@ def assemble(
     if production is None and (production_tag or production_commit):
         raise AssemblyError("production tag/commit require a release artifact")
     files = production_files(production, production_tag or "", production_commit or "") if production else {}
+    if production:
+        preview = built_for(stage)
+        active = site_identity(files)
+        manifest = json.loads((production / "manifest.json").read_text("utf-8"))
+        # A stamped release names the root it was built for; an older archive's recorded address may be a predicted
+        # host, so only stamped releases are compared.
+        if "semantic" in manifest and active["publication_url"] != preview["publication_url"]:
+            raise AssemblyError(
+                "production and preview were built for different publication roots; rerun the deployment so that "
+                "both are built for the current one"
+            )
+        # The namespace is a reviewed setting that changes before the release that carries it (decision 28).
+        if (active["vocabulary_base"], active["profile"]) != (preview["vocabulary_base"], preview["profile"]):
+            notices.append(
+                f"The preview names the Guide vocabulary `{preview['vocabulary_base']}` and profile "
+                f"`{preview['profile']}`; production keeps `{active['vocabulary_base']}` and `{active['profile']}` "
+                "until the next release aligns them."
+            )
+        paths = ["/next/", *("/next/" + path.relative_to(stage).as_posix() for path in stage.rglob("*.html"))]
+        if urlsplit(preview["publication_url"]).path == "/" and preview_blocked(
+            files.get("robots.txt", b"").decode("utf-8"), paths
+        ):
+            raise AssemblyError("root robots policy blocks reading preview noindex; prepare a corrected release")
+    released = production is not None and production_commit == staging_commit
     if not production:
         files["index.html"] = (
             '<!doctype html><html lang="cs"><head><meta charset="utf-8">'
@@ -191,12 +237,19 @@ def assemble(
         if not path.is_file() or path.name == build_crate.SITE_MARKER:
             continue
         name = path.relative_to(stage).as_posix()
+        if name in build_crate.CRAWLER_FILES:
+            # Crawlers read these only at the site root, where they are the release's own; a preview copy would
+            # advertise preview documents.
+            continue
         data = path.read_bytes()
         if name == "openapi.json":
             description = json.loads(data)
             description["servers"] = [{"url": ".", "description": "This preview's static API"}]
             data = (json.dumps(description, ensure_ascii=False, indent=2) + "\n").encode()
-        files["next/" + name] = preview_html(data, name) if path.suffix.lower() == ".html" else data
+        if path.suffix.lower() == ".html":
+            notice = release_notice(name, production_tag or "", staging_commit) if released else NOTICE
+            data = preview_html(data, name, notice)
+        files["next/" + name] = data
     if "next/assets/css/staging.css" not in files:
         raise AssemblyError("staging notice stylesheet is missing")
     validate_files(files)
@@ -206,6 +259,12 @@ def assemble(
         path = output / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
+    return notices
+
+
+def built_for(site: Path) -> dict[str, str]:
+    """The publication root and namespace a checked site was built for, read from its own files."""
+    return site_identity({name: (site / name).read_bytes() for name in ("assets/data/ui.js", "ro-crate-metadata.json")})
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -216,9 +275,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--production-tag")
     parser.add_argument("--production-commit")
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--notes", type=Path, help="write the notices for the run summary as Markdown lines")
+    parser.add_argument(
+        "--root-out", type=Path, help="write the publication root the staging site was built for, for the last check"
+    )
     args = parser.parse_args(argv)
     try:
-        assemble(
+        # Read before anything is written, so a site without its stamp fails without replacing the output.
+        root = built_for(args.staging)["publication_url"] if args.root_out else ""
+        notices = assemble(
             args.staging,
             args.staging_commit,
             args.out,
@@ -236,6 +301,14 @@ def main(argv: list[str] | None = None) -> int:
     ) as error:
         print(f"assemble_pages: {error}")
         return 2
+    for notice in notices:
+        print(f"assemble_pages: {notice}")
+    if args.notes:
+        args.notes.parent.mkdir(parents=True, exist_ok=True)
+        args.notes.write_text("".join(f"- {notice}\n" for notice in notices), encoding="utf-8", newline="\n")
+    if args.root_out:
+        args.root_out.parent.mkdir(parents=True, exist_ok=True)
+        args.root_out.write_text(root + "\n", encoding="utf-8", newline="\n")
     print(f"assemble_pages: release and preview assembled in {args.out}")
     return 0
 

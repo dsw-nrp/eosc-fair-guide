@@ -96,3 +96,8 @@ jobs:
             const { draftRelease, refContext } = require('./.github/scripts/release-artifact.cjs');
             const selected = refContext(context, 'refs/tags/' + process.env.RELEASE_TAG, process.env.RELEASE_SHA);
             await draftRelease({ github, context: selected, core });
+            const { handoff } = require('./.github/scripts/handoff.cjs');
+            await core.summary.addRaw(`Draft release ${process.env.RELEASE_TAG} carries the verified artifact and the image \`${process.env.RELEASE_IMAGE}\`.\n\n` +
+              handoff({ next: `a maintainer applies reviewed notes with \`/fair-guide-release-notes ${process.env.RELEASE_TAG}\`, then publishes the release.`,
+                blocked: 'nothing publishes a draft automatically; re-run this job to restore a missing asset.',
+                done: 'the release is published and Zenodo archives it.' }) + '\n').write();

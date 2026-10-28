@@ -91,6 +91,10 @@ jobs:
   refresh:
     needs: [parse, acknowledge]
     if: needs.parse.outputs.command == 'refresh' && needs.acknowledge.outputs.accepted == 'true'
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
     uses: ./.github/workflows/source-refresh.yml
     secrets: inherit
 

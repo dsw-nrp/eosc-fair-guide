@@ -20,15 +20,18 @@ concurrency:
 jobs:
   sources:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       actions: read
+      pages: read
     outputs:
       kind: ${{ steps.sources.outputs.kind }}
       staging: ${{ steps.sources.outputs.staging }}
       production: ${{ steps.sources.outputs.production }}
       tag: ${{ steps.sources.outputs.tag }}
       build: ${{ steps.sources.outputs.build }}
+      publication-url: ${{ steps.sources.outputs.publication-url }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -38,12 +41,14 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const { sources } = require('./.github/scripts/release-artifact.cjs');
-            for (const [key, value] of Object.entries(await sources({ github, context }))) core.setOutput(key, value);
+            const { deploymentSources } = require('./.github/scripts/publication-location.cjs');
+            for (const [key, value] of Object.entries(await deploymentSources({ github, context, core }))) core.setOutput(key, value);
 
+  # Only a release tag prepares production. A default-branch run keeps no copy: publication fetches production from
+  # its release assets or from the run that approved it.
   production:
     needs: sources
-    if: needs.sources.outputs.tag != ''
+    if: needs.sources.outputs.kind == 'tag'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -76,6 +81,16 @@ jobs:
           python -m pip install -r requirements-dev.txt
           npm ci
           npx playwright install --with-deps chromium
+      - id: location
+        if: needs.sources.outputs.build == 'true'
+        name: Resolve the actual Pages location before release verification
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          LOCATION: ${{ needs.sources.outputs.publication-url }}
+        with:
+          script: |
+            const { publicationLocation } = require('./.github/scripts/publication-location.cjs');
+            await publicationLocation({ github, context, core }, { explicit: process.env.LOCATION });
       - if: needs.sources.outputs.build == 'true'
         name: Check and package the tagged source once
         run: |
@@ -113,14 +128,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
+    # The approval gate only: publication records production once the release is live.
     environment:
       name: production
+      deployment: false
     steps:
       - name: Record the approved production bytes
         env:
           PRODUCTION_TAG: ${{ needs.sources.outputs.tag }}
           PRODUCTION_SHA: ${{ needs.sources.outputs.production }}
-        run: echo "Approved the production bytes of $PRODUCTION_TAG at \`$PRODUCTION_SHA\`." >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          {
+            echo "Approved the production bytes of $PRODUCTION_TAG at \`$PRODUCTION_SHA\`."
+            echo ""
+            echo "- **Next:** Publish the verified site deploys $PRODUCTION_TAG and records \`production\`; Release then drafts the release."
+            echo "- **If blocked:** when this run fails, re-run its failed jobs; when it succeeds and no publication starts, run Deploy the verified site on the default branch, whose publication takes the newest approved release."
+            echo "- **Done when:** the draft release of $PRODUCTION_TAG exists."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # The staging site of the pushed commit: a fresh build carrying the health snapshot of the merge-queue run that
   # checked the same commit and build inputs, when one exists. Otherwise the partitioned checks below run.
@@ -136,6 +160,7 @@ jobs:
       FAIR_GUIDE_BUILD_CHANNEL: preview
     outputs:
       reused: ${{ steps.adopt.outputs.reused }}
+      publication-url: ${{ steps.location.outputs.publication-url }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -149,6 +174,15 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci
+      - id: location
+        name: Resolve the actual Pages location before the staging build
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          LOCATION: ${{ needs.sources.outputs.publication-url }}
+        with:
+          script: |
+            const { publicationLocation } = require('./.github/scripts/publication-location.cjs');
+            await publicationLocation({ github, context, core }, { explicit: process.env.LOCATION });
       # A failed build or lookup only means no reuse: the partitioned checks then build and report it.
       - id: build
         name: Build the staging site
@@ -201,10 +235,14 @@ jobs:
   fallback-checks:
     needs: [sources, stage]
     if: ${{ !cancelled() && needs.sources.result == 'success' && needs.sources.outputs.kind == 'branch' && needs.stage.outputs.reused != 'true' }}
+    permissions:
+      contents: read
+      pages: read
     uses: ./.github/workflows/partitioned-checks.yml
     with:
       channel: preview
       staging: true
+      publication-url: ${{ needs.stage.outputs.publication-url }}
 
   superseded:
     needs: [sources, production, approve-production, stage, fallback-checks]

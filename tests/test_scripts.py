@@ -17,7 +17,7 @@ import tempfile
 import tomllib
 import unittest
 import urllib.parse
-from datetime import date
+from datetime import UTC, date, datetime
 from html.parser import HTMLParser
 from pathlib import Path
 from unittest import mock
@@ -1037,7 +1037,8 @@ class ContentCheckTests(FixtureCase):
 
     def test_base_url_must_use_https(self) -> None:
         self.edit("guide.toml", 'baseUrl = "https://example.org/guide/"', 'baseUrl = "http://example.org/guide/"')
-        self.assertError("the guide's address must use HTTPS")
+        with self.assertRaisesRegex(build_crate.ContentError, "the guide's address must use HTTPS"):
+            build_crate.load_content(self.root / "content")
 
     def test_stale_status_is_a_warning(self) -> None:
         content = build_crate.load_content(self.root / "content")
@@ -1734,7 +1735,7 @@ class FreshnessTests(FixtureCase):
         self.git("checkout", "-q", "topic")
         content = build_crate.load_content(self.root / "content")
         for base in ("main", tip):
-            self.assertEqual(check_content.comparison_base(self.root, base)[0], fork, base)
+            self.assertEqual(check_content.merge_base(self.root, base), fork, base)
             report = check_content.Report()
             check_content.check_freshness(report, content, self.root, base)
             self.assertTrue(any(error.startswith("one.03:") for error in report.errors), (base, report.errors))
@@ -1742,6 +1743,64 @@ class FreshnessTests(FixtureCase):
         report = check_content.Report()
         check_content.check_freshness(report, content, self.root, "HEAD")
         self.assertEqual(report.errors, [])
+
+    ACTION = (
+        '\n[[action]]\nid = "{id}"\ntype = "update"\nname = "Edit"\nagent = "tester"\ninstruments = ["model"]\n'
+        "results = [{results}]\nendTime = {end}\n"
+    )
+
+    def merge(self, branch: str) -> None:
+        self.git(
+            "-c", "user.name=Test", "-c", "user.email=test@example.org", "merge", "-q", "--no-ff", branch, "-m", branch
+        )
+
+    def freshness_errors(self, base: str) -> list[str]:
+        report = check_content.Report()
+        check_content.check_freshness(report, build_crate.load_content(self.root / "content"), self.root, base)
+        return report.errors
+
+    def test_a_base_that_moves_on_after_the_work_ended_keeps_the_action_fresh(self) -> None:
+        # Queue run 40151368869 rejected release PR #114 this way: its action ended before the base moved on.
+        self.git("init", "-q", "-b", "main")
+        self.commit("base")
+        self.git("checkout", "-q", "-b", "topic")
+        self.edit("stations/01-one.toml", "Postup.", "Upravený postup.")
+        self.append("provenance.toml", self.ACTION.format(id="edit", results='"one.03"', end="2000-01-01T00:00:00Z"))
+        self.commit("edit whose work ended long before the base moved on")
+        self.git("checkout", "-q", "main")
+        self.append("ledger.toml", "\n# a later change on the base branch\n")
+        tip = self.commit("base moves on")
+        self.merge("topic")  # the merge group: the entry on top of the newer base
+        self.assertEqual(self.freshness_errors(tip), [])
+
+    def test_an_extended_action_needs_a_later_end_time(self) -> None:
+        self.git("init", "-q", "-b", "main")
+        self.append("provenance.toml", self.ACTION.format(id="earlier", results='"one.01"', end="2026-02-01T12:00:00Z"))
+        base = self.commit("base with an earlier action")
+        self.edit("stations/01-one.toml", "Postup.", "Upravený postup.")
+        self.edit("provenance.toml", 'results = ["one.01"]', 'results = ["one.01", "one.03"]')
+        errors = self.freshness_errors(base)
+        self.assertTrue(any(error.startswith("one.03:") and "later endTime" in error for error in errors), errors)
+        self.edit("provenance.toml", "endTime = 2026-02-01T12:00:00Z", "endTime = 2026-02-02T12:00:00Z")
+        self.assertEqual(self.freshness_errors(base), [])
+
+    def test_a_merge_group_covers_each_entry_with_its_own_action(self) -> None:
+        self.git("init", "-q", "-b", "main")
+        base = self.commit("base")
+        self.git("checkout", "-q", "-b", "first")
+        self.edit("stations/01-one.toml", "Postup.", "Upravený postup.")
+        self.append("provenance.toml", self.ACTION.format(id="first", results='"one.03"', end="2026-03-01T12:00:00Z"))
+        self.commit("first entry with its action")
+        self.git("checkout", "-q", "-b", "second", "main")
+        self.edit("stations/01-one.toml", "Hlavní myšlenka.", "Upravená hlavní myšlenka.")
+        self.commit("second entry without paradata")
+        self.git("checkout", "-q", "-b", "group", "main")
+        self.merge("first")
+        self.merge("second")
+        errors = self.freshness_errors(base)
+        self.assertEqual([error.split(":", 1)[0] for error in errors], ["one.02"], errors)
+        self.append("provenance.toml", self.ACTION.format(id="second", results='"one.02"', end="2026-03-01T12:00:00Z"))
+        self.assertEqual(self.freshness_errors(base), [])
 
     def test_every_compared_kind_needs_an_action(self) -> None:
         content = build_crate.load_content(self.root / "content")
@@ -1755,6 +1814,31 @@ class FreshnessTests(FixtureCase):
     def test_an_organisation_needs_paradata(self) -> None:
         self.append("guide.toml", '\n[[organization]]\nid = "new-org"\nname = "New Organisation"\n')
         self.assertError("organization:new-org: no provenance action covers this item")
+
+
+class AlphaThreeQueueTests(unittest.TestCase):
+    """Queue run 40151368869 rejected release PR #114: its release action ended at 01:28:10 UTC, and the new queue
+    base 7b3fa74 was committed at 01:36:37 (task 8.1). History now decides, so the action prepared before the base
+    moved still covers the Guide metadata it changed."""
+
+    BASE = "7b3fa743f0afe526c9cd8067ec734702f432ea22"
+    PREPARED = datetime(2026, 10, 25, 1, 28, 10, tzinfo=UTC)
+
+    def setUp(self) -> None:
+        try:
+            check_content.git(build_crate.ROOT, "merge-base", "--is-ancestor", self.BASE, "HEAD")
+        except (OSError, subprocess.CalledProcessError):
+            self.skipTest("the queue base is not an ancestor of this checkout")
+
+    def test_the_release_action_prepared_before_the_base_moved_covers_the_guide(self) -> None:
+        content = build_crate.load_content()
+        action = next(action for action in content["provenance"] if action["id"] == "release-1.0.0-alpha.3")
+        action["endTime"] = self.PREPARED
+        committed = check_content.git(build_crate.ROOT, "show", "-s", "--format=%cI", self.BASE).strip()
+        self.assertLess(self.PREPARED, datetime.fromisoformat(committed), "the clock comparison that failed the queue")
+        report = check_content.Report()
+        check_content.check_freshness(report, content, build_crate.ROOT, self.BASE)
+        self.assertEqual([error for error in report.errors if error.startswith("guide:")], [], report.errors)
 
 
 class ExactBaseTests(unittest.TestCase):
@@ -2609,17 +2693,22 @@ class ApiTests(unittest.TestCase):
         errors = build_crate.vocabulary_errors(guide, document="<http://example.org/terms#other> a rdf:Property .")
         self.assertTrue(any("absent from the vocabulary document" in error for error in errors), errors)
 
-    def test_one_setting_moves_the_guide(self) -> None:
-        # The guide's address is set once; a build at another address names the configured one nowhere.
+    def test_one_setting_moves_the_guide_and_another_keeps_its_terms(self) -> None:
+        # The guide's address is set once: a build at another address names the configured one only as the reviewed
+        # namespace of its own terms and profile, which moving the site never renames (decision 28).
         moved = "https://guide.example.org/fair/"
         with mock.patch.dict(os.environ, {build_crate.BASE_URL_ENV: moved}):
             outputs = build_crate.outputs()
             content = build_crate.load_content()
             api = build_api.Api(build_crate.build_crate(content), content).files()
+        namespace = content["guide"]["guide"]["vocabularyBase"].removesuffix("terms#")
+        self.assertEqual(content["guide"]["guide"]["pageUrl"], moved)
         for path, text in {**outputs, **api}.items():
-            self.assertNotIn(self.page_url, text, path)
-        self.assertIn(moved + "terms#", outputs[build_crate.CRATE_FILE])
-        self.assertIn(f"<{moved}profile/", outputs[build_crate.PROFILE_DIR + "/profile.ttl"])
+            rest = re.sub(re.escape(namespace) + r"(?:terms|profile/)", "", text)
+            self.assertNotIn(self.page_url, rest, path)
+        self.assertIn(namespace + "terms#", outputs[build_crate.CRATE_FILE])
+        self.assertNotIn(moved + "terms#", outputs[build_crate.CRATE_FILE])
+        self.assertIn(f"<{namespace}profile/", outputs[build_crate.PROFILE_DIR + "/profile.ttl"])
 
 
 class FixDuplicateCommandTests(FixtureCase):

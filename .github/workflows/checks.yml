@@ -31,11 +31,11 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: package-lock.json
-      # Ruff at its pinned version and OpenSpec are the only tools the quick checks use; the other checks use the
-      # standard library.
+      # Beyond the standard library the quick checks use Ruff, PyYAML (the CI catalogue) and OpenSpec, each at its
+      # pinned version. A workflow test derives this list from the checks' own imports.
       - name: Install the quick-check tools
         run: |
-          python -m pip install "$(grep -E '^ruff==' requirements-dev.txt)"
+          python -m pip install "$(grep -E '^ruff==' requirements-dev.txt)" "$(grep -E '^PyYAML==' requirements-dev.txt)"
           npm ci
       - name: Run the cheap offline checks
         env:
@@ -47,10 +47,16 @@ jobs:
           if [ -f .cache/quick/summary.md ]; then
             cat .cache/quick/summary.md >> "$GITHUB_STEP_SUMMARY"
           else
-            printf '%s\n' 'Quick result unavailable: setup did not reach the check runner. See the failed job step.' >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' 'Quick result unavailable: setup did not reach the check runner. See the failed job step.' '' \
+              '- **Next:** wait for the required `checks` result, which runs the same checks; re-run this job for early feedback.' \
+              '- **If blocked:** a maintainer reads the failed setup step, which names what was missing.' \
+              '- **Done when:** this job publishes the quick summary.' >> "$GITHUB_STEP_SUMMARY"
           fi
 
   partitioned:
+    permissions:
+      contents: read
+      pages: read
     uses: ./.github/workflows/partitioned-checks.yml
     with:
       base: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
@@ -73,8 +79,15 @@ jobs:
           RESULT: ${{ needs.partitioned.result }}
         run: |
           if [ "$RESULT" = success ]; then
-            echo 'Every partitioned check passed. The `partitioned / collect` job holds the health report.' >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' 'Every partitioned check passed. The `partitioned / collect` job holds the health report.' '' \
+              '- **Next:** a pull request waits for review and then the merge queue; a merge group merges on its own.' \
+              '- **If blocked:** ask a maintainer for a review.' \
+              '- **Done when:** the pull request is merged.' >> "$GITHUB_STEP_SUMMARY"
           else
             echo "The partitioned checks ended with $RESULT. The \`partitioned / collect\` job names every failure." | tee -a "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' '' \
+              '- **Next:** fix each failure that the `partitioned / collect` summary names, with the local command it gives.' \
+              '- **If blocked:** re-run the failed jobs when a lane failed without a check failure; otherwise ask a maintainer.' \
+              '- **Done when:** this `checks` result passes.' >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi

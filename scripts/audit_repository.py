@@ -252,12 +252,23 @@ def load(path: Path = CONFIG) -> dict:
 # --- live state -------------------------------------------------------------------------------------------------
 
 
-class GhCli:
-    """The live state through `gh api` with the caller's token; a refusal becomes UnavailableError. GraphQL, which
-    reads the organization's Project, uses `project_token` when one is given (the weekly job's App token)."""
+REFUSED = {
+    "project": "the App token for the Project was not issued; check the App's installation and its Projects read "
+    "permission",
+    "organization": "the App token for organization issue types and fields was not issued; an organization owner "
+    "may still need to accept those read permissions for the App's installation",
+}
 
-    def __init__(self, project_token=None):
+
+class GhCli:
+    """Repository reads/writes use the caller's token. The audit's App tokens read only Project GraphQL and the
+    organization's issue-type/field definitions over REST, each with its own token, so a token the workflow could not
+    obtain (`refused`) hides only its own reads. A refusal becomes UnavailableError."""
+
+    def __init__(self, project_token=None, organization_token=None, refused=()):
         self.project_token = project_token
+        self.organization_token = organization_token
+        self.refused = set(refused)
 
     def _run(self, arguments, payload=None, token=None):
         environment = {**os.environ, "GH_TOKEN": token} if token else None
@@ -280,16 +291,24 @@ class GhCli:
 
     def get(self, path, *, pages=False):
         """One object, or every page of a list endpoint joined into one list."""
+        organization_read = re.fullmatch(r"orgs/[^/?]+/(?:issue-types|issue-fields)(?:\?[^#]*)?", path)
+        if organization_read and "organization" in self.refused:
+            raise UnavailableError(REFUSED["organization"])
+        token = self.organization_token if organization_read else None
         if not pages:
-            return self._run([path])
-        return [item for page in self._run(["--paginate", "--slurp", path]) for item in page]
+            return self._run([path], token=token)
+        return [item for page in self._run(["--paginate", "--slurp", path], token=token) for item in page]
 
     def graphql(self, query, variables):
         arguments = ["graphql", "-f", f"query={query}"]
         for key, value in variables.items():
             if value is not None:
                 arguments += ["-F" if isinstance(value, int) else "-f", f"{key}={value}"]
-        return self._run(arguments, token=self.project_token)["data"]
+        read = re.match(r"\s*query\b", query)
+        if read and "project" in self.refused:
+            raise UnavailableError(REFUSED["project"])
+        token = self.project_token if read else None
+        return self._run(arguments, token=token)["data"]
 
     def send(self, method, path, body):
         return self._run(["-X", method, path, "--input", "-"], json.dumps(body))
@@ -301,8 +320,15 @@ PROJECT_QUERY = """query Project($owner: String!, $number: Int!) { organization(
     ... on ProjectV2SingleSelectField { options { name } } } }
   views(first: 100) { nodes { name layout filter
     groupByFields(first: 10) { nodes { ... on ProjectV2FieldCommon { name } } }
-    sortByFields(first: 10) { nodes { direction field { ... on ProjectV2FieldCommon { name } } } } } }
-  workflows(first: 100) { nodes { name enabled } } } } }"""
+    sortByFields(first: 10) { nodes { direction field { ... on ProjectV2FieldCommon { name } } } } } } } } }"""
+# Apart, because the weekly job's App token may read the Project but not its workflows (run 40190490225), and GitHub
+# refuses a whole query over one field the token may not read.
+WORKFLOWS_QUERY = """query ProjectWorkflows($owner: String!, $number: Int!) { organization(login: $owner) {
+  projectV2(number: $number) { workflows(first: 100) { nodes { name enabled } } } } }"""
+WORKFLOWS_NOTE = (
+    "the App's Organization projects: read permission does not include the Project's workflows; a maintainer's "
+    "local audit checks them"
+)
 ITEMS_QUERY = """query ProjectItems($owner: String!, $number: Int!, $after: String) { organization(login: $owner) {
   projectV2(number: $number) { items(first: 50, after: $after) { pageInfo { hasNextPage endCursor }
     nodes { type fieldValues(first: 30) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { name updatedAt
@@ -420,8 +446,12 @@ def read_project(github, config):
             }
             for view in data["views"]["nodes"]
         },
-        "workflows": {workflow["name"]: workflow["enabled"] for workflow in data["workflows"]["nodes"]},
     }
+    try:
+        workflows = github.graphql(WORKFLOWS_QUERY, {"owner": owner, "number": number})["organization"]["projectV2"]
+        state["workflows"] = {workflow["name"]: workflow["enabled"] for workflow in workflows["workflows"]["nodes"]}
+    except UnavailableError as error:
+        state["workflows"] = UnavailableError(f"{str(error).rstrip('.')}: {WORKFLOWS_NOTE}")
     state["entries"], state["hidden"] = read_items(github, owner, number, repo)
     state["items"] = set(state["entries"])
     if project.get("complete"):
@@ -596,8 +626,16 @@ def environment_fix(config, name, declared, live, setting):
 
 def compare_settings(config, actual):
     repo = config["repository"]
+    # GitHub returns these as null to a token that may not see them (the weekly job's GITHUB_TOKEN, run 40190490225):
+    # unknown, so neither drift nor matching.
+    hidden = [
+        key for key, expected in config.get("settings", {}).items() if actual.get(key) is None and expected is not None
+    ]
+    if hidden:
+        note = f"GitHub returns {', '.join(hidden)} as null to this token; a maintainer's local audit reads them"
+        yield Finding("settings", "settings", "unavailable", ui=UI["settings"], note=note)
     for key, expected in config.get("settings", {}).items():
-        if actual.get(key) != expected:
+        if key not in hidden and actual.get(key) != expected:
             flag, value = ("-F", json.dumps(expected)) if isinstance(expected, bool) else ("-f", expected)
             yield Finding(
                 "settings",
@@ -798,22 +836,33 @@ def compare_project(config, actual, now=None):
                 yield Finding("project", f"project.view.{name}.{key}", "drift", view[key], live[key], ui, "", view_only)
     for name in sorted(set(actual["view"]) - set(views)):
         yield Finding("project", f"project.view.{name}", "undeclared", ABSENT, "present", ui, "", view_only)
-    for name, enabled in project.get("workflows", {}).items():
-        if actual["workflows"].get(name, ABSENT) != enabled:
+    if isinstance(actual["workflows"], UnavailableError):
+        # Only the workflows are unknown; the fields, views and items above and below are still audited.
+        yield Finding("project", "project.workflows", "unavailable", ui=ui, note=str(actual["workflows"]))
+    else:
+        for name, enabled in project.get("workflows", {}).items():
+            if actual["workflows"].get(name, ABSENT) != enabled:
+                yield Finding(
+                    "project",
+                    f"project.workflows.{name}",
+                    "drift",
+                    enabled,
+                    actual["workflows"].get(name, ABSENT),
+                    ui,
+                    "",
+                    view_only,
+                )
+        for name in sorted(set(actual["workflows"]) - set(project.get("workflows", {}))):
             yield Finding(
                 "project",
                 f"project.workflows.{name}",
-                "drift",
-                enabled,
-                actual["workflows"].get(name, ABSENT),
+                "undeclared",
+                ABSENT,
+                actual["workflows"][name],
                 ui,
                 "",
                 view_only,
             )
-    for name in sorted(set(actual["workflows"]) - set(project.get("workflows", {}))):
-        yield Finding(
-            "project", f"project.workflows.{name}", "undeclared", ABSENT, actual["workflows"][name], ui, "", view_only
-        )
     if actual["hidden"]:
         # An item the token cannot see is neither missing nor in order, so nothing is judged from the items.
         note = f"{actual['hidden']} items' issues and pull requests are hidden from this token; it needs Issues read."
@@ -1218,7 +1267,11 @@ def main(argv: list[str] | None = None, github=None) -> int:
     if args.check_config:
         print(f"audit_repository: {args.config.name} is valid")
         return 0
-    github = github or GhCli(os.environ.get("GH_PROJECT_TOKEN") or None)
+    # The workflow passes each App-token step's outcome; "failure" means that token could not be issued.
+    refused = [part for part in REFUSED if os.environ.get(f"GH_{part.upper()}_TOKEN_OUTCOME") == "failure"]
+    github = github or GhCli(
+        os.environ.get("GH_PROJECT_TOKEN") or None, os.environ.get("GH_ORGANIZATION_TOKEN") or None, refused
+    )
     sections = tuple(args.section or (() if backfill is not None else SECTIONS))
     findings = audit(config, github, sections, backfill=backfill)
     failures = []

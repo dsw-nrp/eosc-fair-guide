@@ -1,6 +1,13 @@
 ## What changes and why
 
-<!-- One purpose per pull request. Say what changed for readers or maintainers, and why. -->
+<!-- One purpose per pull request. Say what changed for readers or maintainers, and why. Your commit messages feed the
+     release notes, so write them for readers. Add an [Unreleased] line to CHANGELOG.md only for a breaking change, a
+     step people must take, or a security fix. -->
+
+## Planning
+
+<!-- Link the OpenSpec change (openspec/changes/<name>) or the issue this implements. A change of behaviour, a
+     contract, CI or a governance rule is planned first; a wording, formatting or dependency change needs no plan. -->
 
 ## Sources and paradata
 

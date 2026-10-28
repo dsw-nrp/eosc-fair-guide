@@ -27,6 +27,12 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "CC-BY-4.0"
 
+[[annotations]]
+path = "tests/fixtures/ro-crate-1.2-context.json"
+precedence = "override"
+SPDX-FileCopyrightText = "The RO-Crate Community"
+SPDX-License-Identifier = "CC0-1.0"
+
 # The page carries code and its title and description. Generated files (the crate, its preview, the data scripts, the
 # linkset and the API) are built into _site/ and not committed; the content they come from is licensed above.
 [[annotations]]

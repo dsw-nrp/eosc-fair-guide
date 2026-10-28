@@ -1594,3 +1594,14 @@ instruments = ["release-automation"]
 objects = []
 results = ["guide"]
 endTime = 2026-10-25T01:50:18+00:00
+
+[[action]]
+id = "2026-10-26-workflow-follow-up"
+type = "update"
+name = "Review publication metadata and AI contribution guidance"
+description = "Prepared the publication-address correction under the maintainer's direction. Consulted the actual Pages configuration at https://api.github.com/repos/dsw-nrp/eosc-fair-guide/pages and the Guide's generated crate, context and profile; the draft configuration names the current GitHub Pages site, with the shared production/preview namespace transition awaiting a decision. Replaced the frozen contributor-tool list with bilingual guidance welcoming AI-assisted contributions under human oversight and responsibility, referring to paradata for actual instruments and sources. The edits await the ordinary human review gate."
+agent = "david-novak"
+instruments = ["openai-codex", "openai-gpt-6-runtime"]
+objects = []
+results = ["guide", "page:about"]
+endTime = 2026-10-26T08:47:54+00:00

@@ -1,7 +1,11 @@
+<!-- type: reference -->
 # Production and preview deployment
 
-Production is the newest approved release tag's verified artifact; the preview (`/next/`, staging) is the newest
-checked default-branch commit. A default-branch push builds `/next/`, reusing the merge queue's result for the
+Use the [release runbook](runbooks/release.md) to publish a version, [merge](runbooks/merge.md) for ordinary delivery,
+and [maintainer tasks](ci.md) for other operations. This reference defines the channel and artifact contracts.
+
+Production is the verified artifact of the newest approved release tag that its own deployment has published; the
+preview (`/next/`, staging) is the newest checked default-branch commit. A default-branch push builds `/next/`, reusing the merge queue's result for the
 same commit or running the partitioned checks, and preserves every production byte. A new release tag builds and
 checks its source once, packages the exact output and waits for a maintainer's approval before those bytes are
 published. Each Pages deployment replaces the whole combined tree. Pull-request and merge-queue checks remain
@@ -25,8 +29,8 @@ rebuilding production, and needs no second approval.
 
 ## Merge queue, staging and production
 
-Once the merge queue is on (task 4.8 of the CI change), a pull request into `main` is queued after its own
-`checks` pass and a code owner approves. The queue runs `checks.yml` on the merged result (`merge_group`) and
+A pull request into `main` enters the merge queue after its own `checks` pass and the configured reviews
+are satisfied. The queue runs `checks.yml` on the merged result (`merge_group`) and
 merges only when it passes; human, Dependabot and refresh pull requests take the same path. Queue runs build the
 `preview` channel, the bytes staging deploys.
 
@@ -53,9 +57,16 @@ it starts:
 - after a tag deployment, the head's checked staging site beside the new production. While the head's own
   deployment is still preparing, the tag publishes nothing, and the head's publication then includes the release.
 
-GitHub records each Pages deployment against the default-branch head when the publication started, which the tag
-ruleset and Tag release read; a publication therefore deploys only that commit's staging site. It decides in a job
-without an environment, so a publication that deploys nothing leaves no `github-pages` record. Only a publication
+GitHub records each Pages deployment against the default-branch head when the publication started; a publication
+therefore deploys only that commit's staging site. It decides in a job without an environment, so a publication
+that deploys nothing leaves no record. Once the site is live, the publication also records each channel: a
+successful `staging` deployment of the staging commit with the `/next/` address and, for a release it published, a
+`production` deployment of the tag with the root address. Publishing the same site again records nothing new.
+Tag protection requires successful `github-pages` and `staging` deployments and the `checks` status from GitHub
+Actions on the commit to tag. Tag release also verifies its `staging` record, so only a staged commit is released.
+`staging`, like `github-pages`, admits only `main`, and the record counts only when
+GitHub resolves it to the published commit; Tag release also requires that a run of the publication workflow wrote
+it. The `production` environment's approval job creates no record of its own. Only a publication
 after a successful deployment waits for its turn; a newer one replaces an older waiting one and publishes at least
 as much, since every publication resolves the newest approved release. To publish again, run **Deploy the verified
 site** on the default branch rather than rerunning an older deployment run, whose rerun would cancel newer
@@ -67,8 +78,42 @@ publishes its image, only after a publication has deployed that release to Pages
 **Break glass.** An administrator can merge directly, bypassing the queue, to repair a broken queue or required
 check. Say why in the pull request. That commit has no queue result, so its deployment runs the full checks.
 
-**Settings and rollback.** People apply the settings one at a time from the audit's expected-versus-actual diff
-(`python scripts/audit_repository.py --section rulesets --section environments`) and audit again after each step:
+## Publication location and Guide namespace
+
+Each deployable build resolves the actual Pages location from the Pages API before its checks and sets
+`FAIR_GUIDE_BASE_URL`; `baseUrl` in `content/guide.toml` names the same HTTPS site for local and offline builds.
+No build predicts a future hostname or looks one up over the network. The location gives the page's recorded
+address, the sitemap and, at an origin root, `robots.txt`. At runtime, navigation, API references, shared links
+and exported test references follow the Guide window's own address, including its channel path. From a local file
+they use the recorded HTTPS location or stay relative when none is recorded, and never publish a filesystem path.
+
+The Guide's own terms (`<namespace>terms#`) and RO-Crate profile (`<namespace>profile/<profileVersion>`) come from
+`namespace` in `content/guide.toml`. It is a reviewed setting that does not follow the publication location, so
+moving the site renames no term, and no deployment reads it from the live site or a release archive. Changing it
+renames every Guide term: it is a breaking change made through a reviewed pull request and noted in the changelog.
+Content from before the setting existed used its own `baseUrl`. Pull-request checks build for the resolved location,
+or `baseUrl` when Pages cannot be read, and deploy nothing.
+
+Packaging stamps the release manifest with `publication_url` and `semantic` (`vocabulary_base`, `profile`), read
+from the archive's own crate and page configuration. Assembly verifies a stamp against the archive's contents; an
+older archive without one is read from its verified crate, never from the current configuration. Assembly refuses a
+stamped release built for another publication root than the preview. Merge-queue reuse compares every built file,
+so a result checked for another namespace or root is not reused.
+
+Between a namespace change and the next release, the preview names the new terms while production keeps those of
+its release. Assembly accepts that pair, the publication summary names both namespaces, and the next release aligns
+them. The first release with the Pages-root namespace follows releases that named `https://fair.eosc.cz/`. Earlier
+archives keep their bytes and original contexts, so consumers read each artifact's own context and profile. No
+alias, redirect or `sameAs` relates old and new term IRIs, and no custom domain is adopted.
+
+Immediately before the Pages deployment, publication compares the actual Pages location with the root the staging
+site was built for. A location that changed after the build deploys nothing, leaves the published sites in place
+and names the deployment to rerun.
+
+## Settings and rollback
+
+The [audit runbook](runbooks/audit-settings.md) owns approved application of one settings diff; the
+[rollback runbook](runbooks/rollback-a-setting.md) owns rollback. The table records preconditions and rollback values.
 
 | Step | Precondition | Rollback |
 | --- | --- | --- |
@@ -76,13 +121,30 @@ check. Say why in the pull request. That commit has no queue result, so its depl
 | Switch off "require branches to be up to date" | The merge queue is on | Switch it on |
 | Create `production` with its reviewer, for release tags only | None | Delete it and re-add the reviewer to `github-pages` |
 | Remove the reviewer from `github-pages` and limit it to `main` | The `approve-production` job is on `main` | Re-add the reviewer and the `v*.*.*` tag rule |
+| Create `staging` without reviewers, limited to `main` | Publication's channel records are on `main` | Delete it; Tag release then refuses until it exists again |
+| Require both deployment gates and `checks` for release tags | A publication has recorded a successful `staging` deployment and the commit passed `checks` | Restore the reviewed previous policy only after approval of the exact recovery diff; preserve live gates while diagnosing |
 
 ## Preview behaviour
 
 Every HTML page below `/next/`, including API, profile, health and local-test documentation, carries `noindex`
-and a visible bilingual prerelease notice. Staging is unlisted, not private. Production's sitemap and linkset
-remain unchanged and do not gain preview entries. The preview retains shared knowledge-base identifiers and
-its existing discovery data; its OpenAPI server is relative to its own description so API requests use `/next/`.
+and a visible bilingual prerelease notice. Tag release tags a commit the preview already serves, built before the
+tag existed, so while the preview and the published release share a commit the notice says that the preview is
+identical to that release and links it; the preview's own footer keeps the identity it was built with. Staging is
+unlisted, not private. The build writes `sitemap.xml` at the publication location, listing only the Guide root and
+`api/index.html` as absolute, fragment-free URLs without modification dates. Hash views and the two languages are
+not separate indexable pages, and adopting a custom domain is a separate decision.
+
+A crawler applies only the `robots.txt` at its origin's root. The Guide is published at the project path
+`https://dsw-nrp.github.io/eosc-fair-guide/` (26 October 2026), whose origin root this repository does not publish,
+so the build writes no `robots.txt` there: a file below the project path would control nothing. The sitemap
+is then found when submitted to a search engine's webmaster tools, not through robots. When the Guide is hosted at
+an origin root, the build writes `robots.txt` allowing all paths and naming the sitemap; assembly refuses a release
+whose robots policy would stop crawlers reading the preview's `noindex`. Preview pages stay crawlable so that
+`noindex` keeps them out of search results. The current choice is to index the GitHub Pages site.
+
+Production's crawler files and linkset stay byte for byte as released and gain no preview entries; the preview gets
+no copy of either crawler file. The preview retains shared knowledge-base identifiers and its existing discovery
+data; its OpenAPI server is relative to its own description so API requests use `/next/`.
 
 `scripts/assemble_pages.py` adds these deployment-only changes after both inputs pass. It does not rebuild,
 fetch, tag or publish. Production is never transformed. A new deployment can update the preview without
@@ -137,28 +199,17 @@ artifact. It never relabels an existing release or changes a moving repository s
 
 ## Local assembly check
 
-Run `python -m unittest discover -s tests -p test_assemble_pages.py`, `node tests/page/check_release.mjs` and
-`node tests/page/check_publication.mjs`, then `npm run check:deployment` for the real browser and Swagger request.
-The fixtures cover production preservation, all preview HTML pages, first-tag absence, source selection, approval,
-merge-queue reuse, publication order, durable byte reuse and refused malformed/mismatched artifacts.
-
-To assemble already checked inputs without publishing:
-
-```bash
-python scripts/assemble_pages.py --staging _site --staging-commit <checked-preview-sha> --production .cache/release --production-tag <release-tag> --production-commit <checked-release-sha> --out .cache/pages
-```
-
-Omit the three `--production*` arguments to exercise the state before the first release. The preview must have
-a completed passing health report naming its supplied commit. The production directory holds `manifest.json`,
-the release archive and its checksum. Open `.cache/pages/index.html` or serve that directory locally to inspect
-both the production root and `/next/`; this command does not change `_site/`.
+The [assembly how-to](how-to/verify-assembly.md) owns setup, fixture commands, checked inputs and local inspection.
+Assembly accepts an already checked preview and an optional verified production archive; it never publishes.
 
 ## Release preparation and tagging
 
-Run **Prepare release** (`prepare-release.yml`) on the default branch with a SemVer version without `v`.
+**Prepare release** (`prepare-release.yml`) accepts a SemVer version such as
+`1.0.0-alpha.4`; both release dispatches also accept the tag form `v1.0.0-alpha.4` and use the bare version.
+Release tags use `vX.Y.Z`, with an optional SemVer prerelease suffix.
 The standard-library owner `scripts/release_versions.py` writes the Guide's version and `datePublished`, the
-root `CITATION.cff` version and `date-released`, `.zenodo.json` version and `publication_date`, npm's manifest and
-both lockfile root versions, and the Python project version. The build derives the crate and API values from
+root `CITATION.cff` version and `date-released`, `.zenodo.json` version and `publication_date`, `package.json` and
+both `package-lock.json` root versions, and the Python project version. The build derives the crate and API values from
 the Guide; generated files are never patched.
 The citation's referenced works retain their original versions and dates. No release status or testing notice
 changes automatically.
@@ -177,29 +228,30 @@ Preparation records the dispatcher using a reviewed `person.github` identity and
 instrument. Add a new dispatcher's reviewed identity and citation credit through an ordinary content PR first.
 The preparation timestamp and release date come from the workflow run's start in UTC, so retrying that run
 produces the same proposed bytes. The dispatch opens `release/<version>` with just the owning metadata,
-changelog, provenance and identifier register. It refuses an edited or outdated release branch and never moves
-it or reopens a closed proposal. A retry can finish opening a PR after branch creation was interrupted.
+changelog, provenance and identifier register. A retry can finish opening a PR after branch creation was
+interrupted. An outdated proposal is prepared again from the current default branch, keeping its PR, only while
+the release App made every commit on it; an edited proposal is left for reconciliation by hand, and a proposal
+closed without merging is never reopened. When the default branch already carries the requested version untagged,
+the dispatch completes that release instead: its PR adds only the changelog entries for changes that landed since
+the preparation, leaving the version, dates and earlier entries unchanged.
 
 The default path is to review and merge that release PR, then run **Tag release** (`tag-release.yml`) on the
 current default-branch commit with the same version. A maintainer may also use valid release metadata committed
 directly to the default branch through an explicitly authorized process. The dispatch checks all owning versions
 and dates, citation/Zenodo metadata and exactly one nonempty changelog section for the requested version with
-the matching date. No release PR or merge-commit ancestry is required. If further commits landed, reconcile
-the notes and metadata for the selected current commit before tagging. The final branch-head check rejects a
-stale source. The dispatch creates `v<version>` once and never moves an existing tag. Tag creation starts the
-checked production build; publishing the resulting draft release is still a separate maintainer act. Before
-publishing, write the release notes with `/aiscr-write-release-notes` and apply them with
-`python scripts/release_body.py v<version> --apply` after reviewing its output; the draft's marked verification
-record stays unchanged (see the [changelog policy](changelog.md#write-the-release-body)).
+the matching date. No release PR or merge-commit ancestry is required. The section must also list every merged PR
+and direct commit since the previous tag, leaving out the release's own `release/<version>` PRs. When changes landed
+after preparation, Tag release creates no tag, names them in its summary and calls Prepare release, which opens the
+completion PR; merge it and run Tag release again. The final branch-head check rejects a stale source. The dispatch creates `v<version>` once and never moves an existing tag. Tag creation starts the
+checked production build; publishing the resulting draft release is still a separate maintainer act. The native `fair-guide-release-notes` skill composes reviewed notes with the draft's marked verification record
+and asks once before applying. The [release runbook](runbooks/release.md) owns its invocation and publication;
+the [release-notes how-to](how-to/release-notes.md) owns the manual fallback.
 
-For an unchanged historical release whose failed-deployment tag was removed before a released artifact was
-published, the maintainer may recreate the annotated tag directly at the original release merge commit. Confirm
-that original target, use the same `Fair-Guide-Release-Status` marker and never move an existing tag. The normal
-dispatch selects the current default-branch commit and does not select historical targets. If that current head
-still passes the requested-release checks and the tag is absent, the dispatch tags it, including later repairs;
-branch advancement alone does not cause a refusal. Use manual recovery only when the intended target is the
-unchanged original release merge commit. Corrected metadata belongs in a new version; editing `main` cannot
-repair bytes frozen at an existing tag.
+Historical recovery is limited to an unchanged original release whose failed-deployment tag was removed before
+an artifact was published. The [historical tag recovery runbook](runbooks/recover-a-release-tag.md) owns approval,
+identity checks and the one-time annotated tag. The normal dispatch selects the current default-branch commit;
+it never selects a historical target. Branch advancement alone causes no refusal if the requested-release checks
+still pass. An existing tag never moves; corrected metadata requires a new version.
 
 `.github/release.yml` groups GitHub-generated notes into Breaking changes (`breaking-change`, reserved
 for breaking PRs), Features (`enhancement`), Bug fixes (`bug`) and Other (all remaining PRs). It keeps
@@ -245,14 +297,13 @@ although the [reviewed importer](https://github.com/zenodo/zenodo-rdm/blob/1fab5
 supports both. The repository's offline profile explicitly accepts those fields and rejects unsupported shapes;
 it does not fetch a changing schema during checks or claim remote vocabulary/archival acceptance.
 
-The previous rejected archive used a CFF license list that was valid CFF, while Zenodo's CFF import subset
-expected a string. The MIT software-license correction addresses that incompatibility; the actual remote error
-payload was not inspected. Keep regression coverage for both general CFF validity and the effective Zenodo
-import format. Run `python -m unittest discover -s tests -p test_citation_metadata.py` for those fixtures.
+Keep regression coverage for both general CFF validity and Zenodo's import subset: a CFF license list can be
+valid CFF while the pinned importer accepts a string or dictionary, but not a list. This repository's check uses
+the narrower SPDX-string profile. Run
+`python -m unittest discover -s tests -p test_citation_metadata.py` for those fixtures.
 
-After reviewed delivery, confirm the Zenodo integration is enabled, publish the corrected next release under
-maintainer authorization and check its actual archive result. Once the real concept DOI is issued, add its
-badge/link to both `README.md` and `README_en.md` through the normal documentation route and verify the destination.
+For an approved release, verify the Zenodo integration and its actual archive result. Keep the concept DOI
+badge/link in both `README.md` and `README_en.md` aligned with the issued record and verify the destination.
 The [concept DOI covers all versions](https://support.zenodo.org/help/en-gb/25-citations/234-how-to-share-or-cite-a-zenodo-record);
 retain version-specific DOI distinctions for reproducible citations. Do not add placeholder badges, guess a DOI
 or claim successful archiving while the record is pending or failed. The GitHub integration does not support
@@ -265,3 +316,17 @@ one DataCite and one Crossref DOI, verifies that Czech ISO differs from APA, the
 FAIR-Checker metrics against a public dataset after confirming its DataCite type. It uses real browser requests
 and saves a compact receipt in `.cache/live-release/receipt.json`. Missing native results fail this probe;
 they do not become failed FAIR criteria. The general `check:live` suite covers additional services separately.
+
+## Release container image
+
+Every tagged release also publishes a container image to the GitHub container registry, assembled from that
+release's verified site artifact — never rebuilt from source — so a reader can run the published page locally with
+`docker run --rm -p 8080:8080 ghcr.io/dsw-nrp/eosc-fair-guide:latest`. It always carries the release tag. The
+moving `latest` names the newest approved release and `stable` the newest approved non-prerelease; neither moves
+back. When a newer release is approved while an older one's image is built, the older image keeps only its own tag,
+its draft release is still created, and its summary names the release whose own run moves the aliases. It is signed
+(cosign, keyless) and attested against its digest and scanned with Trivy; a failed scan operation blocks
+publication, while vulnerability findings are advisory. The release notes record that digest. Its
+`nginx-unprivileged` base is digest-pinned and the `docker` Dependabot entry keeps it current.
+
+The production site and draft release receive the same verified bytes.

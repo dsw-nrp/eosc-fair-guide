@@ -583,3 +583,542 @@
 - **Close-out:** Task 4.9 remains open. PR #114 needs review and a queue merge; corrected hosted reuse and the
   approved release promotion still require their own observed outcomes. Evidence is kept on
   `agents/codex/alpha3-rehearsal`, separate from the generated release branch.
+
+### Plan revision after the alpha.3 rehearsal
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Resumed after the previous Codex session ended on a credit limit while #114 was queued, and verified
+  the hosted outcome: queue run 40153182976 passed and deployment 40153496770 reused it; Tag release 40154472734
+  tagged `v1.0.0-alpha.3` at `161994f`; production was approved in run 40154498215; publication 40155190767 and
+  release 40155239756 followed, leaving an unpublished draft. Explored the queue rejection 40151368869, the
+  `/next/` label after tagging, environment naming, schedule delays and documentation shape, then revised the
+  change's planning artifacts: decisions 16–23, eleven added delivery requirements, two modified knowledge-base
+  requirements, task groups 8–10, integrated verification renumbered to group 11 with a final rehearsal (11.3),
+  and decision notes on 4.9 and 5.8.
+- **Impacted:** the change's proposal, design, tasks and both spec deltas, and this entry, on branch
+  `agents/claude/ci-workflows-replan`. No implementation, workflow or repository setting changed.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-explore`, `openspec-update-change`; `aiscr-planning-core` holds
+  implementation until a fresh apply instruction for the revised plan.
+- **Verification:** `npx openspec validate enhance-ci-and-repository-workflows --strict` reports the change valid;
+  `npm run openspec:validate` passes 6 of 6; a read-only `audit_repository.py --section app` reports no drift;
+  `python scripts/check_all.py` passes 32 of 32 in 142.2 s.
+- **Corrections:** The maintainer corrected the claim that `/next/` served alpha.3: its footer showed
+  `v1.0.0-alpha.2+15`, built before the tag, which became decision 19. The maintainer also counted #114 as 4.9's
+  human path, confirmed the App installation for 5.8, chose a one-wave documentation reshape over gradual change,
+  and deferred a human documentation review in favour of an independent agent reader.
+- **Close-out:** Planning revision only. Implementation of groups 6–11 and the evidence for 4.9 and 5.8 await
+  approval of the revised plan.
+
+### Group 8: release flow repairs and the 4.9 close-out
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Under the maintainer's apply instruction, closed 4.9 with the rehearsal evidence and implemented tasks
+  8.1–8.6 on `agents/claude/ci-workflows-replan`: paradata freshness from history; release dispatches accepting a
+  leading `v`; Tag release refusing a changelog that misses changes and calling Prepare release to complete it;
+  completion and guarded replacement of release proposals; the `/next/` notice when it equals the release; and
+  `staging`/`production` records once each channel is live. Implementation corrected the plan in two places, both
+  recorded in design 17 and the changelog requirement: the reroute is a reusable-workflow call, and an untagged
+  release section may gain lineage entries. A background security review of `e4d25cb` found that `staging` lacked
+  the branch policy of `github-pages`; `0e0eba3` restores it and makes Tag release require a record written by
+  publication. Dispatched health watch run 40190490225 for 5.8's evidence: its audit job read the App token but
+  reported Project #1 unavailable and the merge settings as drift.
+- **Impacted:** `scripts/check_content.py`, `check_changelog.py`, `release_version.py`, `release_versions.py`,
+  `assemble_pages.py`; `.github/scripts/prepare-release.cjs`, `release-version.cjs`, `deployment.cjs`; workflows
+  `prepare-release.yml`, `tag-release.yml`, `publish.yml`, `deploy.yml`; `.github/repository.toml` (staging, the
+  tag ruleset target as pending, tokens); `assets/css/staging.css`; `docs/content-model.md`, `docs/deployment.md`;
+  the native content rule with regenerated mirrors; tests; this change's artifacts.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-apply-change`, `fair-guide-editor`; `aiscr-planning-core` for the apply
+  boundary and the plan corrections.
+- **Verification:** `python scripts/check_all.py` passes 32 of 32 in 147.5 s at `0e0eba3`; strict OpenSpec
+  validation passes. Planted regressions are caught for the freshness rule (four tests fail on the old rule),
+  `v`-stripping in both runtimes, the release self-exclusion, the lineage-only changelog rule, the unedited-proposal
+  check, the lineage gate on tagging, the release notice, repeated channel records, the tag gate's environment, the
+  publication provenance check and the moved-branch handling. A read-only audit of environments and rulesets reports
+  exactly the two pending 8.7 targets and no drift.
+- **Close-out:** 8.7 follows the merge of this group; 8.8 waits for the delivered release-notes tooling. 5.8 stays
+  open: run 40190490225 shows that the audit queries Project #1's workflows, which the App's read permission does
+  not cover, so the whole Project section fails with a misleading owner step, and that it reports settings the
+  job's token cannot see as drift. A repair is proposed as a new task for approval.
+
+### Audit repair, schedule, delivery refresh and the maintenance digest
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Continued the apply phase on `agents/claude/ci-workflows-replan` (draft PR #116). 5.9: the weekly audit
+  reads Project #1's workflows in their own query and reports what its token cannot see as unavailable, not drift.
+  9.1–9.2: the weekly jobs finish by Monday morning in Prague, and a manual health-watch run chooses its parts.
+  7.8 follow-up: the PR summary skips a cancelled checks run. The native delivery reader accepts the format 2
+  receipt, and the refreshed `aiscr-*` delivery (55cc0a0) is applied unchanged. Group 6 (6.1–6.9): the live watch
+  classifies outcomes, selects the least recently attempted links under host caps and `Retry-After`, keeps
+  versioned state, validates reviewed limitations offline and ignores pagination; one maintenance digest is rebuilt
+  in place, comments only on change, rotates by closing and adopts keyed tasks from people with write access. The
+  watch job is now read-only; a separate publish job is the only writer, and the state artifact is read only from
+  this workflow's default-branch runs. `health-issues.cjs` is removed.
+- **Impacted:** `scripts/audit_repository.py`, `watch_sources.py`, `agent_surfaces.py`, `check_all.py`,
+  `check_ci.py`, `check_groups.json`; `.github/scripts/health-digest.cjs` (replaces `health-issues.cjs`),
+  `.github/health-watch.toml`; workflows `health-watch.yml`, `source-refresh.yml`, `pr-summary.yml`;
+  `.github/repository.toml` (tokens, label paths, staging recorded); the delivered `aiscr-*` surfaces, the
+  manifest and the delivered sections of `CODEX.md`; `README.md`, `README_en.md`, `docs/design.md`,
+  `docs/maintenance.md`; tests and fixtures; this change's tasks.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-apply-change`, `fair-guide-editor`; `aiscr-planning-core` for the apply
+  boundary.
+- **Corrections:** The maintainer reported that the review comment workflow failed on cancelled checks runs, a
+  regression from the 7.8 collector change; the comment job now skips a cancelled run.
+- **Verification:** `python scripts/check_all.py` passed 31 of 33; the two failures were one over-long test line,
+  fixed during the run, after which `ruff`, `format`, `unit` and `helpers` pass 4 of 4 on the final tree. Strict
+  OpenSpec validation passes. Planted regressions are caught for the publisher's run condition, the state choice
+  after a refused publication, and the branch and fork filters of the previous-state lookup; an offline
+  observe-and-render chain produces the reset notice and the "audit did not run" section.
+- **Close-out:** 58 of 78 tasks are done. The digest workflow first runs hosted after merge, with 5.8/5.9's
+  audit-only run and 8.7's ruleset switch. 6.10 (legacy issue migration) and 6.11 (digest runbook) follow, then
+  groups 7 and 10, 8.8 and group 11.
+
+### Documentation wave and independent reader review
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Codex
+- **Model / backend:** GPT-6; exact backend model identifier not exposed by the runtime.
+- **What:** Resumed Claude's approved apply scope on `agents/claude/ci-workflows-replan`. Completed the human
+  documentation reshape: three audience entry routes, task runbooks, contributor how-tos, retained detailed
+  references and a 148-section map. Registered the documentation check in local, CPU and quick inventories;
+  added planted regressions for structure, filenames, links, empty steps and missing repeated sections. Updated
+  native content/contract examples and documentation/changelog rules, then regenerated the vendor mirrors.
+  Three fresh audience readers found and rechecked repairs for discoverability, embedding configuration, advisory
+  wording, local repair identity/recovery, deployment retries, review fallback and reference/procedure separation.
+- **Impacted:** Both READMEs, CONTRIBUTING, human docs and new how-tos/runbooks; `scripts/check_docs.py`,
+  `check_all.py`, `check_ci.py`, `ci_catalogue.py`; the authored CI catalogue; native rules and generated mirrors;
+  tests; the change's section map, review receipt, hand-off status and tasks; the single digest migration line in
+  `[Unreleased]`. Delivered files and delivered CODEX sections retain their receipt integrity.
+- **Subagents used:** `default` agents `docs_reader_review`, `docs_contributor_review`, `docs_maintainer_review`,
+  each without the writing conversation; all final passes returned `NO_FINDINGS`.
+- **MCP servers used:** GitHub (read-only issue #83/#84 reconciliation and PR recovery).
+- **Workflow context used:** `openspec-apply-change`, `fair-guide-editor`; approved design decision 23 and tasks
+  7.2, 7.5 and 10.1-10.4. No new implementation scope or hosted write approval was inferred.
+- **Verification:** The documentation check and section map pass for 37 documents and 148 former sections;
+  15 documentation tests, 8 catalogue tests and 35 workflow tests pass. Native generation, ownership and
+  sibling-delivery checks pass. The first integrated run passed 35/36 checks: the unit suite caught introductory
+  tooling links and source-name coverage lost from the READMEs. Those contracts were restored without weakening
+  their tests; 20 tooling tests (one platform skip), 5 source-registry tests and the reader re-review pass.
+  A further planted directory typo is caught by the documentation checker. The corrected full close-out passed 36/36 checks in 150.0 seconds, including all browser/API groups, accessible
+  diagrams and the three crate profiles. All 656 discovered unit tests are accounted for, with one platform skip.
+  The tracker is 71/78 complete; the seven hosted/approval-dependent tasks remain open.
+- **Corrections:** Independent readers caught missing or inaccessible information rather than accepting the
+  structure check alone. Their eight finding groups and repairs are in the change's `documentation-review.md`.
+- **Close-out:** Documentation is locally accepted by all three audiences. Hosted audit, first-digest verification,
+  legacy migration, tag-ruleset switch, draft-helper exercise and release rehearsal remain owned deferrals in
+  `handoff-status.md`; their tasks stay unchecked. No issue state, setting, release or archive was changed.
+
+
+### Follow-up planning capture
+
+- **When:** 2026-10-26
+- **Agent / runtime:** Codex
+- **Model / backend:** GPT-6; exact backend model identifier not exposed by the runtime.
+- **What:** Used the maintainer's explicit task-capture instruction to extend the existing
+  `enhance-ci-and-repository-workflows` plan coherently across proposal, design, both capability deltas and tasks.
+  Added 22 tasks covering serving-location addresses and effective indexing, issue-origin refresh, narrowly
+  scoped organization audit reads, settings decisions, complete durable-documentation verification and renewed
+  integrated acceptance. Reconciled remaining hand-offs with already applied owner actions and the delivered
+  native release helper; retained all previous task states and historical receipts.
+- **Impacted:** Only the five existing OpenSpec planning artifacts and this rolling usage entry. The staged
+  implementation, prior review receipts, durable docs and delivered assets were not edited by this capture.
+- **Subagents used:** none during this planning capture.
+- **MCP servers used:** none during this planning capture; dated read-only observations from the preceding
+  exploration are retained as such in the design.
+- **Workflow context used:** `openspec-update-change` for the approved planning capture following
+  `openspec-explore`; `fair-guide-editor` and delivered planning/usage rules for repository boundaries.
+- **Verification:** Strict change validation and `npm run openspec:validate` pass (6/6 items). Public-content
+  checks report no findings and all 10 usage entries pass before this append. Direct integrity checks confirm
+  exactly 22 new unchecked tasks, all 78 earlier task states unchanged, 71/100 complete, retained baseline
+  scenario names and ADDED requirement descriptions within 500 characters. `git diff --check` passes; the staged
+  index matches its pre-capture SHA256. Final usage/public-content checks follow this append. Implementation
+  tests were not rerun for planning-only edits; the 25 October full-suite receipt remains historical evidence.
+- **Corrections:** The maintainer chose indexing the current GitHub Pages address and clarified that all
+  Guide-owned addresses should follow the actual serving location rather than a strictly predicted base URL.
+  The plan covers runtime links, API/export consumers and semantic/static publication metadata together,
+  preserving logical IDs, exact external IRIs, offline/iframe use, shared channel identities and verified bytes.
+- **Close-out:** Planning capture only: 71/100 tasks complete, 29 remaining including seven prior hosted/approval
+  gates. Tag-deployment selection and queue tuning remain explicit decisions with current protections and values
+  retained. Implementation resumes through approved apply. No staging, commit, push, remote mutation, release,
+  archival or memory update was performed.
+
+
+### Authorized checkpoint commit and apply resumption
+
+- **When:** 2026-10-26
+- **Agent / runtime:** Codex
+- **Model / backend:** GPT-6; exact backend model identifier not exposed by the runtime.
+- **What:** Prepared the maintainer-requested local checkpoint of the accumulated documentation wave,
+  follow-up plan and owner-ordered upstream tooling delivery, before resuming approved apply of the same change.
+- **Impacted:** Existing staged work, including delivery source `79abd13a2bda8ad6d83de4001bd283c6b087d6dc`;
+  no delivered copy was edited by this session. The existing branch is retained.
+- **Subagents used:** none at this checkpoint.
+- **MCP servers used:** none at this checkpoint.
+- **Workflow context used:** `openspec-apply-change`, `fair-guide-editor` and delivered planning/usage rules;
+  the fresh explicit user instruction authorizes implementation of the captured follow-up after the commit.
+- **Verification:** Strict OpenSpec validation passes 6/6 and staged whitespace checks pass. Ownership has no
+  findings. Native generation reports seven stale outputs after the delivery and authored rule changes. The
+  local delivery checker reports one entry-section hash mismatch because the new stamp is inside the SPDX
+  prologue; removing only that receipt line yields the manifest's exact section hash. Both compatibility findings
+  are recorded for repair in the Guide-owned consumer and native regeneration after the checkpoint; this is not
+  a claim that the current implementation has passed fresh full acceptance.
+- **Corrections:** The maintainer confirmed the upstream bundle was delivered on their order and explicitly
+  requested a local commit followed by apply. The delivered layer remains read-only.
+- **Close-out:** Checkpoint scope is concrete and staged; 71/100 tasks remain complete. Commit is local only.
+  Resume implementation with compatibility repair and the pending approved tasks; hosted settings, migration,
+  publication and archival retain their separate gates.
+
+
+### Approved follow-up implementation and remaining namespace decision
+
+- **When:** 2026-10-26
+- **Agent / runtime:** Codex
+- **Model / backend:** GPT-6; exact backend model identifier not exposed by the runtime.
+- **What:** Created the authorized local checkpoint `1a5287f5adbc083ce95728212388e5527dc54261`, then resumed
+  approved apply of `enhance-ci-and-repository-workflows`. Repaired Guide-owned receipt compatibility without
+  editing the delivered bundle; implemented issue-origin refresh and scoped organization audit reads; reconciled
+  the chosen tag and queue declarations; completed the bounded documentation follow-ups and workflow diagrams.
+- **Impacted:** Guide-owned scripts/tests, refresh/audit and draft publication-input workflows, settings
+  declarations, runtime location handling, content metadata/paradata, durable docs, native mirrors and the
+  existing OpenSpec evidence records. The delivery manifest and delivered sections remain unchanged after
+  the checkpoint. Serving-location edits remain a draft pending the explicit namespace-transition decision.
+- **Subagents used:** `aiscr_analyse_integration` at `/root/review_runbook_reader`, read-only independent
+  procedure checks for review roles/runbook, complete migration relocation and workflow-diagram semantics.
+- **MCP servers used:** GitHub, read-only primary action/runner/context sources; no external posting.
+- **Workflow context used:** `openspec-apply-change`, `fair-guide-editor`, native content/surfaces rules and
+  delivered planning, usage/model logging and review-reader contracts. The review skill was inspected as a
+  documentation authority; no formal PR review or grouped posting was invoked.
+- **Verification:** OpenSpec reports 82/100 tasks complete. Targeted suites pass: 21 native-surface tests
+  (one platform skip), 40 audit tests, 36 workflow tests, eight catalogue tests and 25 documentation tests.
+  Real parser-to-refresh-reply fixtures cover issues and PRs; planted PR-only and organization-routing
+  regressions are caught. Documentation checks cover all 37 documents and the section map; actual offline
+  JSON-LD expansion and wrong-prefix/alias/scheme controls pass. All 20 Mermaid diagrams and six approved
+  SVG adaptations render; four false publication shortcuts are rejected. The independent bounded readers
+  returned NO_FINDINGS. Inspected bilingual About screen/print screenshots at desktop and phone widths;
+  content/freshness checks pass. The runtime location matrix passes eight origin/prefix/filename iframe
+  cases, actual JSON/FTR exports and offline fallbacks. A native full unit run found six integration
+  failures; corrected the unclear mapping example, regenerated catalogue and outdated read-only workflow
+  assertions, then reran all three affected suites successfully. Fresh native complete acceptance passes
+  36/36 checks in 143.0 s, including 671 unit tests (one platform skip), all browser/API groups, all three
+  crate profiles, strict OpenSpec and native generation/ownership/delivery. The earlier 25 October receipt
+  is not reused as proof for this tree. Final usage/public-content/docs/OpenSpec checks follow these
+  evidence-only updates; group 15 remains open for its unmet full claim/address/hosted acceptance criteria.
+- **Corrections:** The maintainer explicitly retained both `github-pages` and `staging` deployment gates
+  plus Actions `checks`, and selected the live maximum merge batch of ten. Read-only ruleset/App audit
+  reports zero findings. A fresh production read exposed an unhandled namespace transition: production
+  still defines the legacy fair.eosc.cz vocabulary/profile. Task 12.1 is reopened; affected implementation
+  is paused for the choice of coordinated release cutover or temporary semantic-namespace retention.
+- **Close-out:** Eleven follow-up tasks are complete; 18 tasks remain, including the six address/discovery
+  tasks, complete long-document verification/final audience review, renewed acceptance and earlier hosted
+  hand-offs. This is local implementation evidence. No push, second commit, hosted setting/issue mutation,
+  dispatch, publication, release, archival or memory update was performed.
+
+
+### Coordinated next-release namespace cutover planning decision
+
+- **When:** 2026-10-26
+- **Agent / runtime:** Codex
+- **Model / backend:** GPT-6; exact backend model identifier not exposed by the runtime.
+- **What:** Recorded the maintainer's selection of a coordinated production/preview namespace cutover at the next
+  release. Reconciled the existing proposal, design decision 28, both capability deltas and tasks with that choice;
+  updated the existing address inventory and hand-off record. Added unchecked task 12.7 and expanded transition,
+  refusal/retry and namespace-aware artifact/reuse acceptance. The plan identifies the absolute-IRI compatibility
+  change for settled release notes without changing the current changelog or implementing the transition.
+- **Impacted:** Five existing planning artifacts, the existing address inventory/hand-off records and this rolling
+  usage entry. No new planning artifact was created. Ordinary previews retain published production semantics until
+  the verified next-release/current-head-preview pair can be deployed together; prior archives keep their bytes.
+- **Subagents used:** none during this planning revision.
+- **MCP servers used:** none during this planning revision.
+- **Workflow context used:** `openspec-update-change` and `fair-guide-editor`; selected repo-local root and
+  spec-driven schema were confirmed through the CLI. The maintainer's explicit direction authorizes this planning
+  revision, while implementation continues through apply and release execution retains its separate approval.
+- **Verification:** Strict change and all-spec validation pass (6/6 items). The diagram run passes 21 Mermaid
+  diagrams and six approved SVG adaptations. New/revised requirement descriptions remain within 500 characters.
+  Direct fingerprints confirm all 878 implementation/source files outside planning and usage are unchanged, and
+  the index remains unstaged. CLI progress is 82/101: one new unchecked task, no implementation completion inferred.
+  Public-content and whitespace checks pass; final planning/usage checks follow this append. The prior 36/36 native
+  suite remains evidence for the unchanged implementation draft, not acceptance of this newly planned cutover.
+- **Corrections:** The maintainer chose coordinated next-release cutover, resolving the pending direction question.
+  This selects planning scope only, not a release version, tag, promotion or publication approval. The current
+  address implementation draft still needs reconciliation and acceptance under the revised plan.
+- **Close-out:** Planning revised coherently. No implementation edits, commit, push, hosted mutation, dispatch,
+  release, publication, archival or memory update. Remaining work is 19 unchecked tasks through the apply and
+  separately approved hosted/human hand-offs; the previous 82/100 receipt retains its historical scope.
+
+### Interrupted cutover implementation (recovered record)
+
+- **When:** 2026-10-26
+- **Agent / runtime:** Codex
+- **Model / backend:** GPT-6; exact backend model identifier not exposed by the runtime.
+- **What:** Continued apply after the planning decision. Drafted most of the coordinated namespace cutover
+  (separate publication and semantic inputs, paired release/preview publication, manifest stamps and assembly
+  refusal) and started three complete documentation readers. The session stopped mid-edit at 20:33 UTC when its
+  workspace credits were exhausted; it wrote no usage entry, left no contributor receipt and ticked no task.
+- **Impacted:** Uncommitted publication scripts, workflows, tests and documentation, later reviewed and repaired by
+  the resumed apply below. Nothing was committed, pushed, dispatched or published.
+- **Subagents used:** `/root/reader_claims`, `/root/contributor_claims` and `/root/maintainer_claims`.
+- **MCP servers used:** none in this continuation; its GitHub reads all precede the planning entry above.
+- **Workflow context used:** `openspec-apply-change` and `fair-guide-editor`. Recorded afterwards by the resumed
+  apply from the Codex session logs, because the interrupted session could not close out.
+- **Verification:** None completed in the session. Its draft was not accepted as found: the resumed apply
+  verified it and repaired three defects (see `address-inventory.md`, local acceptance matrix).
+- **Close-out:** Interrupted; superseded by the resumed apply entry below.
+
+### Resumed cutover apply and contributor documentation review
+
+- **When:** 2026-10-26
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Reviewed the interrupted Codex draft and its session logs, repaired it and completed tasks 12.2-12.7.
+  The repairs: the pre-deployment recheck no longer fails every overtaken ordinary publication (it checks the head
+  only for a paired release), fixtures no longer substitute the newest approved release for the live one, and the
+  paired preview reads the default head after approval in a new `pair-head` job. Recovered and resolved the
+  interrupted readers' 23 first-pass findings, then ran a fresh contributor reader and repaired its 12 findings,
+  including stale documentation links in comment-command and duplicate-repair messages.
+- **Impacted:** `deploy.yml`, `publish.yml` and `checks.yml`; the deployment, publication-location, health-digest and
+  command scripts; reviewed token and catalogue declarations; publication, workflow, docs and command tests; the
+  duplicate-repair messages; deployment, design, content-model, release, assembly and contributor documentation;
+  the change's address inventory, documentation review, hand-off status and tasks.
+- **Subagents used:** general-purpose documentation readers: the contributor reader (complete receipt) and a Guide
+  reader that stopped at the runtime's session limit without a receipt.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-apply-change` and `fair-guide-editor`, with the delivered planning, review
+  conduct and usage/model logging rules.
+- **Verification:** Fresh native acceptance passed 36/36 checks in 204.6 s, including 683 unit tests. Planted
+  head-recheck, stale-placeholder and removed-anchor regressions fail their checks. Strict OpenSpec validation
+  passes (6/6) and the documentation check passes for all 37 documents.
+- **Close-out:** Interrupted at the runtime's session limit with the tracker at 89/101. Nothing committed, pushed,
+  dispatched or published; continued by the Kilo session below.
+
+### Final audience passes and renewed acceptance
+
+- **When:** 2026-10-27
+- **Agent / runtime:** Kilo (VS Code extension)
+- **Model / backend:** anthropic/claude-opus-5-5
+- **What:** Resumed the apply from the interrupted Claude Code transcript. Ran fresh Guide-reader and maintainer
+  readers (the earlier Guide reader had no receipt) and repaired their nine findings after confirming each against
+  code. The repairs: build prerequisites and FRSM-13 evidence, citing the Guide, Czech titles, App credential types,
+  the partitioned-checks callers, how waiting runs are described, a hand-off for a reused merge-queue result, and the
+  emergency-merge label step. Completed tasks 14.1, 14.9, 15.1 and 15.2 (93/101).
+- **Impacted:** both READMEs; software-practice, design, CI reference and emergency-merge documentation; the CI
+  catalogue source and generator; the crate's `runtimePlatform`; the merge-queue adoption output in
+  `scripts/check_ci.py`; the catalogue and adoption tests; and the change's documentation review, section map,
+  hand-off status and tasks.
+- **Subagents used:** `general` (two read-only documentation readers: Guide readers and maintainers).
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-apply-change` and `fair-guide-editor`, with the delivered planning, review
+  conduct, quality-first and usage/model logging rules. Issue states were read with `gh issue view` only.
+- **Verification:** `python scripts/check_all.py` passes 36/36 checks in 203.2 s, including 684 unit tests.
+  Strict OpenSpec passes 6/6, and generation, ownership and delivery report zero findings. The section-map check
+  passes for 37 documents. The old reuse summary and the old catalogue wording each fail their new tests when
+  planted, and both files were restored byte for byte.
+- **Corrections:** A shell command was refused under the user's global Kilo allowlist (`Push-Location` is not
+  listed); the user asked for the permissions to be checked, and later commands stay within it. An emergency-merge
+  fix that would have sent maintainers to the audit's `--fix` write directly was narrowed to the approval-gated
+  settings-audit runbook before checks ran.
+- **Close-out:** Local acceptance is complete. The eight remaining tasks are hosted or human hand-offs with separate
+  approvals. Nothing committed, pushed, dispatched, published or archived, and no issue was changed.
+
+### Status review, finishing capture and group 16 apply
+
+- **When:** 2026-10-27 to 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** In explore mode, reviewed the change's status against the remote events of 25–27 October: the red
+  scheduled refresh with its reasons only in an artifact, 18 issues opened by the legacy watch (17 for one host), and
+  #116's hosted failures. Evaluated the namespace pair machinery. At the maintainer's direction, captured the
+  finishing scope (S1 now, a persistent namespace deferred to an issue, hand-offs finished through use, group 16)
+  in the change artifacts. Then applied 16.2–16.7:
+  - a reviewed `namespace` replaces the live-production lookup and the paired publication, with documentation;
+  - digest host grouping and collapsed overflow;
+  - scheduled refresh summaries that fail only when a maintainer acts, and refresh outcomes in the digest;
+  - separate audit App tokens;
+  - the language-markup rule wording.
+  16.1's quick-job install and its import-derived test are in place, awaiting the hosted run.
+- **Impacted:** `checks.yml`, `deploy.yml`, `partitioned-checks.yml`, `publish.yml`, `health-watch.yml` and
+  `source-refresh.yml`; `publication-location.cjs` (reduced), `deployment.cjs`, `release-artifact.cjs`,
+  `health-digest.cjs` and `source-publisher.cjs`; `build_crate.py`, `publication_location.py`, `assemble_pages.py`,
+  `audit_repository.py`, `watch_sources.py` and `check_docs.py`, with `publication_inputs.py` removed;
+  `content/guide.toml`; the reviewed token list and CI catalogue (regenerated reference); the native content rule
+  and its generated mirrors and `CODEX.md` region; deployment, design, content-model, maintenance, assembly,
+  release, digest and refresh documentation; `CHANGELOG.md`; the affected Python and JavaScript tests; and the
+  change's proposal, design, specs, tasks, migration record, hand-off status and address inventory.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-explore` (status review and capture) and `openspec-apply-change`, with the
+  delivered planning, quality-first, review-conduct and usage/model logging rules and the native content and
+  surface rules. Remote state was read with `gh` only.
+- **Verification:** each task's planted regressions failed and the restored files passed:
+  - a quick check importing an uninstalled module;
+  - one token refusal blocking both reads;
+  - the namespace following the environment;
+  - different publication roots accepted;
+  - host grouping disabled;
+  - overflow sent back to the artifact;
+  - a retried source failing the run;
+  - render ignoring the refresh.
+
+  The first full run failed one unit test that encoded the old "one setting moves everything" contract; it was
+  rewritten for the reviewed namespace and passes. On the final tree `python scripts/check_all.py` passes 36/36 checks
+  in 159.3 s. Strict OpenSpec passes 6/6, and generation, ownership and delivery report zero findings.
+- **Corrections:** The maintainer redirected the namespace design from the implemented coordinated pair to a reviewed
+  setting (S1), and the remaining hand-offs from deferral to completion through use. A `git rm --cached` of
+  `scripts/publication_inputs.py` unstaged that file before it was deleted, which had not been announced in
+  advance. A shell heredoc that could start the Windows Python stub was stopped and replaced by an editor change.
+- **Close-out:** Local tasks 16.2–16.7 and 16.9 are complete (100/113). 16.1 waits for #116's hosted `quick` run;
+  16.8 (two issues) and 16.10–16.12 need their approvals. Nothing committed, pushed, dispatched, published or
+  archived, and no issue was changed.
+
+### Review capture: #116 findings and release-flow observations
+
+- **When:** 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** In explore mode, checked the AIS CR review approval view of #116 at `2ccc0a6` against the head. All
+  seven findings and all four pre-existing observations hold. Finding 5 holds, but its stated mechanism and
+  `overwrite: true` fix do not: the same job uploads `github-pages` before deploying. The documented
+  default-branch deployment is the retry route. Two observations go further than the review says: a lower tag
+  cannot be deleted and would shift the next release's lineage base, and the image recheck skips the superseded
+  release's draft. At the maintainer's direction, captured tasks 16.13-16.24 in the change. Pre-existing [2] came into
+  scope with the decision that a release published to Pages always keeps its image tag and draft (decision 30).
+- **Impacted:** the change's `tasks.md` (16.13-16.24 and the 16.10 precondition), `design.md` (decision 30 and
+  decisions 8, 11, 12, 28 and 29) and the `guide-delivery` delta spec (the container image requirement, a
+  version-ordering requirement and six scenarios), and this entry. The review hand-off was not changed.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-explore` and `openspec-update-change`, with the delivered planning,
+  quality-first, review-conduct and usage/model logging rules. Remote state was read with `gh` only. Two web
+  searches covered artifact-name behaviour on re-runs.
+- **Verification:** `openspec validate enhance-ci-and-repository-workflows --strict` passes. The tracker reads
+  101/125.
+- **Close-out:** Planning capture only. Implementation of 16.13-16.24 waits for approval of the apply phase.
+  Nothing committed, pushed, dispatched, published or archived, and no issue or review was changed.
+
+### Review repairs apply (16.13-16.26)
+
+- **When:** 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Applied the review capture after the maintainer's apply approval. The maintainer added 16.25 during the
+  run, and after the report 16.26 (the production-approval retry) and the review repairs in the proposal's finishing
+  scope.
+  - **Watch and digest:** watch pages and Champion core tests that content no longer names leave the state; a
+    limitation with a current task names it instead of claiming a change; only open tasks are adopted.
+  - **Documentation check:** the publication-order check refuses every Mermaid link form other than a named `-->`.
+  - **Dependencies:** `rdflib` and `pyshacl` are pinned.
+  - **Publication:** hand-offs, the production-approval summary and the catalogue's retry route name the documented
+    deployment dispatch. The last root check compares live Pages with the root stamped in the staging site, and the
+    resolve job lost its unused `pages: read`.
+  - **Release flow (decision 30):** the production job runs only for tags; a superseded published release keeps
+    its image tag and draft, and only the aliases follow precedence; release dispatches fail visibly on another
+    branch; versions must increase.
+  - **Local checks:** the public-content check skips untracked files in the runtime paths declared in
+    `.agents/guide/surfaces.toml`, such as run hand-offs, which stay visible to Git.
+- **Impacted:** `watch_sources.py`, `check_docs.py`, `assemble_pages.py` and `check_public_content.py`; `deployment.cjs`,
+  `health-digest.cjs`, `release-artifact.cjs`, `release-version.cjs` and `prepare-release.cjs`; `deploy.yml`,
+  `publish.yml`, `publish-image.yml`, `tag-release.yml` and `prepare-release.yml`; `.github/ci-catalogue.toml`,
+  `.github/repository.toml` and `requirements-dev.txt`; `docs/deployment.md` and the regenerated
+  `docs/ci-reference.md`; the affected Python and JavaScript tests; the change's proposal and tasks; this entry.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-apply-change`, with the delivered planning, quality-first and usage/model
+  logging rules and the native content and surface rules.
+- **Verification:** each task's planted regression failed and the restored code passed:
+  - prunes disabled;
+  - the old limitation branch;
+  - the old `-->` filter, which let eight link forms through;
+  - a re-run hand-off, in publication and in the approval summary;
+  - the resolve-time root comparison;
+  - adoption without the open filter, which re-parented closed tasks 8 and 9;
+  - the old production condition;
+  - throwing on supersession;
+  - the job-level dispatch condition;
+  - a disabled version check;
+  - an unfiltered public-content scan.
+
+  The new pins were installed into a fresh environment from `requirements-dev.txt`.
+- **Corrections:** The maintainer added 16.25 after the local suite failed on the review hand-off. Its first
+  version gitignored `.agents/local_scratch/`; the maintainer pointed to that directory's README, which keeps
+  hand-offs visible in `git status`, and reverted `.gitignore`. The check now skips only untracked files in the
+  declared runtime paths. Finding 5's
+  review mechanism was replaced by the documented deployment retry before implementation. The project `.venv`
+  keeps Ruff 0.17.0 because the editor holds `ruff.exe`, so lint ran with the pinned 0.17.1 from a fresh
+  environment.
+- **Close-out:** `python scripts/check_all.py` passes 36/36 checks with the #116 review hand-off present,
+  including `public-content`, the unit shards, browser groups, crate profiles, OpenSpec, generation, ownership and
+  delivery. It passed after 16.25, after 16.26 and the proposal update, and again on the final tree after 16.25
+  was reworked to keep the scratch area visible.
+  Tasks 16.13-16.26 are complete (115/127). 16.1 waits for #116's hosted `quick` run; 16.10-16.12 and the
+  earlier hand-offs need their approvals. Nothing committed, pushed, dispatched, published or archived, and no
+  issue or review was changed.
+
+### Delta spec sync
+
+- **When:** 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** At the maintainer's request (`openspec-sync-specs`), merged the change's two delta specs into the main
+  specs while the change stays active. In `guide-delivery`, 7 modified requirements were replaced in place and 55
+  added ones appended (126 requirements). In `guide-knowledge-base`, 5 were replaced and 3 added (55). No modified
+  requirement dropped a main-spec scenario, and there were no removals or renames.
+  Strict validation then rejected four modified requirements longer than 500 characters. Their text was
+  tightened in the delta without changing a requirement, and the specs were synced again:
+  - Humans judge correctness and tone;
+  - Health and source-watch reports remain actionable;
+  - Each release publishes a runnable container image;
+  - Content addressed relative to the site, whose moved-address rationale stays in its "The guide moves" scenario.
+- **Impacted:** `openspec/specs/fair-guide/guide-delivery/spec.md`, `openspec/specs/fair-guide/guide-knowledge-base/spec.md`,
+  the change's two delta specs, and this entry.
+- **Workflow context used:** `openspec-sync-specs`, with a scratch merge script.
+- **Verification:**
+  - A round trip of the unchanged main specs was byte-identical, and a second merge changed nothing.
+  - Every synced block equals its delta; titles, Purpose and all other requirements are unchanged.
+  - `npm run openspec:validate` (all items, strict) passes 6/6 with no warnings.
+- **Close-out:** main specs synced; the change stays active until its remaining hand-offs and archive approval.
+  Nothing committed or archived.
+
+### Second review round: Champion selection key (16.27-16.28)
+
+- **When:** 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** In explore mode, checked the second-round AIS CR review of #116 at `e6d6fa1` (no findings; one
+  pre-existing observation and one process note). The maintainer chose to fold the observation into this change
+  and not to post the review, and approved the capture of 16.27-16.28, the 16.10 precondition and the archive
+  note (the deltas are already synced, so archive runs with `--skip-specs`). The apply that followed:
+  - **Watch:** measured Champion tests are matched to the curated selection by their FAIR Champion identifier,
+    so the five tests whose Guide ID differs are compared with their recorded health instead of being proposed
+    as candidates or dropped without a finding.
+  - **Health inventory:** at the maintainer's choice, the crate and the inventory share
+    `build_crate.champion_endpoint()`; a curated test without a provider identifier or endpoint fails the
+    inventory's HTTPS invocation check.
+- **Impacted:** `scripts/watch_sources.py`, `scripts/build_crate.py`, `scripts/check_health.py`,
+  `tests/test_watch.py`, `tests/test_health.py`; the change's `tasks.md`; this entry. The review hand-off under
+  `.agents/local_scratch/` was read and not changed.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-explore` and `openspec-apply-change`, with the delivered planning,
+  quality-first, review-conduct and usage/model logging rules and the native content and surface rules.
+- **Verification:**
+  - Keying the selection by `id` again fails the new watch test; the previous inline endpoint formula fails the new
+    health test. The restored code passes the watch and health tests (61), Ruff and format.
+  - On the real content, a probe summary naming all 13 curated tests gives 13 core targets and no candidate; the
+    committed watch gave 8 and 5. The crate's 13 test URLs are unchanged.
+  - All 70 delta requirement blocks were byte-identical in the main specs before the archive note was written.
+- **Corrections:** 16.27's verification asked for the inventory to name the provider endpoint, which it never
+  outputs. The maintainer chose the shared helper, and the task records the correction.
+- **Close-out:** `python scripts/check_all.py` passes 36/36 checks in 168.9 s, including OpenSpec, usage entries,
+  generation, ownership and delivery; strict OpenSpec validation and `check_usage.py` passed again after the last
+  edits to the tasks and this entry. Tasks 16.27-16.28 are complete (117/129); 16.10 waits for the maintainer's
+  rerun of the review. Nothing committed, pushed, posted, dispatched or archived.

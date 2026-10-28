@@ -287,6 +287,20 @@ class HealthTests(unittest.TestCase):
         self.assertIn("bilingual purpose", finding["issues"])
         self.assertIn("dated status is valid and not in the future", finding["issues"])
 
+    def test_champion_invocation_endpoint_uses_the_provider_identifier(self) -> None:
+        content = copy.deepcopy(self.content)
+        champion = content["live"]["champion"]
+        tests = {test["id"]: test for test in champion["test"]}
+        expected = champion["endpoint"].rstrip("/") + "/fc_metadata_identifier_persistence"
+        self.assertEqual(build_crate.champion_endpoint(champion, tests["fc-metadata-pid"]), expected)
+        # Without a provider ID or an endpoint of its own, no invocation URL exists, so none is assumed.
+        tests["fc-data-id-metadata"]["alternateIds"] = []
+        groups = {group["type"]: group for group in check_health.integrity(content, ROOT, TODAY)}
+        issues = {item["id"]: item["issues"] for item in groups["remote automated tests"]["items"]}
+        self.assertIn("HTTPS invocation endpoint", issues["fc-data-id-metadata"])
+        self.assertNotIn("HTTPS invocation endpoint", issues["fc-metadata-pid"])
+        self.assertNotIn("HTTPS invocation endpoint", issues["community-data-citation"], "its own endpoint")
+
     def test_no_network_probe_or_current_status_is_inferred(self) -> None:
         report = self.report()
         self.assertEqual(report["live_availability"]["status"], "unchecked")

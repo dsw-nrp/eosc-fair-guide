@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_crate  # noqa: E402
 import package_site  # noqa: E402
+from publication_fixture import publication_files  # noqa: E402
 
 COMMIT = "f" * 40
 
@@ -40,7 +41,10 @@ class PackageTests(unittest.TestCase):
         }
         config = self.site / "assets/data/ui.js"
         config.parent.mkdir(parents=True)
-        config.write_text("window.FairGuideData.ui = " + json.dumps({"config": {"build": self.built}}) + ";\n")
+        for name, data in publication_files(built=self.built, version="0.0.1").items():
+            path = self.site / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
         self.health({"generated_at": "2026-10-12T00:00:00Z", "run": {"status": "passed"}, "revision": COMMIT})
 
     def tearDown(self) -> None:
@@ -62,8 +66,14 @@ class PackageTests(unittest.TestCase):
             self.assertTrue(all(member.mtime == 0 and member.uid == 0 for member in tar.getmembers()))
         self.assertEqual(
             sorted(names),
-            ["api/health.json", "assets/data/ui.js", "index.html"],
+            ["api/health.json", "assets/data/ui.js", "index.html", "ro-crate-metadata.json"],
             "the site's own files, not the marker",
+        )
+        self.assertEqual(manifest["publication_url"], "https://example.org/guide/")
+        self.assertEqual(
+            manifest["semantic"],
+            {"vocabulary_base": "https://example.org/guide/terms#", "profile": "https://example.org/guide/profile/0.1"},
+            "the stamp is read from the packaged crate, not from a configuration default",
         )
         again = package_site.package(self.site, COMMIT, Path(self.temp.name) / "again", self.root)
         self.assertEqual(again["sha256"], manifest["sha256"], "the same site gives the same bytes")

@@ -22,13 +22,14 @@ ARG BUILD_VERSION=unknown
 ARG BUILD_COMMIT=unknown
 ARG BUILD_STATUS=testing
 ARG BUILD_CREATED=1970-01-01T00:00:00Z
+ARG BUILD_PAGE_URL=""
 LABEL org.opencontainers.image.title="EOSC CZ FAIR Data Guide" \
       org.opencontainers.image.description="The EOSC CZ FAIR Data Guide as a static site, served from its verified release artifact." \
       org.opencontainers.image.version="${BUILD_VERSION}" \
       org.opencontainers.image.revision="${BUILD_COMMIT}" \
       org.opencontainers.image.created="${BUILD_CREATED}" \
       org.opencontainers.image.source="https://github.com/dsw-nrp/eosc-fair-guide" \
-      org.opencontainers.image.url="https://fair.eosc.cz/" \
+      org.opencontainers.image.url="${BUILD_PAGE_URL}" \
       org.opencontainers.image.licenses="CC-BY-4.0" \
       cz.eosc.fair-guide.build-status="${BUILD_STATUS}"
 

@@ -25,6 +25,10 @@ explicit alternates; titles, external IDs/IRIs, URLs and classifications cannot 
 
 ## 2. Change content
 
+A new advice item, question or resource using the existing fields, lenses and levels is a content instance:
+use its published sources, bilingual text, paradata and ordinary checks. A new field, changed assessment meaning,
+runtime behaviour, stored format, CI or governance rule needs an approved OpenSpec change before implementation.
+
 For an **advice item**:
 
 1. Set the station, lens (`V`, `DS`, `SR`, `K`) and level (`L0`–`L3`). L0 is one sentence and one concrete
@@ -112,7 +116,9 @@ and observation date. Context explanations address an existing station and lens 
   terminology and scoped status/arrow meanings in both languages.
 - Maintainer diagrams are Mermaid in Markdown with `accTitle` and `accDescr`. The content model's
   entity-relationship diagram is defined once, in `docs/content-model.md`.
-- Mark language changes inside a text with a language tag in the content (see the content model).
+- A name or title in another language carries its own `inLanguage`, so the page sets its `lang`. No markup yet
+  marks a phrase in another language inside a text (see the content model); a passage that needs one is a contract
+  change, not an improvised tag.
 
 ## 7. Paradata and credit
 
@@ -130,6 +136,7 @@ Every compared kind needs paradata: Guide metadata, clauses, advice, questions, 
 criteria (with their mappings and reviewed versions), organisations, pages, curated repositories/sources,
 callouts and the model. The content check compares the content with the merge base of the default branch
 (`--base`, which `check_all.py` sets to the remote's default branch): an item that changed since then needs an
-action added since then that covers it. Snapshot refreshes are recorded with the run and source by automation;
+action added since then, or an existing one extended with a later `endTime`, that covers it. Never move an
+`endTime` only to pass the check. Snapshot refreshes are recorded with the run and source by automation;
 a person reviews them. `scripts/contributors.py` suggests credit from reviewed identities (`github`,
 `commitNames`); it never guesses a person, and an opted-out ORCID stays hidden.

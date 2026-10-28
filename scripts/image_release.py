@@ -22,11 +22,15 @@ def prepare(artifact: Path, output: Path, tag: str, commit: str, root: Path = RO
         raise ValueError("image context overlaps the release artifact")
     files = assemble_pages.production_files(artifact, tag, commit)
     assemble_pages.validate_files(files)
-    built = build_identity.config_identity(files["assets/data/ui.js"].decode("utf-8"))
+    config = files["assets/data/ui.js"].decode("utf-8")
+    built = build_identity.config_identity(config)
+    publication_url = build_identity.config_publication_url(config)
     manifest = json.loads((artifact / "manifest.json").read_text(encoding="utf-8"))
     health = json.loads(files[package_site.HEALTH])
     if manifest.get("build") != built or health.get("build") != built:
         raise ValueError("release page, health and manifest build identities disagree")
+    if "publication_url" in manifest and manifest["publication_url"] != publication_url:
+        raise ValueError("release manifest publication location differs from its verified site")
     if (
         built["channel"] != "release"
         or built["version"] != tag
@@ -47,6 +51,7 @@ def prepare(artifact: Path, output: Path, tag: str, commit: str, root: Path = RO
     for name, data in templates.items():
         (target / name).write_bytes(data)
     (target / "identity.json").write_text(json.dumps(built, indent=2) + "\n", encoding="utf-8")
+    (target / "publication-url.txt").write_text(publication_url + "\n", encoding="utf-8")
     return built
 
 

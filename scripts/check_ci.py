@@ -22,6 +22,7 @@ from pathlib import Path
 
 import check_all
 import check_duplicates
+from handoff import handoff
 
 ROOT = check_all.ROOT
 # Browser jobs by lane, as `ci_timings.py --from tests/fixtures/ci-timings/40022072478-1` packs that run's measured
@@ -49,6 +50,10 @@ QUICK = (
     "openspec",
     "agent-generation",
     "issue-templates",
+    "health-watch-config",
+    "usage-entries",
+    "ci-catalogue",
+    "docs",
 )
 
 
@@ -217,20 +222,60 @@ def quick_summary(results) -> str:
         command = "python scripts/check_all.py --only " + " ".join(failed)
         lines += [
             "",
-            f"- **Next:** the pull request author fixes {', '.join(failed)} and reproduces it with `{command}`.",
-            "- **If blocked:** the complete log is in this job's step output; the required `checks` result reports "
-            "the same failures with the full health report.",
-            f"- **Done when:** `{command}` passes locally and this job and `checks` pass on the next push.",
+            *handoff(
+                f"the pull request author fixes {', '.join(failed)} and reproduces it with `{command}`.",
+                "the complete log is in this job's step output; the required `checks` result reports the same "
+                "failures with the full health report.",
+                f"`{command}` passes locally and this job and `checks` pass on the next push.",
+            ),
         ]
     else:
         lines += [
             "",
-            "- **Next:** wait for the required `checks` result, which also runs the build, unit tests, validators "
-            "and browser checks.",
-            "- **If blocked:** `python scripts/check_all.py` reproduces the complete run locally.",
-            "- **Done when:** `checks` passes.",
+            *handoff(
+                "wait for the required `checks` result, which also runs the build, unit tests, validators and browser "
+                "checks.",
+                "`python scripts/check_all.py` reproduces the complete run locally.",
+                "`checks` passes.",
+            ),
         ]
     return "\n".join(lines) + "\n"
+
+
+# The step that publishes the run summary appends this after the health report, which the site also publishes.
+HANDOFF = "next.md"
+
+
+def write_handoff(output: Path, text: str) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    (output / HANDOFF).write_text(text, encoding="utf-8", newline="\n")
+
+
+def collected_handoff(results, rejected: str = "") -> str:
+    """What the collector's run summary ends with: the failed checks and their local command, or what remains."""
+    failed = sorted({result.job.name for result in results if not result.ok})
+    if rejected:
+        lines = handoff(
+            "re-run the failed jobs: the collector could not accept the lanes' evidence for this build.",
+            "a maintainer reads the collector log above, which names the evidence it refused.",
+            "the collector accepts every lane and `checks` passes.",
+        )
+    elif failed:
+        command = "python scripts/check_all.py --only " + " ".join(failed)
+        lines = handoff(
+            f"fix {', '.join(failed)} and reproduce them with `{command}`.",
+            "each failure's output is above, and this run's health artifact holds the complete logs; a failure this "
+            "change did not cause goes to a maintainer.",
+            f"`{command}` passes locally and the next run's `checks` passes.",
+        )
+    else:
+        lines = handoff(
+            "nothing for the checks: a pull request waits for review and the merge queue, and a merge group or "
+            "deployment continues on its own.",
+            "this run's health artifact holds the dashboard with every check and item.",
+            "the pull request is merged, or the deployment publishes this revision.",
+        )
+    return "\n".join(["", "### Next", "", *lines]) + "\n"
 
 
 def quick(args) -> int:
@@ -527,6 +572,7 @@ def collect(args) -> int:
             previous=None,
         )
         publish_suggestions(args.output, manifest, {}, available)
+        write_handoff(args.output, collected_handoff(known, rejected=str(error)))
         for result in known:
             if not result.ok:
                 print(f"FAILED {result.job.name}:\n{bounded_failure(result.output)}")
@@ -536,6 +582,7 @@ def collect(args) -> int:
     if failures:
         check_all.emit_report(initial, results, available, selected, output=args.output, previous=None)
         publish_suggestions(args.output, manifest, directories, available)
+        write_handoff(args.output, collected_handoff(results))
         for result in failures:
             print(f"FAILED {result.job.name}:\n{bounded_failure(result.output)}")
         return 1
@@ -561,6 +608,8 @@ def collect(args) -> int:
         initial, results, available, selected, env=env, output=args.output, previous=None, start=suite_started
     )
     publish_suggestions(args.output, manifest, directories, available)
+    # Publication appends its own check to the results, so a failed publication is named too.
+    write_handoff(args.output, collected_handoff(results))
     metadata["elapsed_seconds"] = time.time() - manifest["started"]
     write_json(args.output / "execution.json", metadata)
     return status
@@ -625,6 +674,19 @@ def adopt(args) -> int:
     print(
         f"Reused {source}: the same commit, source files and build inputs passed every check there, and its health "
         "snapshot is published in this staging site."
+    )
+    print(
+        "\n".join(
+            [
+                "",
+                *handoff(
+                    "nothing for the checks: Publish the verified site deploys this staging site and records "
+                    "`staging`.",
+                    "when no publication starts, run **Deploy the verified site** on the default branch again.",
+                    "Publish the verified site records `staging` for this commit.",
+                ),
+            ]
+        )
     )
     return 0
 

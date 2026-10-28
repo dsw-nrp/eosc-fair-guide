@@ -591,6 +591,11 @@ class AdoptTests(unittest.TestCase):
             status, printed, publish = self.adopt(Path(temporary))
         self.assertEqual(status, 0)
         self.assertIn("Reused https://example.test/runs/40", printed)
+        # A reused result ends the deployment summary, so it carries the hand-off itself.
+        self.assertTrue(
+            all(f"- **{label}:**" in printed for label in ("Next", "If blocked", "Done when")),
+            printed,
+        )
         site, report = publish.call_args.args[:2]
         self.assertEqual((site, report), (check_ci.ROOT / "_site", self.report))
 

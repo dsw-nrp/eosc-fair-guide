@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
-"""Scheduled live monitoring: links, connector availability, the EOSC CZ pages the guide depends on and FAIR
-Champion remeasurement, turned into a bounded plan of issues keyed for deduplication.
+"""Scheduled live monitoring: links, connector availability, the EOSC CZ pages the guide depends on, stale dated
+statuses and FAIR Champion remeasurement, shown in one maintenance digest rebuilt from current state.
 
-    python scripts/watch_sources.py --state STATE.json --output DIR [--champion PROBE.json] [--no-network]
+    python scripts/watch_sources.py observe --state STATE.json --output DIR [--champion PROBE.json] [--no-network]
+    python scripts/watch_sources.py render --watch DIR --tasks TASKS.json [--audit SECTION.md] --output DIR
+    python scripts/watch_sources.py check-config
 
 It is separate from the deterministic pull-request checks: it makes network requests, its outcomes describe services
-on the day of the run, and none of them is a failed FAIR requirement. It reads the previous run's state, so a failure
-becomes an issue only after ``PERSISTENCE`` consecutive runs and a recovery closes it; an EOSC CZ page item that is
-new or changed in the page's main content opens one issue per item (one per page above ``PAGE_ITEM_LIMIT``), and
-the first run of a page only records a baseline. Writes ``observations.json`` (every observation, dated, with its
-kind), ``issues.json`` (the plan for the trusted issue publisher), ``state.json`` (for the next run) and
-``summary.md``. Uses only the Python standard library; it writes no repository file and opens no issue itself.
+on the day of the run, and none of them is a failed FAIR requirement. ``observe`` reads the previous run's state
+(version 1 is migrated; missing or malformed state is a visible reset that claims no streak or recovery), attempts the
+least recently attempted links under a global budget and a per-host cap, classifies each answer and writes
+``observations.json``, ``plan.json`` (the digest's findings and coverage), ``state.json`` and ``summary.md``.
+``render`` joins that plan with the maintainers' tasks and the audit's "Project and settings" section into
+``body.md``, ``comment.md`` (empty unless a finding appeared, changed, recovered or expired) and the ``state.json``
+the next run reads. Reviewed limitations live in ``.github/health-watch.toml``; ``check-config`` validates them
+offline. Uses only the Python standard library; it writes no repository file and opens no issue itself.
 """
 
 from __future__ import annotations
@@ -19,114 +23,247 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
+import time
+import tomllib
 import urllib.error
 import urllib.request
+from collections import Counter
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_crate  # noqa: E402
 import check_content  # noqa: E402
+from catalogue_identity import alternate_id  # noqa: E402
+from handoff import handoff  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
-USER_AGENT = "eosc-fair-guide-watch/0.1 (+https://github.com/dsw-nrp/eosc-fair-guide)"
-FORMAT_VERSION = 1
-PERSISTENCE = 2  # consecutive failing runs before an issue opens
-MAX_URLS = 600
+LIMITATIONS = ".github/health-watch.toml"
+USER_AGENT = "eosc-fair-guide-watch/0.2 (+https://github.com/dsw-nrp/eosc-fair-guide)"
+FORMAT_VERSION = 2
+PERSISTENCE = 2  # consecutive failing observations before a finding is shown
+BUDGET = 600  # link requests per run
+PER_HOST = 120  # link requests per host per run; 199 of 673 links share one host, which two runs still cover
+RETRY_AFTER_LIMIT = 30  # seconds one rate-limited host may be waited for, once
+UNRESPONSIVE = 3  # consecutive unanswered requests that stop a host for the run
 WORKERS = 8
 TIMEOUT = 20
 MAX_PAGE_BYTES = 4 * 1024 * 1024
-PAGE_ITEM_LIMIT = 10
+SOURCE_DAYS = 28  # how long a changed EOSC CZ page item stays listed for review unless a task tracks it
+SECTION_LIMIT = 25
+BODY_LIMIT = 60000  # GitHub's issue body limit is 65,536 characters
+FAILING = ("broken", "denied", "rate-limited", "unavailable")
+GOOD = ("ok", "available", "matches")
+DIGEST_MARKER = "<!-- fair-guide-digest -->"
+SECTIONS = {
+    "triage": "Needs triage",
+    "refresh": "Sources not refreshed",
+    "tracked": "Tracked",
+    "limitation": "Known limitations",
+    "source": "Source updates to review",
+    "candidate": "Candidates to review",
+    "stale": "Stale statuses",
+}
+PAGINATION_WORDS = {
+    "další",
+    "předchozí",
+    "následující",
+    "next",
+    "previous",
+    "prev",
+    "older",
+    "newer",
+    "more",
+    "»",
+    "«",
+    "›",
+    "‹",
+    "…",
+}
+PAGINATION_KEYS = {"page", "p", "strana", "offset", "start", "pg"}
 
-# A fetch returns (HTTP status or None, body bytes or b"", error text).
-Fetch = Callable[[str, bool], tuple[int | None, bytes, str]]
+
+class Answer(tuple):
+    """One request's outcome: HTTP status or None, body bytes, error text, the methods tried and any Retry-After."""
+
+    def __new__(
+        cls, status: int | None, body: bytes = b"", error: str = "", method: str = "GET", retry: int | None = None
+    ):
+        return super().__new__(cls, (status, body, error, method, retry))
+
+    status = property(lambda self: self[0])
+    body = property(lambda self: self[1])
+    error = property(lambda self: self[2])
+    method = property(lambda self: self[3])
+    retry = property(lambda self: self[4])
 
 
-def fetch(url: str, body: bool) -> tuple[int | None, bytes, str]:
+# A fetch takes (url, body wanted) and returns an Answer, or (status, body, error) as before.
+Fetch = Callable[[str, bool], tuple]
+
+
+def answer(result: tuple) -> Answer:
+    return result if isinstance(result, Answer) else Answer(*result)
+
+
+def retry_after(value: str | None) -> int | None:
+    return int(value) if value and value.strip().isdigit() else None
+
+
+def fetch(url: str, body: bool) -> Answer:
     """One bounded anonymous request: HEAD for a link (GET when HEAD is refused), GET for a page body."""
+    tried = []
     for method in ("GET",) if body else ("HEAD", "GET"):
+        tried.append(method)
         request = urllib.request.Request(url, method=method, headers={"User-Agent": USER_AGENT, "Accept": "*/*"})
         try:
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-                return response.status, response.read(MAX_PAGE_BYTES) if body else b"", ""
+                return Answer(response.status, response.read(MAX_PAGE_BYTES) if body else b"", "", " then ".join(tried))
         except urllib.error.HTTPError as error:
             if method == "HEAD" and error.code in (403, 405, 501):
                 continue
-            return error.code, b"", f"HTTP {error.code}"
+            wait = retry_after(error.headers.get("Retry-After")) if error.headers else None
+            return Answer(error.code, b"", f"HTTP {error.code}", " then ".join(tried), wait)
         except (urllib.error.URLError, TimeoutError, OSError) as error:
-            return None, b"", str(getattr(error, "reason", error))
-    return None, b"", "no response"
+            return Answer(None, b"", str(getattr(error, "reason", error)), " then ".join(tried))
+    return Answer(None, b"", "no response", " then ".join(tried))
 
 
 def classify(status: int | None) -> str:
-    """A link's outcome: ok, broken (the address is gone or refused) or unavailable (the service did not answer)."""
+    """An answer's outcome. Only a missing address is broken; refusals, throttling and silence say nothing about the
+    page itself, and none of them is a FAIR verdict."""
     if status is not None and 200 <= status < 400:
         return "ok"
-    if status in (404, 410) or (status is not None and 400 <= status < 500 and status != 429):
+    if status in (404, 410):
         return "broken"
+    if status in (401, 403, 451):
+        return "denied"
+    if status == 429:
+        return "rate-limited"
     return "unavailable"
 
 
-def content_links(content: dict[str, Any]) -> dict[str, list[str]]:
-    """Every external address the guide links, with where it is used, up to MAX_URLS addresses."""
+def content_links(content: dict[str, Any]) -> tuple[dict[str, list[str]], list[str]]:
+    """Every external address the guide links, with where it is used, and the url or href values that are not a
+    checkable HTTPS address."""
     found: dict[str, list[str]] = {}
+    invalid: list[str] = []
     for name, data in content.items():
         if name in ("ui", "icons", "identifiers"):
             continue
         for path, key, value in check_content.walk(data, name):
-            if key in ("url", "href") and isinstance(value, str) and value.startswith("https://"):
+            if key not in ("url", "href") or not isinstance(value, str):
+                continue
+            parsed = urlparse(value)
+            if parsed.scheme == "https" and parsed.hostname:
                 found.setdefault(value, []).append(f"{path}.{key}")
-    return dict(sorted(found.items())[:MAX_URLS])
+            elif parsed.scheme in ("http", "https"):
+                invalid.append(f"{path}.{key}")
+    return dict(sorted(found.items())), invalid
+
+
+def select(
+    urls: list[str], targets: dict[str, dict], budget: int | None = None, per_host: int | None = None
+) -> list[str]:
+    """The links to attempt: never attempted first, then the least recently attempted, at most `per_host` per host and
+    `budget` in all (BUDGET and PER_HOST by default), so an unchanged inventory larger than the budget is covered in
+    turn."""
+    budget = BUDGET if budget is None else budget
+    per_host = PER_HOST if per_host is None else per_host
+    order = sorted(urls, key=lambda url: (targets.get(f"link:{url}", {}).get("checked") or "", url))
+    chosen, hosts = [], Counter()
+    for url in order:
+        host = urlparse(url).hostname
+        if len(chosen) < budget and hosts[host] < per_host:
+            chosen.append(url)
+            hosts[host] += 1
+    return chosen
+
+
+def attempt(urls: list[str], fetcher: Fetch, sleep: Callable[[float], None] = time.sleep) -> dict[str, Answer]:
+    """Answers for `urls`, each host in turn and hosts in parallel. A host that rate-limits is waited for once when it
+    asks for at most RETRY_AFTER_LIMIT seconds; a host that throttles again, asks for longer or stops answering is not
+    asked further this run, and its remaining links are deferred."""
+    hosts: dict[str, list[str]] = {}
+    for url in urls:
+        hosts.setdefault(urlparse(url).hostname or "", []).append(url)
+
+    def run(queue: list[str]) -> dict[str, Answer]:
+        answers, waited, silent = {}, False, 0
+        for url in queue:
+            result = answer(fetcher(url, False))
+            if result.status == 429 and not waited and result.retry is not None and result.retry <= RETRY_AFTER_LIMIT:
+                waited = True
+                sleep(result.retry)
+                result = answer(fetcher(url, False))
+            answers[url] = result
+            silent = silent + 1 if result.status is None else 0
+            if result.status == 429 or silent >= UNRESPONSIVE:
+                break
+        return answers
+
+    found: dict[str, Answer] = {}
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        for answers in pool.map(run, hosts.values()):
+            found.update(answers)
+    return found
 
 
 class MainItems(HTMLParser):
-    """Linked items and anchored sections in a page's <main>, leaving out its navigation, header and footer."""
+    """Linked items and anchored sections in a page's <main>, leaving out its navigation, header, footer and
+    pagination: a "next page" link (#101) is navigation, not a new item."""
 
     SKIPPED = {"nav", "header", "footer", "script", "style", "noscript"}
+    PAGER = re.compile(r"pag(?:ination|er|ing)", re.IGNORECASE)
 
     def __init__(self, base: str) -> None:
         super().__init__(convert_charrefs=True)
         self.base = base
         self.depth = 0
-        self.skipped = 0
+        self.skipping: list[str] = []  # the open skipped elements, innermost last
         self.items: dict[str, str] = {}
         self._link: str | None = None
+        self._rel = ""
         self._anchor: str | None = None
         self._text: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        values = dict(attrs)
+        values = {key: value or "" for key, value in attrs}
         if tag == "main":
             self.depth += 1
         if not self.depth:
             return
-        if tag in self.SKIPPED:
-            self.skipped += 1
-        if self.skipped:
+        pager = self.PAGER.search(values.get("class", "") + " " + values.get("aria-label", ""))
+        nested = bool(self.skipping) and tag == self.skipping[-1]  # a same-named element inside a skipped one
+        if tag in self.SKIPPED or (pager and tag not in ("a", "main")) or nested:
+            self.skipping.append(tag)
+        if self.skipping:
             return
         href = values.get("href") or ""
         if tag == "a" and href and urlparse(urljoin(self.base, href)).scheme in ("http", "https"):
-            self._link, self._text = urljoin(self.base, href), []
+            self._link, self._rel, self._text = urljoin(self.base, href), values.get("rel", ""), []
         elif values.get("id") and tag in ("h1", "h2", "h3", "h4", "section", "article", "div", "li"):
             self._anchor, self._text = "#" + values["id"], []
 
     def handle_endtag(self, tag: str) -> None:
         if not self.depth:
             return
-        if tag in self.SKIPPED and self.skipped:
-            self.skipped -= 1
-            return
-        if self.skipped:
+        if self.skipping:
+            if tag == self.skipping[-1]:
+                self.skipping.pop()
             return
         if tag == "a" and self._link:
-            self.items[self._link] = " ".join("".join(self._text).split())[:300]
+            text = " ".join("".join(self._text).split())[:300]
+            if not self.paging(self._link, self._rel, text):
+                self.items[self._link] = text
             self._link = None
         elif self._anchor and tag in ("h1", "h2", "h3", "h4", "section", "article", "div", "li"):
             self.items.setdefault(self._anchor, " ".join("".join(self._text).split())[:300])
@@ -135,8 +272,23 @@ class MainItems(HTMLParser):
             self.depth -= 1
 
     def handle_data(self, data: str) -> None:
-        if self.depth and not self.skipped and (self._link or self._anchor):
+        if self.depth and not self.skipping and (self._link or self._anchor):
             self._text.append(data)
+
+    def paging(self, link: str, rel: str, text: str) -> bool:
+        """A link to another page of this listing: rel next or prev, the same address with only a page parameter
+        changed, or a bare page word or number."""
+        if {"next", "prev", "previous"} & set(rel.lower().split()):
+            return True
+        here, there = urlparse(self.base), urlparse(link)
+        if (there.netloc, there.path.rstrip("/")) == (here.netloc, here.path.rstrip("/")):
+            changed = set(dict(parse_qsl(there.query))) ^ set(dict(parse_qsl(here.query))) | {
+                key for key, value in parse_qsl(there.query) if dict(parse_qsl(here.query)).get(key) != value
+            }
+            if changed and changed <= PAGINATION_KEYS:
+                return True
+        word = text.strip().lower()
+        return word in PAGINATION_WORDS or (word.isdigit() and len(word) <= 3)  # "2" is a page; "2026" may be a report
 
 
 def page_items(url: str, body: bytes) -> dict[str, str]:
@@ -149,89 +301,119 @@ def digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
 
 
-def observe(
-    content: dict[str, Any], state: dict[str, Any], fetcher: Fetch, champion: dict[str, Any] | None, today: date
-) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Today's observations and the next state; the state carries failure streaks and page items."""
-    observations: list[dict[str, Any]] = []
-    streaks: dict[str, int] = dict(state.get("streaks", {}))
-    pages: dict[str, dict[str, str]] = {key: dict(value) for key, value in state.get("pages", {}).items()}
+# --- state ----------------------------------------------------------------------------------------------------------
 
-    def record(key: str, kind: str, status: str, **details: Any) -> None:
-        failing = status not in ("ok", "available", "unchanged", "baseline", "changed", "matches")
-        streaks[key] = streaks.get(key, 0) + 1 if failing else 0
-        observations.append({"key": key, "kind": kind, "status": status, "streak": streaks[key], **details})
 
-    links = content_links(content)
-    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        answers = dict(zip(links, pool.map(lambda url: fetcher(url, False), links), strict=True))
-    for url, used in links.items():
-        status, _, error = answers[url]
-        record(f"link:{url}", "link", classify(status), url=url, http=status, error=error, used=used[:5])
-    for connector in content["live"].get("connector", []):
-        status, _, error = fetcher(connector["origin"] + "/", False)
-        outcome = "available" if status is not None and status < 500 and status != 429 else "unavailable"
-        record(f"connector:{connector['id']}", "connector", outcome, url=connector["origin"], http=status, error=error)
-    for page in content["live"].get("watch", []):
-        status, body, error = fetcher(page["url"], True)
-        key = f"watch:{page['id']}"
-        if status is None or not 200 <= status < 300:
-            record(key, "watch", "unavailable", url=page["url"], http=status, error=error)
+def load_state(path: Path) -> tuple[dict[str, Any], str]:
+    """The previous run's state in the current format, and a reset notice when there is none to continue from."""
+    if not path.is_file():
+        return (
+            empty_state(),
+            "No previous watch state was found, so this run restarts every streak and claims no recovery.",
+        )
+    try:
+        state = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        return (
+            empty_state(),
+            f"The previous watch state was unreadable ({type(error).__name__}), so this run restarts every streak "
+            "and claims no recovery.",
+        )
+    if isinstance(state, dict) and state.get("format_version") == 1 and isinstance(state.get("streaks"), dict):
+        return migrate(state), ""
+    if (
+        isinstance(state, dict)
+        and state.get("format_version") == FORMAT_VERSION
+        and all(isinstance(state.get(key), dict) for key in ("targets", "pages", "sources", "reported"))
+    ):
+        return state, ""
+    return (
+        empty_state(),
+        "The previous watch state had an unknown format, so this run restarts every streak and claims no recovery.",
+    )
+
+
+def empty_state() -> dict[str, Any]:
+    return {"format_version": FORMAT_VERSION, "targets": {}, "pages": {}, "sources": {}, "reported": {}}
+
+
+def migrate(state: dict[str, Any]) -> dict[str, Any]:
+    """Version 1 kept failure streaks and page baselines; both continue, with outcomes learned at the next check."""
+    kinds = {"link": "link", "connector": "connector", "watch": "watch", "champion": "champion-core"}
+    targets = {}
+    for key, streak in state["streaks"].items():
+        kind = kinds.get(key.split(":", 1)[0])
+        if kind and isinstance(streak, int) and streak > 0:
+            targets[key] = {"kind": kind, "outcome": None, "streak": streak, "since": None, "checked": None}
+    pages = {page: dict(items) for page, items in state.get("pages", {}).items() if isinstance(items, dict)}
+    return {"format_version": FORMAT_VERSION, "targets": targets, "pages": pages, "sources": {}, "reported": {}}
+
+
+def observed(previous: dict[str, Any] | None, outcome: str, today: date, **details: Any) -> dict[str, Any]:
+    previous = previous or {}
+    failing = outcome in FAILING or outcome == "differs"
+    return {
+        **details,
+        "outcome": outcome,
+        "streak": (previous.get("streak", 0) + 1) if failing else 0,
+        "since": previous.get("since")
+        if previous.get("outcome") == outcome and previous.get("since")
+        else today.isoformat(),
+        "checked": today.isoformat(),
+    }
+
+
+# --- limitations ------------------------------------------------------------------------------------------------------
+
+LIMITATION_KEYS = {"key", "outcome", "reason", "evidence", "reviewer", "reviewed", "reviewBy"}
+
+
+def limitation_errors(entries: Any, people: set[str]) -> list[str]:
+    """Problems that make a limitation unusable, each naming its entry: a wildcard or unknown target, a missing basis,
+    an unknown reviewer, impossible dates or two entries for one target."""
+    if not isinstance(entries, list):
+        return ["limitation: expected a list of [[limitation]] tables"]
+    errors, seen = [], {}
+    for index, entry in enumerate(entries):
+        where = f"limitation[{index}]"
+        if not isinstance(entry, dict):
+            errors.append(f"{where}: expected a table")
             continue
-        texts = page_items(page["url"], body)
-        items = {href: digest(text) for href, text in texts.items()}
-        before = pages.get(page["id"])
-        if before is None:
-            record(key, "watch", "baseline", url=page["url"], items=len(items))
-        else:
-            added = sorted(set(items) - set(before))
-            changed = sorted(href for href in set(items) & set(before) if items[href] != before[href])
-            record(
-                key,
-                "watch",
-                "changed" if added or changed else "unchanged",
-                url=page["url"],
-                added=[{"item": href, "text": texts[href]} for href in added],
-                updated=[{"item": href, "text": texts[href]} for href in changed],
-            )
-        pages[page["id"]] = items
-    stale_after = int(content["guide"]["guide"].get("freshnessDays", 180))
-    for name, data in content.items():
-        for path, key, value in check_content.walk(data, name):
-            if key == "asOf" and isinstance(value, date) and (today - value).days > stale_after:
-                record(
-                    f"stale:{path}.{key}",
-                    "stale-status",
-                    "stale",
-                    item=f"{path}.{key}",
-                    asOf=value.isoformat(),
-                    days=(today - value).days,
-                )
-    if champion:
-        core = {test["id"]: test for test in content["live"].get("champion", {}).get("test", [])}
-        for summary in champion.get("summary", []):
-            test = core.get(summary["id"])
-            details = {
-                "test": summary["id"],
-                "measured": summary["health"],
-                "attempted": summary["attempted"],
-                "definitive": summary["definitive"],
-                "indeterminate": summary["indeterminate"],
-                "measuredAt": champion.get("generatedAt"),
-            }
-            if test is not None:
-                same = test.get("health") == summary["health"]
-                record(
-                    f"champion:{summary['id']}",
-                    "champion-core",
-                    "matches" if same else "differs",
-                    recorded=test.get("health"),
-                    recordedAsOf=str(test.get("asOf", "")),
-                    **details,
-                )
-            elif summary["health"] == "available":
-                record(f"champion-candidate:{summary['id']}", "champion-candidate", "candidate", **details)
-    return observations, {"format_version": FORMAT_VERSION, "streaks": streaks, "pages": pages}
+        where += f" ({entry.get('key', '?')})"
+        errors += [f"{where}: unknown key {key!r}" for key in sorted(set(entry) - LIMITATION_KEYS)]
+        errors += [f"{where}: missing {key!r}" for key in sorted(LIMITATION_KEYS - set(entry))]
+        key = entry.get("key", "")
+        if (
+            not isinstance(key, str)
+            or not re.fullmatch(r"(link|connector|watch):\S+", key)
+            or any(c in key for c in "*?")
+        ):
+            errors.append(f"{where}: key must name one exact link, connector or watched page, without wildcards")
+        if entry.get("outcome") not in FAILING:
+            errors.append(f"{where}: outcome must be one of {', '.join(FAILING)}")
+        for field in ("reason", "evidence"):
+            if not isinstance(entry.get(field), str) or len(entry.get(field, "").strip()) < 10:
+                errors.append(f"{where}: {field} must state the basis in words")
+        if entry.get("reviewer") not in people:
+            errors.append(f"{where}: reviewer must be a reviewed person ID from content/guide.toml")
+        reviewed, due = entry.get("reviewed"), entry.get("reviewBy")
+        if not isinstance(reviewed, date) or not isinstance(due, date) or due <= reviewed:
+            errors.append(f"{where}: reviewed and reviewBy must be dates, reviewBy after reviewed")
+        if isinstance(key, str) and key in seen:
+            errors.append(f"{where}: conflicts with limitation[{seen[key]}] for the same target")
+        seen.setdefault(key, index)
+    return errors
+
+
+def load_limitations(root: Path, content: dict[str, Any]) -> tuple[dict[str, dict], list[str]]:
+    path = root / LIMITATIONS
+    entries = tomllib.loads(path.read_text(encoding="utf-8")).get("limitation", []) if path.is_file() else []
+    people = {person["id"] for person in content["guide"].get("person", [])}
+    errors = limitation_errors(entries, people)
+    return ({} if errors else {entry["key"]: entry for entry in entries}), errors
+
+
+# --- text -------------------------------------------------------------------------------------------------------------
 
 
 def escape(value: Any) -> str:
@@ -254,113 +436,301 @@ def plain(value: Any, limit: int = 100) -> str:
     return " ".join(str(value).split())[:limit].replace("@", "@\u200b")
 
 
-def plan(observations: list[dict[str, Any]], run_url: str | None, today: date) -> list[dict[str, Any]]:
-    """Issue actions keyed for deduplication: open or update after PERSISTENCE failing runs, close on recovery."""
-    actions: list[dict[str, Any]] = []
-    source = f" ([run]({run_url}))" if run_url else ""
-    for item in observations:
-        key, kind, status = item["key"], item["kind"], item["status"]
-        if kind in ("link", "connector") and status in ("ok", "available"):
-            actions.append({"key": key, "action": "close", "comment": f"Recovered on {today.isoformat()}{source}."})
-        elif kind == "link" and item["streak"] >= PERSISTENCE:
-            what = "is broken" if status == "broken" else "did not answer"
-            actions.append(
-                {
-                    "key": key,
-                    "action": "open",
-                    "title": f"Link {what}: {plain(item['url'], 120)}",
-                    "body": f"`{code(item['url'])}` {what} in {item['streak']} consecutive runs "
-                    f"(HTTP {item['http'] or 'none'}; {escape(item['error'])}).\n\nUsed at: "
-                    + ", ".join(f"`{code(place)}`" for place in item["used"])
-                    + f"\n\nLast checked {today}{source}.",
-                }
+OUTCOME_TEXT = {
+    "broken": "is gone",
+    "denied": "refused access",
+    "rate-limited": "rate-limited the watch",
+    "unavailable": "did not answer",
+}
+
+
+# --- observe ----------------------------------------------------------------------------------------------------------
+
+
+def observe(
+    content: dict[str, Any],
+    state: dict[str, Any],
+    fetcher: Fetch,
+    champion: dict[str, Any] | None,
+    today: date,
+    *,
+    sleep: Callable[[float], None] = time.sleep,
+) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
+    """Today's observations, the next state and the coverage counts."""
+    targets: dict[str, dict] = {key: dict(value) for key, value in state["targets"].items()}
+    pages = {key: dict(value) for key, value in state["pages"].items()}
+    sources = {key: dict(value) for key, value in state["sources"].items()}
+    observations: list[dict[str, Any]] = []
+
+    def record(key: str, kind: str, outcome: str, **details: Any) -> None:
+        targets[key] = observed(targets.get(key), outcome, today, kind=kind, **details)
+        observations.append({"key": key, "kind": kind, "status": outcome, "streak": targets[key]["streak"], **details})
+
+    links, invalid = content_links(content)
+    chosen = select(list(links), targets)
+    answers = attempt(chosen, fetcher, sleep)
+    for url, used in links.items():
+        key = f"link:{url}"
+        if url in answers:
+            result = answers[url]
+            evidence = f"{result.method} {result.status if result.status is not None else 'no answer'}"
+            evidence += f": {result.error}" if result.error and result.status is None else ""
+            record(
+                key,
+                "link",
+                classify(result.status),
+                url=url,
+                http=result.status,
+                method=result.method,
+                evidence=evidence,
+                used=used[:5],
             )
-        elif kind == "connector" and item["streak"] >= PERSISTENCE:
-            actions.append(
-                {
-                    "key": key,
-                    "action": "open",
-                    "title": f"Service unavailable: {plain(key.split(':', 1)[1])}",
-                    "body": f"`{code(item['url'])}` did not answer in {item['streak']} consecutive runs. "
-                    "The guide keeps working; lookups through this service show no result, never a failed "
-                    f"requirement.\n\nLast checked {today}{source}.",
-                }
+        else:
+            # Deferred: the dated observation stays as it was, without a new failure or a recovery.
+            targets.setdefault(key, {"kind": "link", "outcome": None, "streak": 0, "since": None, "checked": None})
+            targets[key]["url"], targets[key]["used"] = url, used[:5]
+            observations.append({"key": key, "kind": "link", "status": "deferred", "checked": targets[key]["checked"]})
+    for key in [key for key, value in targets.items() if value.get("kind") == "link" and key[5:] not in links]:
+        del targets[key]  # no longer linked
+    for connector in content["live"].get("connector", []):
+        result = answer(fetcher(connector["origin"] + "/", False))
+        # A service that answers, even 404 at its root, is available; only throttling and silence are not.
+        answered = result.status is not None and result.status < 500 and result.status != 429
+        outcome = "available" if answered else classify(result.status)
+        record(
+            f"connector:{connector['id']}",
+            "connector",
+            outcome,
+            url=connector["origin"],
+            http=result.status,
+            method=result.method,
+            evidence=f"{result.method} {result.status if result.status is not None else 'no answer'}",
+        )
+    connectors = {f"connector:{item['id']}" for item in content["live"].get("connector", [])}
+    for key in [key for key, value in targets.items() if value.get("kind") == "connector" and key not in connectors]:
+        del targets[key]
+    for page in content["live"].get("watch", []):
+        result = answer(fetcher(page["url"], True))
+        key = f"watch:{page['id']}"
+        if result.status is None or not 200 <= result.status < 300:
+            outcome = classify(result.status)
+            record(
+                key,
+                "watch",
+                "unavailable" if outcome == "ok" else outcome,
+                url=page["url"],
+                http=result.status,
+                method=result.method,
+                evidence=f"{result.method} {result.status or 'no answer'}",
             )
-        elif kind == "watch" and status == "changed":
-            changes = [("New", entry) for entry in item["added"]] + [("Updated", entry) for entry in item["updated"]]
-            if len(changes) > PAGE_ITEM_LIMIT:
-                listed = "\n".join(
-                    f"- {label}: {escape(entry['text'])} (`{code(entry['item'])}`)"
-                    for label, entry in changes[:PAGE_ITEM_LIMIT]
+            continue
+        texts = page_items(page["url"], result.body)
+        items = {href: digest(text) for href, text in texts.items()}
+        before = pages.get(page["id"])
+        if before is None:
+            record(key, "watch", "baseline", url=page["url"], items=len(items))
+        else:
+            for href in sorted(set(items) - set(before)) + sorted(
+                h for h in set(items) & set(before) if items[h] != before[h]
+            ):
+                label = "New" if href not in before else "Updated"
+                sources[f"page:{page['id']}:{href}"] = {
+                    "page": page["id"],
+                    "url": page["url"],
+                    "item": href,
+                    "text": texts[href],
+                    "label": label,
+                    "first": today.isoformat(),
+                }
+            record(key, "watch", "ok", url=page["url"], items=len(items))
+        pages[page["id"]] = items
+    watched = {page["id"] for page in content["live"].get("watch", [])}
+    for key in [key for key, value in targets.items() if value.get("kind") == "watch" and key[6:] not in watched]:
+        del targets[key]  # no longer watched, with its baseline and the items still listed for review
+    for name in [name for name in pages if name not in watched]:
+        del pages[name]
+    for key in [key for key, item in sources.items() if "page" in item and item["page"] not in watched]:
+        del sources[key]
+    for key, item in list(sources.items()):
+        if item["first"] < (today - timedelta(days=365)).isoformat():
+            del sources[key]  # long past review, tracked or not
+        elif item["first"] < (today - timedelta(days=SOURCE_DAYS)).isoformat():
+            item["aged"] = True
+    # The probe names a test by its FAIR Champion identifier, which the build requires of every curated test.
+    core = {alternate_id(test, "fair-champion"): test for test in content["live"].get("champion", {}).get("test", [])}
+    for key in [key for key, value in targets.items() if value.get("kind") == "champion-core" and key[9:] not in core]:
+        del targets[key]  # no longer in the curated selection, even when this run did not remeasure
+    if champion:
+        measured = set()
+        for summary in champion.get("summary", []):
+            test = core.get(summary["id"])
+            details = {
+                "test": summary["id"],
+                "measured": summary["health"],
+                "attempted": summary["attempted"],
+                "definitive": summary["definitive"],
+                "indeterminate": summary["indeterminate"],
+                "measuredAt": champion.get("generatedAt"),
+            }
+            if test is not None:
+                same = test.get("health") == summary["health"]
+                record(
+                    f"champion:{summary['id']}",
+                    "champion-core",
+                    "matches" if same else "differs",
+                    recorded=test.get("health"),
+                    recordedAsOf=str(test.get("asOf", "")),
+                    **details,
                 )
-                actions.append(
-                    {
-                        "key": f"{key}:{today.isoformat()}",
-                        "action": "open",
-                        "title": f"EOSC CZ page changed: {plain(key.split(':', 1)[1])} ({len(changes)} items)",
-                        "body": f"{len(changes)} items changed in the main content of `{code(item['url'])}` "
-                        f"on {today}; the first {PAGE_ITEM_LIMIT}:\n\n{listed}\n\nReview what the guide cites{source}.",
-                    }
+            elif summary["health"] == "available":
+                measured.add(f"champion-candidate:{summary['id']}")
+                record(f"champion-candidate:{summary['id']}", "champion-candidate", "candidate", **details)
+        for key in [k for k, v in targets.items() if v.get("kind") == "champion-candidate" and k not in measured]:
+            del targets[key]  # no longer available, or adopted into the core selection
+    coverage = {
+        "eligible": len(links),
+        "attempted": len(answers),
+        "deferred": len(links) - len(answers),
+        "invalid": len(invalid),
+        "invalidAt": invalid[:SECTION_LIMIT],
+    }
+    next_state = {
+        **empty_state(),
+        "targets": targets,
+        "pages": pages,
+        "sources": sources,
+        "reported": state["reported"],
+    }
+    return observations, next_state, coverage
+
+
+def findings(content: dict[str, Any], state: dict[str, Any], limitations: dict[str, dict], today: date) -> list[dict]:
+    """What the digest shows, before tasks: persistent failures (in triage or as a known limitation), page items to
+    review, Champion candidates and stale statuses. Every finding has a stable key and a fingerprint of what matters."""
+    found = []
+    for key, target in sorted(state["targets"].items()):
+        kind, outcome = target.get("kind"), target.get("outcome")
+        failing = outcome in FAILING or outcome == "differs"
+        if failing and target.get("streak", 0) >= PERSISTENCE:
+            stale = target.get("checked") != today.isoformat()
+            when = f"since {target.get('since')}" + (
+                f"; not rechecked this run, last checked {target.get('checked')}" if stale else ""
+            )
+            if kind in ("link", "connector", "watch"):
+                what = {"link": "Link", "connector": "Service", "watch": "Watched page"}[kind]
+                line = (
+                    f"{what} `{code(target.get('url', key))}` {OUTCOME_TEXT.get(outcome, outcome)} "
+                    f"({code(target.get('evidence', ''))}) in {target['streak']} checks, {when}"
                 )
-            else:
-                for label, entry in changes:
-                    actions.append(
-                        {
-                            "key": f"{key}:{entry['item']}:{digest(entry['text'])}",
-                            "action": "open",
-                            "title": f"EOSC CZ {label.lower()} item: {plain(entry['text'] or entry['item'])}",
-                            "body": f"{label} item in the main content of `{code(item['url'])}` on {today}: "
-                            f"{escape(entry['text'])} (`{code(entry['item'])}`). Check whether the guide's "
-                            f"advice or sources should follow{source}.",
-                        }
-                    )
-        elif kind == "champion-core" and status == "differs" and item["streak"] >= PERSISTENCE:
-            actions.append(
-                {
-                    "key": key,
-                    "action": "open",
-                    "title": f"FAIR Champion test health changed: {plain(item['test'])}",
-                    "body": f"Recorded `{code(item['recorded'])}` (as of {escape(item['recordedAsOf'])}); measured "
-                    f"`{code(item['measured'])}` in {item['streak']} consecutive remeasurements "
-                    f"({item['definitive']} definitive and {item['indeterminate']} indeterminate verdicts of "
-                    f"{item['attempted']} calls, {escape(item['measuredAt'])}). An indeterminate verdict is a "
-                    "result, not a transport failure. Update the dated health in `content/live.toml` with "
-                    f"fresh provenance if the change holds{source}.",
-                }
-            )
-        elif kind == "champion-core" and status == "matches":
-            actions.append(
-                {"key": key, "action": "close", "comment": f"Measured health matches the record on {today}{source}."}
-            )
+                if kind == "link" and target.get("used"):
+                    line += "; used at " + ", ".join(f"`{code(place)}`" for place in target["used"][:3])
+                if kind == "connector":
+                    line += ". The Guide keeps working; its lookups show no result, never a failed requirement"
+            else:  # a Champion core test whose measured health differs from the record
+                line = (
+                    f"FAIR Champion test `{code(target.get('test'))}` measured `{code(target.get('measured'))}`, "
+                    f"recorded `{code(target.get('recorded'))}` (as of {escape(target.get('recordedAsOf'))}) in "
+                    f"{target['streak']} remeasurements; {target.get('definitive')} definitive and "
+                    f"{target.get('indeterminate')} indeterminate verdicts of {target.get('attempted')} calls. An "
+                    "indeterminate verdict is a result, not a transport failure"
+                )
+            entry = {"key": key, "kind": kind, "outcome": outcome, "line": line, "section": "triage"}
+            limitation = limitations.get(key)
+            if limitation and limitation["outcome"] == outcome and today <= limitation["reviewBy"]:
+                entry["section"] = "limitation"
+                entry["line"] += (
+                    f". Reviewed by {limitation['reviewer']} on {limitation['reviewed']}: "
+                    f"{escape(limitation['reason'])}; review by {limitation['reviewBy']}"
+                )
+            elif limitation:
+                why = (
+                    f"its review-by date {limitation['reviewBy']} passed"
+                    if today > limitation["reviewBy"]
+                    else (f"the reviewed limitation expects {limitation['outcome']}")
+                )
+                entry["line"] += f". Back in triage: {why}"
+                entry["expired"] = today > limitation["reviewBy"]
+            elif kind == "link" and outcome in ("denied", "rate-limited"):
+                entry["suggestion"] = suggestion(key, outcome, target, today)
+            if kind == "link" and not limitation:
+                # Unreviewed links that fail alike on one host form one digest entry (render).
+                entry["host"] = urlparse(target.get("url", "")).hostname or ""
+            found.append(entry)
         elif kind == "champion-candidate":
-            actions.append(
-                {
-                    "key": key,
-                    "action": "open",
-                    "title": f"FAIR Champion candidate available: {plain(item['test'])}",
-                    "body": f"The reviewed candidate `{code(item['test'])}` returned verdicts for every reference "
-                    f"record ({item['definitive']} definitive, {item['indeterminate']} indeterminate). This "
-                    "is a proposal for the documented selection review (docs/champion/selection.md), not a "
-                    f"selection{source}.",
-                }
+            line = (
+                f"FAIR Champion candidate `{code(target.get('test'))}` returned verdicts for every reference record "
+                f"({target.get('definitive')} definitive, {target.get('indeterminate')} indeterminate; measured "
+                f"{escape(target.get('measuredAt'))}). A proposal for the documented selection review "
+                "(docs/champion/selection.md), not a selection"
             )
-    stale = [item for item in observations if item["kind"] == "stale-status"]
-    if stale:
-        listed = "\n".join(f"- `{code(item['item'])}`: {item['asOf']} ({item['days']} days)" for item in stale[:40])
-        actions.append(
+            found.append({"key": key, "kind": kind, "outcome": "candidate", "line": line, "section": "candidate"})
+    for key, item in sorted(state["sources"].items()):
+        line = (
+            f"{item['label']} item on `{code(item['url'])}` since {item['first']}: "
+            f"{escape(item['text'] or item['item'])} (`{code(item['item'])}`). Check whether the Guide's advice or "
+            "sources should follow"
+        )
+        found.append(
             {
-                "key": "stale-statuses",
-                "action": "open",
-                "title": f"{len(stale)} dated statuses need review",
-                "body": f"These recorded statuses are older than the guide's freshness period:\n\n{listed}{source}",
+                "key": key,
+                "kind": "source",
+                "outcome": digest(item["text"]),
+                "line": line,
+                "section": "source",
+                "aged": bool(item.get("aged")),
             }
         )
-    else:
-        actions.append({"key": "stale-statuses", "action": "close", "comment": f"No stale dated status on {today}."})
-    return actions
+    stale_after = int(content["guide"]["guide"].get("freshnessDays", 180))
+    for name, data in content.items():
+        for path, key, value in check_content.walk(data, name):
+            if key == "asOf" and isinstance(value, date) and (today - value).days > stale_after:
+                line = f"`{code(f'{path}.{key}')}` is dated {value.isoformat()} ({(today - value).days} days ago)"
+                found.append(
+                    {
+                        "key": f"stale:{path}.{key}",
+                        "kind": "stale-status",
+                        "outcome": value.isoformat(),
+                        "line": line,
+                        "section": "stale",
+                    }
+                )
+    linked = {key for key, value in state["targets"].items() if value.get("kind") in ("link", "connector", "watch")}
+    for key in sorted(limitations):
+        if key not in linked:
+            line = (
+                f"The reviewed limitation for `{code(key)}` names a target the Guide no longer checks; "
+                f"remove it from `{LIMITATIONS}`"
+            )
+            found.append(
+                {
+                    "key": f"limitation:{key}",
+                    "kind": "limitation",
+                    "outcome": "orphaned",
+                    "line": line,
+                    "section": "triage",
+                }
+            )
+    return found
 
 
-def summary(observations: list[dict[str, Any]], actions: list[dict[str, Any]], today: date) -> str:
+def suggestion(key: str, outcome: str, target: dict[str, Any], today: date) -> str:
+    """A ready-to-paste limitation for a new denial or rate limit; the maintainer completes reason and reviewer."""
+    return "\n".join(
+        [
+            "[[limitation]]",
+            f"key = {json.dumps(key)}",
+            f'outcome = "{outcome}"',
+            'reason = ""  # why this is acceptable, in words',
+            "evidence = "
+            + json.dumps(f"{target.get('evidence', '')} from GitHub-hosted runners since {target.get('since')}"),
+            'reviewer = ""  # your person ID in content/guide.toml',
+            f"reviewed = {today.isoformat()}",
+            f"reviewBy = {(today + timedelta(days=180)).isoformat()}",
+        ]
+    )
+
+
+def summary(observations: list[dict[str, Any]], coverage: dict[str, Any], today: date, notice: str) -> str:
     counts: dict[str, dict[str, int]] = {}
     for item in observations:
         counts.setdefault(item["kind"], {}).setdefault(item["status"], 0)
@@ -369,62 +739,432 @@ def summary(observations: list[dict[str, Any]], actions: list[dict[str, Any]], t
         "## Live watch",
         "",
         f"Run on {today}. Live outcomes describe services today; none is a failed FAIR requirement.",
-        "",
-        "| Kind | Outcomes |",
-        "| --- | --- |",
     ]
+    if notice:
+        lines += ["", f"**State reset:** {notice}"]
+    lines += ["", "| Kind | Outcomes |", "| --- | --- |"]
     for kind, statuses in sorted(counts.items()):
         lines.append(
             f"| {kind} | " + ", ".join(f"{status} {count}" for status, count in sorted(statuses.items())) + " |"
         )
-    opened = sum(action["action"] == "open" for action in actions)
-    lines += ["", f"Planned issue actions: {opened} to open or update; persistence threshold {PERSISTENCE} runs."]
+    lines += [
+        "",
+        "Links: {eligible} eligible, {attempted} attempted, {deferred} deferred, {invalid} invalid.".format(**coverage),
+        "",
+        *handoff(
+            "the publish job rebuilds the maintenance digest from these observations.",
+            "if it does not run, the observations artifact of this run keeps them, and the next run continues from "
+            "the last saved state.",
+            "the publish job's summary names the digest issue.",
+        ),
+    ]
     return "\n".join(lines) + "\n"
 
 
-def offline(url: str, body: bool) -> tuple[int | None, bytes, str]:
-    return None, b"", "network disabled"
+# --- render -----------------------------------------------------------------------------------------------------------
+
+FINDING_MARKER = re.compile(r"<!-- fair-guide-finding key=(\S+) outcome=(\S+) -->")
+
+
+def finding_marker(key: str, outcome: str) -> str:
+    return f"<!-- fair-guide-finding key={quote(key, safe='')} outcome={quote(str(outcome), safe='')} -->"
+
+
+def task_link(repository: str, finding: dict[str, Any]) -> str:
+    """A new-issue address prefilled with the Task shape, the finding and its key, labelled for maintenance."""
+    body = "\n".join(
+        [
+            "| Field | Value |",
+            "| --- | --- |",
+            "| Type | task |",
+            "| Affects | The maintenance digest |",
+            "| Reported by | Live health and source watch |",
+            "",
+            "## Problem",
+            "",
+            finding["line"] + ".",
+            "",
+            "## Work outline",
+            "",
+            "Decide what the Guide should do about this observation.",
+            "",
+            "## Scope",
+            "",
+            "This finding only.",
+            "",
+            "## Acceptance criteria",
+            "",
+            "- [ ] The Guide is corrected, the observation is recorded as a reviewed limitation, or the task is "
+            "closed as not planned.",
+            "",
+            "## Open questions",
+            "",
+            "None.",
+            "",
+            finding_marker(finding["key"], finding["outcome"]),
+        ]
+    )
+    title = f"Maintenance: {plain(re.sub(r'[`*_]', '', finding['line']), 90)}"
+    query = urlencode({"title": title, "labels": "area:maintenance", "body": body})
+    return f"https://github.com/{repository}/issues/new?{query}"
+
+
+REFRESH_TEXT = {
+    "failed": "was not retrieved, so its snapshot was kept; the next scheduled refresh retries it",
+    "empty": "was empty at the source, so its snapshot was kept; check the source before refreshing it again",
+    "rejected": "was rejected by validation, so its snapshot was kept; a maintainer reads the reason and fixes the "
+    "source data or its parser",
+}
+RUN_URL = re.compile(r"https://github\.com/[\w.-]+/[\w.-]+/actions/runs/\d+")
+
+
+def refresh_findings(refresh: dict[str, Any]) -> list[dict]:
+    """The sources the latest scheduled refresh did not refresh, as findings with stable keys. A run whose report
+    cannot be read, or no run at all, is one finding saying that the sources' state is unknown (decision 29)."""
+    url = refresh.get("run_url") or ""
+    run = f"[run]({url})" if RUN_URL.fullmatch(url) else ""
+    outcomes = refresh.get("outcomes")
+    if outcomes is None:
+        line = (
+            f"The latest scheduled Source refresh ({run}) left no readable report"
+            if run
+            else "No scheduled Source refresh run was found"
+        ) + ", so whether the sources are current is unknown"
+        return [{"key": "refresh:report", "kind": "refresh", "outcome": "unknown", "line": line, "section": "refresh"}]
+    found = []
+    for outcome in outcomes:
+        status, source = outcome.get("status"), str(outcome.get("source", ""))
+        if status not in REFRESH_TEXT or not re.fullmatch(r"[a-z0-9-]+", source):
+            continue
+        line = f"Source `{source}` {REFRESH_TEXT[status]}"
+        if outcome.get("reason"):
+            line += f" ({escape(str(outcome['reason'])[:300])})"
+        if run:
+            line += f"; {run} of {refresh.get('date') or 'an unknown date'}"
+        found.append(
+            {"key": f"refresh:{source}", "kind": "refresh", "outcome": status, "line": line, "section": "refresh"}
+        )
+    return found
+
+
+def host_key(host: str) -> str:
+    """The finding key of a host's grouped link failures, which a maintainer's task can carry."""
+    return f"link-host:{host}"
+
+
+def toml_block(suggestions: list[str]) -> str:
+    """Ready-to-paste limitations, indented inside their list entry."""
+    rows = "\n\n".join(suggestions).splitlines()
+    return "\n\n  ```toml\n" + "\n".join("  " + row for row in rows) + "\n  ```"
+
+
+def render(
+    plan: dict[str, Any],
+    tasks: list[dict[str, Any]],
+    audit: str,
+    previous: dict[str, str],
+    today: date,
+    *,
+    refresh: dict[str, Any] | None = None,
+) -> tuple[str, str, dict[str, str]]:
+    """The digest body, the comment for meaningful change (empty when there is none) and what this run reported.
+    A finding with a maintainer's task is tracked while its outcome is the one the task was created for. Unreviewed
+    links failing alike on one host are one entry, so an outage reads as one line; each keeps its own key. `refresh`
+    is the latest scheduled refresh as the publisher found it; without it, no refresh is reported."""
+    entries = [*plan["findings"], *(refresh_findings(refresh) if refresh is not None else [])]
+    by_key: dict[str, list[dict]] = {}
+    for task in tasks:
+        by_key.setdefault(task["key"], []).append(task)
+
+    def tracking(key: str, outcome: Any) -> tuple[list[dict], list[dict]]:
+        linked = sorted(by_key.get(key, []), key=lambda task: task["number"])
+        return linked, [task for task in linked if task["outcome"] == str(outcome)]
+
+    def tracked(line: str, current: list[dict]) -> str:
+        task = current[-1]
+        return (
+            line
+            + f" Task #{task['number']}"
+            + (
+                f" (closed as {task['reason'] or 'completed'} on {task['closed'][:10]})"
+                if task["state"] == "closed"
+                else " (open)"
+            )
+        )
+
+    hosts: dict[tuple[str, str], list[dict]] = {}
+    for finding in entries:
+        if finding.get("host") and finding["section"] == "triage" and not by_key.get(finding["key"]):
+            hosts.setdefault((finding["host"], str(finding["outcome"])), []).append(finding)
+    groups = {
+        id(member): (host, outcome, members)
+        for (host, outcome), members in hosts.items()
+        if len(members) > 1 or by_key.get(host_key(host))
+        for member in members
+    }
+    sections: dict[str, list[str]] = {name: [] for name in SECTIONS}
+    reported: dict[str, str] = {}
+    expired = set()
+    written = set()
+    trackable = ("triage", "refresh", "source", "candidate", "stale")
+    for finding in entries:
+        if id(finding) in groups:
+            host, outcome, members = groups[id(finding)]
+            if (host, outcome) in written:
+                continue
+            written.add((host, outcome))
+            group = {
+                "key": host_key(host),
+                "outcome": outcome,
+                "line": f"{len(members)} links on `{code(host)}` {OUTCOME_TEXT.get(outcome, outcome)}",
+            }
+            section, line = "triage", group["line"] + "."
+            linked, current = tracking(group["key"], outcome)
+            if current:
+                section, line = "tracked", tracked(line, current)
+            elif linked:
+                line += f" The outcome changed since task #{linked[-1]['number']}."
+            if section == "triage":
+                line += f" [Track as task]({task_link(plan['repository'], group)})"
+            listed = "\n".join(f"  - {member['line']}." for member in members)
+            line += f"\n\n  <details><summary>The {len(members)} links</summary>\n\n{listed}\n\n  </details>"
+            suggestions = [member["suggestion"] for member in members if member.get("suggestion")]
+            if suggestions and section == "triage":
+                line += toml_block(suggestions)
+            sections[section].append(line)
+            for member in members:
+                reported[member["key"]] = f"{section}|{member['outcome']}"
+            continue
+        section = finding["section"]
+        linked, current = tracking(finding["key"], finding["outcome"])
+        if finding.get("aged") and not linked:
+            continue  # an unreviewed page item drops off after SOURCE_DAYS; the comment says so once
+        line = finding["line"] + "."
+        if current and section in trackable:
+            section, line = "tracked", tracked(line, current)
+        elif current:  # a known limitation that a task also follows stays where it is and names the task
+            line = tracked(line, current)
+        elif linked:
+            line += f" The outcome changed since task #{linked[-1]['number']}."
+        if section in trackable:
+            line += f" [Track as task]({task_link(plan['repository'], finding)})"
+        if finding.get("suggestion") and section == "triage":
+            line += toml_block([finding["suggestion"]])
+        sections[section].append(line)
+        reported[finding["key"]] = f"{section}|{finding['outcome']}"
+        if finding.get("expired"):
+            expired.add(finding["key"])
+    # Entries beyond a section's limit stay in the body, collapsed; only a body over GitHub's limit counts them instead.
+    body = digest_body(plan, sections, audit, today, collapse=True)
+    limit = SECTION_LIMIT
+    while len(body) > BODY_LIMIT and limit > 3:
+        body = digest_body(plan, sections, audit, today, limit=limit)
+        limit //= 2
+    comment = change_comment(plan, previous, reported, expired)
+    return body, comment, reported
+
+
+def digest_body(
+    plan: dict, sections: dict[str, list[str]], audit: str, today: date, *, limit: int = SECTION_LIMIT, collapse=False
+) -> str:
+    """The digest issue body. Each section lists `limit` entries; the rest follow in a collapsed list (`collapse`) or,
+    when the body would exceed GitHub's limit even so, are counted with a pointer to the observations artifact."""
+    run = f"[run]({plan['run_url']})" if plan.get("run_url") else "the latest run"
+    lines = [
+        DIGEST_MARKER,
+        "This body is rebuilt by the Live health and source watch on every run, so edits here are replaced; discuss "
+        f"in comments. Last rebuilt on {today} by {run}. Live outcomes describe services on that day; none is a "
+        "failed FAIR requirement.",
+    ]
+    if plan.get("predecessor"):
+        lines += ["", f"Continues #{plan['predecessor']}."]
+    if plan.get("notice"):
+        lines += ["", f"> **State reset:** {plan['notice']}"]
+    for name, title in SECTIONS.items():
+        entries = sections[name]
+        lines += ["", f"## {title} ({len(entries)})", ""]
+        lines += [f"- {entry}" for entry in entries[:limit]] or ["None."]
+        if len(entries) > limit and collapse:
+            lines += ["", f"<details><summary>{len(entries) - limit} more</summary>", ""]
+            lines += [f"- {entry}" for entry in entries[limit:]]
+            lines += ["", "</details>"]
+        elif len(entries) > limit:
+            lines.append(f"- … and {len(entries) - limit} more in the run's observations artifact.")
+    coverage = plan["coverage"]
+    lines += [
+        "",
+        "## Coverage",
+        "",
+        "Links: {eligible} eligible, {attempted} attempted, {deferred} deferred to a later run, {invalid} not a "
+        "checkable HTTPS address. A deferred link keeps its last dated observation.".format(**coverage),
+    ]
+    lines += [f"- Not checkable: `{code(place)}`" for place in coverage.get("invalidAt", [])[:limit]]
+    lines += ["", audit.strip() if audit.strip() else "## Project and settings\n\nThe audit did not run this time."]
+    triage, unrefreshed = len(sections["triage"]), len(sections["refresh"])
+    next_step = (
+        f"a maintainer triages the {triage} findings under Needs triage: fix the source, use **Track as task**, or "
+        f"add the suggested reviewed limitation to `{LIMITATIONS}`."
+        if triage
+        else "nothing needs triage; review the source updates and candidates when any are listed."
+    )
+    if unrefreshed:
+        next_step += (
+            " Under Sources not refreshed, a rejected source needs a maintainer; one that was not retrieved is retried "
+            "by the next scheduled refresh."
+        )
+    lines += ["", "## Next", ""]
+    lines += handoff(
+        next_step,
+        "discuss a finding in a comment here; the run's observations artifact holds every outcome and its evidence.",
+        "a run's digest lists nothing under Needs triage or Sources not refreshed.",
+    )
+    return "\n".join(lines) + "\n"
+
+
+def change_comment(plan: dict, previous: dict[str, str], reported: dict[str, str], expired: set[str]) -> str:
+    """One comment per meaningful change, carrying the run marker that lets a retry find it. A finding counts once,
+    when it appears, changes section or outcome, recovers, expires or stops being listed; dates never count."""
+    new = sorted(set(reported) - set(previous))
+    moved = {key for key in set(reported) & set(previous) if reported[key] != previous[key]}
+    changed = sorted(moved - expired)
+    gone = sorted(set(previous) - set(reported))
+    recovered = [key for key in gone if plan["outcomes"].get(key) in GOOD]
+    dropped = [key for key in gone if key not in recovered]
+    parts = [
+        ("New", new),
+        ("Changed", changed),
+        ("Expired", sorted(moved & expired)),
+        ("Recovered", recovered),
+        ("No longer listed", dropped),
+    ]
+    if not any(keys for _, keys in parts):
+        return ""
+    lines = [f"<!-- fair-guide-digest-run id={plan.get('run_id') or 'local'} -->"]
+    for label, keys in parts:
+        if keys:
+            lines += ["", f"**{label}** ({len(keys)}): " + ", ".join(f"`{code(key)}`" for key in keys[:SECTION_LIMIT])]
+            if len(keys) > SECTION_LIMIT:
+                lines[-1] += f", … and {len(keys) - SECTION_LIMIT} more"
+    if plan.get("run_url"):
+        lines += ["", f"From [this run]({plan['run_url']}); the body above shows the current state."]
+    return "\n".join(lines) + "\n"
+
+
+# --- command line -----------------------------------------------------------------------------------------------------
+
+
+def offline(url: str, body: bool) -> Answer:
+    return Answer(None, b"", "network disabled")
+
+
+def run_context() -> tuple[str | None, str | None, str]:
+    repository = os.environ.get("GITHUB_REPOSITORY", "dsw-nrp/eosc-fair-guide")
+    run_id = os.environ.get("GITHUB_RUN_ID")
+    server = os.environ.get("GITHUB_SERVER_URL", "https://github.com")
+    return (
+        (f"{server}/{repository}/actions/runs/{run_id}" if run_id and os.environ.get("GITHUB_REPOSITORY") else None),
+        run_id,
+        repository,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--state", type=Path, required=True, help="previous run's state.json (missing: first run)")
-    parser.add_argument("--output", type=Path, required=True, help="directory for observations, issues and state")
-    parser.add_argument("--champion", type=Path, help="output of scripts/probe_champion.mjs for this run")
-    parser.add_argument("--no-network", action="store_true", help="record every request as unanswered (tests)")
+    commands = parser.add_subparsers(dest="command", required=True)
+    observing = commands.add_parser("observe")
+    observing.add_argument("--state", type=Path, required=True, help="previous run's state.json (missing: a reset)")
+    observing.add_argument("--output", type=Path, required=True, help="directory for observations, plan and state")
+    observing.add_argument("--champion", type=Path, help="output of scripts/probe_champion.mjs for this run")
+    observing.add_argument("--no-network", action="store_true", help="record every request as unanswered (tests)")
+    rendering = commands.add_parser("render")
+    rendering.add_argument("--watch", type=Path, required=True, help="the observe output directory")
+    rendering.add_argument("--tasks", type=Path, required=True, help="maintainers' keyed tasks, from the publisher")
+    rendering.add_argument("--audit", type=Path, help="the audit's Project and settings section")
+    rendering.add_argument("--predecessor", type=int, help="the closed digest a new one continues")
+    rendering.add_argument("--refresh-run", help="the latest scheduled Source refresh run (empty: none was found)")
+    rendering.add_argument("--refresh-date", default="", help="the day that refresh ran")
+    rendering.add_argument("--refresh", type=Path, help="that run's refresh report (missing: its outcome is unknown)")
+    rendering.add_argument("--output", type=Path, required=True)
+    commands.add_parser("check-config")
     args = parser.parse_args(argv)
     content = build_crate.load_content(ROOT / "content")
-    state = json.loads(args.state.read_text(encoding="utf-8")) if args.state.is_file() else {}
-    if state and state.get("format_version") != FORMAT_VERSION:
-        state = {}
-    champion = (
-        json.loads(args.champion.read_text(encoding="utf-8")) if args.champion and args.champion.is_file() else None
-    )
+    limitations, errors = load_limitations(ROOT, content)
+    if args.command == "check-config":
+        for error in errors:
+            print(f"{LIMITATIONS}: {error}", file=sys.stderr)
+        print(
+            f"watch_sources: {LIMITATIONS} "
+            + ("has errors" if errors else f"is valid ({len(limitations)} limitations)")
+        )
+        return 1 if errors else 0
     today = datetime.now(UTC).date()
-    observations, next_state = observe(content, state, offline if args.no_network else fetch, champion, today)
-    run_url = (
-        f"{os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
-        if os.environ.get("GITHUB_REPOSITORY") and os.environ.get("GITHUB_RUN_ID")
-        else None
-    )
-    actions = plan(observations, run_url, today)
+    run_url, run_id, repository = run_context()
+    if args.command == "observe":
+        state, notice = load_state(args.state)
+        champion = (
+            json.loads(args.champion.read_text(encoding="utf-8")) if args.champion and args.champion.is_file() else None
+        )
+        observations, next_state, coverage = observe(
+            content, state, offline if args.no_network else fetch, champion, today
+        )
+        found = findings(content, next_state, limitations, today)
+        if errors:
+            notice = (
+                (notice + " " if notice else "")
+                + f"{LIMITATIONS} is invalid, so no limitation applies: "
+                + "; ".join(errors[:3])
+            )
+        outcomes = {key: value.get("outcome") for key, value in next_state["targets"].items()}
+        plan = {
+            "format_version": FORMAT_VERSION,
+            "run_url": run_url,
+            "run_id": run_id,
+            "repository": repository,
+            "notice": notice,
+            "coverage": coverage,
+            "findings": found,
+            "outcomes": outcomes,
+        }
+        args.output.mkdir(parents=True, exist_ok=True)
+        meta = {
+            "format_version": FORMAT_VERSION,
+            "observed_at": datetime.now(UTC).isoformat(),
+            "revision": os.environ.get("GITHUB_SHA"),
+            "run_url": run_url,
+            "scope": "Live services, links and watched pages on the day of the run; not a FAIR verdict.",
+        }
+        text = summary(observations, coverage, today, notice)
+        for name, data in (
+            ("observations.json", meta | {"observations": observations}),
+            ("plan.json", plan),
+            ("state.json", next_state),
+        ):
+            (args.output / name).write_text(json.dumps(data, indent=2, default=str) + "\n", encoding="utf-8")
+        (args.output / "summary.md").write_text(text, encoding="utf-8")
+        print(text)
+        return 0
+    plan = json.loads((args.watch / "plan.json").read_text(encoding="utf-8"))
+    state = json.loads((args.watch / "state.json").read_text(encoding="utf-8"))
+    plan["predecessor"] = args.predecessor
+    tasks = json.loads(args.tasks.read_text(encoding="utf-8"))
+    audit = args.audit.read_text(encoding="utf-8") if args.audit and args.audit.is_file() else ""
+    refresh = None
+    if args.refresh_run is not None:
+        refresh = {"run_url": args.refresh_run, "date": args.refresh_date, "outcomes": None}
+        try:
+            report = json.loads(args.refresh.read_text(encoding="utf-8")) if args.refresh else {}
+            if report.get("formatVersion") == 1 and isinstance(report.get("outcomes"), list):
+                refresh["outcomes"] = [outcome for outcome in report["outcomes"] if isinstance(outcome, dict)]
+        except (OSError, ValueError, AttributeError):
+            pass  # an unreadable report is reported as an unknown outcome
+    body, comment, reported = render(plan, tasks, audit, state.get("reported", {}), today, refresh=refresh)
     args.output.mkdir(parents=True, exist_ok=True)
-    meta = {
-        "format_version": FORMAT_VERSION,
-        "observed_at": datetime.now(UTC).isoformat(),
-        "revision": os.environ.get("GITHUB_SHA"),
-        "run_url": run_url,
-        "scope": "Live services, links and watched pages on the day of the run; not a FAIR verdict.",
-    }
-    (args.output / "observations.json").write_text(
-        json.dumps(meta | {"observations": observations}, indent=2, default=str) + "\n", encoding="utf-8"
+    (args.output / "body.md").write_text(body, encoding="utf-8")
+    (args.output / "comment.md").write_text(comment, encoding="utf-8")
+    (args.output / "state.json").write_text(
+        json.dumps({**state, "reported": reported}, indent=2) + "\n", encoding="utf-8"
     )
-    (args.output / "issues.json").write_text(
-        json.dumps({"format_version": FORMAT_VERSION, "actions": actions}, indent=2) + "\n", encoding="utf-8"
-    )
-    (args.output / "state.json").write_text(json.dumps(next_state, indent=2) + "\n", encoding="utf-8")
-    (args.output / "summary.md").write_text(summary(observations, actions, today), encoding="utf-8")
-    print(summary(observations, actions, today))
+    print(f"watch_sources: digest body {len(body)} characters; comment {'planned' if comment else 'not needed'}")
     return 0
 
 

@@ -1,14 +1,15 @@
 name: Source refresh
 
 # Trusted default-branch code only: scheduled, manually dispatched, or called by the comment-command workflow for a
-# pull-request comment "/refresh <source>" from an account with current write access. It refreshes from the default
+# issue or pull-request comment "/refresh <source>" from an account with current write access. It refreshes from the default
 # branch, validates each response (scripts/refresh_snapshots.py) and publishes changes as one bot-owned pull request
 # per source through the repository-scoped GitHub App. It never pushes to the default branch and never merges.
 # Refreshes share one queue because sources depend on each other's snapshots; waiting requests are kept, not replaced.
 
 on:
   schedule:
-    - cron: "17 5 * * 1"
+    # Sunday evening, first of the weekly jobs, so its pull requests are checked by Monday morning in Prague.
+    - cron: "17 19 * * 0"
   workflow_dispatch:
     inputs:
       source:
@@ -23,7 +24,6 @@ permissions:
 
 jobs:
   select:
-    if: github.event_name != 'issue_comment' || (github.event.issue.pull_request && startsWith(github.event.comment.body, '/refresh '))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -48,6 +48,10 @@ jobs:
     concurrency:
       group: source-refresh
       queue: max
+    outputs:
+      results: ${{ steps.publish.outputs.results }}
+      code: ${{ steps.refresh.outputs.code }}
+      publication: ${{ steps.publish.outcome }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -91,20 +95,47 @@ jobs:
           script: |
             const { publish } = require('./.github/scripts/source-publisher.cjs');
             core.setOutput('results', JSON.stringify(await publish({ github, context, core })));
-      - name: Reply to the refresh command
-        if: always() && github.event_name == 'issue_comment' && steps.app.outputs.token != ''
+      # The run fails only when a maintainer must act; a source the next scheduled run retries is a warning, and the
+      # summary names each source's outcome and the next step (decision 29).
+      - name: Summarize each source and who acts next
+        if: always()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           RESULTS: ${{ steps.publish.outputs.results }}
-          REFRESH_CODE: ${{ steps.refresh.outputs.code }}
           PUBLICATION: ${{ steps.publish.outcome }}
         with:
-          github-token: ${{ steps.app.outputs.token }}
+          script: |
+            const { existsSync, readFileSync } = require('node:fs');
+            const { summarize } = require('./.github/scripts/source-publisher.cjs');
+            let report = { outcomes: [] };
+            try {
+              if (existsSync('.cache/refresh/report.json')) report = JSON.parse(readFileSync('.cache/refresh/report.json', 'utf8'));
+            } catch { /* An unreadable report leaves only the publication's results. */ }
+            await summarize({ core }, { results: process.env.RESULTS, publication: process.env.PUBLICATION, report });
+
+  # The App keeps only snapshot/PR permissions; the repository token replies to ordinary issues too.
+  reply:
+    needs: [select, refresh]
+    if: always() && github.event_name == 'issue_comment' && needs.select.outputs.sources != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Reply to the refresh command
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RESULTS: ${{ needs.refresh.outputs.results }}
+          REFRESH_CODE: ${{ needs.refresh.outputs.code }}
+          PUBLICATION: ${{ needs.refresh.outputs.publication }}
+        with:
+          github-token: ${{ github.token }}
           script: |
             const { reply } = require('./.github/scripts/source-publisher.cjs');
             await reply({ github, context }, process.env.RESULTS, process.env.REFRESH_CODE, process.env.PUBLICATION);
-      - name: Report rejected or failed sources
-        if: steps.refresh.outputs.code != '0'
-        run: |
-          echo "At least one source was rejected or failed; its snapshot is unchanged. See the refresh report."
-          exit 1

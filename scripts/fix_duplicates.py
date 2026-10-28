@@ -28,6 +28,7 @@ import check_content  # noqa: E402
 import check_duplicates  # noqa: E402
 import duplicate_repairs  # noqa: E402
 from duplicate_repairs import INSTRUMENT, instrument_available, person_for  # noqa: E402
+from handoff import handoff  # noqa: E402
 
 COMMAND = "/fix-duplicates"
 COMMENT_LIMIT = 60000
@@ -203,6 +204,19 @@ class GitHub:
         return str(ref["object"]["sha"])
 
 
+LOCAL_FIX = (
+    "run `python scripts/check_duplicates.py --fix` locally and push the result, as "
+    "`docs/how-to/fix-duplicates-locally.md` describes."
+)
+
+
+def unchanged(text: str, next_step: str) -> str:
+    """A reply for a run that changed nothing: what to do instead, and how a repair shows."""
+    return (
+        text + "\n\n" + "\n".join(handoff(next_step, LOCAL_FIX, "a `/fix-duplicates` reply names the repair commit."))
+    )
+
+
 def bounded_comment(prefix: str, diff: str, suffix: str) -> str:
     """Keep a pull-request comment below GitHub's limit without losing the commit reference."""
     marker = "\n… diff truncated; the complete change is in the commit."
@@ -278,12 +292,22 @@ def run_fix(  # noqa: PLR0911
     gh = GitHub(repository, token)
     checker = GitHub(repository, check_token) if check_token else gh
     if not checker.can_write(commenter):
-        gh.comment(pr, f"@{commenter}, `/fix-duplicates` needs current write access. No file was changed.")
+        gh.comment(
+            pr,
+            unchanged(
+                f"@{commenter}, `/fix-duplicates` needs current write access. No file was changed.",
+                "a maintainer with write access posts `/fix-duplicates`.",
+            ),
+        )
         return 0
     pull = gh.pull(pr)
     if not admitted(pull, repository):
         gh.comment(
-            pr, "`/fix-duplicates` only runs on an open same-repository pull request targeting the default branch."
+            pr,
+            unchanged(
+                "`/fix-duplicates` only runs on an open same-repository pull request targeting the default branch.",
+                "fix the duplicates on the branch by hand.",
+            ),
         )
         return 0
     head = pull["head"]["sha"]
@@ -292,34 +316,72 @@ def run_fix(  # noqa: PLR0911
     if not re.fullmatch(r"[0-9a-f]{40}", expected_head) or head != expected_head:
         gh.comment(
             pr,
-            "The extracted content does not match the current pull request head; no file was changed. "
-            "Rerun the command to extract the current head.",
+            unchanged(
+                "The extracted content does not match the current pull request head; no file was changed.",
+                "post `/fix-duplicates` again to extract the current head.",
+            ),
         )
         return 0
     content, suggestions = load_fix_context(root)
     if not suggestions:
-        gh.comment(pr, "No safe duplicate suggestion applies; no file was changed.")
+        gh.comment(
+            pr,
+            unchanged(
+                "No safe duplicate suggestion applies; no file was changed.",
+                "nothing for this command: the review comment lists no safe duplicate link.",
+            ),
+        )
         return 0
     person = person_for(content, commenter)
     if person is None:
-        gh.comment(pr, f"No reviewed `[[person]]` has `github = {commenter}`; no fix was applied.")
+        gh.comment(
+            pr,
+            unchanged(
+                f"No reviewed `[[person]]` has `github = {commenter}`; no fix was applied.",
+                f'add a reviewed `[[person]]` with `github = "{commenter}"` to `content/guide.toml`, then post the '
+                "command again.",
+            ),
+        )
         return 0
     if not instrument_available(content):
-        gh.comment(pr, "The `duplicate-fix` instrument is missing from this branch; rebase before fixing.")
+        gh.comment(
+            pr,
+            unchanged(
+                "The `duplicate-fix` instrument is missing from this branch; no file was changed.",
+                "rebase the branch on the default branch, then post the command again.",
+            ),
+        )
         return 0
     diffs, changed = apply_and_provenance(root, pr, head, person, suggestions, content=content)
     if not diffs:
-        gh.comment(pr, "No safe duplicate suggestion could be applied; no file was changed.")
+        gh.comment(
+            pr,
+            unchanged(
+                "No safe duplicate suggestion could be applied; no file was changed.",
+                "compare the review comment's suggestions with the branch and fix the duplicates by hand.",
+            ),
+        )
         return 0
     errors = content_errors(root)
     if errors:
         bounded = "\n".join(errors[:20])[:4000]
-        gh.comment(pr, bounded_comment("The fix would leave content errors; no file was changed:\n\n", bounded, ""))
+        gh.comment(
+            pr,
+            bounded_comment(
+                "The fix would leave content errors; no file was changed:\n\n",
+                bounded,
+                unchanged("", "fix the listed content errors on the branch, then post the command again."),
+            ),
+        )
         return 0
     current = gh.pull(pr)
     if current.get("head", {}).get("sha") != head:
         gh.comment(
-            pr, "The pull request head moved while the fix was prepared; no file was changed. Rerun the command."
+            pr,
+            unchanged(
+                "The pull request head moved while the fix was prepared; no file was changed.",
+                "post `/fix-duplicates` again.",
+            ),
         )
         return 0
     files = {path: (root / path).read_text(encoding="utf-8") for path in changed}
@@ -329,7 +391,14 @@ def run_fix(  # noqa: PLR0911
         bounded_comment(
             "Applied the safe duplicate links and their provenance action. The checks will rerun.\n\n",
             "".join(diffs),
-            f"\nCommit: `{commit}`.",
+            f"\nCommit: `{commit}`.\n\n"
+            + "\n".join(
+                handoff(
+                    f"the checks rerun on `{commit[:12]}`, and the pull request's author reviews the repair.",
+                    "if a check fails on the repair, revert the commit and ask a maintainer.",
+                    "the checks pass and a reviewer approves the pull request.",
+                )
+            ),
         ),
     )
     return 0

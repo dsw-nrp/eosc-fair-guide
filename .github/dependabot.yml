@@ -1,11 +1,15 @@
 version: 2
 # Patch and minor version updates of each ecosystem arrive as one grouped pull request; a major update stays a pull
-# request of its own. Security updates are not grouped.
+# request of its own. Security updates are not grouped. Every ecosystem runs on Sunday evening, between source refresh
+# and health watch, so the week's pull requests are checked by Monday morning in Prague.
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: sunday
+      time: "22:00"
+      timezone: Europe/Prague
     open-pull-requests-limit: 30
     groups:
       minor-and-patch:
@@ -16,6 +20,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: sunday
+      time: "22:00"
+      timezone: Europe/Prague
     open-pull-requests-limit: 30
     groups:
       minor-and-patch:
@@ -26,6 +33,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: sunday
+      time: "22:00"
+      timezone: Europe/Prague
     open-pull-requests-limit: 30
     groups:
       minor-and-patch:
@@ -36,6 +46,9 @@ updates:
     directory: /docker
     schedule:
       interval: weekly
+      day: sunday
+      time: "22:00"
+      timezone: Europe/Prague
     open-pull-requests-limit: 30
     groups:
       minor-and-patch:

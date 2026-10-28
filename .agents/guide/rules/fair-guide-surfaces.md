@@ -14,6 +14,10 @@ and maintain specs later. The delivered planning rule owns mode-transfer gates. 
 behaviour-neutral dependency update or routine source refresh may use ordinary checks while preserving the
 existing contract; a semantic change is not wording.
 
+Adding advice, a question or a resource under existing fields and assessment semantics is content work, with
+sources, paradata and ordinary checks. Adding a field, changing what an answer means, or changing a connector's
+behaviour changes the contract and needs OpenSpec planning and approval.
+
 ## Ownership and regeneration
 
 Delivered membership comes from `.agents/delivery-manifest.json`, including the generated sections of `CODEX.md`.
@@ -37,12 +41,37 @@ Build with `python scripts/build_site.py` and inspect the changed view in both l
 print. `CONTRIBUTING.md` owns branch, pull-request and human review procedures; `docs/deployment.md` owns release
 preparation, tagging, immutable artifact identity and recovery. Release preparation opens a PR by default and
 collects merged PRs and direct default-branch commits since the previous reachable release tag without duplication.
-Keep CFF and Zenodo metadata consistent and validated; both release routes require the same checks. Publication
-remains separately authorized. Add the real concept-DOI badge to both READMEs only after successful Zenodo archiving.
+Keep CFF and Zenodo metadata consistent and validated; both release routes require the same checks. READMEs carry
+a Zenodo concept DOI badge.
 
 Scheduled source refreshes propose validated snapshots as pull requests; health watch reports issues. Neither
 merges or writes the default branch. Connectors and their origins are reviewed in `content/live.toml`, which
 generates the Content Security Policy. Follow the content rule for identifiers, sources, evidence and paradata.
+
+## Human documentation and change notes
+
+Guide readers start at the bilingual READMEs, contributors at `CONTRIBUTING.md`, and maintainers at `docs/ci.md`.
+Keep each human document to one type, declared on its first line as `<!-- type: TYPE -->`: landing, how-to,
+reference, explanation or tutorial. A landing page routes tasks; reference records contracts and explanation
+gives reasons. Procedures have one home in a how-to and are linked from reference and explanation.
+
+Recurring maintainer tasks have a runbook under `docs/runbooks/`. One-time issue migrations and other
+change-specific procedures stay with their OpenSpec change, retaining complete evidence and approval gates; a
+hand-off still needs an independently reviewed procedure. A runbook opens with who acts, how long and why in at
+most two sentences; numbered steps give **Where**, **Do**, **Done when** and **If it fails**.
+Keep each step within 130 words and all steps within 1300 words; link the reference for detail. A branching flow
+uses Mermaid with `accTitle`, `accDescr` and equivalent adjacent prose.
+
+Run `python scripts/check_docs.py` for declarations, runbook structure, links, named files, npm scripts and README
+agreement. Moved text also needs a section map kept with the OpenSpec change and checked with `--map <path>`:
+every former section names its audience, type and new home or removal reason. Have a fresh independent agent per
+affected audience read only the documents and their links, check whether the steps can be followed and sample
+moved facts against the map. Fix its findings before the dependent hand-off is complete. Exclude `AGENTS.md` and
+delivered or generated surfaces from this reshape; their owners still govern them.
+
+Commit messages preserve the change and reason for release notes. `[Unreleased]` in `CHANGELOG.md` needs one line
+only for a breaking change, a required step or a security fix; other changes use the generated release lineage.
+The release runbook owns publication steps; `docs/changelog.md` owns the changelog policy.
 
 ## Usage and review facts
 

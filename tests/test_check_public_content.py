@@ -1,5 +1,6 @@
 """Public-source hygiene reports unsafe locations without exposing their contents."""
 
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -84,6 +85,32 @@ class PublicContentTests(unittest.TestCase):
             findings = public.inspect(root)
             self.assertEqual(findings, ["docs/example.md:1: personal workstation path"])
             self.assertNotIn("private-person", "\n".join(findings))
+
+    def test_untracked_runtime_hand_offs_are_skipped_and_everything_else_is_checked(self):
+        # Run hand-offs stay visible to Git by design (.agents/local_scratch/README.md) and point to machine-local
+        # run locations; they are public source only once someone stages them.
+        private = "C:" + "\\Users\\private-person\\run\n"
+        hand_off, staged = ".agents/local_scratch/review/hand-off.md", ".agents/local_scratch/README.md"
+        new = "docs/new.md"
+        for repository in (True, False):
+            with self.subTest(repository=repository), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                declaration = root / public.CONFIG
+                declaration.parent.mkdir(parents=True)
+                declaration.write_text('runtime = [".agents/local_scratch/**"]\n', encoding="utf-8")
+                for rel in (hand_off, staged, new):
+                    path = root / rel
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(private, encoding="utf-8")
+                if repository:
+                    subprocess.run(["git", "init", "-q", str(root)], check=True)
+                    subprocess.run(["git", "-C", str(root), "add", staged], check=True)
+                checked = [staged, new] if repository else [hand_off, staged, new]
+                self.assertEqual(
+                    public.inspect(root),
+                    sorted(f"{rel}:1: personal workstation path" for rel in checked),
+                    "only an untracked hand-off in a Git work tree is skipped",
+                )
 
 
 if __name__ == "__main__":

@@ -2021,39 +2021,43 @@ def merge_base(root: Path, ref: str) -> str:
     return sha
 
 
-def comparison_base(root: Path, ref: str) -> tuple[str, datetime]:
-    """The merge base with `ref` and that commit's time, which a fresh provenance action must follow."""
-    sha = merge_base(root, ref)
-    return sha, datetime.fromisoformat(git(root, "show", "-s", "--format=%cI", sha).strip())
+def fresh_actions(actions: list[dict[str, Any]], base_actions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The actions that can cover a change since the base: added since then, or extended with a later `endTime`.
+    History decides, not the clock, so a base that moves on after the work ended leaves a correct action fresh."""
+    before = {action["id"]: action for action in base_actions if action.get("id")}
+    fresh = []
+    for action in actions:
+        end = action.get("endTime")
+        if not isinstance(end, datetime):
+            continue
+        earlier = before.get(action["id"]) if action.get("id") else None
+        if earlier is None or not isinstance(earlier.get("endTime"), datetime) or end > earlier["endTime"]:
+            fresh.append(action)
+    return fresh
 
 
 def check_freshness(report: Report, content: dict[str, Any], root: Path, base: str) -> None:
-    sha, base_time = comparison_base(root, base)
+    sha = merge_base(root, base)
     with tempfile.TemporaryDirectory() as temp:
         temp_root = Path(temp)
         for path in git(root, "ls-tree", "-r", "--name-only", sha, "content/").split():
             target = temp_root / path
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(git(root, "show", f"{sha}:{path}"), encoding="utf-8")
-        before = (
-            item_fingerprints(load_content(temp_root / "content"))
-            if (temp_root / "content" / "guide.toml").exists()
-            else {}
-        )
+        earlier = load_content(temp_root / "content") if (temp_root / "content" / "guide.toml").exists() else None
+    before = item_fingerprints(earlier) if earlier else {}
+    fresh = fresh_actions(content["provenance"], earlier["provenance"] if earlier else [])
     after = item_fingerprints(content)
     since = base if sha.startswith(base) else f"{base} (merge base {sha[:12]})"
     for item_id, fingerprint in after.items():
         if before.get(item_id) == fingerprint:
             continue
-        fresh = [
-            action
-            for action in content["provenance"]
-            if any(covered(pattern, item_id) for pattern in action.get("results", []))
-            and isinstance(action.get("endTime"), datetime)
-            and action["endTime"] > base_time
-        ]
-        if not fresh:
-            report.error(f"{item_id}", f"changed since {since} but no provenance action newer than that covers it")
+        if not any(covered(pattern, item_id) for action in fresh for pattern in action.get("results", [])):
+            report.error(
+                f"{item_id}",
+                f"changed since {since} but no provenance action added since then, or extended with a later "
+                "endTime, covers it",
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -2063,7 +2067,9 @@ def check_freshness(report: Report, content: dict[str, Any], root: Path, base: s
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", type=Path, default=ROOT, help="repository root (default: this repository)")
-    parser.add_argument("--base", help="git revision; items changed since then need a newer provenance action")
+    parser.add_argument(
+        "--base", help="git revision; items changed since then need a provenance action added or extended since then"
+    )
     parser.add_argument("--fail-stale", action="store_true", help="treat stale statuses as errors")
     args = parser.parse_args(argv)
     try:

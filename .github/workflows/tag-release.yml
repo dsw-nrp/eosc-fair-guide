@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Committed release version without the leading v
+        description: Committed release version, for example 1.0.0-alpha.4 (a leading v is accepted)
         required: true
         type: string
       release_status:
@@ -17,23 +17,36 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: release-preparation
-  cancel-in-progress: false
-
 jobs:
   tag:
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    # Job level, so the completion job below can call Prepare release, which holds the same group, afterwards.
+    concurrency:
+      group: release-preparation
+      cancel-in-progress: false
     permissions:
       contents: read
       actions: read
       deployments: read
+      pull-requests: read
+    outputs:
+      complete: ${{ steps.lineage.outputs.complete }}
     steps:
+      # A dispatch on another branch fails here, before any checkout, instead of skipping every job (decision 30).
+      - name: Require the default branch
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/$DEFAULT_BRANCH" ]; then
+            printf '### Not tagged\n\n- **Next:** run Tag release again with "Use workflow from" set to `%s`.\n- **If blocked:** a release is tagged only from the default branch; ask a maintainer when it is not offered.\n- **Done when:** Tag release creates the tag.\n' "$DEFAULT_BRANCH" >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Not tagged: Tag release runs only on $DEFAULT_BRANCH, and this run used $GITHUB_REF."
+            exit 1
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
+          fetch-depth: 0
           persist-credentials: false
       # The tag ruleset rejects an undeployed commit; this names the deployment run to wait for instead.
       - name: Require a successful deployment of the current commit
@@ -51,15 +64,73 @@ jobs:
           python -m pip install -r requirements-dev.txt
           python scripts/release_versions.py check --version "$RELEASE_VERSION"
           python scripts/check_citation_metadata.py
+          python scripts/release_versions.py history --output .cache/release/history.json
+      - name: Collect the changes since the previous tag
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            await require('./.github/scripts/prepare-release.cjs').collect({github, context, core});
+      # The tag freezes the release, so its changelog must already list every change since the previous tag,
+      # including ones merged after the release pull request.
+      - name: Compare the changelog with the changes since the previous tag
+        id: lineage
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          code=0
+          python scripts/release_versions.py lineage --version "$RELEASE_VERSION" --prs .cache/release/prs.json \
+            --associations .cache/release/associations.json --summary "$GITHUB_STEP_SUMMARY" || code=$?
+          case "$code" in
+            0) echo "complete=true" >> "$GITHUB_OUTPUT" ;;
+            3) echo "complete=false" >> "$GITHUB_OUTPUT" ;;
+            *) exit "$code" ;;
+          esac
       - id: app
+        if: steps.lineage.outputs.complete == 'true'
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           client-id: ${{ vars.SOURCE_REFRESH_CLIENT_ID }}
           private-key: ${{ secrets.SOURCE_REFRESH_APP_PRIVATE_KEY }}
           permission-contents: write
       - name: Tag the validated current default-branch commit
+        if: steps.lineage.outputs.complete == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ steps.app.outputs.token }}
           script: |
             await require('./.github/scripts/prepare-release.cjs').tag({github, context, core});
+
+  # A changelog that misses changes is completed by release preparation, under this run's actor.
+  complete:
+    needs: tag
+    if: needs.tag.outputs.complete == 'false'
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+    uses: ./.github/workflows/prepare-release.yml
+    with:
+      version: ${{ inputs.version }}
+    secrets: inherit
+
+  not-tagged:
+    needs: [tag, complete]
+    if: always() && needs.tag.outputs.complete == 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Report that no tag was created
+        env:
+          PROPOSAL: ${{ needs.complete.outputs.pull-request }}
+          COMPLETION: ${{ needs.complete.result }}
+        run: |
+          if [ "$COMPLETION" = success ] && [ -n "$PROPOSAL" ]; then
+            next="Review and merge the completion pull request $PROPOSAL with Merge when ready, then run Tag release again."
+          else
+            next="The completion did not open a pull request ($COMPLETION); run Prepare release for this version yourself, then run Tag release again."
+          fi
+          blocked="The tag job's summary lists the changes the changelog misses; a maintainer can run Prepare release for this version by hand."
+          printf '### Not tagged\n\n- **Next:** %s\n- **If blocked:** %s\n- **Done when:** Tag release creates the tag.\n' "$next" "$blocked" >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::Not tagged: the release changelog misses changes. $next"
+          exit 1

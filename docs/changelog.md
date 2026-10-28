@@ -1,3 +1,4 @@
+<!-- type: reference -->
 # Changelog policy
 
 `CHANGELOG.md` is the permanent record of what each release contains. Release preparation generates it from
@@ -12,7 +13,7 @@ Commit messages are the durable source. Pull-request descriptions change after m
 messages do not. A squash merge into `main` takes the pull-request title (or the single commit's summary) and keeps
 the messages of every branch commit in its body, so a commit message written for a later reader reaches the default
 branch unchanged. Write a short imperative summary line and a body that says what changed for readers or
-maintainers and why, naming the issues involved as `#N` (see [CONTRIBUTING](../CONTRIBUTING.md#commit-messages)).
+maintainers and why, naming the issues involved as `#N` (see [commit messages](contribution-reference.md#commit-messages)).
 
 ## When to add an unpublished note
 
@@ -55,23 +56,11 @@ this transition without a further unpublished note.
 
 ## Write the release body
 
-After **Tag release** the release workflow drafts the GitHub release. Its body links the release's section of
-`CHANGELOG.md` and ends with a marked verification record: the commit, the archive digest, the container image and
-the release status. Before publishing the draft, the maintainer replaces the link with reviewed notes:
+The [release-notes how-to](how-to/release-notes.md) owns the one-invocation skill and manual fallback.
+The draft body combines the publishable notes with one byte-preserved verification record; working notes,
+published releases and a composition differing from the reviewed copy are refused by `scripts/release_body.py`.
+That comparison binds notes plus verification, not the replaced draft prefix or unrelated release metadata.
 
-1. Run `/aiscr-write-release-notes` for the tag in English, from the previous release tag, and keep its default
-   report-only mode. It reads the merged pull requests, the commit messages and the issue threads, groups them by
-   the labels in `.github/release.yml` and writes the publishable report
-   `.agents/reports/release-notes/eosc-fair-guide_<tag>.md`, beside a working companion that is never published.
-2. `python scripts/release_body.py <tag>` composes the body for review: the publishable report without its title,
-   followed by the verification record byte for byte. It prints the body and keeps it in `.cache/release-notes/`.
-3. `python scripts/release_body.py <tag> --apply` writes exactly the reviewed body to the draft and reads it back.
-   It refuses a published release, working notes, a body without one marked verification record and any change
-   to the notes or the release since the review.
-4. Publish the draft in GitHub. Zenodo takes the archived record's description from `.zenodo.json`.
-
-The skill's own release-body update would replace the verification record, so leave it off. Without these steps
-the published release keeps the changelog link and the verification record.
 
 ## Findings after a release
 

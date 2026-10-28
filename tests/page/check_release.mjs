@@ -4,11 +4,13 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
-const { approvedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, publishedRelease, assertPromotion, VERIFICATION } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
-const { validVersion } = createRequire(import.meta.url)("../../.github/scripts/release-version.cjs");
+const { approvedRun, draftRelease, tagOf, refContext, sources, reuse, publishedRelease, promotion, VERIFICATION } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
+const { validVersion, releaseInput, compareTags } = createRequire(import.meta.url)("../../.github/scripts/release-version.cjs");
 const cases = JSON.parse(readFileSync(new URL("../fixtures/normalization.json", import.meta.url), "utf8"));
 for (const value of cases.versions.valid) assert(validVersion(value), value);
 for (const value of cases.versions.invalid) assert(!validVersion(value), JSON.stringify(value));
+for (const [value, bare] of cases.versions.inputs.accepted) assert.equal(releaseInput(value), bare, JSON.stringify(value));
+for (const value of cases.versions.inputs.refused) assert.equal(releaseInput(value), null, JSON.stringify(value));
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const sha = "a".repeat(40);
@@ -248,10 +250,32 @@ assert.equal(calls.length, writes, "conflicting assets are never overwritten or 
 await assert.rejects(draftRelease({ github, context: context(), core }, files({ archive: "../private" })), /archive name/);
 console.log("check_release: partial drafts recover, verified tags reuse bytes, complete releases are idempotent and conflicts are refused");
 
-({ github } = fake([goodRun], [tag("v1.0.0-alpha.1")]));
-await assertPromotion({ github, context: context() });
-github.rest.repos.listTags = async () => [tag("v2.0.0", "c".repeat(40)), tag("v1.0.0-alpha.1")];
-github.rest.actions.listWorkflowRuns = async ({ head_sha }) => head_sha === "c".repeat(40)
-  ? [{ ...goodRun, head_sha, head_branch: "v2.0.0" }] : [goodRun];
-await assert.rejects(assertPromotion({ github, context: context() }), /superseded/,
-  "a delayed older release cannot move aliases after a newer production release is verified");
+// Moving aliases follow precedence and never move back; a superseded published release still gets its own tag and
+// draft, because the image job no longer fails (decision 30).
+{
+  const approved = new Set();
+  ({ github } = fake());
+  github.rest.actions.listWorkflowRuns = async ({ branch, head_sha }) =>
+    approved.has(branch) ? [{ ...goodRun, head_sha, head_branch: branch }] : [];
+  const take = (name, commit, wanted) => promotion({ github, context: context("refs/tags/" + name, commit) }, wanted);
+  const [alpha5, major, next] = ["c", "d", "e"].map((letter) => letter.repeat(40));
+  const prerelease = { latest: true, stable: false };
+  approved.add("v1.0.0-alpha.1");
+  github.rest.repos.listTags = async () => [tag("v1.0.0-alpha.5", alpha5), tag("v1.0.0-alpha.1")];
+  assert.deepEqual(await take("v1.0.0-alpha.1", sha, prerelease), { latest: true, stable: false, kept: "" },
+    "a newer tag that is not approved yet holds nothing");
+  approved.add("v1.0.0-alpha.5");
+  assert.deepEqual(await take("v1.0.0-alpha.1", sha, prerelease),
+    { latest: false, stable: false, kept: "`latest` stays with v1.0.0-alpha.5, whose own release moves it." },
+    "a delayed older release keeps its tag, and `latest` stays with the newer approved release");
+  assert.equal((await take("v1.0.0-alpha.5", alpha5, prerelease)).latest, true, "the newer release's own run moves it");
+  // `stable` names the newest approved non-prerelease, even below a newer prerelease.
+  approved.add("v1.0.0").add("v1.1.0-alpha.1");
+  github.rest.repos.listTags = async () => [tag("v1.1.0-alpha.1", next), tag("v1.0.0", major), tag("v1.0.0-alpha.5", alpha5)];
+  assert.deepEqual(await take("v1.0.0", major, { latest: true, stable: true }),
+    { latest: false, stable: true, kept: "`latest` stays with v1.1.0-alpha.1, whose own release moves it." });
+  assert.deepEqual(await take("v1.1.0-alpha.1", next, prerelease), { latest: true, stable: false, kept: "" });
+  const moved = await take("v1.0.0", alpha5, { latest: true, stable: true });
+  assert.deepEqual([moved.latest, moved.stable], [false, false], "a tag that names another commit takes no alias");
+}
+console.log("check_release: moving aliases follow precedence and a superseded release keeps its own tag");

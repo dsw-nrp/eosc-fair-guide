@@ -852,11 +852,14 @@
   FG.bothLanguages = (value) => FG.list(value).map((item) => typeof item === "string" || typeof item === "number"
     ? String(item) : item && item["@value"]).concat(value && typeof value === "object" ? searchTerms.get(value) : "").filter(Boolean).join(" ");
 
-  /** Where the guide is, for links that leave the page (exports, shared links): the address the page is served from,
-      or the configured address when it is opened as a local file. Nothing else names the site's address, so the
-      guide can move. */
+  /** Links leaving the Guide use its own serving window. A local file can use an explicitly recorded HTTP(S)
+      publication location; without one, references stay relative. Never publish a local filesystem address. */
   FG.pageAddress = function () {
-    return /^https?:$/.test(window.location.protocol) ? window.location.href.split("#")[0] : FG.config.pageUrl || "";
+    if (/^https?:$/.test(window.location.protocol)) return window.location.href.split("#")[0];
+    try {
+      const published = new URL(FG.config.pageUrl || "");
+      return /^https?:$/.test(published.protocol) ? published.href.split("#")[0] : "";
+    } catch { return ""; }
   };
 
   /** The directory of the page's files (the crate, the API) at that address. */

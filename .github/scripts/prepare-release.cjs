@@ -6,13 +6,25 @@ const {resolve, relative, isAbsolute} = require('node:path');
 const policy = require('../release-prepared-files.json');
 const MANIFEST = '.cache/release/prepared.json';
 const HISTORY = '.cache/release/history.json';
-const { validVersion } = require('./release-version.cjs');
+const { validVersion, releaseInput, compareTags, ACCEPTED_FORM } = require('./release-version.cjs');
+const { handoff } = require('./handoff.cjs');
 function dispatch(context) {
   const base = context.payload.repository.default_branch;
-  const version = context.payload.inputs.version;
-  if (context.eventName !== 'workflow_dispatch' || context.ref !== `refs/heads/${base}` || !validVersion(version))
-    throw Error('Run this dispatch on the default branch with a SemVer version');
+  if (context.eventName !== 'workflow_dispatch' || context.ref !== `refs/heads/${base}`)
+    throw Error('Run this dispatch on the default branch');
+  const version = releaseInput(context.payload.inputs.version);
+  if (!version) throw Error(`Enter the version as ${ACCEPTED_FORM}`);
   return {base, version, branch: `release/${version}`};
+}
+/** A release follows every existing release tag (decision 30). A lower tag could never deploy, because only the newest
+    tag replaces production; the tag ruleset forbids deleting it; and it would become the next release's lineage base. */
+async function newerThanEveryTag(github, context, version) {
+  const tags = (await github.paginate(github.rest.repos.listTags, {...context.repo, per_page: 100}))
+    .map(entry => entry.name).filter(name => name.startsWith('v') && validVersion(name.slice(1)));
+  const newest = tags.sort((a, b) => compareTags(b, a))[0];
+  if (newest && compareTags(`v${version}`, newest) <= 0) {
+    throw Error(`Version ${version} is not above the newest release tag ${newest}; run the dispatch with a higher version`);
+  }
 }
 async function current(github, context, base) {
   const {data} = await github.rest.git.getRef({...context.repo, ref: `heads/${base}`});
@@ -26,6 +38,7 @@ async function collect({github, context, core}, write = writeFileSync, read = re
     await github.rest.git.getRef({...context.repo, ref: `tags/v${version}`});
     throw Error('The requested release is already tagged');
   } catch (error) { if (error.status !== 404) throw error; }
+  await newerThanEveryTag(github, context, version);
   const history = JSON.parse(read(HISTORY, 'utf8'));
   if (history.formatVersion !== 1 || history.source !== context.sha ||
       !(history.previousTag === null || (typeof history.previousTag === 'string' &&
@@ -87,10 +100,40 @@ function preparedFiles(manifest, version, root = resolve(__dirname, '../..')) {
   }
   return manifest.files;
 }
-async function propose({github, context, core}, read = readFileSync, root) {
+const PREPARED = {
+  next: 'a maintainer reviews the metadata and the changelog section, then merges this pull request through the queue.',
+  blocked: 'close this pull request and run Prepare release for the version again; the release runbook covers a refused check.',
+  done: 'this pull request is merged; then run Tag release with the same version.'};
+const COMPLETED = {
+  next: 'a maintainer reviews the added entries, then merges this pull request through the queue.',
+  blocked: 'close this pull request and run Prepare release for the version again.',
+  done: 'this pull request is merged; then run Tag release again.'};
+const SIGNATURE = 'Prepared by the repository release automation; no AI content generation.';
+const PREPARE_BODY = 'Prepares the version, release dates, citation/Zenodo metadata and the complete PR/direct-commit changelog. ' +
+  'Creating the tag requires the separate Tag release dispatch.\n\n' + handoff(PREPARED) + '\n\n' + SIGNATURE;
+const COMPLETE_BODY = 'Completes the untagged release: its changelog section gains only the merged pull requests and direct ' +
+  'commits that landed after its preparation. The version, dates, curated notes and earlier entries are unchanged.\n\n' +
+  handoff(COMPLETED) + '\n\n' + SIGNATURE;
+/** The run summary, where a summary exists; the fixtures' core has none. */
+async function summarize(core, text) {
+  if (core.summary) await core.summary.addRaw(text + '\n').write();
+}
+/** True when the automation made every commit on the proposal: the release App's bot, with a preparation message. */
+async function unedited(github, context, pr, version, bot) {
+  if (!bot) return false;
+  let commits;
+  try {
+    commits = await github.paginate(github.rest.pulls.listCommits, {...context.repo, pull_number: pr.number, per_page: 100});
+  } catch { return false; }
+  const messages = [`Prepare release ${version}`, `Complete release ${version}`];
+  return Array.isArray(commits) && commits.length > 0 && commits.every(commit => commit?.author?.login === bot &&
+    messages.includes(String(commit.commit?.message ?? '').replace(/\n$/, '')));
+}
+async function propose({github, context, core}, read = readFileSync, root, bot = process.env.RELEASE_BOT_LOGIN) {
   const {base, version, branch} = dispatch(context);
   const parent = await current(github, context, base);
   const manifest = JSON.parse(read(MANIFEST, 'utf8'));
+  const completing = manifest.mode === 'complete';
   const files = preparedFiles(manifest, version, root).map(item => {
     const content = read(item.path);
     if (createHash('sha256').update(content).digest('hex') !== item.sha256)
@@ -103,42 +146,79 @@ async function propose({github, context, core}, read = readFileSync, root) {
     tree.push({path, mode: '100644', type: 'blob', sha: data.sha});
   }
   const {data: built} = await github.rest.git.createTree({...context.repo, base_tree: parent.tree.sha, tree});
-  const message = `Prepare release ${version}`;
+  const message = `${completing ? 'Complete' : 'Prepare'} release ${version}`;
+  const previous = await github.paginate(github.rest.pulls.list,
+    {...context.repo, state: 'all', base, head: `${context.repo.owner}:${branch}`, per_page: 100});
+  // A proposal a person closed without merging is never silently reopened or replaced.
+  if (previous.some(pr => pr.state === 'closed' && !pr.merged_at))
+    throw Error('This release proposal was closed without merging; reopen and reconcile it by hand, or prepare another version');
+  const open = previous.find(pr => pr.state === 'open');
+  const commitOn = async () =>
+    (await github.rest.git.createCommit({...context.repo, message, tree: built.sha, parents: [context.sha]})).data.sha;
   let ref;
   try { ref = (await github.rest.git.getRef({...context.repo, ref: `heads/${branch}`})).data; }
   catch (error) { if (error.status !== 404) throw error; }
-  if (ref) {
-    // Recover a failed PR creation; never overwrite human changes or rebase an
-    // old proposal. A reviewed, closed proposal is not silently reopened.
-    const {data: commit} = await github.rest.git.getCommit({...context.repo, commit_sha: ref.object.sha});
-    if (commit.parents.length !== 1 || commit.parents[0].sha !== context.sha || commit.tree.sha !== built.sha || commit.message !== message)
-      throw Error('The release branch exists with different content; review it manually');
+  if (!ref) {
+    await github.rest.git.createRef({...context.repo, ref: `refs/heads/${branch}`, sha: await commitOn()});
   } else {
-    const {data: commit} = await github.rest.git.createCommit({...context.repo, message, tree: built.sha, parents: [context.sha]});
-    await github.rest.git.createRef({...context.repo, ref: `refs/heads/${branch}`, sha: commit.sha});
+    // A retry after a failed PR creation finds its own commit unchanged. An outdated proposal is prepared again from
+    // the current default branch only while the automation made every commit on it; a branch whose proposals all
+    // merged is stale and reused. Human changes are never overwritten.
+    const {data: commit} = await github.rest.git.getCommit({...context.repo, commit_sha: ref.object.sha});
+    const same = commit.parents.length === 1 && commit.parents[0].sha === context.sha && commit.tree.sha === built.sha &&
+      commit.message === message;
+    if (!same) {
+      const replaceable = open
+        ? await unedited(github, context, open, version, bot)
+        : previous.length > 0 && previous.every(pr => pr.merged_at);
+      if (!replaceable)
+        throw Error('The release branch has changes the preparation did not make; reconcile them in its pull request by hand');
+      await github.rest.git.updateRef({...context.repo, ref: `heads/${branch}`, sha: await commitOn(), force: true});
+      core.info(`Prepared ${branch} again from ${context.sha}`);
+    }
   }
-  const previous = await github.paginate(github.rest.pulls.list,
-    {...context.repo, state: 'all', base, head: `${context.repo.owner}:${branch}`, per_page: 100});
-  if (previous.some(pr => pr.state === 'closed')) throw Error('This release proposal was closed; review it manually');
-  if (previous.length) { core.info(previous[0].html_url); return; }
+  const steps = handoff(completing ? COMPLETED : PREPARED);
+  if (open) {
+    core.info(open.html_url);
+    core.setOutput('url', open.html_url);
+    await summarize(core, `Release pull request: ${open.html_url}\n\n${steps}`);
+    return;
+  }
   const {data: pr} = await github.rest.pulls.create({...context.repo, base, head: branch, title: message,
-    body: 'Prepares the version, release dates, citation/Zenodo metadata and the complete PR/direct-commit changelog.\n\nReview the metadata and required checks, then merge. Creating the tag requires the separate Tag release dispatch.\n\nPrepared by the repository release automation; no AI content generation.',
-    maintainer_can_modify: true});
+    body: completing ? COMPLETE_BODY : PREPARE_BODY, maintainer_can_modify: true});
   core.info(pr.html_url);
+  core.setOutput('url', pr.html_url);
+  await summarize(core, `Release pull request: ${pr.html_url}\n\n${steps}`);
 }
-/** The tag ruleset requires a successful `github-pages` deployment of the tagged commit. Before tagging, require one
-    for the current default-branch commit, or name the deployment or publish run to wait for. */
+const PUBLISHER = '.github/workflows/publish.yml';
+/** A staging success counts only when the trusted publication wrote it: the workflow token, in a run of publish.yml
+    that a completed deployment started on the default branch of this repository. A record anyone else creates through
+    the API names no such run. */
+async function published(github, context, base, status) {
+  const run = new RegExp(`/${context.repo.owner}/${context.repo.repo}/actions/runs/(\\d+)$`).exec(String(status.log_url || ''));
+  if (status.state !== 'success' || status.creator?.login !== 'github-actions[bot]' || !run) return false;
+  try {
+    const {data} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: Number(run[1])});
+    return String(data.path).split('@')[0] === PUBLISHER && data.event === 'workflow_run' && data.head_branch === base &&
+      data.head_repository?.full_name === `${context.repo.owner}/${context.repo.repo}`;
+  } catch { return false; }
+}
+/** Only a staged commit is tagged: before tagging, require the successful `staging` record that publication writes once
+    the current default-branch commit is live under /next/, or name the deployment or publish run to wait for. The tag
+    ruleset requires a staging record too; this also requires that publication wrote it. */
 async function deployed({github, context, core}) {
   const {base} = dispatch(context);
   await current(github, context, base);
-  const deployments = await github.paginate(github.rest.repos.listDeployments, {...context.repo, environment: 'github-pages',
+  const deployments = await github.paginate(github.rest.repos.listDeployments, {...context.repo, environment: 'staging',
     sha: context.sha, per_page: 100});
   for (const deployment of deployments.filter(entry => entry.sha === context.sha)) {
     const statuses = await github.paginate(github.rest.repos.listDeploymentStatuses, {...context.repo,
       deployment_id: deployment.id, per_page: 100});
-    if (statuses.some(status => status.state === 'success')) {
-      core.info(`Commit ${context.sha} was published by deployment ${deployment.id}`);
-      return deployment.id;
+    for (const status of statuses.filter(entry => entry.state === 'success')) {
+      if (await published(github, context, base, status)) {
+        core.info(`Commit ${context.sha} was published by deployment ${deployment.id} (${status.log_url})`);
+        return deployment.id;
+      }
     }
   }
   const runs = [];
@@ -163,10 +243,15 @@ async function tag({github, context, core}, read = readFileSync) {
     await github.rest.git.getRef({...context.repo, ref: `tags/v${version}`});
     throw Error('The release tag already exists; its status cannot be changed');
   } catch (error) { if (error.status !== 404) throw error; }
+  await newerThanEveryTag(github, context, version);
   await current(github, context, base);
   const {data: annotated} = await github.rest.git.createTag({...context.repo, tag: `v${version}`,
     message: `Release v${version}\n\nFair-Guide-Release-Status: ${status}\n`, object: context.sha, type: 'commit'});
   const {data} = await github.rest.git.createRef({...context.repo, ref: `refs/tags/v${version}`, sha: annotated.sha});
   core.info(`Created ${data.ref} at ${context.sha} with status ${status}`);
+  await summarize(core, `Tagged \`v${version}\` at \`${context.sha}\` with status ${status}.\n\n` + handoff({
+    next: 'a maintainer approves the `production` deployment in the Deploy the verified site run that this tag starts.',
+    blocked: 'when no deployment run starts, check the tag ruleset and the Deploy the verified site Actions page; an existing tag is never moved.',
+    done: `Release creates the draft release for v${version}.`}));
 }
 module.exports = {validVersion, dispatch, collect, propose, deployed, tag, preparedFiles};

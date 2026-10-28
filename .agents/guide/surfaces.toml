@@ -23,3 +23,8 @@ outputs = [".claude/rules/fair-guide-surfaces.md", ".cursor/rules/fair-guide-sur
 id = "fair-guide-editor"
 source = ".agents/guide/skills/fair-guide-editor/SKILL.md"
 outputs = [".agents/skills/fair-guide-editor/SKILL.md", ".claude/skills/fair-guide-editor/SKILL.md"]
+
+[[skills]]
+id = "fair-guide-release-notes"
+source = ".agents/guide/skills/fair-guide-release-notes/SKILL.md"
+outputs = [".agents/skills/fair-guide-release-notes/SKILL.md", ".claude/skills/fair-guide-release-notes/SKILL.md"]

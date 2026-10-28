@@ -6,7 +6,10 @@
 `prepare --version VERSION --date YYYY-MM-DD --prs FILE --associations FILE --actor LOGIN [--manifest FILE]`
 updates metadata and the changelog from a complete GitHub closed-PR listing and
 reports the prepared paths and their digests. It neither commits nor tags. The
-dispatch supplies that listing and opens the release PR.
+dispatch supplies that listing and opens the release PR. When the default branch already carries VERSION
+untagged, it completes that release instead, adding only the changelog entries it lacks.
+`lineage --version VERSION --prs FILE --associations FILE [--summary FILE]` exits 3 when the changelog of the
+untagged VERSION misses a change since the previous tag, naming each; Tag release refuses to tag until then.
 The crate derives its version and date from content/guide.toml at build time.
 """
 
@@ -24,8 +27,9 @@ from pathlib import Path
 
 import build_identity
 import check_changelog
+from handoff import handoff
 from register_ids import render
-from release_version import version
+from release_version import release_input, version
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD_UI = "assets/data/ui.js"
@@ -256,29 +260,25 @@ def escaped(text: str) -> str:
     return re.sub(r"([\\`*_{}\[\]<>()#!|])", r"\\\1", " ".join(text.split()))
 
 
-def changelog(
-    text: str,
-    target: str,
-    released: str,
-    prs: list[dict],
-    commits: set[str],
-    *,
-    previous: str | None,
-    changes: dict | None = None,
-) -> str:
-    if re.search(r"(?m)^## \[" + re.escape(target) + r"\]", text):
-        raise ValueError("this version already has a changelog entry")
-    # The shared parser refuses malformed sections and reserved lineage headings before anything is composed.
-    problems = check_changelog.structure_errors(text)
-    if problems:
-        raise ValueError("CHANGELOG.md: " + "; ".join(problems))
-    preamble, sections = check_changelog.parse(text)
-    selected = {}
-    represented = set()
-    if not commits:
-        raise ValueError("no commits since the previous tag; refusing an empty release changelog")
+def lineage(
+    prs: list[dict], commits: set[str], changes: dict | None, *, exclude: str | None = None
+) -> tuple[dict[int, tuple[str, int, str]], list[tuple[str, str]]]:
+    """The deduplicated release history: merged PRs by number as (merge time, number, entry), and the direct
+    first-parent commits no PR represents as (sha, entry). PRs from `exclude`, the release's own proposal branch, are
+    left out with their commits: a release never lists its own preparation."""
+    selected: dict[int, tuple[str, int, str]] = {}
+    represented, own = set(), set()
     for pr in prs:
         if not pr.get("merged_at") or pr.get("merge_commit_sha") not in commits:
+            continue
+        head = pr.get("head") or {}
+        if (
+            exclude
+            and head.get("ref") == exclude
+            and (not changes or (head.get("repo") or {}).get("full_name") == changes["repository"])
+        ):
+            own.add(pr.get("number"))
+            represented.add(pr["merge_commit_sha"])
             continue
         if changes and (
             pr.get("base", {}).get("ref") != changes["base"]
@@ -307,11 +307,37 @@ def changelog(
     direct = []
     if changes:
         for record in changes["firstParent"]:
-            if record["sha"] not in represented and not set(changes["associations"][record["sha"]]) & selected.keys():
+            linked = set(changes["associations"][record["sha"]])
+            if record["sha"] not in represented and not linked & (selected.keys() | own):
                 sha, subject = record["sha"], escaped(record["subject"])
                 if not subject:
                     raise ValueError("direct commit has no subject")
-                direct.append(f"- {subject} ([{sha[:7]}](https://github.com/{changes['repository']}/commit/{sha}))")
+                entry = f"- {subject} ([{sha[:7]}](https://github.com/{changes['repository']}/commit/{sha}))"
+                direct.append((sha, entry))
+    return selected, direct
+
+
+def changelog(
+    text: str,
+    target: str,
+    released: str,
+    prs: list[dict],
+    commits: set[str],
+    *,
+    previous: str | None,
+    changes: dict | None = None,
+) -> str:
+    if re.search(r"(?m)^## \[" + re.escape(target) + r"\]", text):
+        raise ValueError("this version already has a changelog entry")
+    # The shared parser refuses malformed sections and reserved lineage headings before anything is composed.
+    problems = check_changelog.structure_errors(text)
+    if problems:
+        raise ValueError("CHANGELOG.md: " + "; ".join(problems))
+    preamble, sections = check_changelog.parse(text)
+    if not commits:
+        raise ValueError("no commits since the previous tag; refusing an empty release changelog")
+    selected, entries = lineage(prs, commits, changes, exclude=f"release/{target}")
+    direct = [entry for _, entry in entries]
     if not selected and not direct:
         raise ValueError("no merged pull requests since the previous tag; refusing an empty release changelog")
     lines = [f"Since {previous or 'the beginning of the repository'}.", ""]
@@ -418,10 +444,137 @@ endTime = {timestamp}
     return {
         "formatVersion": 1,
         "version": target,
+        "mode": "prepare",
         "files": [
             {"path": path, "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest()} for path, text in texts.items()
         ],
     }
+
+
+PR_LINK = re.compile(r"\[#(\d+)\]\(https://github\.com/[\w.-]+/[\w.-]+/pull/\1\)")
+COMMIT_LINK = re.compile(r"\]\(https://github\.com/[\w.-]+/[\w.-]+/commit/([0-9a-f]{40})\)")
+
+
+def release_section(root: Path, target: str) -> check_changelog.Section:
+    _, sections = check_changelog.parse((root / "CHANGELOG.md").read_text(encoding="utf-8"))
+    found = [section for section in sections if section.key == target]
+    if len(found) != 1:
+        raise ValueError(f"CHANGELOG.md needs exactly one section for {target}")
+    return found[0]
+
+
+def missing_lineage(root: Path, target: str, prs: list[dict], associations: dict) -> dict:
+    """The changes from the previous release tag to HEAD that the prepared, untagged section of `target` does not
+    list yet, as changelog entries in release order. Tag release refuses while any are missing."""
+    version(target)
+    previous, commits = history(root)
+    if previous == "v" + target:
+        raise ValueError("the requested version is already tagged")
+    selected, direct = lineage(prs, commits, release_changes(root, associations), exclude=f"release/{target}")
+    body = release_section(root, target).body
+    listed_prs = {int(number) for number in PR_LINK.findall(body)}
+    listed_commits = set(COMMIT_LINK.findall(body))
+    return {
+        "previous": previous,
+        "pulls": [entry for _, number, entry in sorted(selected.values()) if number not in listed_prs],
+        "direct": [entry for sha, entry in direct if sha not in listed_commits],
+    }
+
+
+def list_end(lines: list[str], marker: str, since: int) -> int:
+    """The line after the last entry of the generated list under `marker`, which preparation writes as the heading,
+    one blank line and the entries."""
+    start = lines.index(marker, since)
+    if start + 1 >= len(lines) or lines[start + 1]:
+        raise ValueError(f"the `{marker}` list is not as release preparation writes it; reconcile it by hand")
+    end = start + 2
+    while end < len(lines) and lines[end].startswith("- "):
+        end += 1
+    return end
+
+
+def extend_section(text: str, target: str, missing: dict) -> str:
+    """Append the missing entries to the generated lists of `target`'s section; every existing line stays in place."""
+    preamble, sections = check_changelog.parse(text)
+    merged, direct = f"### {check_changelog.MERGED}", f"### {check_changelog.DIRECT}"
+    parts = []
+    for section in sections:
+        if section.key != target:
+            parts.append(section.text)
+            continue
+        lines = section.text.split("\n")
+        since = next((index for index, line in enumerate(lines) if line.startswith("Since ")), None)
+        if since is None:
+            raise ValueError(f"the {target} section has no generated lineage to complete; reconcile it by hand")
+        for marker, entries in ((merged, missing["pulls"]), (direct, missing["direct"])):
+            if not entries:
+                continue
+            if marker in lines[since:]:
+                end = list_end(lines, marker, since)
+                lines[end:end] = entries
+            elif marker == merged and direct in lines[since:]:
+                start = lines.index(direct, since)
+                lines[start:start] = [marker, "", *entries, ""]
+            else:
+                end = list_end(lines, merged, since) if merged in lines[since:] else since + 1
+                lines[end:end] = ["", marker, "", *entries]
+        parts.append("\n".join(lines))
+    return preamble + "".join(parts)
+
+
+def complete(root: Path, target: str, prs: list[dict], *, associations: dict) -> dict[str, object]:
+    """Complete a prepared, untagged release on the default branch: add only the changes its changelog does not list
+    yet. Version, dates, curated notes, earlier entries and provenance stay as they are."""
+    permitted = prepared_paths(root)
+    expected, _, errors = metadata(root)
+    if errors:
+        raise ValueError("\n".join(errors))
+    if expected != target:
+        raise ValueError(f"the default branch carries {expected}; prepare {target} as a new release instead")
+    missing = missing_lineage(root, target, prs, associations)
+    if not missing["pulls"] and not missing["direct"]:
+        raise ValueError(f"the {target} changelog already lists every change since the previous tag; run Tag release")
+    text = (root / "CHANGELOG.md").read_text(encoding="utf-8")
+    extended = extend_section(text, target, missing)
+    problems = check_changelog.structure_errors(extended) + check_changelog.history_errors(
+        text, extended, "HEAD", set()
+    )
+    if problems:
+        raise ValueError("CHANGELOG.md: " + "; ".join(problems))
+    (root / "CHANGELOG.md").write_text(extended, encoding="utf-8", newline="\n")
+    return {
+        "formatVersion": 1,
+        "version": target,
+        "mode": "complete",
+        "added": [*missing["pulls"], *missing["direct"]],
+        "files": [
+            {"path": path, "sha256": hashlib.sha256((root / path).read_bytes()).hexdigest()}
+            for path in sorted(permitted)
+        ],
+    }
+
+
+def lineage_report(target: str, missing: dict) -> str:
+    """The Tag release summary: either complete, or what is missing and what happens next."""
+    since = missing["previous"] or "the beginning of the repository"
+    entries = [*missing["pulls"], *missing["direct"]]
+    if not entries:
+        return f"The `{target}` changelog lists every change since {since}.\n"
+    return "\n".join(
+        [
+            f"### Not tagged: the `{target}` changelog misses {len(entries)} change(s) since {since}",
+            "",
+            *entries,
+            "",
+            *handoff(
+                f"Tag release starts Prepare release for `{target}`, which opens a pull request adding exactly these "
+                "entries. Review and merge it with **Merge when ready**, then run Tag release again.",
+                f"when no completion pull request appears, run Prepare release for `{target}` yourself.",
+                f"Tag release creates `v{target}`.",
+            ),
+            "",
+        ]
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -440,8 +593,15 @@ def main(argv: list[str] | None = None) -> int:
     preparing.add_argument("--actor", required=True)
     preparing.add_argument("--timestamp", type=datetime.fromisoformat)
     preparing.add_argument("--manifest", type=Path)
+    comparing = commands.add_parser("lineage")
+    comparing.add_argument("--version", required=True)
+    comparing.add_argument("--prs", required=True, type=Path)
+    comparing.add_argument("--associations", required=True, type=Path)
+    comparing.add_argument("--summary", type=Path, help="also append the report to this Markdown file")
     args = parser.parse_args(argv)
     try:
+        if getattr(args, "version", None) is not None:
+            args.version = release_input(args.version)  # the dispatch input, as the maintainer typed it
         if args.command == "check":
             errors = check(ROOT, args.site, args.version)
             if errors:
@@ -453,23 +613,38 @@ def main(argv: list[str] | None = None) -> int:
             args.output.write_text(
                 json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
             )
-        else:
-            manifest = prepare(
+        elif args.command == "lineage":
+            missing = missing_lineage(
                 ROOT,
                 args.version,
-                args.date,
                 json.loads(args.prs.read_text(encoding="utf-8")),
-                args.actor,
-                now=args.timestamp,
-                associations=json.loads(args.associations.read_text(encoding="utf-8")),
+                json.loads(args.associations.read_text(encoding="utf-8")),
             )
+            report = lineage_report(args.version, missing)
+            print(report, end="")
+            if args.summary:
+                with args.summary.open("a", encoding="utf-8") as summary:
+                    summary.write(report)
+            return 3 if missing["pulls"] or missing["direct"] else 0
+        else:
+            prs = json.loads(args.prs.read_text(encoding="utf-8"))
+            associations = json.loads(args.associations.read_text(encoding="utf-8"))
+            # The default branch already carries the version: complete that untagged release instead.
+            if metadata(ROOT)[0] == args.version:
+                manifest = complete(ROOT, args.version, prs, associations=associations)
+            else:
+                manifest = prepare(
+                    ROOT, args.version, args.date, prs, args.actor, now=args.timestamp, associations=associations
+                )
             if args.manifest:
                 args.manifest.parent.mkdir(parents=True, exist_ok=True)
                 args.manifest.write_text(
                     json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
                 )
-            paths = [item["path"] for item in manifest["files"]]
-            print("Prepared for review: " + ", ".join(paths))
+            if manifest.get("mode") == "complete":
+                print(f"Completion of {args.version} prepared for review: " + "; ".join(manifest["added"]))
+            else:
+                print("Prepared for review: " + ", ".join(item["path"] for item in manifest["files"]))
     except (ValueError, KeyError, OSError, subprocess.CalledProcessError) as error:
         print(f"release_versions: {error}", file=sys.stderr)
         return 1

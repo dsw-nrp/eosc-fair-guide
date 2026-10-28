@@ -55,7 +55,7 @@ body = { cs = "Průvodce je výstupem klíčové aktivity 5.1 projektu [[term/na
 
 [[page.section]]
 heading = { cs = "Využití umělé inteligence", en = "Use of artificial intelligence" }
-body = { cs = "Na přípravě obsahu a kódu se podíleli AI asistenti (Claude od Anthropic a Codex od OpenAI). U každé zastávky Průvodce ukazuje, z jakých zdrojů vychází a kdy se obsah měnil (úroveň „Zdroje a vznik obsahu“); kdo a s jakým nástrojem obsah připravil, zaznamenávají paradata ve znalostní bázi. Texty kontrolují lidé.", en = "AI assistants (Claude by Anthropic and Codex by OpenAI) contributed to the content and code. For each station, the Guide shows which sources it draws on and when the content changed (the “Sources and how this was made” level); who prepared the content and with which tool is recorded in the paradata of the knowledge base. People review the texts." }
+body = { cs = "Příspěvky připravené s pomocí umělé inteligence jsou vítány pod lidským dohledem. Za jejich správnost odpovídají lidé; repozitář je pro takovou spolupráci uzpůsoben.\n\nKonkrétní nástroje, modely, konzultované zdroje a změny obsahu zaznamenávají paradata znalostní báze. U každé zastávky je najdete v úrovni „Zdroje a vznik obsahu“.", en = "AI-assisted contributions are welcome under human oversight. People remain responsible for their correctness; the repository supports this way of working.\n\nThe actual tools, models, consulted sources and content changes are recorded in the knowledge base's paradata. At each station, find them in the “Sources and how this was made” level." }
 
 [[page.section]]
 id = "privacy"

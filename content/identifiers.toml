@@ -1270,6 +1270,7 @@ actions = [
   "release-1.0.0-alpha.2",
   "2026-10-20-duplicate-fix",
   "release-1.0.0-alpha.3",
+  "2026-10-26-workflow-follow-up",
 ]
 model = [
   "model:layers-seams",

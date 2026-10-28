@@ -92,6 +92,10 @@ def project_items(responses):
     return responses["GRAPHQL ProjectItems"]["organization"]["projectV2"]["items"]["nodes"]
 
 
+def project_workflows(responses):
+    return responses["GRAPHQL ProjectWorkflows"]["organization"]["projectV2"]["workflows"]["nodes"]
+
+
 def by_setting(findings):
     return {finding.setting: finding for finding in findings}
 
@@ -107,6 +111,8 @@ def beyond_baseline(findings):
 
 
 QUEUE = "ruleset.Main branch protection.rules.merge_queue"
+STAGING = "environment.staging"
+TAG_DEPLOYMENT = "ruleset.Tag protection.rules.required_deployments.required_deployment_environments"
 STRICT = "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy"
 
 
@@ -146,11 +152,62 @@ class AuditTests(unittest.TestCase):
 
     def test_the_committed_state_matches_the_recorded_live_state(self):
         # Recorded after `--fix` created the declared labels and the reviewed backfill typed and labelled every issue.
+        # Staging was created on 25 October; the 26 October tag read-back retains both deployment gates and checks.
         statuses = {finding.setting: finding.status for finding in audit.audit(self.config, Replay())}
         self.assertEqual(statuses, {"organization.issue_fields": "unavailable"})
         issues = [node["content"] for node in project_items(LIVE) if node["content"]["__typename"] == "Issue"]
         self.assertGreater(len(issues), 50)
         self.assertTrue(all(issue["issueType"] for issue in issues if issue["state"] == "OPEN"))
+
+    def test_each_tag_deployment_and_the_actions_check_are_required(self):
+        for removed in ("github-pages", "staging", "checks", "checks-origin"):
+            with self.subTest(removed=removed):
+                live = copy.deepcopy(LIVE)
+                rules = live[f"{REPO}/rulesets/25342318"]["rules"]
+                if removed in ("github-pages", "staging"):
+                    rule = next(r for r in rules if r["type"] == "required_deployments")
+                    rule["parameters"]["required_deployment_environments"].remove(removed)
+                    setting = TAG_DEPLOYMENT
+                else:
+                    rule = next(r for r in rules if r["type"] == "required_status_checks")
+                    check = rule["parameters"]["required_status_checks"][0]
+                    field = "context" if removed == "checks" else "integration_id"
+                    check[field] = "unrelated" if removed == "checks" else 1
+                    setting = "ruleset.Tag protection.rules.required_status_checks.required_status_checks"
+                finding = by_setting(audit.audit(self.config, Replay(live)))[setting]
+                self.assertEqual(finding.status, "drift")
+                self.assertIn("rulesets/25342318", finding.command)
+
+    def test_project_workflows_the_token_may_not_read_leave_the_rest_audited(self):
+        # Run 40190490225: the App token reads the Project, but GitHub refuses its workflows.
+        live = copy.deepcopy(LIVE)
+        live["GRAPHQL ProjectWorkflows"] = audit.UnavailableError("gh: You do not have permission to access workflows.")
+        next(view for view in project(live)["views"]["nodes"] if view["name"] == "Triage")["filter"] = "is:issue"
+        findings = audit.audit(self.config, Replay(live))
+        found = by_setting(findings)
+        self.assertEqual(found["project.workflows"].status, "unavailable")
+        self.assertIn("does not include the Project's workflows", found["project.workflows"].note)
+        self.assertEqual(found["project.view.Triage.filter"].status, "drift", "fields, views and items are audited")
+        self.assertNotIn("project", found, "the Project itself is readable")
+        section = audit.digest(findings)
+        self.assertIn("`project.workflows`: gh: You do not have permission to access workflows:", section)
+        self.assertNotIn(audit.OWNER_STEP, section, "no owner step for what no owner step fixes")
+
+    def test_settings_the_token_cannot_see_are_unavailable_not_drift(self):
+        # Run 40190490225: the weekly job's GITHUB_TOKEN receives the merge settings as null.
+        live = copy.deepcopy(LIVE)
+        settings = self.config["settings"]
+        for key in settings:
+            live[REPO][key] = None
+        visible = next(key for key, value in settings.items() if isinstance(value, bool))
+        live[REPO][visible] = not settings[visible]
+        found = by_setting(audit.audit(self.config, Replay(live), sections=["settings"]))
+        self.assertEqual(found["settings"].status, "unavailable")
+        self.assertIn("as null to this token", found["settings"].note)
+        self.assertNotIn(visible, found["settings"].note)
+        self.assertEqual(found[f"settings.{visible}"].status, "drift", "a setting the token sees is still compared")
+        hidden = [setting for setting in found if setting.startswith("settings.") and setting != f"settings.{visible}"]
+        self.assertEqual(hidden, [], "an unseen setting is never reported as drift")
 
     def test_an_approved_target_waits_as_pending_with_its_task(self):
         live = copy.deepcopy(LIVE)
@@ -159,7 +216,7 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(beyond_baseline(findings), {STRICT: "pending", QUEUE: "pending"})
         merge_queue = by_setting(findings)[QUEUE]
         self.assertEqual(
-            merge_queue.expected["max_entries_to_merge"], 3, "a missing rule shows its declared parameters"
+            merge_queue.expected["max_entries_to_merge"], 10, "a missing rule shows its declared parameters"
         )
         self.assertIn("task 4.8", merge_queue.note)
 
@@ -179,9 +236,7 @@ class AuditTests(unittest.TestCase):
         live[f"{REPO}/labels?per_page=100"].append({"name": "stray", "color": "ffffff", "description": None})
         board = next(view for view in project(live)["views"]["nodes"] if view["name"] == "Triage")
         board["filter"] = "is:issue"
-        next(flow for flow in project(live)["workflows"]["nodes"] if flow["name"] == "Auto-add to project")[
-            "enabled"
-        ] = False
+        next(flow for flow in project_workflows(live) if flow["name"] == "Auto-add to project")["enabled"] = False
         status = next(node for node in project(live)["fields"]["nodes"] if node.get("name") == "Status")
         status["options"][0]["name"] = "Inbox"
         items = live["GRAPHQL ProjectItems"]["organization"]["projectV2"]["items"]["nodes"]
@@ -440,9 +495,10 @@ class ConfigTests(unittest.TestCase):
             "project.owner: expected an organization login": lambda c: c["project"].update(owner="x;y"),
             "app.permissions: expected permission": lambda c: c["app"]["permissions"].update(contents="admin"),
             "is listed twice": lambda c: c["token"].append(dict(c["token"][0])),
-            "pending[0]: missing key 'task'": lambda c: c.setdefault("pending", []).append(
-                {"setting": QUEUE, "current": 1}
-            ),
+            # Appended after whatever targets the committed file has pending.
+            f"pending[{len(self.config.get('pending', []))}]: missing key 'task'": lambda c: c.setdefault(
+                "pending", []
+            ).append({"setting": QUEUE, "current": 1}),
             "format: expected 1": lambda c: c.update(format=2),
         }
         for message, change in cases.items():
@@ -473,9 +529,11 @@ class ConfigTests(unittest.TestCase):
             STRICT: "require branches to be up to date",
             "environment.production": "Create `production`",
             "environment.github-pages.reviewers": "Remove the reviewer from `github-pages`",
+            STAGING: "Create `staging`",
+            TAG_DEPLOYMENT: "Require both deployment gates and `checks` for release tags",
         }
         rows = {setting: [index for index, row in enumerate(table) if step in row] for setting, step in steps.items()}
-        self.assertEqual(list(rows.values()), [[0], [1], [2], [3]], "each step and its rollback, in order")
+        self.assertEqual(list(rows.values()), [[0], [1], [2], [3], [4], [5]], "each step and its rollback, in order")
         pending = [entry["setting"] for entry in self.config.get("pending", [])]
         self.assertLessEqual(set(pending), set(steps), "an approved target waits for a documented step")
         self.assertEqual(pending, sorted(pending, key=list(steps).index), "pending steps follow the documented order")
@@ -707,21 +765,78 @@ class ProjectItemTests(unittest.TestCase):
         self.assertEqual([setting for setting in findings if setting.startswith("project.item")], ["project.items"])
         self.assertEqual(findings["project.view.Triage.filter"].status, "drift", "the Project's settings still count")
 
-    def test_only_graphql_uses_the_project_token(self):
+    def test_app_token_is_limited_to_project_and_organization_definition_reads(self):
         calls = []
 
         def run(arguments, **options):
-            calls.append((arguments[2], (options.get("env") or {}).get("GH_TOKEN")))
-            return unittest.mock.Mock(stdout='{"data": {}}' if arguments[2] == "graphql" else "[]")
+            endpoint = arguments[4] if arguments[2] == "--paginate" else arguments[2]
+            calls.append((endpoint, (options.get("env") or {}).get("GH_TOKEN")))
+            return unittest.mock.Mock(stdout='{"data": {}}' if endpoint == "graphql" else "[]")
 
         with unittest.mock.patch.object(audit.subprocess, "run", run):
-            github = audit.GhCli("app-token")
+            github = audit.GhCli("project-token", "organization-token")
             github.get("repos/dsw-nrp/eosc-fair-guide/labels")
+            github.get("repos/dsw-nrp/eosc-fair-guide/issues/1/issue-field-values")
+            github.get("orgs/dsw-nrp/issue-types")
+            github.get("orgs/dsw-nrp/issue-fields?per_page=100", pages=True)
+            github.get("orgs/dsw-nrp/members")
             github.graphql(audit.PROJECT_QUERY, {"owner": "dsw-nrp", "number": 1})
+            github.graphql(audit.ADD_ITEM, {"project": "P_1", "content": "I_1"})
+            github.send("POST", "repos/dsw-nrp/eosc-fair-guide/labels", {"name": "example"})
             audit.GhCli().graphql(audit.PROJECT_QUERY, {"owner": "dsw-nrp", "number": 1})
         self.assertEqual(
-            calls, [("repos/dsw-nrp/eosc-fair-guide/labels", None), ("graphql", "app-token"), ("graphql", None)]
+            calls,
+            [
+                ("repos/dsw-nrp/eosc-fair-guide/labels", None),
+                ("repos/dsw-nrp/eosc-fair-guide/issues/1/issue-field-values", None),
+                ("orgs/dsw-nrp/issue-types", "organization-token"),
+                ("orgs/dsw-nrp/issue-fields?per_page=100", "organization-token"),
+                ("orgs/dsw-nrp/members", None),
+                ("graphql", "project-token"),
+                ("graphql", None),
+                ("-X", None),
+                ("graphql", None),
+            ],
         )
+
+    def test_a_refused_organization_token_hides_only_the_organization_reads(self):
+        # The installation may not have accepted the newer organization reads yet. That token is then not issued,
+        # but the Project, read with its own token, is still audited: its planted drift is reported.
+        live = copy.deepcopy(LIVE)
+        next(view for view in project(live)["views"]["nodes"] if view["name"] == "Triage")["filter"] = "is:issue"
+        replay, calls = Replay(live), []
+
+        def run(arguments, payload=None, token=None):
+            calls.append((arguments[2] if arguments[0] == "--paginate" else arguments[0], token))
+            if arguments[0] == "graphql":
+                return {"data": replay.graphql(arguments[2].removeprefix("query="), {})}
+            return [replay.get(arguments[2])] if arguments[0] == "--paginate" else replay.get(arguments[0])
+
+        github = audit.GhCli("project-token", None, refused=["organization"])
+        with unittest.mock.patch.object(github, "_run", run):
+            findings = by_setting(audit.audit(self.config, github, sections=("project", "organization"), now=RECORDED))
+        for setting in ("organization.issue_types", "organization.issue_fields"):
+            with self.subTest(setting=setting):
+                self.assertEqual(findings[setting].status, "unavailable")
+                self.assertIn("may still need to accept those read permissions", findings[setting].note)
+        self.assertNotIn("project", findings, "the Project section is readable")
+        self.assertEqual(findings["project.view.Triage.filter"].status, "drift", "and it is audited")
+        self.assertFalse([call for call in calls if call[0].startswith("orgs/")], "no organization read was attempted")
+        self.assertEqual({token for endpoint, token in calls if endpoint == "graphql"}, {"project-token"})
+
+    def test_denied_organization_fields_do_not_hide_types_project_or_digest_findings(self):
+        live = copy.deepcopy(LIVE)
+        live["GET orgs/dsw-nrp/issue-fields"] = audit.UnavailableError("Resource not accessible by integration")
+        live["GET orgs/dsw-nrp/issue-types"][0]["is_enabled"] = False
+        changed_type = live["GET orgs/dsw-nrp/issue-types"][0]["name"]
+        next(view for view in project(live)["views"]["nodes"] if view["name"] == "Triage")["filter"] = "is:issue"
+        findings = by_setting(audit.audit(self.config, Replay(live)))
+        self.assertEqual(findings["organization.issue_fields"].status, "unavailable")
+        self.assertEqual(findings[f"organization.issue_types.{changed_type}"].status, "drift")
+        self.assertEqual(findings["project.view.Triage.filter"].status, "drift")
+        text = audit.digest(list(findings.values()))
+        self.assertIn("organization.issue_fields", text)
+        self.assertIn(f"organization.issue_types.{changed_type}", text)
 
 
 class DigestTests(unittest.TestCase):

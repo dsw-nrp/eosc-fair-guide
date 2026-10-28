@@ -65,7 +65,7 @@ class ProvenanceScopeTests(unittest.TestCase):
                 self.assertNotEqual(cc.item_fingerprints(before)[key], cc.item_fingerprints(content)[key])
                 since = max(action["endTime"] for action in before["provenance"]) + timedelta(seconds=1)
                 with (
-                    mock.patch.object(cc, "comparison_base", return_value=("base", since)),
+                    mock.patch.object(cc, "merge_base", return_value="base"),
                     mock.patch.object(
                         cc, "git", side_effect=lambda root, *args: "content/guide.toml" if args[0] == "ls-tree" else ""
                     ),

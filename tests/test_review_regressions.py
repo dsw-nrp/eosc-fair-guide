@@ -22,7 +22,7 @@ import catalogue_identity  # noqa: E402
 import check_content  # noqa: E402
 import check_duplicates  # noqa: E402
 import refresh_snapshots  # noqa: E402
-from release_version import version  # noqa: E402
+from release_version import release_input, version  # noqa: E402
 
 
 def gnu_tar() -> str | None:
@@ -99,6 +99,11 @@ class ReviewRegressions(unittest.TestCase):
         for value in fixture["versions"]["invalid"]:
             with self.subTest(value=value), self.assertRaises(ValueError):
                 version(value)
+        for value, bare in fixture["versions"]["inputs"]["accepted"]:
+            self.assertEqual(release_input(value), bare, value)
+        for value in fixture["versions"]["inputs"]["refused"]:
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "v1.0.0-alpha.4"):
+                release_input(value)
 
     def test_site_consumers_share_one_content_parse_and_crate(self) -> None:
         with tempfile.TemporaryDirectory(dir=ROOT / ".cache") as temporary:

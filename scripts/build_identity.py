@@ -15,11 +15,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import subprocess
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from publication_location import base_url as publication_base
+from publication_location import config_values
 from release_version import version as release_version
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -44,13 +45,16 @@ def release_tag(value: str | None) -> bool:
         return False
 
 
+def config_publication_url(text: str) -> str:
+    """The artifact's recorded publication location; legacy fixtures may carry no location."""
+    value = config_values(text).get("pageUrl")
+    return publication_base(value) if value else ""
+
+
 def config_identity(text: str) -> dict:
     """Read the required generated configuration; absent or malformed identity is an error."""
-    match = re.search(r"^window\.FairGuideData\.ui = (.*);\r?$", text, re.MULTILINE)
-    if not match:
-        raise ValueError("the page configuration carries no build identity")
-    data = json.loads(match[1])
-    built = data.get("config", {}).get("build") if isinstance(data, dict) else None
+    config = config_values(text)
+    built = config.get("build")
     if not isinstance(built, dict) or not all(
         key in built for key in ("version", "commit", "channel", "status", "date", "dirty")
     ):
@@ -62,7 +66,7 @@ def config_identity(text: str) -> dict:
         raise ValueError("a build that is not a release must report the testing status")
     if built["channel"] == "release" and (built["dirty"] or not release_tag(built["version"])):
         raise ValueError("a release must have a clean valid release tag")
-    if data["config"].get("releaseStatus", built["status"]) != built["status"]:
+    if config.get("releaseStatus", built["status"]) != built["status"]:
         raise ValueError("page status differs from its build identity")
     return built
 

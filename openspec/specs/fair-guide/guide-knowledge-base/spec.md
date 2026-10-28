@@ -133,13 +133,13 @@ A pull request SHALL record one Process Run Crate provenance action by default: 
 #### Scenario: Changed advice without a newer action
 
 - **GIVEN** a pull request that changes an advice item's text
-- **WHEN** no provenance action newer than the previous release covers that item
+- **WHEN** no provenance action that is new since the comparison base, or whose end time moved later since that base, covers that item
 - **THEN** the content checks fail and name the item
 
 #### Scenario: A page changes without a newer action
 
 - **GIVEN** a pull request that changes a page's text
-- **WHEN** no provenance action newer than the previous release covers that page
+- **WHEN** no provenance action that is new since the comparison base, or whose end time moved later since that base, covers that page
 - **THEN** the content checks fail and name the page
 
 #### Scenario: A pull request records one action
@@ -147,6 +147,18 @@ A pull request SHALL record one Process Run Crate provenance action by default: 
 - **GIVEN** a pull request that changes several content items
 - **WHEN** one provenance action covers every item the pull request changed
 - **THEN** the content checks pass, and the action names every person and instrument the change used
+
+#### Scenario: The default branch advances after the work ended
+
+- **GIVEN** a pull request whose new action ended before an unrelated commit landed on the default branch
+- **WHEN** the merge queue compares it with that newer base
+- **THEN** the content checks pass, and the action's end time stays the time the work finished
+
+#### Scenario: An earlier action is reused without new work
+
+- **GIVEN** a pull request that adds a changed item to the coverage of an action already on the base without moving that action's end time
+- **WHEN** the content checks run
+- **THEN** they fail and name the item
 
 #### Scenario: Initial public provenance is consolidated
 
@@ -164,7 +176,7 @@ threshold SHALL be reported.
 
 - **GIVEN** a resource whose status as-of date is older than the freshness threshold
 - **WHEN** the scheduled health job runs
-- **THEN** it opens an issue that names the resource and its last verified date
+- **THEN** the maintenance digest lists the resource and its last verified date for maintainer triage
 
 ### Requirement: Content is bilingual
 
@@ -271,15 +283,28 @@ maps and a JSON-LD context. Paths SHALL follow the FIP Dashboard API's naming wh
 
 ### Requirement: Content addressed relative to the site
 
-The API's files SHALL name the guide's own entities and each other by references relative to the file that names
-them, never by the site's address, so the guide works unchanged when it moves to another address. Links that leave
-the page, such as the test references in an exported result, SHALL take the address the page is served from.
+API files SHALL reference the guide's own entities and each other relative to the referring file, never by the
+site's address. Outbound links, such as test references in an exported result, SHALL use the page's serving address.
+Runtime links SHALL use the Guide window's location, including its channel path, not an iframe parent's. Offline use
+SHALL keep usable relative or local references without inventing a public host or exposing filesystem paths as
+public identifiers.
 
 #### Scenario: The guide moves
 
 - **GIVEN** the guide published at a new address
 - **WHEN** a consumer follows a link in an API record, or the test reference in a result exported there
 - **THEN** it reaches the record at the new address, without the guide being rebuilt for it
+
+#### Scenario: The Guide is embedded at a repository subpath
+
+- **GIVEN** the Guide runs in an iframe under a different origin or path from its parent
+- **WHEN** a reader opens an API reference, share link or exported test reference
+- **THEN** the link follows the Guide's current origin and channel path, not the parent or a predicted public hostname
+
+#### Scenario: The Guide is opened from a local file
+
+- **WHEN** a reader navigates or exports references from `file://`
+- **THEN** local/relative behavior remains usable, no filesystem path is represented as a public identifier, and no external request is made on load
 
 ### Requirement: Checks published as FTR definitions
 
@@ -488,7 +513,7 @@ native evidence.
 ### Requirement: Provenance coverage agrees with changed-item fingerprints
 
 Every authored entity kind included in freshness comparison SHALL have truthful provenance coverage,
-including organizations. Local and exact-base PR comparison SHALL enforce the same coverage contract.
+including organizations. Local, exact-base PR and merge-queue comparison SHALL enforce the same coverage contract.
 Automatic source retrieval SHALL record source/time/software/run separately from human editorial review.
 Human authorship and citation entries SHALL NOT be inferred from an automation account or indiscriminately
 assigned to every action in a pull request.
@@ -496,8 +521,14 @@ assigned to every action in a pull request.
 #### Scenario: An organization changes without covering provenance
 
 - **GIVEN** a changed organization included in the base-comparison fingerprints
-- **WHEN** content validation runs locally or on the pull request
-- **THEN** it requires a truthful covering action in both contexts and does not silently exempt the kind
+- **WHEN** content validation runs locally, on the pull request or in the merge queue
+- **THEN** it requires a truthful covering action in all three contexts and does not silently exempt the kind
+
+#### Scenario: A merge group holds two content changes
+
+- **GIVEN** two queued pull requests in one merge group, each covering its own changed items with its own new action
+- **WHEN** the merge group is checked against its base
+- **THEN** each item is covered by its own pull request's action, and neither pull request needs a new end time
 
 ### Requirement: Life-cycle models and their crosswalk are records
 
@@ -748,29 +779,34 @@ The duplicate check SHALL retain existing human-readable errors and emit exact m
 
 ### Requirement: Safe duplicate suggestions are applied only by explicit human action
 
-Safe suggestions SHALL require explicit human action and provenance naming the requester; schedules and ordinary PR checks SHALL NOT apply them. Local repair SHALL validate TOML, replace each target atomically, restore original bytes on handled application or recheck failure, and report the exact diff and provenance reminder only after success. Failure or no-op SHALL return nonzero. The duplicate rule and accepted groups SHALL NOT change automatically.
+Safe suggestions SHALL require explicit human action and provenance naming the requester; schedules and ordinary PR checks SHALL NOT apply them. Local repair SHALL validate TOML, replace each target atomically, restore original bytes on handled application or recheck failure, and after success report the exact diff including its provenance action and identifier registration. Failure or no-op SHALL return nonzero. The duplicate rule and accepted groups SHALL NOT change automatically.
 
 #### Scenario: Scheduled refresh meets a duplicate
+
 - **GIVEN** a scheduled source refresh adds a record that duplicates a curated entry
 - **WHEN** the refresh completes
 - **THEN** the snapshot proposal is unchanged by automation and the suggestion is reported for human action
 
 #### Scenario: Authoritative matches compete for the same field
+
 - **GIVEN** two registry records match one curated entry through different authoritative keys
 - **WHEN** the duplicate check proposes links to the same target field
 - **THEN** it marks neither competing value safe and no fix changes that field
 
 #### Scenario: A target key already exists
+
 - **GIVEN** a target table already contains the suggested field, even with an empty value
 - **WHEN** a fix is considered
 - **THEN** no duplicate key is inserted and the original file remains valid TOML
 
 #### Scenario: No local safe change applies
+
 - **GIVEN** content with no applicable safe suggestion
 - **WHEN** the local fix command runs
 - **THEN** it leaves the content unchanged and returns nonzero
 
 #### Scenario: A maintainer applies the fix
+
 - **GIVEN** a maintainer requests the fix on a same-repository pull request
 - **WHEN** the safe suggestion is applied
 - **THEN** the change is committed to that branch with a provenance action naming the maintainer, and the checks rerun
@@ -801,8 +837,8 @@ Safe suggestions SHALL require explicit human action and provenance naming the r
 
 #### Scenario: A valid local repair completes
 
-- **WHEN** all safe links are applied and the duplicate recheck passes
-- **THEN** the command prints the applied working-tree diff and the provenance reminder and returns zero
+- **WHEN** all safe links are applied and the content and duplicate rechecks pass, including the identifier register
+- **THEN** the command prints the applied working-tree diff, which contains the links, one provenance action naming the responsible person and that action's registration, and returns zero
 
 ### Requirement: New snapshot identifiers are reserved across the Guide
 A snapshot refresh SHALL NOT assign a new record identifier that is already used by another Guide entry, and SHALL preserve existing local identifiers across refresh as before. A collision that cannot be resolved by an existing identity join SHALL be rejected for review rather than written.
@@ -816,3 +852,70 @@ A snapshot refresh SHALL NOT assign a new record identifier that is already used
 - **GIVEN** a derived identifier retired in the central register or a snapshot's retiredIds
 - **WHEN** a snapshot is refreshed
 - **THEN** the identifier remains reserved and is not assigned to the new record
+
+### Requirement: Local duplicate repair resolves a reviewed responsible person
+
+Local repair SHALL record as responsible the reviewed person given with `--person` or, without it, the single
+reviewed person whose GitHub account or commit name matches the local Git identity. An unknown or ambiguous identity
+SHALL write nothing, return nonzero and name both the `--person` option and the identity-review procedure. Repair
+SHALL never invent a person.
+
+#### Scenario: The local Git identity is reviewed
+
+- **GIVEN** a local Git user name listed in one person's reviewed `commitNames`
+- **WHEN** the contributor runs the local fix without `--person`
+- **THEN** the provenance action names that person and the output says how the person was resolved
+
+#### Scenario: A person is named explicitly
+
+- **WHEN** the contributor runs the local fix with `--person` and a reviewed person ID
+- **THEN** that person is recorded regardless of the local Git identity
+
+#### Scenario: The identity is unknown or ambiguous
+
+- **WHEN** the local Git identity matches no reviewed person or more than one
+- **THEN** the command writes nothing, returns nonzero and names the `--person` option and the procedure for adding a reviewed identity
+
+### Requirement: Guide vocabulary IRIs come from a reviewed namespace
+
+Guide-owned vocabulary/profile IRIs SHALL derive from the namespace declared in the Guide's reviewed configuration,
+independent of where the Guide is served. Changing it SHALL be a reviewed breaking change recorded in the
+changelog. Logical IDs and exact external IRIs SHALL remain unchanged; prior artifacts SHALL retain their bytes and
+original contexts, without invented aliases or redirects.
+
+#### Scenario: A different origin or repository prefix is deployed
+
+- **WHEN** the Guide is built for another origin or path with the same namespace setting
+- **THEN** navigation and discovery follow that location, expanded JSON-LD and profile references keep the declared namespace, and logical content IDs and exact external IRIs retain their identity
+
+#### Scenario: The namespace setting changes
+
+- **WHEN** a reviewed change sets a new namespace
+- **THEN** every Guide term and the profile move to it together, no other identifier changes, and the changelog names the break
+
+#### Scenario: Publication combines production and preview
+
+- **WHEN** verified production content is assembled beside a preview
+- **THEN** channel links remain distinct without silently rewriting shared content identity or already verified production metadata
+
+#### Scenario: A historical artifact is read after the namespace changed
+
+- **WHEN** a consumer reads an older release archive or its original context
+- **THEN** its bytes and legacy term/profile names are unchanged; no alias, redirect or external-IRI normalization is inferred
+
+### Requirement: Documentation qualifies reused concepts by namespace
+
+Technical mappings SHALL identify reused concepts by their actual namespace/prefix and resolvable IRI, including
+every crate-mapping row. Documentation SHALL distinguish serialized aliases from expanded terms and identify
+Guide-owned terms consistently. Namespace explanations SHALL match emitted JSON-LD without renaming stored keys
+or normalizing the spelling or scheme of external IRIs.
+
+#### Scenario: A serialized key is an alias for another vocabulary
+
+- **WHEN** documentation explains `publisher`, `attributedTo`, test types or Guide terms
+- **THEN** their mappings agree with the emitted context, including `dcterms:publisher`, `prov:wasAttributedTo`, `ftr:Test` and the applicable `sio:`/Guide terms
+
+#### Scenario: A mapping uses an unknown prefix or the wrong vocabulary
+
+- **WHEN** documentation verification compares a planted mapping with expanded generated JSON-LD
+- **THEN** it rejects the mismatch and preserves the actual external term IRI exactly

@@ -1,6 +1,7 @@
 // Trusted default-branch code for deployment: finds a merge-queue result that a staging deployment can reuse, and
 // resolves what the separate, serialized publish workflow publishes. It builds and publishes nothing itself.
 const { tagOf, refContext, sources, productionSource } = require("./release-artifact.cjs");
+const { handoff } = require("./handoff.cjs");
 
 const SHA = /^[0-9a-f]{40}$/;
 const sameRepository = (context, run) => run.head_repository?.full_name === `${context.repo.owner}/${context.repo.repo}`;
@@ -81,7 +82,8 @@ const nothing = (reason, successor) => ({ publish: "false", reason, successor: s
     approved it (`production_run`), whichever deployment started the publication; nothing is fetched here. After a
     default-branch deployment, publication takes that run's own checked staging site while its commit is the head.
     After a release-tag deployment, it takes the newest checked staging site once that is the head's; until then the
-    head's own deployment publishes the release. */
+    head's own deployment publishes the release. The Pages root is checked against the root the sites were built for
+    immediately before the Pages deployment, not here. */
 async function publication({ github, context, recorded }) {
   const branch = context.payload.repository.default_branch;
   const isTag = context.ref.startsWith("refs/tags/");
@@ -114,14 +116,68 @@ async function publication({ github, context, recorded }) {
     tag: production.tag, production: production.commit, production_run: production.run };
 }
 
+/** Records each channel live at its address once this publication deployed it: a successful `staging` deployment of
+    the published staging commit and, when a release was published, a `production` deployment of its tag. A record that
+    already exists is not repeated, so publishing the same site again leaves the history unchanged. `github-pages`
+    stays the publishing mechanism; release tags require the staging record. Returns the environments recorded.
+    The staging record names the default branch, which the environment's branch policy admits, and counts only if
+    GitHub resolves it to the published commit: when the branch moved on meanwhile, the record is left inactive, never
+    successful, and the newer commit's own publication records it. */
+async function recordChannels({ github, context, core }, { staging, tag = "", production = "", pageUrl }) {
+  if (!SHA.test(staging || "") || (tag && !SHA.test(production))) throw Error("Recording requires the published commits");
+  if (!/^https:\/\/\S+$/.test(pageUrl || "")) throw Error("Recording requires the published site address");
+  const root = pageUrl.endsWith("/") ? pageUrl : pageUrl + "/";
+  const log = `${context.serverUrl || "https://github.com"}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+  const branch = context.payload.repository.default_branch;
+  const channels = [{ environment: "staging", ref: branch, sha: staging, url: root + "next/" }];
+  if (tag) channels.push({ environment: "production", ref: tag, sha: production, url: root });
+  const recorded = [];
+  for (const channel of channels) {
+    const earlier = (await github.paginate(github.rest.repos.listDeployments, { ...context.repo,
+      environment: channel.environment, sha: channel.sha, per_page: 100 })).filter((entry) => entry.sha === channel.sha);
+    let live = false;
+    for (const deployment of earlier) {
+      const statuses = await github.paginate(github.rest.repos.listDeploymentStatuses, { ...context.repo,
+        deployment_id: deployment.id, per_page: 100 });
+      if (statuses.some((status) => status.state === "success")) { live = true; break; }
+    }
+    if (live) { core.info(`${channel.environment}: ${channel.sha} is already recorded live at ${channel.url}`); continue; }
+    if (channel.environment === "staging" &&
+        (await github.rest.repos.getBranch({ ...context.repo, branch })).data.commit.sha !== channel.sha) {
+      core.info(`staging: ${branch} moved on from ${channel.sha}; that commit's own publication records it`);
+      continue;
+    }
+    const { data: deployment } = await github.rest.repos.createDeployment({ ...context.repo, ref: channel.ref,
+      environment: channel.environment, auto_merge: false, required_contexts: [], transient_environment: false,
+      production_environment: channel.environment === "production", description: `Live at ${channel.url}` });
+    if (deployment?.sha !== channel.sha) {
+      if (channel.environment === "production") {
+        throw Error(`The production record of ${channel.ref} names ${deployment?.sha}, not ${channel.sha}`);
+      }
+      // The branch moved between the check and the record: never mark the newer, unpublished commit as staged.
+      await github.rest.repos.createDeploymentStatus({ ...context.repo, deployment_id: deployment.id, state: "inactive",
+        description: `${branch} moved on before ${channel.sha.slice(0, 7)} was recorded`, log_url: log });
+      core.info(`staging: ${branch} moved on to ${deployment?.sha} while recording; left that record inactive`);
+      continue;
+    }
+    await github.rest.repos.createDeploymentStatus({ ...context.repo, deployment_id: deployment.id, state: "success",
+      environment_url: channel.url, log_url: log, auto_inactive: true });
+    recorded.push(channel.environment);
+  }
+  return recorded;
+}
+
 /** The summary of a cancelled deployment run, naming the run that supersedes it. Publication runs in its own workflow,
     so cancelling preparation never interrupts a Pages deployment. */
 async function superseded({ github, context }) {
   const ref = context.ref.replace(/^refs\/(heads|tags)\//, "");
   const run = await newerRun(github, context, ref);
-  return run
+  const text = run
     ? `This run was cancelled; [run ${run.id}](${run.html_url}) supersedes it and publishes the newest checked site.`
     : "This run was cancelled; the next deployment of this ref publishes the newest checked site.";
+  return text + "\n\n" + handoff({ next: "nothing: the newer deployment continues.",
+    blocked: "when no newer run publishes, run Deploy the verified site on the default branch.",
+    done: "the live preview's footer names the newest default-branch commit." });
 }
 
-module.exports = { queueResult, newestStaging, completedDeployment, publication, superseded };
+module.exports = { queueResult, newestStaging, completedDeployment, publication, recordChannels, superseded };

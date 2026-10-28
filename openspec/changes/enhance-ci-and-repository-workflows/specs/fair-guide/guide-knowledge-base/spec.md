@@ -77,6 +77,91 @@ Safe suggestions SHALL require explicit human action and provenance naming the r
 - **WHEN** all safe links are applied and the content and duplicate rechecks pass, including the identifier register
 - **THEN** the command prints the applied working-tree diff, which contains the links, one provenance action naming the responsible person and that action's registration, and returns zero
 
+### Requirement: Content changes record paradata
+
+A pull request SHALL record one Process Run Crate provenance action by default: the person (ORCID where available), every instrument it used (including the AI tool/model), the consulted sources, the entities it produced or changed and the end time, with coverage naming every item it changed; a finer action per batch MAY replace it where a change genuinely needs its own. AI SHALL be an instrument. Provenance coverage SHALL include exactly the kinds compared against the PR merge base.
+
+#### Scenario: Changed advice without a newer action
+
+- **GIVEN** a pull request that changes an advice item's text
+- **WHEN** no provenance action that is new since the comparison base, or whose end time moved later since that base, covers that item
+- **THEN** the content checks fail and name the item
+
+#### Scenario: A page changes without a newer action
+
+- **GIVEN** a pull request that changes a page's text
+- **WHEN** no provenance action that is new since the comparison base, or whose end time moved later since that base, covers that page
+- **THEN** the content checks fail and name the page
+
+#### Scenario: A pull request records one action
+
+- **GIVEN** a pull request that changes several content items
+- **WHEN** one provenance action covers every item the pull request changed
+- **THEN** the content checks pass, and the action names every person and instrument the change used
+
+#### Scenario: The default branch advances after the work ended
+
+- **GIVEN** a pull request whose new action ended before an unrelated commit landed on the default branch
+- **WHEN** the merge queue compares it with that newer base
+- **THEN** the content checks pass, and the action's end time stays the time the work finished
+
+#### Scenario: An earlier action is reused without new work
+
+- **GIVEN** a pull request that adds a changed item to the coverage of an action already on the base without moving that action's end time
+- **WHEN** the content checks run
+- **THEN** they fail and name the item
+
+#### Scenario: Initial public provenance is consolidated
+
+- **GIVEN** unreleased preparation actions with the same responsible compiler and attributable instruments/sources
+- **WHEN** the initial public state is recorded as one action
+- **THEN** all produced-entity coverage and actual instruments/sources remain recorded, original-source authorship stays separate and references to the consolidated action resolve
+
+### Requirement: Provenance coverage agrees with changed-item fingerprints
+
+Every authored entity kind included in freshness comparison SHALL have truthful provenance coverage,
+including organizations. Local, exact-base PR and merge-queue comparison SHALL enforce the same coverage contract.
+Automatic source retrieval SHALL record source/time/software/run separately from human editorial review.
+Human authorship and citation entries SHALL NOT be inferred from an automation account or indiscriminately
+assigned to every action in a pull request.
+
+#### Scenario: An organization changes without covering provenance
+
+- **GIVEN** a changed organization included in the base-comparison fingerprints
+- **WHEN** content validation runs locally, on the pull request or in the merge queue
+- **THEN** it requires a truthful covering action in all three contexts and does not silently exempt the kind
+
+#### Scenario: A merge group holds two content changes
+
+- **GIVEN** two queued pull requests in one merge group, each covering its own changed items with its own new action
+- **WHEN** the merge group is checked against its base
+- **THEN** each item is covered by its own pull request's action, and neither pull request needs a new end time
+
+### Requirement: Content addressed relative to the site
+
+API files SHALL reference the guide's own entities and each other relative to the referring file, never by the
+site's address. Outbound links, such as test references in an exported result, SHALL use the page's serving address.
+Runtime links SHALL use the Guide window's location, including its channel path, not an iframe parent's. Offline use
+SHALL keep usable relative or local references without inventing a public host or exposing filesystem paths as
+public identifiers.
+
+#### Scenario: The guide moves
+
+- **GIVEN** the guide published at a new address
+- **WHEN** a consumer follows a link in an API record, or the test reference in a result exported there
+- **THEN** it reaches the record at the new address, without the guide being rebuilt for it
+
+#### Scenario: The Guide is embedded at a repository subpath
+
+- **GIVEN** the Guide runs in an iframe under a different origin or path from its parent
+- **WHEN** a reader opens an API reference, share link or exported test reference
+- **THEN** the link follows the Guide's current origin and channel path, not the parent or a predicted public hostname
+
+#### Scenario: The Guide is opened from a local file
+
+- **WHEN** a reader navigates or exports references from `file://`
+- **THEN** local/relative behavior remains usable, no filesystem path is represented as a public identifier, and no external request is made on load
+
 ## ADDED Requirements
 
 ### Requirement: Local duplicate repair resolves a reviewed responsible person
@@ -101,3 +186,47 @@ SHALL never invent a person.
 
 - **WHEN** the local Git identity matches no reviewed person or more than one
 - **THEN** the command writes nothing, returns nonzero and names the `--person` option and the procedure for adding a reviewed identity
+
+### Requirement: Guide vocabulary IRIs come from a reviewed namespace
+
+Guide-owned vocabulary/profile IRIs SHALL derive from the namespace declared in the Guide's reviewed configuration,
+independent of where the Guide is served. Changing it SHALL be a reviewed breaking change recorded in the
+changelog. Logical IDs and exact external IRIs SHALL remain unchanged; prior artifacts SHALL retain their bytes and
+original contexts, without invented aliases or redirects.
+
+#### Scenario: A different origin or repository prefix is deployed
+
+- **WHEN** the Guide is built for another origin or path with the same namespace setting
+- **THEN** navigation and discovery follow that location, expanded JSON-LD and profile references keep the declared namespace, and logical content IDs and exact external IRIs retain their identity
+
+#### Scenario: The namespace setting changes
+
+- **WHEN** a reviewed change sets a new namespace
+- **THEN** every Guide term and the profile move to it together, no other identifier changes, and the changelog names the break
+
+#### Scenario: Publication combines production and preview
+
+- **WHEN** verified production content is assembled beside a preview
+- **THEN** channel links remain distinct without silently rewriting shared content identity or already verified production metadata
+
+#### Scenario: A historical artifact is read after the namespace changed
+
+- **WHEN** a consumer reads an older release archive or its original context
+- **THEN** its bytes and legacy term/profile names are unchanged; no alias, redirect or external-IRI normalization is inferred
+
+### Requirement: Documentation qualifies reused concepts by namespace
+
+Technical mappings SHALL identify reused concepts by their actual namespace/prefix and resolvable IRI, including
+every crate-mapping row. Documentation SHALL distinguish serialized aliases from expanded terms and identify
+Guide-owned terms consistently. Namespace explanations SHALL match emitted JSON-LD without renaming stored keys
+or normalizing the spelling or scheme of external IRIs.
+
+#### Scenario: A serialized key is an alias for another vocabulary
+
+- **WHEN** documentation explains `publisher`, `attributedTo`, test types or Guide terms
+- **THEN** their mappings agree with the emitted context, including `dcterms:publisher`, `prov:wasAttributedTo`, `ftr:Test` and the applicable `sio:`/Guide terms
+
+#### Scenario: A mapping uses an unknown prefix or the wrong vocabulary
+
+- **WHEN** documentation verification compares a planted mapping with expanded generated JSON-LD
+- **THEN** it rejects the mismatch and preserves the actual external term IRI exactly

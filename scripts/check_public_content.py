@@ -10,7 +10,10 @@ from __future__ import annotations
 import argparse
 import re
 import subprocess
+import tomllib
 from pathlib import Path
+
+from agent_surfaces import CONFIG, matches
 
 ROOT = Path(__file__).resolve().parents[1]
 AREAS = (
@@ -67,6 +70,27 @@ def violations(text: str) -> list[tuple[int, str]]:
     return findings
 
 
+def runtime_hand_offs(root: Path, paths: set[Path]) -> set[Path]:
+    """Untracked files in the runtime paths that .agents/guide/surfaces.toml declares, such as the run hand-offs in
+    .agents/local_scratch, which stay visible to Git by design and name machine-local locations. They are not public
+    source until someone stages them; a tracked or staged file is always checked. Outside a Git work tree, or without
+    the declaration, nothing is skipped."""
+    try:
+        patterns = tomllib.loads((root / CONFIG).read_text(encoding="utf-8"))["runtime"]
+    except (OSError, KeyError, tomllib.TOMLDecodeError):
+        return set()
+    candidates = {path for path in paths if matches(path.relative_to(root).as_posix(), patterns)}
+    if not candidates:
+        return set()
+    names = sorted(path.relative_to(root).as_posix() for path in candidates)
+    result = subprocess.run(
+        ["git", "ls-files", "-z", "--", *names], cwd=root, capture_output=True, text=True, encoding="utf-8", check=False
+    )
+    if result.returncode != 0:
+        return set()
+    return candidates - {root / name for name in result.stdout.split("\0") if name}
+
+
 def files(root: Path) -> list[Path]:
     found = {path for path in root.iterdir() if path.is_file() and path.suffix in TEXT}
     for area in AREAS:
@@ -77,7 +101,7 @@ def files(root: Path) -> list[Path]:
                 for path in directory.rglob("*")
                 if path.is_file() and path.suffix in TEXT and "__pycache__" not in path.parts
             )
-    return sorted(found)
+    return sorted(found - runtime_hand_offs(root, found))
 
 
 def inspect(root: Path, history: bool = False) -> list[str]:

@@ -1,5 +1,7 @@
 # PR review formats
 
+<!-- delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00 -->
+
 ## Reference format 1
 
 ````markdown
