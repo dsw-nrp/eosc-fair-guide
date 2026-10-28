@@ -10,6 +10,7 @@ import sys
 import tempfile
 import tomllib
 import unittest
+from collections import Counter
 from datetime import date, timedelta
 from pathlib import Path
 from unittest import mock
@@ -120,18 +121,21 @@ class OutcomeTests(unittest.TestCase):
 
 
 class CoverageTests(unittest.TestCase):
-    def test_673_unchanged_links_are_all_attempted_within_two_runs(self) -> None:
+    def test_every_unchanged_link_is_attempted_within_two_runs(self) -> None:
         guide = build_crate.load_content()
         links, _ = watch_sources.content_links(guide)
-        self.assertEqual(len(links), 673, "the inventory of the scenario")
+        hosts = Counter(urlparse(url).hostname for url in links)
+        over_cap = sum(max(0, count - watch_sources.PER_HOST) for count in hosts.values())
+        self.assertGreater(over_cap, 0, "the Guide's own inventory exercises the per-host cap")
         run = Run(guide)
         first = run(Fetcher())[4]
         second = run(Fetcher())[4]
         for coverage in (first, second):
             self.assertEqual(coverage["eligible"], coverage["attempted"] + coverage["deferred"])
             self.assertLessEqual(coverage["attempted"], watch_sources.BUDGET)
-        # 199 links share one host: its cap of 120 defers 79 of them to the second run.
-        self.assertEqual((first["attempted"], first["deferred"]), (594, 79))
+        # The busiest host's cap, and the run budget once the inventory outgrows it, defer the rest to the second run.
+        attempted = min(watch_sources.BUDGET, len(links) - over_cap)
+        self.assertEqual((first["attempted"], first["deferred"]), (attempted, len(links) - attempted))
         never = [key for key, value in run.state["targets"].items() if value["kind"] == "link" and not value["checked"]]
         self.assertEqual(never, [], "every link was attempted within two runs")
 
