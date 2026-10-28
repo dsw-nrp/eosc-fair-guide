@@ -10,6 +10,7 @@ import sys
 import tempfile
 import tomllib
 import unittest
+from contextlib import ExitStack
 from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import patch
@@ -101,8 +102,13 @@ class ReleaseVersions(unittest.TestCase):
         empty = self.root / "empty.json"
         empty.write_text("[]", encoding="utf-8")
         inputs = ["--prs", str(empty), "--associations", str(empty), "--actor", "motyc"]
-        # prepare(root, version, ...) and check(root, site, version) receive the bare version either way.
-        for command, position, result, extra in (("prepare", 1, {"files": []}, inputs), ("check", 2, [], [])):
+        # prepare(root, version, ...), complete(root, version, ...) and check(root, site, version) receive the bare
+        # version either way. Prepare completes instead when the repository already carries the version, as on a
+        # release branch, so both of its routes are recorded and the test holds at any committed version.
+        for command, routes, position, result, extra in (
+            ("prepare", ("prepare", "complete"), 1, {"files": []}, inputs),
+            ("check", ("check",), 2, [], []),
+        ):
             with self.subTest(command=command):
                 passed: list[str] = []
 
@@ -110,7 +116,10 @@ class ReleaseVersions(unittest.TestCase):
                     sink.append(a[at])
                     return value
 
-                with patch.object(release, command, side_effect=record), patch("builtins.print"):
+                with ExitStack() as patches:
+                    for route in routes:
+                        patches.enter_context(patch.object(release, route, side_effect=record))
+                    patches.enter_context(patch("builtins.print"))
                     for value in ("v1.0.0-alpha.4", " 1.0.0-alpha.4\n"):
                         self.assertEqual(release.main([command, "--version", value, *extra]), 0)
                 self.assertEqual(passed, ["1.0.0-alpha.4", "1.0.0-alpha.4"])
