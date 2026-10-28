@@ -6,5 +6,5 @@ roc-validator==0.13.0
 # The RDF tests import these directly; the pins match what roc-validator resolves.
 rdflib==7.6.0
 pyshacl==0.40.1
-ruff==0.17.1
+ruff==0.17.2
 PyYAML==6.0.3
