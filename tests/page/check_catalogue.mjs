@@ -118,6 +118,18 @@ for (const [id, consulted, changed] of [["#action-2026-10-16-initial-state", 143
   if (unresolved.length) fail(`catalogue: ${id} links records the catalogue does not have: ${unresolved.slice(0, 3).join(", ")}`);
 }
 if (!(await row(await open("#action-2026-10-16-initial-state", "en"), "Tools")).includes("AI model")) fail("catalogue: the English change does not name an AI model as a tool");
+{
+  // A page of the Guide that a change altered leads to that page, named by its heading rather than its ID.
+  const card = await open("#action-2026-10-26-workflow-follow-up", "en");
+  await unfold(card);
+  const about = card.locator('dd[data-field="result"] a[href$="/page/about"]');
+  if (!(await about.count()) || (await about.first().textContent()).trim() !== "About the Guide") fail("catalogue: a change does not link the About page by its heading");
+}
+{
+  // A context question says what it is in the self-check's words, not by an interface key.
+  const context = await (await open("#item-fdo.09", "en")).locator('[data-field="assessmentContext"]').textContent();
+  if (!context.startsWith("Original source context.") || context.includes("catalogue.")) fail("catalogue: fdo.09 does not say it is source context: " + context);
+}
 
 {
   const card = await open("#item-dataset.01");
@@ -138,7 +150,7 @@ if (!(await row(await open("#action-2026-10-16-initial-state", "en"), "Tools")).
   }
   // The catalogue is not read in a role: it names the self-check's "you" by its role, the researcher.
   const fixer = await row(await open("#item-dataset.15"), "Kdo to napraví");
-  if (!fixer.includes("výzkumník") || /vy/.test(fixer)) fail("catalogue: a question addresses the reader in its Who puts it right row: " + fixer);
+  if (!fixer.includes("výzkumník") || /(?<!\p{L})vy(?!\p{L})/u.test(fixer)) fail("catalogue: a question addresses the reader in its Who puts it right row: " + fixer);
   const cdif = await open("#item-cdif.01");
   if (!(await row(cdif, "Skupina")).trim()) fail("catalogue: cdif.01 does not show its group");
 }

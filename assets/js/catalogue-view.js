@@ -551,7 +551,7 @@
                 body: [
                   h("p", { "data-field": "text mentions" }, FG.linkedSpan(item)),
                   item.description ? h("div", { class: "small muted question-explanation", "data-field": "description" }, FG.linkedParagraphs(item, "description")) : null,
-                  item.assessmentContext ? h("p", { class: "small", "data-field": "assessmentContext" }, FG.t("catalogue.assessmentContext")) : null,
+                  item.assessmentContext ? h("p", { class: "small", "data-field": "assessmentContext" }, FG.t("selfcheck.question.context") + ". " + FG.t("selfcheck.question.contextHint")) : null,
                   item.lookup ? h("p", { class: "small", "data-field": "lookup" }, FG.t("catalogue.lookup") + ": ", FG.external(FG.id(item.lookup), FG.id(item.lookup))) : null,
                   item.note ? h("p", { class: "small", "data-field": "note" }, FG.span(item.note)) : null,
                 ],

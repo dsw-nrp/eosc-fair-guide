@@ -151,9 +151,9 @@
   /* ---------------------------------------------------------------- one card for every kind */
 
   /* The relations a card may show, in this order, each under one label and icon wherever it appears: what the entry
-     is about and for, how it is used, who made, runs or provides it, its licence, what it rests on and replaces, and
+     is about and for, how it is used, what made it and who runs or provides it, its licence, what it rests on and replaces, and
      where it is used and changed. */
-  const RELATIONS = ["principles", "audience", "fixedBy", "applies", "group", "nrpProfile", "prefilledFrom", "prefills", "covers", "correspondsTo", "declarations", "declaredIn", "madeBy", "tools", "operatedBy", "developedBy", "providedBy", "operates", "nationalNodeOf", "memberOf", "fips", "license", "basedOn", "replacedBy", "replaces", "consulted", "changed", "mentions", "inGuide", "identifiers"];
+  const RELATIONS = ["principles", "audience", "fixedBy", "applies", "group", "nrpProfile", "prefilledFrom", "prefills", "covers", "correspondsTo", "declarations", "declaredIn", "tools", "operatedBy", "developedBy", "providedBy", "operates", "nationalNodeOf", "memberOf", "fips", "license", "basedOn", "replacedBy", "replaces", "consulted", "changed", "mentions", "inGuide", "identifiers"];
   /* The record fields each row draws, unless a card names its own: the catalogue's completeness test reads them from
      the row's `data-field` (design D8). */
   const ROW_FIELDS = {
@@ -166,7 +166,6 @@
     prefilledFrom: "additionalProperty prefillLevel championEvidenceOnly",
     covers: "hasPart",
     declarations: "hasPart",
-    madeBy: "agent",
     tools: "instrument",
     operatedBy: "publisher operatedBy operatorSource operatedBySource",
     developedBy: "attributedTo developerSource",
@@ -222,7 +221,7 @@
     value ? h("p", { class: "small muted quote-licence", "data-field": names || null }, FG.t("catalogue.quoteLicence") + ": ", FG.list(value).map((item, index) => [index ? ", " : null, FG.licenceLink(item)])) : null;
 
   /* Relations read from their other end, worked out once for the knowledge base as loaded (design D8): the changes
-     that produced or altered each record, the questions each test or criterion pre-fills, the FIP declarations that
+     that produced or altered each record, the tests and criteria that pre-fill each question, the FIP declarations that
      name each enabling resource, the requirements each one replaces, and the station or page of every part of the
      Guide that has no catalogue entry of its own. */
   let reverseCache = null;
@@ -233,24 +232,14 @@
     for (const action of FG.graph.filter((entity) => String(entity["@id"]).startsWith("#action-")).sort((a, b) => String(b.endTime || "").localeCompare(String(a.endTime || "")))) {
       for (const id of FG.refIds(action, "result")) add(changes, id, action);
     }
-    const prefills = new Map();
-    for (const check of FG.ofType("Quiz")) {
-      for (const item of FG.refs(check, "hasPart").sort(FG.byPosition)) {
-        for (const entry of FG.refs(item, "additionalProperty").filter((property) => property.propertyID === "prefill:champion")) {
-          for (const test of FG.list(entry.value).map(String)) add(prefills, "champion:" + test, { item });
-        }
-      }
-    }
     /* The Guide's own tests and the external evaluators' criteria, read from the question's end. */
     const prefilledBy = new Map();
     for (const test of FG.graph.filter((entity) => String(entity["@id"]).startsWith("#test-") && entity.isImplementationOf)) {
-      add(prefills, test["@id"], { item: FG.get(test.isImplementationOf) });
       add(prefilledBy, FG.id(test.isImplementationOf), { entity: test });
     }
     for (const criterion of FG.graph.filter((entity) => String(entity["@id"]).startsWith("#criterion-") && entity.hasPart)) {
       for (const mapping of FG.refs(criterion, "hasPart")) {
         if (!FG.get(mapping.about)) continue;
-        add(prefills, criterion["@id"], { item: FG.get(mapping.about), coverage: mapping.mappingCoverage, note: mapping.description });
         add(prefilledBy, FG.id(mapping.about), { entity: criterion, coverage: mapping.mappingCoverage });
       }
     }
@@ -292,11 +281,12 @@
         parent = FG.get(FG.id(parent.isPartOf));
       }
     }
-    reverseCache = { revision: FG.dataRevision, graph: FG.graph, size: FG.graph.length, changes, prefills, prefilledBy, declaredIn, standsFor, replaces, places };
+    reverseCache = { revision: FG.dataRevision, graph: FG.graph, size: FG.graph.length, changes, prefilledBy, declaredIn, standsFor, replaces, places };
     return reverseCache;
   };
 
-  /** A record as a link: to its catalogue entry, or for a part of the Guide without one, to its station or page. */
+  /** A record as a link: to its catalogue entry; for a page of the Guide, to that page by its heading; for a part of
+      the Guide without an entry, to its station or page. */
   FG.recordLink = function (entity) {
     if (!entity) return null;
     const standing = FG.reverseRelations().standsFor.get(entity["@id"]);
@@ -306,6 +296,7 @@
     const label = isRequirement || !entity.name ? entity.identifier || FG.text(entity.name) || String(entity["@id"]) : FG.nameText(entity);
     if (href) return h("a", { href }, label);
     if (entity["@id"] === "./") return h("a", { href: FG.href("page", "about") }, FG.text(entity.name));
+    if (String(entity["@id"]).startsWith("#page-") && entity.identifier && entity.headline && !FG.id(entity.isPartOf)) return h("a", { href: FG.href("page", entity.identifier) }, FG.span(entity.headline));
     const place = FG.reverseRelations().places.get(entity["@id"]);
     if (place) return h("span", null, entity.identifier || FG.text(entity.name), " · ", h("a", { href: FG.href(place.view, place.arg) }, FG.span(place.entity.name || place.entity.headline)));
     return h("span", null, entity.identifier || FG.text(entity.name) || String(entity["@id"]));
