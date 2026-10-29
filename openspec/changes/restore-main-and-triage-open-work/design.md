@@ -385,6 +385,26 @@ Alternatives considered:
 - A separate OpenSpec change: rejected by the maintainer; the catalogue work belongs to this change.
 - Adding detail to stations: out of scope; they stay quiet by design.
 
+### D9. The digest shows an issue's Type row as inert text
+
+The review of PR C found that the audit's digest line for a body type that differs from the Issue Type wraps the
+body's value in a code span after stripping only its surrounding backticks. Anyone who opens an issue writes that
+value. A backtick inside it ends the span, and what follows renders as Markdown in the public digest and the
+workflow's step summary: a link, formatting or a mention that notifies.
+
+- **The fix:** the line passes the value through the watch's `code()`, which the digest already uses for external
+  text in code spans: one line, at most 300 characters, backticks replaced. The comparison with the Issue Type still
+  reads the raw value.
+- **One owner:** the audit imports `watch_sources`, as it already imports `plan_issue_shape`. It therefore also reads
+  the renderer's `DIGEST_MARKER` instead of keeping its own copy, and a test compares the publisher's literals with
+  the renderer's marker and the audit's bot login.
+- **Tests:** a Type row carrying a backtick, a link and a mention appears in the digest as one closed code span.
+
+Alternatives considered:
+
+- Escaping in `plan_issue_shape.body_type`: rejected, because the comparison needs the value as written.
+- A local helper in the audit: rejected, because it would give the escaping rule a second owner.
+
 ### Accessibility and migration
 
 - **Accessibility:** the rebuilt advice and the resource link use existing fields and rendering. The catalogue's new

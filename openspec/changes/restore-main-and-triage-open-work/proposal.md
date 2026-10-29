@@ -65,7 +65,8 @@ digest with 16 findings (#140):
    - the tracked tasks this change opens are triaged the same way.
 7. **Exempt the digest from triage.** The audit stops reporting the published digest's time in Needs triage and its
    Ready completeness, and the Project's Triage view leaves it out. Every other issue, including one a person labels
-   `guide-health`, keeps every check.
+   `guide-health`, keeps every check. The digest also shows the Type row it reads from an issue body as inert text,
+   since anyone who opens an issue writes it.
 8. **Show every recorded field in the catalogue.** Stations stay quiet; the catalogue hides nothing:
    - complete cards for content changes, check questions, FIP profiles, FAIR-enabling resources, resources and sources
      (their licence) and superseded requirements;
@@ -97,7 +98,8 @@ None.
 - `fair-guide/guide-delivery`:
   - the live health watch states when a link check repeats a rejected HEAD request with GET, and adds HTTP 400 to
     those statuses;
-  - the Project audit exempts the published digest from its triage-age and Ready checks.
+  - the Project audit exempts the published digest from its triage-age and Ready checks, and shows a body's Type
+    row in the digest as inert text.
 - `fair-guide/guide-experience`:
   - the catalogue shows every field its records carry, or excludes it with a reason, and shows relations in both
     directions;

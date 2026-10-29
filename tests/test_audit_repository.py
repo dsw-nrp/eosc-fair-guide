@@ -787,14 +787,14 @@ class ProjectItemTests(unittest.TestCase):
             "a person's issue with the digest's label and marker, and a bot's issue without the marker, are triaged",
         )
 
-    def test_the_digest_identity_matches_its_publisher_and_renderer(self):
-        """The publisher, the renderer and the audit each spell the digest's identity, so changing one fails here."""
+    def test_the_digest_identity_matches_its_publisher(self):
+        """The publisher spells the digest's identity in JavaScript; the audit reads the renderer's marker and its own
+        bot login, so changing either side fails here."""
         publisher = (ROOT / ".github" / "scripts" / "health-digest.cjs").read_text(encoding="utf-8")
         literal = {
             name: re.search(rf'^const {name} = "([^"]+)";$', publisher, re.M).group(1) for name in ("BOT", "DIGEST")
         }
-        self.assertEqual(literal["DIGEST"], audit.DIGEST_MARKER)
-        self.assertEqual(watch_sources.DIGEST_MARKER, audit.DIGEST_MARKER)
+        self.assertEqual(literal["DIGEST"], watch_sources.DIGEST_MARKER)
         self.assertEqual(literal["BOT"], audit.DIGEST_AUTHOR["login"] + "[bot]", "REST adds [bot] to the GraphQL login")
 
     def test_issue_fields_and_status_dates_are_read_from_the_project(self):
@@ -926,6 +926,18 @@ class DigestTests(unittest.TestCase):
         self.assertIn(overflow, text, "only those")
         listed = text.split("Unavailable")[0].count("\n- ")
         self.assertEqual(listed, audit.DIGEST_ITEMS + 1 + 2, "the bound, its overflow line and the two counts")
+
+    def test_a_type_row_stays_inside_its_code_span(self):
+        """Anyone who opens an issue writes its Type row, and the digest is public: a backtick in the value cannot end
+        the span, so the link and the mention after it stay inert text."""
+        live = copy.deepcopy(LIVE)
+        body = shaped("bug").replace("| bug |", "| x` [a link](https://example.org) @someone `y |")
+        project_items(live)[:] = [node(4, issue_type="Feature", body=body)]
+        live[OPEN] = []
+        text = audit.digest(audit.audit(self.config, Replay(live), sections=("project",), now=RECORDED))
+        self.assertIn(
+            "- #4: the body says `x' [a link](https://example.org) @someone 'y`, the Issue Type `feature`.", text
+        )
 
     def test_a_denied_token_is_unavailable_with_the_owners_step_and_the_rest_intact(self):
         live = copy.deepcopy(LIVE)

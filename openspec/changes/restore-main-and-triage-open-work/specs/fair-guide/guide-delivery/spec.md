@@ -41,6 +41,7 @@ A weekly read-only audit SHALL report open issues or PRs missing from Project #1
 that differs from the native type, Ready issues lacking an area label, Priority, Effort or the planned-issue shape,
 triage older than 14 days, Urgent issues without progress, state mismatches and automation or view drift, each with
 a link or fix step. The digest that monitoring publishes SHALL be exempt from the triage-age and Ready checks only.
+A value the digest takes from an issue body SHALL appear as inert text.
 
 #### Scenario: An open issue is missing from the Project
 
@@ -74,3 +75,8 @@ a link or fix step. The digest that monitoring publishes SHALL be exempt from th
 - **WHEN** an issue opened by a person carries the digest's label or begins with its marker, and has stayed in Needs
   triage for more than 14 days
 - **THEN** the audit reports its overdue triage
+
+#### Scenario: A Type row carries Markdown
+
+- **WHEN** an issue's Type row holds a backtick, a link and a mention, and differs from its Issue Type
+- **THEN** the digest names the difference with that value as inert text: no link, formatting or notification

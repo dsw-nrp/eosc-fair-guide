@@ -129,9 +129,13 @@ alone do not complete them.
       done so far and the merge-route departure from design D2. Run `npm run openspec:validate`,
       `python scripts/check_usage.py` and `python scripts/check_all.py`. Once all three pass and the maintainer
       approves the PR body, which carries `Closes dsw-nrp/eosc-fair-guide#137`, open PR C.
-- [ ] 4.10 **Human hand-off:** review PR C, record acceptance and merge it (design D2). Verify that the deployment's
+- [x] 4.10 In `tests/test_audit_repository.py`, add a test that a Type row carrying a backtick, a link and a mention
+      appears in the digest as one closed code span, and verify that it fails. In `scripts/audit_repository.py`, pass
+      that value through `watch_sources.code()` and read the renderer's `DIGEST_MARKER` (design D9). Verify that
+      `tests/test_audit_repository.py` passes and that the identity test fails when either side's literal changes.
+- [ ] 4.11 **Human hand-off:** review PR C, record acceptance and merge it (design D2). Verify that the deployment's
       full checks pass for the merge commit.
-- [ ] 4.11 After PR C merges, verify that a maintainer's `python scripts/audit_repository.py --section project
+- [ ] 4.12 After PR C merges, verify that a maintainer's `python scripts/audit_repository.py --section project
       --section labels` reports no drift against `main`, that the digest no longer appears in the Triage view, and
       that #137 is closed.
 

@@ -45,6 +45,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import plan_issue_shape
+import watch_sources
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG = ROOT / ".github" / "repository.toml"
@@ -466,9 +467,8 @@ def read_project(github, config):
 
 
 # The maintenance digest as `.github/scripts/health-digest.cjs` publishes it: an issue by the Actions bot whose body
-# starts with the marker. GraphQL names the bot without the `[bot]` suffix that REST adds.
+# starts with the renderer's `DIGEST_MARKER`. GraphQL names the bot without the `[bot]` suffix that REST adds.
 DIGEST_AUTHOR = {"__typename": "Bot", "login": "github-actions"}
-DIGEST_MARKER = "<!-- fair-guide-digest -->"
 
 
 def read_items(github, owner, number, repo):
@@ -508,7 +508,7 @@ def read_items(github, owner, number, repo):
                 "priority": fields.get("Priority"),
                 "effort": fields.get("Effort"),
                 "digest": content.get("author") == DIGEST_AUTHOR
-                and (content.get("body") or "").startswith(DIGEST_MARKER),
+                and (content.get("body") or "").startswith(watch_sources.DIGEST_MARKER),
             }
         if not page["pageInfo"]["hasNextPage"]:
             return entries, hidden
@@ -1183,7 +1183,9 @@ def digest_line(finding):
         number = finding.setting.split(".")[2]
         return {
             "type": f"{number} has no Issue Type.",
-            "body-type": f"{number}: the body says `{finding.actual}`, the Issue Type `{finding.expected}`.",
+            # Anyone who opens an issue writes its Type row, so its value is external text.
+            "body-type": f"{number}: the body says `{watch_sources.code(finding.actual)}`, the Issue Type "
+            f"`{finding.expected}`.",
             "urgent": f"{number} is Urgent and has not started ({finding.actual}).",
         }.get(check)
     if finding.setting.startswith("project.items."):
