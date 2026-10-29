@@ -433,6 +433,25 @@ Alternatives considered:
   reviewer to find the original.
 - An audit of every existing source in this change: rejected. It is separate work, which an issue can track.
 
+**Quoting a source without a licence.** The review of #147 flagged a 151-word quote from a UK Data Service page
+that records no licence, because the content model asked every quoted passage for permitted reuse and a licence.
+Research quotes by right: § 31(1)(a) of the Copyright Act permits excerpts "v odůvodněné míře" with author, title
+and source named, and § 3(a) leaves laws and other official works outside copyright. The maintainer asked for a
+balance a review can apply without overstating it (29 October 2026).
+
+- **The rule:** a passage under an open licence carries it. From a source that records no licence, a clause quotes
+  what it needs, at most 200 words, with its source and locator and no licence claimed. A work outside copyright
+  records the Public Domain Mark as its `license` and has no bound; the Act on research (`law-328-2025`) is the one
+  such source today.
+- **The bound:** on 29 October 2026 the longest quote from a source without a licence ran 140 words (the Act),
+  #147's quote 145 by the check's count; 200 leaves room for one passage and stops a copied page.
+- **Enforcement:** `scripts/check_content.py` counts a quote's words (letters and digits; a hyphenated word once, a
+  list marker not at all) and fails a clause over the bound, so the rule binds without review.
+
+Alternatives considered: no bound, leaving "justified extent" to review (rejected: reviews would keep judging it
+differently); 150 words (rejected: it would fail #147's quote, which the maintainer considers proportionate); a
+new field for works outside copyright (rejected: the Public Domain Mark says it in the existing `license`).
+
 ### Accessibility and migration
 
 - **Accessibility:** the rebuilt advice and the resource link use existing fields and rendering. The catalogue's new

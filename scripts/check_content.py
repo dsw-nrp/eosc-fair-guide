@@ -275,6 +275,7 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
     ids = [clause.get("id", "") for clause in clauses]
     unique(report, "ledger", ids, "clause")
     source_ids = cited_ids(content)
+    licences = cited_licences(content)
     codes = source_codes(content)
     clause_ids = set(ids)
     for clause in clauses:
@@ -313,6 +314,15 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
             require_text(report, where, clause["title"], "title")
         if "guidance" in clause and not (isinstance(clause["guidance"], str) and clause["guidance"].strip()):
             report.error(where, "guidance is the source's own text, in its original language as published")
+        elif clause.get("guidance") and not licences.get(clause.get("source")):
+            words = len(QUOTE_WORD.findall(clause["guidance"]))
+            if words > QUOTE_LIMIT:
+                report.error(
+                    where,
+                    f"guidance quotes {words} words from a source that records no licence; the right of quotation "
+                    f"covers what the clause needs, at most {QUOTE_LIMIT} words (a source outside copyright records "
+                    "the Public Domain Mark)",
+                )
         if "guidanceLanguage" in clause:
             if not clause.get("guidance"):
                 report.error(where, "guidanceLanguage needs an original guidance passage")
@@ -354,6 +364,23 @@ def cited_ids(content: dict[str, Any]) -> set[str]:
     return {source["id"] for source in content["sources"]} | {
         resource["id"] for resource in content["resources"] if resource.get("citation")
     }
+
+
+# The most a clause quotes from a source that records no licence: what the right of quotation covers (§ 31(1)(a) of
+# Act No. 121/2000 Coll., excerpts "v odůvodněné míře"), bounded so that a quote stays the passage a clause needs. A
+# source outside copyright, such as a law, records the Public Domain Mark as its licence and is not bounded.
+QUOTE_LIMIT = 200
+# A word of a quote: letters and digits, a hyphenated or elided word counted once, list markers not at all.
+QUOTE_WORD = re.compile(r"\w+(?:[-'’]\w+)*")
+
+
+def cited_licences(content: dict[str, Any]) -> dict[str, Any]:
+    """The licence each citable work records: a source's own, or the one a resource's citation names."""
+    licences = {source["id"]: source.get("license") for source in content["sources"]}
+    for resource in content["resources"]:
+        if resource.get("citation"):
+            licences.setdefault(resource["id"], resource["citation"].get("license"))
+    return licences
 
 
 def check_citation(report: Report, where: str, citation: dict[str, Any], own_url: bool) -> None:

@@ -78,7 +78,9 @@ digest with 16 findings (#140):
    - a test that fails when a recorded field is neither shown nor excluded with a reason.
 9. **Cite the original source.** A clause cites the published work that originally states it; a page that relays,
    summarises or links that work is cited only for what it adds itself. The knowledge-base requirement, the content
-   rule, the content model and the content how-to state it.
+   rule, the content model and the content how-to state it. A passage from a source that records no licence is
+   quoted under the right of quotation, at most 200 words, which the content check enforces; a work outside
+   copyright records the Public Domain Mark.
 
 ### Exclusions
 

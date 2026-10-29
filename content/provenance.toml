@@ -1688,3 +1688,14 @@ instruments = ["claude-code", "claude-opus-5-5"]
 objects = ["A.R1.1.R1", "A.R1.1.X1", "A.MIN3", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "DEPOSIT-LICENCE.01"]
 results = ["licence.14"]
 endTime = 2026-10-28T23:46:50+01:00
+
+[[action]]
+id = "2026-10-29-statute-public-domain"
+type = "update"
+name = "Record that the Act on research is outside copyright"
+description = "Act No. 328/2025 Coll. is an official work, which § 3(a) of the Copyright Act excludes from copyright. Its source now records the Public Domain Mark instead of no licence, so the right-of-quotation bound for sources without a licence does not apply to its passages."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5"]
+objects = ["law-328-2025"]
+results = ["law-328-2025"]
+endTime = 2026-10-29T13:38:49+01:00

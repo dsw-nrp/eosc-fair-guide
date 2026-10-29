@@ -7,8 +7,10 @@
 Every advice item and every check SHALL cite at least one entry of the clause ledger. Each ledger entry SHALL
 point to a published source: the FAIR analysis, the NRP conditions, the NRP documentation, or a published
 paper, dataset or web page. A ledger entry SHALL cite the published work that originally states it; a work that
-relays, summarises or links another published work SHALL be cited only for what it adds itself. Unpublished
-working material SHALL NOT supply assessment requirements.
+relays, summarises or links another published work SHALL be cited only for what it adds itself. A passage quoted
+from a source that records no licence SHALL stay within the right of quotation: at most 200 words per clause,
+attributed by its source and locator. A source outside copyright SHALL record the Public Domain Mark, and its
+passages are not bounded. Unpublished working material SHALL NOT supply assessment requirements.
 
 #### Scenario: Advice without a source
 
@@ -28,3 +30,11 @@ working material SHALL NOT supply assessment requirements.
 - **WHEN** a clause records the checklist's recommendation
 - **THEN** the clause cites the checklist, with its DOI where it has one, and quotes the checklist's wording
 - **AND** the page is cited only for a statement of its own
+
+#### Scenario: A clause quotes a page that records no licence
+
+- **GIVEN** a clause whose source records no licence
+- **WHEN** its guidance quotes more than 200 words
+- **THEN** the content checks fail and name the clause
+- **AND** a quote of up to 200 words with its source and locator passes, as does a longer passage from a source
+  that records the Public Domain Mark

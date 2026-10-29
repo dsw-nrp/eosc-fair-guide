@@ -622,6 +622,18 @@ class ContentCheckTests(FixtureCase):
         self.edit("ledger.toml", "guidance = '''", "guidance = 1\nnote = '''")
         self.assertError("guidance is the source's own text")
 
+    def test_a_quote_without_a_licence_stays_within_the_right_of_quotation(self) -> None:
+        within = " ".join(["word"] * check_content.QUOTE_LIMIT)
+        # A list marker is not a word.
+        self.edit("ledger.toml", "Guidance as the standard publishes it.\n\n- One item.", "- " + within)
+        self.assertEqual(self.errors(), [])
+        self.edit("ledger.toml", within, within + " more")
+        self.assertError(f"guidance quotes {check_content.QUOTE_LIMIT + 1} words from a source that records no licence")
+        # A licence the source records, or the Public Domain Mark of a source outside copyright, lifts the bound.
+        public_domain = 'license = "https://creativecommons.org/publicdomain/mark/1.0/"\n'
+        self.edit("sources.toml", 'title = "Test standard"\n', 'title = "Test standard"\n' + public_domain)
+        self.assertEqual(self.errors(), [])
+
     def test_a_principle_links_only_existing_requirements(self) -> None:
         self.edit("principles.toml", 'cts = ["R12"]', 'cts = ["R99"]')
         self.assertError("cts names no CoreTrustSeal requirement clause 'CTS.R99'")

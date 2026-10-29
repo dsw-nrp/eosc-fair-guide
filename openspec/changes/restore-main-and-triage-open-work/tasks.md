@@ -248,7 +248,13 @@ alone do not complete them.
 - [ ] 8.3 Extend the usage entry, then run `npm run openspec:validate`, `python scripts/check_usage.py` and
       `python scripts/check_all.py`. Commit, push and open PR F after the maintainer approves the commit message and
       PR body. Verify that the PR's `checks` pass.
-- [ ] 8.4 **Human hand-off:** review PR F, record acceptance and merge it (design D2). Verify that the deployment's
+- [ ] 8.4 Add the right-of-quotation bullet of design D10 to the native content rule and regenerate it; state the
+      rule in the ledger section of `docs/content-model.md`; record the Public Domain Mark on `law-328-2025` with a
+      provenance action. Verify that `python scripts/check_docs.py` and `python scripts/check_content.py` pass.
+- [ ] 8.5 In `scripts/check_content.py`, fail a clause that quotes more than 200 words from a source that records
+      no licence, with a test in `tests/test_scripts.py`. Verify that the test fails at 201 words and passes at 200
+      and with the Public Domain Mark, then extend PR F after the maintainer approves the commit message and body.
+- [ ] 8.6 **Human hand-off:** review PR F, record acceptance and merge it (design D2). Verify that the deployment's
       full checks pass for the merge commit.
 
 ## 9. Integration check and close-out (PR D)

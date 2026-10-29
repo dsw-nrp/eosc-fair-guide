@@ -1,6 +1,6 @@
 # Restore main and triage open work
 
-## Claude Code session (explore, plan and apply groups 1–6 and 8 in part)
+## Claude Code session (explore, plan and apply groups 1–8 in part)
 
 - **When:** 2026-10-28 – 2026-10-29
 - **Agent / runtime:** Claude Code (VS Code extension)
@@ -39,7 +39,13 @@
     dictionary the UK Data Service's guidance on data-level documentation.
   - At the maintainer's request, added the original-source rule (design D10, task group 8, PR F): the
     `guide-knowledge-base` delta, the native content rule with its generated copies, the content model and the
-    content how-to.
+    content how-to. At the maintainer's request after the review of #147, PR F also bounds quotes from sources that
+    record no licence by the right of quotation (200 words, enforced by the content check) and records the Act on
+    research as outside copyright with the Public Domain Mark.
+  - PR E (#149) built the complete catalogue of design D8: per-kind cards with the six conventions, reverse
+    relations, a corner link from each entry to its changes, the FIP declarations across the card and on a page of
+    their own, and `tests/page/check_catalogue.mjs`, which fails when a record field is neither shown nor excluded with
+    a reason.
 - **Impacted:** `docs/agent-tooling.md` (#144); `scripts/watch_sources.py`, `scripts/audit_repository.py`, their
   tests and the audit fixture; `.github/repository.toml`, `.github/health-watch.toml`, `docs/maintenance.md`;
   `content/resources.toml`, `content/sources.toml`, `content/provenance.toml`, `content/identifiers.toml`; the
@@ -47,8 +53,13 @@
   station files, `content/guide.toml`, `content/provenance.toml`, `content/identifiers.toml` and
   `tests/test_watch.py`, and on B2's also `content/ledger.toml` and `content/sources.toml`; on PR F's branch
   `.agents/guide/rules/fair-guide-content.md`, its generated copies, the guide region of `CODEX.md`,
-  `docs/content-model.md`, `docs/how-to/edit-content.md` and the new `guide-knowledge-base` delta; the bodies and
-  provenance comments of the shaped issues; this usage entry.
+  `docs/content-model.md`, `docs/how-to/edit-content.md`, the new `guide-knowledge-base` delta,
+  `scripts/check_content.py`, `tests/test_scripts.py`, `content/sources.toml`, `content/provenance.toml` and
+  `content/identifiers.toml`; on PR E's branch `assets/js/catalogue.js`, `assets/js/catalogue-view.js`,
+  `assets/js/core.js`, `assets/js/views.js`, `assets/css/app.css`, `content/ui.toml`, `content/icons.toml`, ten
+  vendored icons, `tests/page/check_catalogue.mjs`, `tests/page/check_page.mjs`, `scripts/check_groups.json`,
+  `docs/design.md`, `docs/content-model.md` and the `guide-experience` delta, D8 and tasks 7.3, 7.5 and 7.7; the bodies
+  and provenance comments of the shaped issues; this usage entry.
 - **Corrections:**
   - The maintainer put #70 out of scope, confirmed Karel Berka as the drafts' author with his GitHub account and
     address, defined the `Generic` milestone, and reported that the Sherpa API page refuses people as well, which
@@ -71,6 +82,13 @@
     Harvard checklist, whose wording added who maintains the data next and introducing the checklist when people
     join; asked to keep the data dictionary with a reference of its own; and made citing the original a Guide rule
     (design D10).
+  - The review of #147 called a 151-word quote from a page without a licence too long for "short passages". The
+    maintainer asked to ease the rule rather than the quote: research quotes by right, laws and many other documents
+    are outside copyright, and a length limit should keep the balance (D10).
+  - On PR E the maintainer dropped the Made by row, which would repeat the byline; moved an entry's changes from a
+    growing row to a corner link into the catalogue's list of changes; gave the FIP declarations the card's full width
+    and a page of their own; and ruled out labels that address the reader, so the self-check's "you" is named as the
+    researcher.
 - **Merge route:** #144 and #146 were merged through the administrator bypass with green `checks`, departing from
   step 2 of `docs/runbooks/merge.md` as design D2 records.
 - **Verification:**
@@ -85,9 +103,13 @@
   - PR F's rule appears in all five generated copies and only inside the guide region of `CODEX.md`;
     `python scripts/generate_agent_surfaces.py --check`, `python scripts/check_agent_surfaces.py`,
     `python scripts/check_sibling_delivery.py` and `python scripts/check_docs.py` pass;
+  - the quotation test fails at 201 words and passes at 200 and with the Public Domain Mark; #147's quote counts
+    145 words and the longest quote on `main` from a source without a licence 140;
+  - PR E's catalogue test fails on cards that do not mark a field and passes on the final cards; the changed cards
+    render in Czech and English, at phone width and in print, with no sideways scroll;
   - `python scripts/check_all.py` passes 36/36 for #144, for B1, for B2, for B2's review fix rebased onto `main`,
-    for the change branch and for PR F; strict OpenSpec validation passes 6/6.
-- **Close-out:** 22 of 54 tasks ticked. PR C's review and merge (4.11 and 4.12) are done and, as the tasks header
-  says, are ticked in PR D. Open: the review and merge of B2 (#147) and PR F, the rebuilds B3–B4, the digest actions
-  outside the repository, the shaping of the remaining issues in the ledger, PR E, and the integration check after
-  the next watch run.
+    for the change branch, for PR E and for PR F; strict OpenSpec validation passes 6/6.
+- **Close-out:** 22 of 56 tasks ticked. PR C's review and merge (4.11 and 4.12) are done and, as the tasks header
+  says, are ticked in PR D. Open: the review and merge of B2 (#147), PR E (#149) and PR F (#148), the rebuilds B3–B4,
+  the digest actions outside the repository, the shaping of the remaining issues in the ledger, and the integration
+  check after the next watch run.

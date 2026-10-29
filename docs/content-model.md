@@ -516,8 +516,13 @@ published), `noteSources` (clause or source IDs that support the note), `superse
 source publishes with it, quoted as published; paragraphs and lists with `-` markers as in page text), and optional
 `guidanceLanguage` (`cs` or `en`, default `en`). Optional `terms` lists existing Heslář IDs whose catalogue cards
 also disclose this attributed original passage; it never replaces their glossary definitions. Originals keep their own language; the guide's bilingual
-statement and explanation remain separate. Use only fitting published passages with permitted reuse,
-their version, source attribution and licence. PDF layout joins and omitted footnote markers do not
+statement and explanation remain separate. Use only fitting published passages, with their version and
+source attribution. A passage under an open licence carries that licence. A passage from a source that records
+no licence is quoted under the right of quotation (Act No. 121/2000 Coll., § 31(1)(a), excerpts "v odůvodněné
+míře"): only what the clause needs and at most 200 words, attributed by its source and locator, with no licence
+claimed for it; `scripts/check_content.py` enforces the bound. A work outside copyright (a law or another
+official work under § 3(a), or a work in the public domain) records the Public Domain Mark
+(`https://creativecommons.org/publicdomain/mark/1.0/`) as its `license` and has no bound. PDF layout joins and omitted footnote markers do not
 change wording; retain a footnote when it determines the requirement's meaning. The
 CoreTrustSeal Requirements 2026–2028 are clauses `CTS.R0` (the context an application gives) and `CTS.R01` to
 `CTS.R16`, with the statement in English as published and in the guide's Czech translation. CDIF 1.1 is clauses
@@ -1015,7 +1020,8 @@ declares CC BY 4.0; its repository record's different licence is not substituted
 Further originals come from the Open Science III rules (version 1), the promulgated text of Act
 328/2025, CESSDA's documentation guidance, the FORCE11 citation principles and the OSTrails CZ
 pilot's published recommendations. Official statutory and administrative texts are reproduced with
-their scope and attribution; no Creative Commons licence is assigned to them. The CoreTrustSeal
+their scope and attribution; they record the Public Domain Mark, which states that no copyright applies, rather
+than a licence. The CoreTrustSeal
 About page supplies a short attributed quotation about certification. CESSDA and FORCE11 excerpts
 retain CC BY-SA 4.0; the pilot recommendations retain CC BY 4.0 and cite the specific deposited version.
 OpenSSF's introduction is pinned to the 16 August 2024 source snapshot under CC BY 3.0. It is unchanged
