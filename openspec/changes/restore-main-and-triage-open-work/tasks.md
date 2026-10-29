@@ -57,7 +57,7 @@ alone do not complete them.
         commits;
       - the diff contains no file under `openspec/` or `.agents/reports/usage/`;
       - the changed stations read correctly in the built Guide, in Czech and English, at phone width and in print.
-- [ ] 3.2 **Human hand-off:**
+- [x] 3.2 **Human hand-off:**
       - review B1's content against its cited clauses and the tone rules;
       - decide whether the review changed what the Guide says; if it did, add the reviewer's action covering exactly
         the changed items (design D3) and rerun `python scripts/check_all.py`;
@@ -65,7 +65,7 @@ alone do not complete them.
       - record acceptance and merge it (design D2).
 
       Verify that #35 is closed, then close #39 with a link to B1.
-- [ ] 3.3 Build B2 for #36 from #41 on the latest `main`, without the shared records. Verify as in 3.1, and that
+- [x] 3.3 Build B2 for #36 from #41 on the latest `main`, without the shared records. Verify as in 3.1, and that
       `plan.31`, `plan.32`, `collect.22` and `collect.23` are registered.
 - [ ] 3.4 **Human hand-off:** review B2 as in 3.2, including the `plan.32` claim against `LAW-328-2025.83`, then
       merge it. Verify that #36 is closed, then close #41 with a link to B2.

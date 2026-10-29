@@ -94,7 +94,7 @@ shape = "full"  # Its parent #3 closed as decomposed into issues; the link recor
 number = 14  # Assign and validate external-evaluator mapping maintenance (Q-41–Q-43)
 decision = "keep"
 priority = "Medium"  # The mappings decide which answers the Guide suggests; they need a named owner.
-effort = "Medium"
+effort = "Low"  # Lowered while shaping: both whole mappings already have fixtures and tests; an owner, cadence and the identity decision remain.
 milestone = "v1.0.0-beta.x"
 shape = "full"
 
