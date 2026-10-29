@@ -158,3 +158,17 @@ text = { cs = "Návrh README nebo datového slovníku vám připraví AI asisten
 check = { cs = "Každou proměnnou, jednotku a kód porovnejte se skutečnými daty a s tím, jak data vznikla: AI může význam domyslet chybně. Co nevíte jistě, doplňte ručně.", en = "Compare every variable, unit and code with the actual data and with how the data were produced: AI may guess a meaning wrongly. Fill in by hand whatever you are not sure of." }
 prompt = { cs = "Z níže uvedeného seznamu proměnných připrav datový slovník jako tabulku v Markdownu se sloupci: název, popis, jednotka, povolené hodnoty nebo kódy, značka chybějící hodnoty. Co z popisu nevyplývá, označ „doplnit“ a nic nedomýšlej.\n\nProměnné: […]", en = "From the list of variables below, prepare a data dictionary as a Markdown table with the columns: name, description, unit, allowed values or codes, missing-value marker. Mark anything the description does not state as \"to fill in\" and do not guess.\n\nVariables: […]" }
 sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04"]
+
+[[advice]]
+id = "collect.22"
+lens = "V"
+level = "L1"
+text = { cs = "Zajistěte kontinuitu v týmu: data, README i skripty ukládejte do sdíleného prostoru instituce nebo [[term/e-infra-cz|e-INFRA CZ]], aby nezůstala uzamčená na osobním notebooku. Před odchodem studenta či kolegy z projektu projděte předávací seznam: kde leží surová a vyčištěná data, co znamenají proměnné a kdo přebírá správu přístupů.", en = "Ensure team continuity: store data, README files and scripts in shared institutional or [[term/e-infra-cz|e-INFRA CZ]] storage so they do not stay locked on a personal laptop. Before a student or colleague leaves the project, go through a handover checklist: where raw and cleaned data sit, what variables mean, and who takes over access management." }
+sources = ["EINFRA-DOCS.01", "POLICY-MANUAL.06", "SURVEY-2025.01"]
+
+[[advice]]
+id = "collect.23"
+lens = "DS"
+level = "L1"
+text = { cs = "Nabídněte týmům stručný kontrolní seznam pro předání dat při odchodu člena týmu nebo ukončení etapy projektu (umístění dat, úplnost README a datového slovníku, předání přístupových práv podle [[policy-manual|institucionální datové politiky]]).", en = "Provide teams with a short data handover checklist for when a team member leaves or a project phase ends (data location, completeness of the README and data dictionary, and transfer of access rights in line with the [[policy-manual|institutional data policy]])." }
+sources = ["POLICY-MANUAL.06", "CESSDA-DMEG.01"]
