@@ -377,8 +377,13 @@ QUOTE_LIMIT = 200
 QUOTE_WORD = re.compile(r"\w+(?:[-'’]\w+)*")
 QUOTE_MARKER = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+", re.MULTILINE)
 QUOTE_BREAK = re.compile(r"(?<=\w)-[ \t]*\n[ \t]*(?!(?:[-*+]|\d+[.)])[ \t])(?=\w)")
-# A recorded licence or mark is its HTTPS address at one of the publishers whose licences the Guide cites.
-LICENCE_ADDRESS = re.compile(r"^https://(?:www\.)?(?:creativecommons\.org|gnu\.org|opensource\.org|spdx\.org)/")
+# A recorded licence or mark is the whole HTTPS address of one licence or mark at a publisher whose licences the
+# Guide cites, matched in full: a publisher's home page or text after the address names no licence.
+LICENCE_ADDRESS = re.compile(
+    r"https://(?:www\.)?(?:creativecommons\.org/(?:licenses|publicdomain)/[a-z-]+/(?:\d+(?:\.\d+)*/)?(?:legalcode)?"
+    r"|gnu\.org/licenses/[a-z0-9.+-]+\.html|opensource\.org/licenses?/[A-Za-z0-9.+-]+/?"
+    r"|spdx\.org/licenses/[A-Za-z0-9.+-]+(?:\.html)?)"
+)
 
 
 def quote_words(text: str) -> int:
@@ -418,7 +423,7 @@ def check_citation(report: Report, where: str, citation: dict[str, Any], own_url
     if "citation" in citation:
         report.error(where, "a citation describes one work; merge a nested citation or cite its work as a source")
     licence = citation.get("license")
-    if licence is not None and not (isinstance(licence, str) and LICENCE_ADDRESS.match(licence)):
+    if licence is not None and not (isinstance(licence, str) and LICENCE_ADDRESS.fullmatch(licence)):
         report.error(where, "license is the HTTPS address of a licence or mark at Creative Commons, GNU, OSI or SPDX")
     if not (own_url or citation.get("url") or citation.get("doi")):
         report.error(where, "a source needs a URL or a DOI")

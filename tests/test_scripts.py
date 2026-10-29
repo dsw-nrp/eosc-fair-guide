@@ -652,9 +652,13 @@ class ContentCheckTests(FixtureCase):
         self.edit("resources.toml", f'"{licence}" }}', f'"{licence}"{nested} }}')
         self.assertError("a citation describes one work")
         self.edit("resources.toml", nested, "")
-        # A licence is recorded as its address, so a free-text value cannot lift the bound unseen.
-        self.edit("resources.toml", licence, "All rights reserved")
-        self.assertError("license is the HTTPS address of a licence or mark")
+        # A licence is recorded as the whole address of one licence, so a free-text value, a publisher's home page or
+        # text after an address cannot lift the bound unseen.
+        for value in ("All rights reserved", "https://creativecommons.org/", f"{licence} and more"):
+            self.edit("resources.toml", f'license = "{licence}"', f'license = "{value}"')
+            self.assertError("license is the HTTPS address of a licence or mark")
+            self.edit("resources.toml", f'license = "{value}"', f'license = "{licence}"')
+        self.assertEqual(self.errors(), [])
 
     def test_a_principle_links_only_existing_requirements(self) -> None:
         self.edit("principles.toml", 'cts = ["R12"]', 'cts = ["R99"]')

@@ -446,18 +446,20 @@ balance a review can apply without overstating it (29 October 2026).
   document the maintainer confirmed as an official work (29 October 2026).
 - **The bound:** on `main` before this change, the longest quote from a source without a licence ran 140 words, from
   the Act this change exempts; the longest call-rules quote ran 122 (`OS3-RULES.17`). With both exempt and the
-  cited works' licences read, six bounded quotes remain, the longest 21 words (`DATACITE-SCHEMA.01`), and #147's
-  quote counts 145. 200 leaves room for one passage and stops a copied page.
+  cited works' licences read, five bounded quotes remain, the longest 19 words (`CORETRUSTSEAL.01`,
+  `CAMBRIDGE-ERN.01`), and #147's quote counts 145. 200 leaves room for one passage and stops a copied page.
 - **Enforcement:** `scripts/check_content.py` counts a quote's words (letters and digits; a hyphenated word once,
   also across a line break; a bulleted or numbered list marker not at all), fails a clause over the bound and one
-  without a locator, so the rule binds without review. A recorded licence must be the address of a licence or mark
-  at Creative Commons, GNU, OSI or SPDX, so a free-text value cannot lift the bound unseen.
+  without a locator, so the rule binds without review. A recorded licence must be the whole address of one licence
+  or mark at Creative Commons, GNU, OSI or SPDX, so free text, a home page or text after an address cannot lift the
+  bound unseen.
 - **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
   resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
   version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's
   Zenodo record and CoreTrustSeal's About page (which its resource links and its clause quotes) were checked on 29
   October 2026; the CESSDA guide was offline for migration, so its values are those recorded on 11 October. The
-  content check rejects a nested citation.
+  content check rejects a nested citation. The DataCite Metadata Schema, whose citation recorded no licence, now
+  cites its version 4.7 documentation with the DOI, authors and CC BY 4.0 that DataCite records.
 
 Alternatives considered: no bound, leaving "justified extent" to review (rejected: reviews would keep judging it
 differently); 150 words (rejected: it would fail #147's quote, which the maintainer considers proportionate); a

@@ -796,11 +796,14 @@ sameAs = ["http://purl.org/np/RABtwdGxVZoYNbhMoN-xeEmB5ctXCsgSCOc8G-5QQR7fA#data
 
 [resource.citation]
 type = "standard"
-title = "DataCite Metadata Schema"
+title = "DataCite Metadata Schema Documentation for the Publication and Citation of Research Data and Other Research Outputs"
 inLanguage = "en"
+doi = "10.14454/qdd3-ps68"
 publisher = "DataCite"
-dateAccessed = 2026-10-08
+authors = ["DataCite Metadata Working Group"]
+datePublished = "2026"
 version = "4.7"
+license = "https://creativecommons.org/licenses/by/4.0/"
 
 
 [[resource]]

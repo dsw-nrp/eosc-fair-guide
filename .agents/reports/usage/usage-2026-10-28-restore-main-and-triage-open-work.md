@@ -44,10 +44,14 @@
     research as outside copyright with the Public Domain Mark. Its review fixes require a locator for such a quote,
     accept a licence only as a known licence address, count numbered lists and line-break hyphenation correctly,
     record the Mark on the Open Science III call rules, and merge four resources' nested citations into one each.
+    Its second review narrowed the licence check to the whole address of one licence, and at the maintainer's
+    request the DataCite Metadata Schema now cites its version 4.7 documentation with its licence.
   - PR E (#149) built the complete catalogue of design D8: per-kind cards with the six conventions, reverse
     relations, a corner link from each entry to its changes, the FIP declarations across the card and on a page of
     their own, and `tests/page/check_catalogue.mjs`, which fails when a record field is neither shown nor excluded with
-    a reason.
+    a reason. Its review fixes label context questions in the self-check's words, link the Guide's pages a change
+    altered by their headings, repair the page test's guard against addressing the reader, drop an unused row and map,
+    and add a test that every interface key the page names has its strings.
 - **Impacted:** `docs/agent-tooling.md` (#144); `scripts/watch_sources.py`, `scripts/audit_repository.py`, their
   tests and the audit fixture; `.github/repository.toml`, `.github/health-watch.toml`, `docs/maintenance.md`;
   `content/resources.toml`, `content/sources.toml`, `content/provenance.toml`, `content/identifiers.toml`; the
@@ -60,7 +64,8 @@
   `content/resources.toml`, `content/ledger.toml`, `content/provenance.toml` and `content/identifiers.toml`; on PR
   E's branch `assets/js/catalogue.js`, `assets/js/catalogue-view.js`,
   `assets/js/core.js`, `assets/js/views.js`, `assets/css/app.css`, `content/ui.toml`, `content/icons.toml`, ten
-  vendored icons, `tests/page/check_catalogue.mjs`, `tests/page/check_page.mjs`, `scripts/check_groups.json`,
+  vendored icons, `tests/page/check_catalogue.mjs`, `tests/page/check_page.mjs`, `tests/test_scripts.py`,
+  `scripts/check_groups.json`,
   `docs/design.md`, `docs/content-model.md` and the `guide-experience` delta, D8 and tasks 7.3, 7.5 and 7.7; the bodies
   and provenance comments of the shaped issues; this usage entry.
 - **Corrections:**
@@ -114,13 +119,19 @@
   - the quotation test fails at 201 words and passes at 200 and with the Public Domain Mark; #147's quote counts
     145 words and the longest quote on `main` from a source without a licence 140;
   - PR F's review tests fail with the former word count and with a check that accepts any licence, and pass with the
-    fixes; the content check reports no error, six bounded quotes remain, the longest 21 words, and every clause
+    fixes; the content check reports no error, five bounded quotes remain, the longest 19 words, and every clause
     among them has a locator; FORCE11's licence and authors, the pilot's version DOI, date and licence in Zenodo and
     the CoreTrustSeal sentence were checked at their sources, while the CESSDA guide was offline for migration;
+    the second review's test fails with the former prefix match, which accepted a home page and trailing text, and
+    the DataCite schema's title, DOI, authors and CC BY 4.0 match its DataCite record and documentation;
   - PR E's catalogue test fails on cards that do not mark a field and passes on the final cards; the changed cards
-    render in Czech and English, at phone width and in print, with no sideways scroll;
+    render in Czech and English, at phone width and in print, with no sideways scroll; its review's page assertions
+    fail without the code fixes and pass with them, and the key test fails while `catalogue.assessmentContext` is
+    undefined;
   - `python scripts/check_all.py` passes 36/36 for #144, for B1, for B2, for B2's review fix rebased onto `main`,
-    for the change branch, for PR E and for PR F; strict OpenSpec validation passes 6/6.
+    for the change branch, for PR E and its review fix, and for PR F and both its review fixes; one full run of PR E's
+    review fix failed the shared browser-slot timing test in `tests/runtime.test.mjs`, which passed alone twice and in
+    the next full run; strict OpenSpec validation passes 6/6.
 - **Close-out:** 22 of 57 tasks ticked. PR C's review and merge (4.11 and 4.12) are done and, as the tasks header
   says, are ticked in PR D. Open: the review and merge of B2 (#147), PR E (#149) and PR F (#148), the rebuilds B3–B4,
   the digest actions outside the repository, the shaping of the remaining issues in the ledger, and the integration
