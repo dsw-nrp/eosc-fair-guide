@@ -1272,6 +1272,7 @@ actions = [
   "release-1.0.0-alpha.3",
   "2026-10-26-workflow-follow-up",
   "release-1.0.0-alpha.4",
+  "2026-10-28-digest-reader-links",
   "2026-10-18-station-dedup",
   "2026-10-28-licence-14-review",
 ]

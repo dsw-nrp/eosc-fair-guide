@@ -14,3 +14,66 @@
 # reviewer = "person-id"
 # reviewed = 2026-10-25
 # reviewBy = 2027-04-25
+
+[[limitation]]
+key = "link:https://commons.datacite.org/"
+outcome = "rate-limited"
+reason = "DataCite Commons throttles automated requests from shared CI addresses; the page opens for readers."
+evidence = "HEAD 429 from GitHub-hosted runners since 2026-10-28"
+reviewer = "david-novak"
+reviewed = 2026-10-28
+reviewBy = 2027-04-26
+
+[[limitation]]
+key = "link:https://ror.org/"
+outcome = "rate-limited"
+reason = "ROR throttles automated requests from shared CI addresses; the registry's home page opens for readers."
+evidence = "HEAD 429 from GitHub-hosted runners since 2026-10-28"
+reviewer = "david-novak"
+reviewed = 2026-10-28
+reviewBy = 2027-04-26
+
+[[limitation]]
+key = "link:https://openai.com/codex/"
+outcome = "denied"
+reason = "OpenAI refuses automated requests; the page opens in a browser and serves only as the instrument's product page in paradata."
+evidence = "HEAD then GET 403 from GitHub-hosted runners since 2026-10-28"
+reviewer = "david-novak"
+reviewed = 2026-10-28
+reviewBy = 2027-04-26
+
+[[limitation]]
+key = "link:https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier"
+outcome = "denied"
+reason = "ORCID's help centre refuses automated requests; the article opens in a browser."
+evidence = "HEAD then GET 403 from GitHub-hosted runners since 2026-10-28"
+reviewer = "david-novak"
+reviewed = 2026-10-28
+reviewBy = 2027-04-26
+
+[[limitation]]
+key = "link:https://www.chemspider.com/"
+outcome = "denied"
+reason = "ChemSpider refuses automated requests; the address comes from the KNAV tools snapshot and opens in a browser."
+evidence = "HEAD then GET 403 from GitHub-hosted runners since 2026-10-28"
+reviewer = "david-novak"
+reviewed = 2026-10-28
+reviewBy = 2027-04-26
+
+[[limitation]]
+key = "link:https://www.hepdata.net/"
+outcome = "denied"
+reason = "HEPData refuses automated requests; the address comes from the KNAV tools snapshot and opens in a browser."
+evidence = "HEAD then GET 403 from GitHub-hosted runners since 2026-10-28"
+reviewer = "david-novak"
+reviewed = 2026-10-28
+reviewBy = 2027-04-26
+
+[[limitation]]
+key = "link:https://www.data.cam.ac.uk/organising-storing/electronic-research-notebooks"
+outcome = "denied"
+reason = "The University of Cambridge site refuses automated requests; the page opens in a browser."
+evidence = "HEAD then GET 403 from GitHub-hosted runners since 2026-10-28"
+reviewer = "david-novak"
+reviewed = 2026-10-28
+reviewBy = 2027-04-26

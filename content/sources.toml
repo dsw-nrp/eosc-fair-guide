@@ -637,12 +637,12 @@ dateAccessed = 2026-10-13
 guideRoute = "res/doc"
 id = "sherpa-object-retrieval-api"
 type = "webpage"
-title = "Object Retrieval API - Sherpa Services"
-short = { cs = "API služeb Sherpa", en = "Sherpa services API" }
+title = "Object Retrieval API | Open policy finder"
+short = { cs = "API služby Open policy finder", en = "Open policy finder API" }
 inLanguage = "en"
-url = "https://v2.sherpa.ac.uk/api/object-retrieval.html"
+url = "https://openpolicyfinder.jisc.ac.uk/help/developers/api-types/object-retrieval-api"
 publisher = "Jisc"
-dateAccessed = 2026-10-13
+dateAccessed = 2026-10-28
 
 [[source]]
 id = "infra-finder-paper"

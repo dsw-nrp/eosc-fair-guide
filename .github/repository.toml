@@ -237,7 +237,7 @@ description = "Good for newcomers"
 [[label]]
 name = "guide-health"
 color = "ededed"
-description = ""
+description = "The maintenance digest the watch publishes; reserved for it"
 
 [[label]]
 name = "help wanted"
@@ -299,7 +299,7 @@ sort_by = ["Title asc"]
 [[project.view]]
 name = "Triage"
 layout = "table"
-filter = 'is:issue status:"Needs triage"'
+filter = 'is:issue status:"Needs triage" -label:guide-health'
 group_by = []
 sort_by = ["Created asc", "Title asc"]
 

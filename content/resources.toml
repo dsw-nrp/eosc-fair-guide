@@ -982,7 +982,7 @@ guideRoute = "res/std"
 id = "ro-crate"
 name = "RO-Crate"
 description = { cs = "Způsob, jak zabalit výzkumná data s jejich metadaty do balíčku, který čtou lidé i stroje: soubor ro-crate-metadata.json v JSON-LD se slovníkem schema.org.", en = "A way to package research data with their metadata so that people and machines can read them: a ro-crate-metadata.json file in JSON-LD with the schema.org vocabulary." }
-url = "https://w3id.org/ro/crate/1.2"
+url = "https://www.researchobject.org/ro-crate/specification/1.2/"
 type = "standard"
 fipDashboard = "ro-crate"
 status = "operational"

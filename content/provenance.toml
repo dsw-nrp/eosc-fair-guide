@@ -1608,6 +1608,17 @@ results = ["guide"]
 endTime = 2026-10-28T14:34:26+00:00
 
 [[action]]
+id = "2026-10-28-digest-reader-links"
+type = "update"
+name = "Correct two reader links reported by the maintenance digest"
+description = "Acted on the maintenance digest under the maintainer's direction. The RO-Crate resource now links the readable RO-Crate 1.2 specification at https://www.researchobject.org/ro-crate/specification/1.2/ instead of the profile identifier https://w3id.org/ro/crate/1.2, which the crate keeps as its conformsTo value. The Sherpa Object Retrieval API page at https://v2.sherpa.ac.uk/api/object-retrieval.html refuses people and the watch alike (HTTP 403, confirmed by the maintainer in a browser); Jisc combined the Sherpa services into Open policy finder (https://www.jisc.ac.uk/news/all/sherpa-services-combined-into-new-user-friendly-platform-open-policy-finder), so the source record keeps its identifier and now names that service's Object Retrieval API page, its title and its address. The edits await the ordinary human review gate."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5"]
+objects = ["ro-crate", "sherpa-object-retrieval-api"]
+results = ["ro-crate", "sherpa-object-retrieval-api"]
+endTime = 2026-10-28T22:25:00+01:00
+
+[[action]]
 id = "2026-10-18-station-dedup"
 type = "update"
 name = "Editorial streamlining of stations and removal of duplicate advice items"
