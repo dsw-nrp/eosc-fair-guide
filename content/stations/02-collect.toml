@@ -163,12 +163,12 @@ sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04"]
 id = "collect.22"
 lens = "V"
 level = "L1"
-text = { cs = "Zajistěte kontinuitu v týmu: data, README i skripty ukládejte do sdíleného prostoru instituce nebo [[term/e-infra-cz|e-INFRA CZ]], aby nezůstala uzamčená na osobním notebooku. Před odchodem studenta či kolegy z projektu projděte předávací seznam: kde leží surová a vyčištěná data, co znamenají proměnné a kdo přebírá správu přístupů.", en = "Ensure team continuity: store data, README files and scripts in shared institutional or [[term/e-infra-cz|e-INFRA CZ]] storage so they do not stay locked on a personal laptop. Before a student or colleague leaves the project, go through a handover checklist: where raw and cleaned data sit, what variables mean, and who takes over access management." }
-sources = ["EINFRA-DOCS.01", "POLICY-MANUAL.06", "SURVEY-2025.01"]
+text = { cs = "Zajistěte kontinuitu v týmu: ke každému datasetu ve sdíleném úložišti týmu veďte README se základními metadaty, včetně toho, co znamenají proměnné, aby kolegové data našli a použili i bez vás. Před odchodem studenta či kolegy z projektu s ním projděte kontrolní seznam pro předání a zapište, kde leží surová a vyčištěná data, kdo je bude dál spravovat a kdo převezme přístupová práva.", en = "Ensure team continuity: give each dataset in the team's shared storage a README with basic metadata, including what the variables mean, so colleagues can find and use the data without you. Before a student or colleague leaves the project, go through a handover checklist with them and write down where raw and cleaned data sit, who maintains them next, and who takes over access permissions." }
+sources = ["CESSDA-DMEG.01", "HARVARD-OFFBOARDING.01", "UKDS-DATA-LEVEL.01"]
 
 [[advice]]
 id = "collect.23"
 lens = "DS"
 level = "L1"
-text = { cs = "Nabídněte týmům stručný kontrolní seznam pro předání dat při odchodu člena týmu nebo ukončení etapy projektu (umístění dat, úplnost README a datového slovníku, předání přístupových práv podle [[policy-manual|institucionální datové politiky]]).", en = "Provide teams with a short data handover checklist for when a team member leaves or a project phase ends (data location, completeness of the README and data dictionary, and transfer of access rights in line with the [[policy-manual|institutional data policy]])." }
-sources = ["POLICY-MANUAL.06", "CESSDA-DMEG.01"]
+text = { cs = "Nabídněte týmům kontrolní seznam pro předání dat, který si mohou přizpůsobit svému výzkumu, a představte jej už při nástupu nových členů, ne až při jejich odchodu. Seznam zahrnuje, kdo bude která data dál spravovat, kde data leží, zda jsou README a datový slovník úplné a jak se podle [[policy-manual|institucionální datové politiky]] předávají přístupová práva.", en = "Provide teams with a data handover checklist they can tailor to their research, and introduce it when members join, not only when they leave. It covers who maintains which data next, where the data sit, whether the README and data dictionary are complete, and how access rights pass on in line with the [[policy-manual|institutional data policy]]." }
+sources = ["HARVARD-OFFBOARDING.02", "HARVARD-OFFBOARDING.01", "UKDS-DATA-LEVEL.01", "CESSDA-DMEG.01"]

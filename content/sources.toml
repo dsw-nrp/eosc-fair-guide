@@ -835,3 +835,28 @@ inLanguage = "cs"
 url = "https://www.fss.muni.cz/vyzkum/resene-projekty/72431"
 publisher = "Masaryk University"
 dateAccessed = 2026-10-14
+
+[[source]]
+guideRoute = "res/doc"
+id = "harvard-offboarding"
+type = "document"
+title = "Research Data Management Offboarding Checklist"
+short = { cs = "Harvard: kontrolní seznam pro odchod", en = "Harvard: offboarding checklist" }
+inLanguage = "en"
+doi = "10.5281/zenodo.21705770"
+url = "https://doi.org/10.5281/zenodo.21705770"
+publisher = "Zenodo"
+authors = ["Harvard Longwood Medical Area Research Data Management Working Group"]
+datePublished = 2024-04-24
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+guideRoute = "res/doc"
+id = "ukds-data-level"
+type = "webpage"
+title = "Data-level documentation"
+short = { cs = "UK Data Service: dokumentace na úrovni dat", en = "UK Data Service: data-level documentation" }
+inLanguage = "en"
+url = "https://ukdataservice.ac.uk/learning-hub/data-producer-support/preparing-data-for-sharing-and-reuse/documenting-and-describing-data/data-leveldocumentation/"
+publisher = "UK Data Service"
+dateAccessed = 2026-10-29
