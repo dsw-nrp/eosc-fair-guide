@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 import area_labels  # noqa: E402
 import audit_repository as audit  # noqa: E402
 import plan_issue_shape  # noqa: E402
+import watch_sources  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -785,6 +786,16 @@ class ProjectItemTests(unittest.TestCase):
             ["project.item.#143.triage", "project.item.#144.triage"],
             "a person's issue with the digest's label and marker, and a bot's issue without the marker, are triaged",
         )
+
+    def test_the_digest_identity_matches_its_publisher_and_renderer(self):
+        """The publisher, the renderer and the audit each spell the digest's identity, so changing one fails here."""
+        publisher = (ROOT / ".github" / "scripts" / "health-digest.cjs").read_text(encoding="utf-8")
+        literal = {
+            name: re.search(rf'^const {name} = "([^"]+)";$', publisher, re.M).group(1) for name in ("BOT", "DIGEST")
+        }
+        self.assertEqual(literal["DIGEST"], audit.DIGEST_MARKER)
+        self.assertEqual(watch_sources.DIGEST_MARKER, audit.DIGEST_MARKER)
+        self.assertEqual(literal["BOT"], audit.DIGEST_AUTHOR["login"] + "[bot]", "REST adds [bot] to the GraphQL login")
 
     def test_issue_fields_and_status_dates_are_read_from_the_project(self):
         page = {

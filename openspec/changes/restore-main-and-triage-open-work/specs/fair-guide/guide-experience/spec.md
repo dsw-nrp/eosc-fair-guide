@@ -6,7 +6,7 @@
 
 Every catalogue entry SHALL show each field its record carries, or the catalogue SHALL exclude that field with a
 stated reason. A count SHALL NOT replace the items it counts, and a relation SHALL show on both of its ends, including
-the dated content changes that produced each entry. Stations SHALL keep their quiet source and date line.
+the dated content changes that produced each entry.
 
 #### Scenario: A content change names its people and tools
 
@@ -39,12 +39,6 @@ the dated content changes that produced each entry. Stations SHALL keep their qu
 - **GIVEN** a record that gains a field its kind's entry neither shows nor excludes with a reason
 - **WHEN** the checks run
 - **THEN** they fail and name the kind and the field
-
-#### Scenario: Stations stay quiet
-
-- **GIVEN** a reader at a station
-- **WHEN** they open its sources and provenance
-- **THEN** the line names no person and links to the catalogue's content changes for the full detail
 
 ### Requirement: Shared facts appear in the same place on every kind
 

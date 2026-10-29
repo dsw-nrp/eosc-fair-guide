@@ -307,6 +307,6 @@ shape = "light"
 [[issue]]
 number = 137  # Check the title of source `sherpa-object-retrieval-api`
 decision = "close"
-reason = "A person compares the page title and publisher in a browser during task 6.3 and records the result in the closing comment. If they differ, the corrected record lands in PR C with a provenance action. Design D4's denied limitation covers the watch."
+reason = "Closed by PR C (design D4): the v2.sherpa.ac.uk page refuses people as well as the watch, and Jisc combined the Sherpa services into Open policy finder in November 2024, so PR C moves the source record to its Open policy finder page under the same ID, with a provenance action. No limitation covers it; not shaped."
 milestone = ""
 shape = "none"

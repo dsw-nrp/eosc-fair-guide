@@ -36,7 +36,7 @@ reviewBy = 2027-04-26
 [[limitation]]
 key = "link:https://openai.com/codex/"
 outcome = "denied"
-reason = "OpenAI's bot protection refuses automated requests; the page opens in a browser and serves only as the instrument's product page in paradata."
+reason = "OpenAI refuses automated requests; the page opens in a browser and serves only as the instrument's product page in paradata."
 evidence = "HEAD then GET 403 from GitHub-hosted runners since 2026-10-28"
 reviewer = "david-novak"
 reviewed = 2026-10-28
