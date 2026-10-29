@@ -31,8 +31,8 @@ sources = ["A.R1.1.R1", "A.A1.2.R2", "DSW-NRP.01", "COPYRIGHT-LICENCES.01", "COP
 id = "licence.03"
 lens = "V"
 level = "L1"
-text = { cs = "Ověřte, že k datům máte potřebná práva (autorské a databázové právo, smlouvy, osobní údaje); pomůže příručka [[copyright-licences|Autorská práva a licence]].", en = "Check that you hold the necessary rights to the data (copyright and database rights, contracts, personal data); the [[copyright-licences|handbook on copyright and licences]] helps." }
-sources = ["COPYRIGHT-LICENCES.01"]
+text = { cs = "Než licenci připojíte, ověřte podle příručky [[copyright-licences|Autorská práva a licence]], kdo smí rozhodnout o užití: jiný režim má zaměstnanecké dílo, databáze a její jednotlivé prvky. Osobní údaje, obchodní tajemství, utajované informace a smlouvy posuzujte zvlášť; při spojování chráněného obsahu použijte [[page:licence-compatibility|tabulku slučitelnosti CC licencí]] a pro kód [[nrp-license-selector|NRP License Selector]].", en = "Before attaching a licence, check with the [[copyright-licences|handbook on copyright and licences]] who may authorize use: employee works, databases and their individual elements follow different regimes. Assess personal data, trade secrets, classified information and contracts separately; when combining protected content, use the [[page:licence-compatibility|CC compatibility table]], and for code use the [[nrp-license-selector|NRP License Selector]]." }
+sources = ["COPYRIGHT-LICENCES.01", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05"]
 
 [[advice]]
 id = "licence.04"
@@ -81,8 +81,8 @@ sources = ["COPYRIGHT-LICENCES.01", "DSW-NRP.01"]
 id = "licence.09"
 lens = "DS"
 level = "L1"
-text = { cs = "Opřete se o příručku [[copyright-licences|Autorská práva a licence]] a o [[deposit-licence|vzor depoziční licence]].", en = "Rely on the [[copyright-licences|handbook on copyright and licences]] and on the [[deposit-licence|deposit licence template]]." }
-sources = ["COPYRIGHT-LICENCES.01", "DEPOSIT-LICENCE.01"]
+text = { cs = "Opřete se o příručku [[copyright-licences|Autorská práva a licence]] (včetně českého výkladu CC0) a [[deposit-licence|vzor depoziční licence]]: odlište autorské právo, zvláštní právo pořizovatele databáze, smluvní omezení a osobní údaje. [[page:licence-compatibility|Tabulka CC]] řeší spojování licencovaného obsahu, pro software použijte [[nrp-license-selector|NRP License Selector]].", en = "Rely on the [[copyright-licences|handbook on copyright and licences]] (including its Czech interpretation of CC0) and the [[deposit-licence|deposit licence template]]: distinguish copyright, database makers' rights, contractual restrictions and personal data. The [[page:licence-compatibility|CC table]] covers combining licensed content; use the [[nrp-license-selector|NRP License Selector]] for software." }
+sources = ["COPYRIGHT-LICENCES.01", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05", "DEPOSIT-LICENCE.01"]
 
 [[advice]]
 id = "licence.10"
@@ -117,8 +117,8 @@ sources = ["A.R1.1.R1", "A.MIN3", "NRP.M11"]
 id = "licence.14"
 lens = "SR"
 level = "L1"
-text = { cs = "Licence je povinná, vybírá se z doporučených a validuje se, že je uvedena alespoň jako URI.", en = "A licence is mandatory, chosen from the recommended ones, and validated to be given at least as a URI." }
-sources = ["A.R1.1.R1", "A.MIN3"]
+text = { cs = "Podmínky NRP vyžadují, aby každá datová sada měla v metadatech licenci uvedenou alespoň jako URI; repozitář nabízí výběr z doporučených licencí a její přítomnost validuje. Od uživatelské licence oddělte depoziční podmínky, které repozitáři dávají oprávnění k uložení a zpřístupnění: zpřístupněte je před vkladem a zaznamenejte jejich přijetí podle [[deposit-licence|vzoru depoziční licence]] a [[copyright-licences|příručky NRP]]. Práva k databázi repozitáře neznamenají práva ke všem uloženým dílům; při spojování více licencovaných vstupů pomůže [[page:licence-compatibility|tabulka slučitelnosti CC]].", en = "NRP conditions require every dataset to carry a licence in its metadata, given at least as a URI; the repository offers a choice of recommended licences and validates that one is present. Keep the deposit conditions, which authorize the repository to store and provide the data, separate from the user licence: make them available before deposit and record their acceptance, following the [[deposit-licence|deposit licence template]] and the [[copyright-licences|NRP handbook]]. Rights in the repository's database do not confer rights in every deposited work; the [[page:licence-compatibility|CC compatibility table]] helps when combining several licensed inputs." }
+sources = ["A.R1.1.R1", "A.R1.1.X1", "A.MIN3", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05", "DEPOSIT-LICENCE.01"]
 
 [[advice]]
 id = "licence.15"
@@ -207,24 +207,3 @@ lens = "*"
 level = "L1"
 text = { cs = "[[rdmkit-licensing|RDMkit]] uvádí CC0 jako možnost vzdát se práv. Česká [[copyright-licences|příručka NRP]] upřesňuje, že autorských práv se podle českého práva vzdát nelze: u autorského díla se CC0 vykládá jako nejširší možné oprávnění k užití. Zvláštní právo pořizovatele databáze má odlišný režim. Nezaměňujte otevřenou licenci s oprávněním zveřejnit osobní či jinak chráněná data.", en = "[[rdmkit-licensing|RDMkit]] presents CC0 as an option for waiving rights. The Czech [[copyright-licences|NRP handbook]] clarifies that authors' rights cannot be waived under Czech law: for a copyright work, CC0 is read as the broadest permission to use it. Database makers' sui generis rights follow a different regime. An open licence does not itself authorize disclosure of personal or otherwise protected data." }
 sources = ["COPYRIGHT-LICENCES.03"]
-
-[[advice]]
-id = "licence.28"
-lens = "V"
-level = "L1"
-text = { cs = "Než licenci připojíte, ověřte, kdo smí rozhodnout o užití: jiný režim může mít zaměstnanecké dílo, databáze a její jednotlivé prvky. Osobní údaje, obchodní tajemství, utajované informace a smlouvy posuzujte zvlášť; údaje nejsou automaticky majetkem osoby, která je vytvořila. Při spojování chráněného obsahu použijte [[page:licence-compatibility|tabulku slučitelnosti CC licencí]]. Pro kód slouží [[nrp-license-selector|NRP License Selector]].", en = "Before attaching a licence, establish who may authorize use: employee works, databases and their individual elements may follow different regimes. Assess personal data, trade secrets, classified information and contracts separately; data do not automatically belong to the person who generated them. When combining protected content, use the [[page:licence-compatibility|CC compatibility table]]. For code, use the [[nrp-license-selector|NRP License Selector]]." }
-sources = ["COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05"]
-
-[[advice]]
-id = "licence.29"
-lens = "DS"
-level = "L1"
-text = { cs = "S výzkumníkem rozlišujte autorské právo, zvláštní právo pořizovatele databáze a ochranu jednotlivých záznamů, smluvní omezení a ochranu osobních údajů. Vycházejte z [[copyright-licences|příručky NRP]], včetně jejího českého výkladu CC0. [[page:licence-compatibility|Tabulka CC]] pomáhá při zpracování obsahu, nikoli s právními důvody zveřejnění; u softwaru otevřete [[nrp-license-selector|NRP License Selector]].", en = "With the researcher, distinguish copyright, a database maker's rights and protection of individual records from contractual restrictions and personal data. Follow the [[copyright-licences|NRP handbook]], including its Czech interpretation of CC0. The [[page:licence-compatibility|CC table]] concerns adapting content rather than the legal grounds for disclosure; use the [[nrp-license-selector|NRP License Selector]] for software." }
-sources = ["COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05"]
-
-[[advice]]
-id = "licence.30"
-lens = "SR"
-level = "L1"
-text = { cs = "Oddělte dvě oprávnění: depoziční podmínky zajišťují repozitáři uložení a zpřístupnění, uživatelská licence určuje další užití obsahu. Podmínky zpřístupněte před vkladem a zaznamenejte souhlas. Práva k databázi provozovatele neznamenají práva ke všem uloženým dílům; pro výklad a vzory použijte [[copyright-licences|příručku NRP]] a [[deposit-licence|vzor depoziční licence]]. Při zpracování více licencovaných vstupů pomůže [[page:licence-compatibility|tabulka slučitelnosti CC]].", en = "Separate two permissions: deposit conditions authorize repository storage and access, while the user licence governs further use of the content. Make conditions available before deposit and record acceptance. Rights in the repository database do not confer rights in every deposited work; use the [[copyright-licences|NRP handbook]] and [[deposit-licence|deposit licence template]]. For adaptation of several licensed inputs, use the [[page:licence-compatibility|CC compatibility table]]." }
-sources = ["COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05"]
