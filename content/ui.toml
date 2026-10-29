@@ -635,7 +635,7 @@ table = { cs = "Data grafu jako tabulka", en = "The chart's data as a table" }
 noScore = { cs = "Průvodce nesčítá odpovědi do skóre; každá oblast i každý princip mají vlastní stav.", en = "The Guide adds no answers into a score; each area and each principle has its own state." }
 gaps = { cs = "Co chybí, podle toho, kdo to řeší", en = "What is missing, by who fixes it" }
 anyone = { cs = "Kdokoli z týmu", en = "Anyone on the team" }
-gapsRule = { cs = "U každé otázky Průvodce uvádí, kdo daný nedostatek obvykle odstraní, a podle toho jsou nedostatky seskupené. „Vy“ je ten, kdo kontrolu vyplňuje. Zvolený pohled skupiny nemění, jen řadí skupinu vaší role na první místo.", en = "For each question the Guide states who usually puts the gap right, and the gaps are grouped by that. “You” is whoever fills in the check. The chosen view does not change the groups; it only puts your role's group first." }
+gapsRule = { cs = "U každé otázky Průvodce uvádí, kdo daný nedostatek obvykle odstraní, a podle toho jsou nedostatky seskupené. Zvolený pohled skupiny nemění, jen řadí skupinu vaší role na první místo.", en = "For each question the Guide states who usually puts the gap right, and the gaps are grouped by that. The chosen view does not change the groups; it only puts your role's group first." }
 fixedBy = { cs = "Kdo to řeší: {who}", en = "Who puts it right: {who}" }
 yourRole = { cs = "vaše role", en = "your role" }
 agreementTitle = { cs = "Vaše odpovědi a hodnotitelé", en = "Your answers and the evaluators" }

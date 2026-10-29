@@ -512,10 +512,6 @@
     return [FG.relationGroups([{ items, render: (entry) => entry }]), limits.length ? h("p", { class: "small muted" }, limits.join(" · ")) : null];
   }
 
-  /** An actor by the role it names. The self-check's "you" is the researcher: only its dataset and software checks
-      assign a task to the reader, and the catalogue, read in no role, names it as the Researcher lens does. */
-  const actorName = (id) => (id === "#actor-user" ? FG.category(FG.text((FG.get("#lens-V") || {}).name)) : FG.termName(id));
-
   /** When a question applies: the check modes and NRP profiles it is asked in, and whether "not applicable" is
       offered. */
   function appliesRow(item) {
@@ -562,7 +558,7 @@
                 fields: { basedOn: "citation", inGuide: "isPartOf fixAt" },
                 relations: {
                   principles: tiles(FG.principlesOf(item)),
-                  fixedBy: FG.refIds(item, "fixedBy").length ? [FG.refIds(item, "fixedBy").map(actorName).join(", "), item.fixAt ? [h("span", { class: "muted" }, " · "), h("a", { href: FG.href("path", station) }, FG.span(FG.get(item.fixAt).name))] : null] : [],
+                  fixedBy: FG.refIds(item, "fixedBy").length ? [FG.refIds(item, "fixedBy").map(FG.termName).join(", "), item.fixAt ? [h("span", { class: "muted" }, " · "), h("a", { href: FG.href("path", station) }, FG.span(FG.get(item.fixAt).name))] : null] : [],
                   applies: appliesRow(item),
                   group: FG.id(item.block) ? FG.span(FG.get(FG.id(item.block))?.name || FG.id(item.block)) : [],
                   nrpProfile: FG.refIds(item, "providedByNrpFor").map(FG.termName).join(", ") || [],

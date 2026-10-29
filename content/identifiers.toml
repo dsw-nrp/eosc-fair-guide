@@ -1275,6 +1275,7 @@ actions = [
   "2026-10-28-digest-reader-links",
   "2026-10-18-station-dedup",
   "2026-10-28-licence-14-review",
+  "2026-10-29-researcher-actor",
 ]
 model = [
   "model:layers-seams",

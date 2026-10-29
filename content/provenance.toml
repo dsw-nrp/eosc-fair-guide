@@ -1688,3 +1688,13 @@ instruments = ["claude-code", "claude-opus-5-5"]
 objects = ["A.R1.1.R1", "A.R1.1.X1", "A.MIN3", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "DEPOSIT-LICENCE.01"]
 results = ["licence.14"]
 endTime = 2026-10-28T23:46:50+01:00
+
+[[action]]
+id = "2026-10-29-researcher-actor"
+type = "update"
+name = "Name the researcher's tasks by role"
+description = "The actor that puts 42 questions of the dataset and software checks right was named \"you\". It read correctly only when a researcher filled in the check for themselves: in another role's view and in a saved or shared report it named the wrong person. It is now named researcher, with the ID researcher, as the other owners are named by role, and the self-check no longer defines \"you\" above its gaps."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5"]
+results = ["guide", "dataset.04", "dataset.05", "dataset.06", "dataset.07", "dataset.08", "dataset.09", "dataset.10", "dataset.11", "dataset.12", "dataset.13", "dataset.14", "dataset.15", "dataset.16", "dataset.17", "dataset.18", "dataset.19", "dataset.20", "dataset.21", "dataset.22", "dataset.23", "dataset.25", "dataset.26", "software.01", "software.02", "software.03", "software.04", "software.05", "software.06", "software.07", "software.08", "software.09", "software.10", "software.11", "software.12", "software.13", "software.14", "software.15", "software.16", "software.17", "software.18", "software.19", "software.20"]
+endTime = 2026-10-29T14:06:57+01:00

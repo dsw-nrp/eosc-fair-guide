@@ -14,6 +14,6 @@ principles = ["F1"]
 statement = { cs = "Repozitář přiděluje PID.", en = "The repository assigns PIDs." }
 sources = ["A.F1.R1"]
 fixAt = "one"
-owner = ["user"]
+owner = ["researcher"]
 profiles = ["a"]
 prefill = { nkr = ["pidType"], champion = ["test_one"] }

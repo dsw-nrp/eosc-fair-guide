@@ -65,9 +65,9 @@ qualified lists SHALL be rows. The catalogue's own labels SHALL NOT address the 
 
 #### Scenario: A question the self-check puts to the reader
 
-- **GIVEN** a check question that the self-check's reader, the researcher, puts right
+- **GIVEN** a check question that the researcher puts right
 - **WHEN** its catalogue entry is shown
-- **THEN** who puts it right is named by that role, as the Researcher lens names it, not as "you"
+- **THEN** who puts it right is named "researcher", the role, not "you"
 
 #### Scenario: Status reads without colour
 

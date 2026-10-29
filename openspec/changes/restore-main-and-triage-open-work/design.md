@@ -349,8 +349,10 @@ icons in a fixed order" concrete, and they change cards beyond the six above:
     entry; advice, callouts and pages link to their station or page.
 - **Check question:**
   - the explanation (`description`) as a quiet paragraph under the question;
-  - **Who puts it right** (`fixedBy`, at its station), the self-check's "you" named by its role, the researcher, as
-    the Researcher lens names it (only the dataset and software checks assign a task to the reader);
+  - **Who puts it right** (`fixedBy`, at its station), named by role. The actor the self-check called "you" is
+    named "researcher", with the ID `researcher` in place of `user`, everywhere, since "you" also misread in another
+    lens and in a shared report; the chosen
+    lens's badge still marks its own group (the maintainer's decision on 29 October 2026);
   - **Applies** (`appliesTo`, and whether "not applicable" is offered);
   - **Pre-filled from**, each source with "at most Partly" and "Champion evidence only" where set;
   - **Group** (`block`) and **For NRP profile** (`providedByNrpFor`) where set;
