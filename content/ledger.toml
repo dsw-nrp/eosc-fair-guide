@@ -2384,7 +2384,7 @@ kind = "statement"
 text = { cs = "CoreTrustSeal certifikuje důvěryhodné repozitáře podle souboru požadavků.", en = "CoreTrustSeal certifies trustworthy repositories against a set of requirements." }
 guidance = "CoreTrustSeal offers to any interested data repository a core level certification based on the Core Trustworthy Data Repositories Requirements."
 guidanceLanguage = "en"
-locator = "About CoreTrustSeal, opening sentence, accessed 2026-10-11"
+locator = "About CoreTrustSeal, opening sentence"
 
 [[clause]]
 id = "HESLAR.01"

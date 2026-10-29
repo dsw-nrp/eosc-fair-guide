@@ -1692,10 +1692,21 @@ endTime = 2026-10-28T23:46:50+01:00
 [[action]]
 id = "2026-10-29-statute-public-domain"
 type = "update"
-name = "Record that the Act on research is outside copyright"
-description = "Act No. 328/2025 Coll. is an official work, which § 3(a) of the Copyright Act excludes from copyright. Its source now records the Public Domain Mark instead of no licence, so the right-of-quotation bound for sources without a licence does not apply to its passages."
+name = "Record that the official works the Guide quotes are outside copyright"
+description = "Act No. 328/2025 Coll. and the Open Science III call rules are official works, which § 3(a) of the Copyright Act excludes from copyright; the maintainer confirmed the call rules as an administrative document. Their sources now record the Public Domain Mark instead of no licence, so the right-of-quotation bound for sources without a licence does not apply to their passages."
 agent = "david-novak"
 instruments = ["claude-code", "claude-opus-5-5"]
-objects = ["law-328-2025"]
-results = ["law-328-2025"]
-endTime = 2026-10-29T13:38:49+01:00
+objects = ["law-328-2025", "os3-rules"]
+results = ["law-328-2025", "os3-rules"]
+endTime = 2026-10-29T17:17:18+01:00
+
+[[action]]
+id = "2026-10-29-cited-work-licences"
+type = "update"
+name = "Merge the second citations of four cited works"
+description = "Four resources carried a second, nested citation that neither the page, the crate nor the checks read. Each now has one citation. The CESSDA guide and the FORCE11 declaration gain their authors and CC BY-SA 4.0; the CESSDA values are those recorded on 11 October 2026, as its guide was offline for migration on 29 October. The OSTrails CZ pilot cites its deposited version, with that version's DOI, publication date and CC BY 4.0, as Zenodo records them. CoreTrustSeal cites the About page that its resource links and its clause quotes."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5"]
+objects = ["cessda-dmeg", "coretrustseal", "force11-citation", "ostrails-cz-pilot"]
+results = ["cessda-dmeg", "coretrustseal", "force11-citation", "ostrails-cz-pilot", "CORETRUSTSEAL.01"]
+endTime = 2026-10-29T17:17:18+01:00

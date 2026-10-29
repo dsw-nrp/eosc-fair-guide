@@ -15,7 +15,8 @@ change what an assessment means, follow [plan a change](plan-a-change.md) before
    "must" only for a named NRP condition; DOI is recommended, with suitable alternatives accepted.
 4. **Cite a published source.** An advice item or question cites at least one clause of `content/ledger.toml` in its
    `sources`. When the fact has no clause yet, add one first, pointing to the published work that originally states
-   it, not a page that summarises or links it.
+   it, not a page that summarises or links it. A quote from a source that records no licence names its locator
+   and stays within 200 words.
 5. **Date a status.** A resource's `status` (operational, pilot, in development, planned or prospective) carries its
    `asOf` date.
 6. **Record the paradata.** Add one provenance action for the pull request to `content/provenance.toml`, or extend

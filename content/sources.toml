@@ -297,6 +297,7 @@ version = "1"
 url = "https://opjak.cz/wp-content/uploads/2026/06/PpZP_specificka_cast_vyzva_Open_Science_III_web.pdf"
 publisher = "msmt"
 dateAccessed = 2026-10-09
+license = "https://creativecommons.org/publicdomain/mark/1.0/"
 
 [[source]]
 guideRoute = "res/doc"

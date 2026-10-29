@@ -315,7 +315,9 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
         if "guidance" in clause and not (isinstance(clause["guidance"], str) and clause["guidance"].strip()):
             report.error(where, "guidance is the source's own text, in its original language as published")
         elif clause.get("guidance") and not licences.get(clause.get("source")):
-            words = len(QUOTE_WORD.findall(clause["guidance"]))
+            if not clause.get("locator"):
+                report.error(where, "guidance quoted from a source that records no licence needs a locator")
+            words = quote_words(clause["guidance"])
             if words > QUOTE_LIMIT:
                 report.error(
                     where,
@@ -370,8 +372,18 @@ def cited_ids(content: dict[str, Any]) -> set[str]:
 # Act No. 121/2000 Coll., excerpts "v odůvodněné míře"), bounded so that a quote stays the passage a clause needs. A
 # source outside copyright, such as a law, records the Public Domain Mark as its licence and is not bounded.
 QUOTE_LIMIT = 200
-# A word of a quote: letters and digits, a hyphenated or elided word counted once, list markers not at all.
+# A word of a quote: letters and digits, a hyphenated or elided word counted once. A list marker opening a line is
+# not a word, and a word hyphenated at a line break is one word.
 QUOTE_WORD = re.compile(r"\w+(?:[-'’]\w+)*")
+QUOTE_MARKER = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+", re.MULTILINE)
+QUOTE_BREAK = re.compile(r"(?<=\w)-[ \t]*\n[ \t]*(?!(?:[-*+]|\d+[.)])[ \t])(?=\w)")
+# A recorded licence or mark is its HTTPS address at one of the publishers whose licences the Guide cites.
+LICENCE_ADDRESS = re.compile(r"^https://(?:www\.)?(?:creativecommons\.org|gnu\.org|opensource\.org|spdx\.org)/")
+
+
+def quote_words(text: str) -> int:
+    """How many words a quote has (QUOTE_WORD), with list markers and line-break hyphenation removed."""
+    return len(QUOTE_WORD.findall(QUOTE_MARKER.sub("", QUOTE_BREAK.sub("-", text))))
 
 
 def cited_licences(content: dict[str, Any]) -> dict[str, Any]:
@@ -403,6 +415,11 @@ def check_citation(report: Report, where: str, citation: dict[str, Any], own_url
                 "publisher, journal, year or licence",
             )
         return
+    if "citation" in citation:
+        report.error(where, "a citation describes one work; merge a nested citation or cite its work as a source")
+    licence = citation.get("license")
+    if licence is not None and not (isinstance(licence, str) and LICENCE_ADDRESS.match(licence)):
+        report.error(where, "license is the HTTPS address of a licence or mark at Creative Commons, GNU, OSI or SPDX")
     if not (own_url or citation.get("url") or citation.get("doi")):
         report.error(where, "a source needs a URL or a DOI")
     if not (citation.get("datePublished") or citation.get("dateAccessed")):

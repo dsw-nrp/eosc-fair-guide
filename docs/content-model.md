@@ -503,7 +503,8 @@ summarises or links that work is cited only for what it adds itself. `[[source]]
 the short name shown where the source is named often, as next to each requirement it holds), `version`,
 `inLanguage`, `url`, `doi` (without the resolver), `publisher` (an organisation ID, or a language-neutral name),
 `authors`, `datePublished` or `dateAccessed`, `dateModified` (when the publisher records an update), `license`
-(URL). An author is a person ID from `guide.toml`, which
+(the HTTPS address of the licence or mark at Creative Commons, GNU, OSI or SPDX). A resource's `citation` takes
+the same fields and describes one work: it never nests another citation. An author is a person ID from `guide.toml`, which
 puts the person (with their ORCID iD) into the crate, or a plain name.
 
 ### `ledger.toml`
@@ -517,10 +518,10 @@ source publishes with it, quoted as published; paragraphs and lists with `-` mar
 `guidanceLanguage` (`cs` or `en`, default `en`). Optional `terms` lists existing Heslář IDs whose catalogue cards
 also disclose this attributed original passage; it never replaces their glossary definitions. Originals keep their own language; the guide's bilingual
 statement and explanation remain separate. Use only fitting published passages, with their version and
-source attribution. A passage under an open licence carries that licence. A passage from a source that records
-no licence is quoted under the right of quotation (Act No. 121/2000 Coll., § 31(1)(a), excerpts "v odůvodněné
-míře"): only what the clause needs and at most 200 words, attributed by its source and locator, with no licence
-claimed for it; `scripts/check_content.py` enforces the bound. A work outside copyright (a law or another
+source attribution. A passage carries the licence its source records and follows its terms. A passage from a
+source that records no licence is quoted under the right of quotation (Act No. 121/2000 Coll., § 31(1)(a),
+excerpts "v odůvodněné míře"): only what the clause needs and at most 200 words, attributed by its source and locator, with no licence
+claimed for it; `scripts/check_content.py` enforces the bound and the locator. A work outside copyright (a law or another
 official work under § 3(a), or a work in the public domain) records the Public Domain Mark
 (`https://creativecommons.org/publicdomain/mark/1.0/`) as its `license` and has no bound. PDF layout joins and omitted footnote markers do not
 change wording; retain a footnote when it determines the requirement's meaning. The

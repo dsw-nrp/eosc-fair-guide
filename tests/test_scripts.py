@@ -623,16 +623,38 @@ class ContentCheckTests(FixtureCase):
         self.assertError("guidance is the source's own text")
 
     def test_a_quote_without_a_licence_stays_within_the_right_of_quotation(self) -> None:
-        within = " ".join(["word"] * check_content.QUOTE_LIMIT)
-        # A list marker is not a word.
-        self.edit("ledger.toml", "Guidance as the standard publishes it.\n\n- One item.", "- " + within)
+        within = " ".join(["word"] * (check_content.QUOTE_LIMIT - 2))
+        # List markers, bulleted or numbered, are not words, and a word hyphenated at a line break is one word.
+        quote = f"- {within}\n1. hyphen-\nated\n2) word"
+        self.edit("ledger.toml", "Guidance as the standard publishes it.\n\n- One item.", quote)
         self.assertEqual(self.errors(), [])
-        self.edit("ledger.toml", within, within + " more")
+        self.edit("ledger.toml", "2) word", "2) word more")
         self.assertError(f"guidance quotes {check_content.QUOTE_LIMIT + 1} words from a source that records no licence")
-        # A licence the source records, or the Public Domain Mark of a source outside copyright, lifts the bound.
+        # The quote is attributed to its place in the source.
+        self.edit("ledger.toml", 'locator = "R12"\n', "")
+        self.assertError("guidance quoted from a source that records no licence needs a locator")
+        # A licence the source records, or the Public Domain Mark of a source outside copyright, lifts both.
         public_domain = 'license = "https://creativecommons.org/publicdomain/mark/1.0/"\n'
         self.edit("sources.toml", 'title = "Test standard"\n', 'title = "Test standard"\n' + public_domain)
         self.assertEqual(self.errors(), [])
+
+    def test_a_cited_work_records_one_citation_and_a_known_licence(self) -> None:
+        # A resource's citation is a cited work too, and the licence it records is the one its quotes carry.
+        licence = "https://creativecommons.org/licenses/by/4.0/"
+        service = 'url = "https://example.org/service"\n'
+        fields = f'type = "webpage", title = "Test service", dateAccessed = 2026-01-01, license = "{licence}"'
+        self.edit("resources.toml", service, f"{service}citation = {{ {fields} }}\n")
+        self.assertEqual(self.errors(), [])
+        cited = check_content.cited_licences(build_crate.load_content(self.root / "content"))
+        self.assertEqual(cited["service"], licence)
+        # A second citation nested in the first is read by nothing, so it is rejected rather than ignored.
+        nested = ', citation = { type = "webpage", title = "Other page" }'
+        self.edit("resources.toml", f'"{licence}" }}', f'"{licence}"{nested} }}')
+        self.assertError("a citation describes one work")
+        self.edit("resources.toml", nested, "")
+        # A licence is recorded as its address, so a free-text value cannot lift the bound unseen.
+        self.edit("resources.toml", licence, "All rights reserved")
+        self.assertError("license is the HTTPS address of a licence or mark")
 
     def test_a_principle_links_only_existing_requirements(self) -> None:
         self.edit("principles.toml", 'cts = ["R12"]', 'cts = ["R99"]')

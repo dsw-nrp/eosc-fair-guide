@@ -17,6 +17,7 @@ text = { cs = "NRP zajišťuje DOI.", en = "NRP provides DOIs." }
 [[clause]]
 id = "CTS.R12"
 source = "cts-test"
+locator = "R12"
 principles = []
 actor = "repository"
 kind = "requirement"

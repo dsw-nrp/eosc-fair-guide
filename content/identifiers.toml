@@ -1276,6 +1276,7 @@ actions = [
   "2026-10-18-station-dedup",
   "2026-10-28-licence-14-review",
   "2026-10-29-statute-public-domain",
+  "2026-10-29-cited-work-licences",
 ]
 model = [
   "model:layers-seams",

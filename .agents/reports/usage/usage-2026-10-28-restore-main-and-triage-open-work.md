@@ -41,7 +41,9 @@
     `guide-knowledge-base` delta, the native content rule with its generated copies, the content model and the
     content how-to. At the maintainer's request after the review of #147, PR F also bounds quotes from sources that
     record no licence by the right of quotation (200 words, enforced by the content check) and records the Act on
-    research as outside copyright with the Public Domain Mark.
+    research as outside copyright with the Public Domain Mark. Its review fixes require a locator for such a quote,
+    accept a licence only as a known licence address, count numbered lists and line-break hyphenation correctly,
+    record the Mark on the Open Science III call rules, and merge four resources' nested citations into one each.
   - PR E (#149) built the complete catalogue of design D8: per-kind cards with the six conventions, reverse
     relations, a corner link from each entry to its changes, the FIP declarations across the card and on a page of
     their own, and `tests/page/check_catalogue.mjs`, which fails when a record field is neither shown nor excluded with
@@ -54,8 +56,9 @@
   `tests/test_watch.py`, and on B2's also `content/ledger.toml` and `content/sources.toml`; on PR F's branch
   `.agents/guide/rules/fair-guide-content.md`, its generated copies, the guide region of `CODEX.md`,
   `docs/content-model.md`, `docs/how-to/edit-content.md`, the new `guide-knowledge-base` delta,
-  `scripts/check_content.py`, `tests/test_scripts.py`, `content/sources.toml`, `content/provenance.toml` and
-  `content/identifiers.toml`; on PR E's branch `assets/js/catalogue.js`, `assets/js/catalogue-view.js`,
+  `scripts/check_content.py`, `tests/test_scripts.py`, the minimal fixture's ledger, `content/sources.toml`,
+  `content/resources.toml`, `content/ledger.toml`, `content/provenance.toml` and `content/identifiers.toml`; on PR
+  E's branch `assets/js/catalogue.js`, `assets/js/catalogue-view.js`,
   `assets/js/core.js`, `assets/js/views.js`, `assets/css/app.css`, `content/ui.toml`, `content/icons.toml`, ten
   vendored icons, `tests/page/check_catalogue.mjs`, `tests/page/check_page.mjs`, `scripts/check_groups.json`,
   `docs/design.md`, `docs/content-model.md` and the `guide-experience` delta, D8 and tasks 7.3, 7.5 and 7.7; the bodies
@@ -89,6 +92,11 @@
     growing row to a corner link into the catalogue's list of changes; gave the FIP declarations the card's full width
     and a page of their own; and ruled out labels that address the reader, so the self-check's "you" is named as the
     researcher.
+  - The review of PR F found that four resources kept their licence, authors or version DOI in a nested citation
+    nothing read, that the locator and the counting were not enforced as written, and that any licence value lifted
+    the bound. The maintainer chose to merge the nested citations and confirmed the Open Science III call rules as
+    an administrative document outside copyright, so they record the Public Domain Mark instead of a narrower
+    content model.
 - **Merge route:** #144 and #146 were merged through the administrator bypass with green `checks`, departing from
   step 2 of `docs/runbooks/merge.md` as design D2 records.
 - **Verification:**
@@ -105,11 +113,15 @@
     `python scripts/check_sibling_delivery.py` and `python scripts/check_docs.py` pass;
   - the quotation test fails at 201 words and passes at 200 and with the Public Domain Mark; #147's quote counts
     145 words and the longest quote on `main` from a source without a licence 140;
+  - PR F's review tests fail with the former word count and with a check that accepts any licence, and pass with the
+    fixes; the content check reports no error, six bounded quotes remain, the longest 21 words, and every clause
+    among them has a locator; FORCE11's licence and authors, the pilot's version DOI, date and licence in Zenodo and
+    the CoreTrustSeal sentence were checked at their sources, while the CESSDA guide was offline for migration;
   - PR E's catalogue test fails on cards that do not mark a field and passes on the final cards; the changed cards
     render in Czech and English, at phone width and in print, with no sideways scroll;
   - `python scripts/check_all.py` passes 36/36 for #144, for B1, for B2, for B2's review fix rebased onto `main`,
     for the change branch, for PR E and for PR F; strict OpenSpec validation passes 6/6.
-- **Close-out:** 22 of 56 tasks ticked. PR C's review and merge (4.11 and 4.12) are done and, as the tasks header
+- **Close-out:** 22 of 57 tasks ticked. PR C's review and merge (4.11 and 4.12) are done and, as the tasks header
   says, are ticked in PR D. Open: the review and merge of B2 (#147), PR E (#149) and PR F (#148), the rebuilds B3–B4,
   the digest actions outside the repository, the shaping of the remaining issues in the ledger, and the integration
   check after the next watch run.

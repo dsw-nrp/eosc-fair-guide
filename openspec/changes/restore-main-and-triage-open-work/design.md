@@ -439,14 +439,25 @@ Research quotes by right: § 31(1)(a) of the Copyright Act permits excerpts "v o
 and source named, and § 3(a) leaves laws and other official works outside copyright. The maintainer asked for a
 balance a review can apply without overstating it (29 October 2026).
 
-- **The rule:** a passage under an open licence carries it. From a source that records no licence, a clause quotes
-  what it needs, at most 200 words, with its source and locator and no licence claimed. A work outside copyright
-  records the Public Domain Mark as its `license` and has no bound; the Act on research (`law-328-2025`) is the one
-  such source today.
-- **The bound:** on 29 October 2026 the longest quote from a source without a licence ran 140 words (the Act),
-  #147's quote 145 by the check's count; 200 leaves room for one passage and stops a copied page.
-- **Enforcement:** `scripts/check_content.py` counts a quote's words (letters and digits; a hyphenated word once, a
-  list marker not at all) and fails a clause over the bound, so the rule binds without review.
+- **The rule:** a passage carries the licence its source records and follows its terms. From a source that records
+  no licence, a clause quotes what it needs, at most 200 words, with its source and locator and no licence claimed.
+  A work outside copyright records the Public Domain Mark as its `license` and has no bound. Two sources do today:
+  the Act on research (`law-328-2025`) and the Open Science III call rules (`os3-rules`), an administrative
+  document the maintainer confirmed as an official work (29 October 2026).
+- **The bound:** on `main` before this change, the longest quote from a source without a licence ran 140 words, from
+  the Act this change exempts; the longest call-rules quote ran 122 (`OS3-RULES.17`). With both exempt and the
+  cited works' licences read, six bounded quotes remain, the longest 21 words (`DATACITE-SCHEMA.01`), and #147's
+  quote counts 145. 200 leaves room for one passage and stops a copied page.
+- **Enforcement:** `scripts/check_content.py` counts a quote's words (letters and digits; a hyphenated word once,
+  also across a line break; a bulleted or numbered list marker not at all), fails a clause over the bound and one
+  without a locator, so the rule binds without review. A recorded licence must be the address of a licence or mark
+  at Creative Commons, GNU, OSI or SPDX, so a free-text value cannot lift the bound unseen.
+- **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
+  resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
+  version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's
+  Zenodo record and CoreTrustSeal's About page (which its resource links and its clause quotes) were checked on 29
+  October 2026; the CESSDA guide was offline for migration, so its values are those recorded on 11 October. The
+  content check rejects a nested citation.
 
 Alternatives considered: no bound, leaving "justified extent" to review (rejected: reviews would keep judging it
 differently); 150 words (rejected: it would fail #147's quote, which the maintainer considers proportionate); a

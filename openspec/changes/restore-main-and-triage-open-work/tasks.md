@@ -254,7 +254,13 @@ alone do not complete them.
 - [ ] 8.5 In `scripts/check_content.py`, fail a clause that quotes more than 200 words from a source that records
       no licence, with a test in `tests/test_scripts.py`. Verify that the test fails at 201 words and passes at 200
       and with the Public Domain Mark, then extend PR F after the maintainer approves the commit message and body.
-- [ ] 8.6 **Human hand-off:** review PR F, record acceptance and merge it (design D2). Verify that the deployment's
+- [ ] 8.6 Address the review of PR F (design D10): read cited works' licences from one citation each, merging the four
+      nested citations with a provenance action and rejecting a nested one; require a locator for a quote from a source
+      without a licence; record a licence as a known licence address; count numbered list markers and line-break
+      hyphenation correctly; record the Public Domain Mark on `os3-rules`. Verify that the new tests fail against the
+      former behaviour and pass now, and that `python scripts/check_all.py` passes, then extend PR F after the
+      maintainer approves the commit message.
+- [ ] 8.7 **Human hand-off:** review PR F, record acceptance and merge it (design D2). Verify that the deployment's
       full checks pass for the merge commit.
 
 ## 9. Integration check and close-out (PR D)
