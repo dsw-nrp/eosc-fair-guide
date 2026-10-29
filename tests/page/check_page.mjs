@@ -195,10 +195,19 @@ sections.push(["page", async () => {
       return bar.nextElementSibling.getBoundingClientRect().top - bar.getBoundingClientRect().bottom;
     });
     if (toolbarGap < 8) fail(`catalogue: the ordering control touches the content below it (${toolbarGap}px)`);
+    // A content change names the person responsible and its tools, an AI model among the tools (design D8).
     const changes = await view.locator(".catalogue-results").textContent();
-    if (/Novák|Claude/.test(changes)) fail("catalogue: the content changes name people or tools");
-    const drewOn = await view.locator(".change", { hasText: "FAIRsharing" }).first().textContent();
-    if ((drewOn.match(/FAIRsharing/g) || []).length > 4) fail("catalogue: a change lists one source more than once: " + drewOn);
+    if (!/Novák/.test(changes) || !/model AI/.test(changes)) fail("catalogue: the content changes do not name the person responsible and the AI model used as a tool");
+    if (await view.locator('.change .entry-byline', { hasText: "Claude" }).count()) fail("catalogue: an AI model is named as a change's author");
+    const repeated = await view.evaluate(async () => {
+      for (const fold of document.querySelectorAll('.change dd[data-field="object"] details')) fold.open = true;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      return [...document.querySelectorAll(".change")].filter((card) => {
+        const links = [...card.querySelectorAll('dd[data-field="object"] a')].map((link) => link.getAttribute("href"));
+        return links.length !== new Set(links).size;
+      }).map((card) => card.id);
+    });
+    if (repeated.length) fail("catalogue: a change lists one consulted record more than once: " + repeated.join(", "));
     await open("#/cs/V/catalogue/terms");
     if (!(await view.locator(".term-card h3").first().textContent()).match(/^[^[(]/)) fail("catalogue: the glossary does not sort past leading brackets");
     // Chips show the short local ID; their link retains the complete canonical address.
@@ -214,7 +223,7 @@ sections.push(["page", async () => {
     // language, version, date) are one quiet line, not badges.
     const analysisCard = view.locator(".card", { hasText: "Analýza a návrh postupů" }).first();
     const analysis = await analysisCard.textContent();
-    const used = analysisCard.locator(".relations dd").nth(0);
+    const used = analysisCard.locator(".relations dt", { hasText: "V Průvodci" }).locator("xpath=following-sibling::dd[1]");
     if (!(await analysisCard.locator(".entry-head").textContent()).includes("podklad obsahu") || !(await used.locator("a.holder-link", { hasText: "Plán" }).count()) || !analysis.includes("Zralost FAIR repozitáře")) fail("catalogue: the analysis is not marked as a basis with the stations and checks that cite it");
     if ((await analysisCard.locator(".relations dt", { hasText: "V Průvodci" }).count()) !== 1 || !(await analysisCard.locator(".card-details").textContent()).includes("verze 1.2") || (await analysisCard.locator(".badge", { hasText: "verze" }).count())) fail("catalogue: the analysis card does not keep where it is used in one row and its details out of the badges");
     // A kind's own facets list their values by number of records, most first.
@@ -532,7 +541,7 @@ sections.push(["page", async () => {
       });
       if (!corner) fail(`catalogue: the ${kind} record link does not sit in the card's top right corner`);
       // One card for every kind: its own identifier in the head, and its relations under fixed labels in one order.
-      const order = ["Principy", "Pro koho", "Provozovatel", "Vyvinuli", "Provozuje", "Národní uzel", "Členství v ERIC", "Profil FIP komunity", "Vychází z", "V Průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
+      const order = await view.evaluate(() => window.FairGuide.catalogueRowOrder());
       const cards = await view.locator(".catalogue .card").evaluateAll((all) =>
         all.map((card) => ({ id: card.id, chip: (card.querySelector(".entry-head .id-chip") || {}).textContent, labels: [...card.querySelectorAll(".relations dt")].map((dt) => dt.textContent) }))
       );
@@ -2212,10 +2221,11 @@ sections.push(["knav catalogue", async () => {
 // catalogue and among a step's resources, while a standard carries none.
 sections.push(["visual system", async () => {
   const kinds = ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "lifecycle", "model", "actions"];
-  const ROW_ORDER = ["Principy", "Pro koho", "Provozovatel", "Vyvinuli", "Provozuje", "Národní uzel", "Členství v ERIC", "Profil FIP komunity", "Vychází z", "V Průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
   const { context, page, problems } = await openPage();
   await gotoView(page, pageUrl);
   await rendered(page);
+  /* The fixed order is the card code's own, so the check cannot drift from it. */
+  const ROW_ORDER = await page.evaluate(() => window.FairGuide.catalogueRowOrder());
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   const marks = new Map();
   const rowIcons = new Map();
@@ -2319,7 +2329,7 @@ sections.push(["glossary definitions", async () => {
     await visit(`#/${language}/V/catalogue/k!terms`);
     const cards = page.locator(".catalogue-results .term-card");
     if ((await cards.locator(".term-definition").count()) !== (await cards.count())) fail(`glossary ${language}: descriptions are missing from term cards`);
-    if ((await cards.locator('.term-attribution a[href="https://creativecommons.org/licenses/by/4.0/"]').count()) !== (await cards.count())) fail(`glossary ${language}: licence attribution is missing`);
+    if ((await cards.locator('.quote-licence a[href="https://creativecommons.org/licenses/by/4.0/"]').count()) !== (await cards.count())) fail(`glossary ${language}: licence attribution is missing`);
     await visit(`#/${language}/V/catalogue/k!terms~q!${encodeURIComponent(phrase)}`);
     const card = page.locator(`[id="item-${entryAnchor(anchor)}"]`);
     if (!(await card.count())) fail(`glossary ${language}: a definition-only phrase does not find its term`);

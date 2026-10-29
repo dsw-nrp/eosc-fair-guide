@@ -312,7 +312,7 @@ Alternatives considered:
 **The rule.** Stations stay quiet: one source and date line without names, linking to the full detail (requirement
 "Credit for content and compilation"). The catalogue is that full detail. Every catalogue entry shows every field its
 record carries, or excludes it with a stated reason; a count never replaces the items it counts; a relation shows on
-both of its ends.
+both of its ends. The catalogue's own labels do not address the reader, since it is not read in a role.
 
 **What the catalogue hides today** (the built crate compared with each card's code on 29 October 2026):
 
@@ -335,21 +335,22 @@ icons in a fixed order" concrete, and they change cards beyond the six above:
 | 3 | Dates sit in the details line; an "as of" date stays with its status badge. | None. |
 | 4 | Status is one badge with icon, text and as-of date, from one helper. | Test health and FIP declaration status use it. |
 | 5 | Qualified lists (item, qualifier, note) are relation rows, grouped by kind and folded when long. | Criterion mappings become a Covers row, life-cycle correspondences a Corresponds to row. |
-| 6 | Relations show in both directions. | Pre-filled from and Pre-fills; Declarations and Declared in; Replaced by and Replaces; Changed, and a Changes row on every entry listing the dated changes that produced or altered it. |
+| 6 | Relations show in both directions. | Pre-filled from and Pre-fills; Declarations and Declared in; Replaced by and Replaces; Changed, and on every entry a link in its corner that counts the changes that produced or altered it and leads to them in the catalogue's list of changes, so no entry grows with each change. |
 
 **The cards.** What each affected kind gains:
 
 - **Content change:**
   - the byline names the agent, with an ORCID link unless the person opted out;
   - the details line gives the end date and the counts, and the body the description;
-  - **Made by**;
+  - no separate **Made by** row, which would repeat the byline (the maintainer's decision on 29 October 2026);
   - **Tools**: each instrument with its kind (software or AI model) and its recorded version, so an AI model
     appears as a tool and never as an author;
   - **Consulted** and **Changed**, grouped by kind, each group listing every item. A catalogue kind links to its
     entry; advice, callouts and pages link to their station or page.
 - **Check question:**
   - the explanation (`description`) as a quiet paragraph under the question;
-  - **Who puts it right** (`fixedBy`, at its station);
+  - **Who puts it right** (`fixedBy`, at its station), the self-check's "you" named by its role, the researcher, as
+    the Researcher lens names it (only the dataset and software checks assign a task to the reader);
   - **Applies** (`appliesTo`, and whether "not applicable" is offered);
   - **Pre-filled from**, each source with "at most Partly" and "Champion evidence only" where set;
   - **Group** (`block`) and **For NRP profile** (`providedByNrpFor`) where set;
@@ -357,8 +358,9 @@ icons in a fixed order" concrete, and they change cards beyond the six above:
   - `assessmentContext`, `lookup` and `note` where present.
 - **FIP profile:**
   - the byline names the authoring community, and the details line gives the status, version, date and keywords;
-  - **Declarations**: a disclosure summarised by status, holding a table of principle, enabling resource (linked to
-    its entry), status badge and note;
+  - **Declarations**: a disclosure across the card's full width, summarised by status, holding a table of
+    principle, enabling resource (linked to its entry), status badge and note; the same table also opens on a page of
+    its own;
   - **Based on**: the snapshot and its date.
 - **FAIR-enabling resource:** the FAIR data type and coverage in the details line; **Provided by**; **Declared in**
   (the FIP profiles that declare it).

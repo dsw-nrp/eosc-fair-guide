@@ -206,8 +206,8 @@ alone do not complete them.
       first opened. Add every new label and icon to `content/ui.toml` in Czech and English. Verify that unit or page
       tests cover the badge helper and a folded list, which opens by keyboard and is built only when opened, and that
       `python scripts/check_content.py` passes.
-- [ ] 7.3 Build the content-change entry: the agent's byline with an ORCID link unless the person opted out, Made by,
-      Tools with each instrument's kind and recorded version, and Consulted and Changed grouped by kind with every item
+- [ ] 7.3 Build the content-change entry: the agent's byline with an ORCID link unless the person opted out (no
+      separate Made by row), Tools with each instrument's kind and recorded version, and Consulted and Changed grouped by kind with every item
       linked to its entry, station or page. Verify with page tests on `2026-10-16-initial-state` (143 consulted,
       1,374 changed) and `2026-10-18-station-dedup` that the names, tools, groups and counts show and every link
       resolves.
@@ -215,7 +215,8 @@ alone do not complete them.
       limits, Group, For NRP profile, Mentions, and the rare fields where present. Verify with a page test on
       `dataset.01` and on one CDIF question.
 - [ ] 7.5 Build the FIP and enabling-resource entries: the authoring community's byline, status, version, date and
-      keywords, the Declarations table, and Based on for FIP profiles; FAIR data type, coverage, Provided by and
+      keywords, the Declarations table across the card's width and on a page of its own, and Based on for FIP
+      profiles; FAIR data type, coverage, Provided by and
       Declared in for enabling resources. Verify with a page test on the ČSDA profile (18 declarations: 17 in use, 1
       planned) and on one resource it declares.
 - [ ] 7.6 Reshape the other cards to the conventions: the Licence row on resources and sources; the quoted-text licence
@@ -223,8 +224,9 @@ alone do not complete them.
       the test health badge from the shared helper; the criterion's Covers row; the life-cycle stage's Corresponds to
       row. Verify with a page test per reshaped kind.
 - [ ] 7.7 Add the reverse relations: Pre-fills on tests and criteria, Declared in on enabling resources, Replaced by and
-      Replaces on requirements, and a Changes row on every entry covered by provenance. Verify with page tests for each
-      pair, and that the completeness test from 7.1 now passes for every kind.
+      Replaces on requirements, and on every entry covered by provenance a corner link to its changes in the
+      catalogue. Verify with page tests for each pair, and that the completeness test from 7.1 now passes for every
+      kind.
 - [ ] 7.8 Reword the paradata decision in `docs/design.md`, and update any description of the catalogue's cards in
       `docs/content-model.md`. Verify that `python scripts/check_docs.py` passes and that the about page's statement
       (`content/pages.toml:179`) now matches the catalogue.

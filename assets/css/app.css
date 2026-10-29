@@ -3832,6 +3832,41 @@ section.datacite-read p {
   min-width: 0;
 }
 
+/* A relation's groups, one under another across the row; a long one folds behind its count, and a table inside it
+   scrolls within the row (design D8). */
+.relations dd > .relation-group {
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.relation-group-label {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* Each item a line of its own with room around it, so chips, badges and links in one list never touch and each
+   link is a target of its own. */
+.relation-list {
+  margin: 0;
+  padding-left: 1.2em;
+  line-height: 1.6;
+}
+
+.relation-list > li + li {
+  margin-top: 0.3rem;
+}
+
+.relation-fold > summary {
+  font-weight: 400;
+}
+
+/* An opened list keeps its first link clear of the summary above it, which is a target too. */
+.relation-fold > .relation-list,
+.relation-fold > .text-table-scroll {
+  margin-top: 0.6rem;
+}
+
 .relations .audience {
   display: inline-flex;
   align-items: center;
@@ -3878,13 +3913,87 @@ section.datacite-read p {
   font-size: var(--size-small);
 }
 
+/* A catalogue entry's corner: the count of its changes, leading to them in the catalogue, then its record. */
+.entry-links {
+  position: absolute;
+  right: var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--size-small);
+  line-height: 1;
+}
+
+/* Both corner links on one centre line; the record link stays inline so its "{ }" mark keeps no underline. */
+.entry-links .json-link {
+  position: static;
+}
+
+.changes-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  min-height: 24px;
+}
+
+.changes-link .icon {
+  vertical-align: 0;
+}
+
+.relations dd.relation-wide {
+  grid-column: 1 / -1;
+}
+
+/* A folded box with an action in its header: the action sits at the header's right, outside the summary. */
+.fold-box {
+  position: relative;
+}
+
+.fold-box > .relation-fold {
+  margin-top: 0;
+}
+
+.fold-box > .relation-fold > summary {
+  padding-right: 3.5rem;
+  line-height: 1.5;
+}
+
+/* As high as the summary row and centred on it: its padding twice and one line. */
+.fold-action {
+  position: absolute;
+  top: 1px;
+  right: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  height: calc(2 * var(--space-3) + 1.5em);
+}
+
+/* A declaration's note is prose: it wraps within its column instead of widening the table past the page. */
+.declarations-table td:last-child {
+  min-width: 16rem;
+  white-space: normal;
+  text-align: left;
+}
+
+/* A table read on a page of its own uses the window's whole width. */
+.catalogue-table-page {
+  padding: var(--space-4);
+}
+
 /* Beside the first row on wider screens; on phones in the bottom corner, so a long identifier keeps the width. */
 @media (min-width: 40rem) {
   .card:has(.json-link) > :first-child {
     padding-right: 4.5rem;
   }
 
-  .json-link {
+  .card:has(.changes-link) > :first-child {
+    padding-right: 7.5rem;
+  }
+
+  .json-link,
+  .entry-links {
     top: var(--space-3);
   }
 }
@@ -3894,7 +4003,8 @@ section.datacite-read p {
     padding-bottom: calc(var(--space-3) + 1.75rem);
   }
 
-  .json-link {
+  .json-link,
+  .entry-links {
     bottom: var(--space-3);
   }
 }

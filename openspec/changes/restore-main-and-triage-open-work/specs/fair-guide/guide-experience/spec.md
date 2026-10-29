@@ -5,8 +5,9 @@
 ### Requirement: Catalogue entries show everything their records carry
 
 Every catalogue entry SHALL show each field its record carries, or the catalogue SHALL exclude that field with a
-stated reason. A count SHALL NOT replace the items it counts, and a relation SHALL show on both of its ends, including
-the dated content changes that produced each entry.
+stated reason. A count SHALL NOT replace the items it counts, and a relation SHALL show on both of its ends. Each
+entry SHALL lead to the dated content changes that produced or altered it, which the catalogue's list of changes
+holds, so that no entry grows with each change.
 
 #### Scenario: A content change names its people and tools
 
@@ -26,13 +27,16 @@ the dated content changes that produced each entry.
 - **GIVEN** a reader opening a FIP profile in the catalogue
 - **WHEN** its entry is shown
 - **THEN** each declaration appears with its principle, its enabling resource and its status
+- **AND** the table can be read across the entry's full width and on a page of its own
 - **AND** that resource's entry lists the profile among those that declare it
 
-#### Scenario: An entry shows the changes that produced it
+#### Scenario: An entry leads to the changes that produced it
 
 - **GIVEN** any catalogue entry covered by provenance
 - **WHEN** its entry is shown
-- **THEN** it lists the dated content changes that produced or altered it, each linking to the change's entry
+- **THEN** its corner counts the content changes that produced or altered it and leads to them in the catalogue, each
+  dated and leading to the change's entry
+- **AND** the entry itself does not list them
 
 #### Scenario: A new field cannot hide
 
@@ -45,7 +49,7 @@ the dated content changes that produced each entry.
 Across kinds, an entry's byline SHALL name who made the work, and labelled rows SHALL name who operates, develops or
 provides it. A work's own licence SHALL be a row; the licence of a quoted text SHALL sit beside the quote and be named
 from the data. Dates SHALL sit in the details line, a status SHALL be one badge with icon, text and as-of date, and
-qualified lists SHALL be rows.
+qualified lists SHALL be rows. The catalogue's own labels SHALL NOT address the reader, since it is not read in a role.
 
 #### Scenario: The same property in the same place
 
@@ -58,6 +62,12 @@ qualified lists SHALL be rows.
 - **GIVEN** a cited source with a licence and a glossary term that quotes a definition
 - **WHEN** both entries are shown
 - **THEN** the source shows a Licence row, and the term shows its definition's licence beside the definition, named as the data records it
+
+#### Scenario: A question the self-check puts to the reader
+
+- **GIVEN** a check question that the self-check's reader, the researcher, puts right
+- **WHEN** its catalogue entry is shown
+- **THEN** who puts it right is named by that role, as the Researcher lens names it, not as "you"
 
 #### Scenario: Status reads without colour
 
