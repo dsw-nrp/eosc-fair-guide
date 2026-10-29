@@ -57,17 +57,18 @@ See proposal.md for the motivation. These constraints shape the approach:
 
 ## Decisions
 
-### D1. One change, delivered by eight pull requests and one triage pass
+### D1. One change, delivered by nine pull requests and one triage pass
 
 ```mermaid
 flowchart TD
   accTitle: Pull request and triage order for this change
-  accDescr: PR A restores main first. Then the bot pull requests are queued, the four rebuilt content pull requests merge in issue order, and PR C carries the change artifacts, the watch fix, the digest exemption and the digest fixes. PR E follows PR C with the complete catalogue. Independently, the issue triage applies an approved ledger, first closures and re-scopes, then shaping. After the next watch run, the triage and PR E, PR D records verification and archives the change.
+  accDescr: PR A restores main first. Then the bot pull requests are queued, the four rebuilt content pull requests merge in issue order, and PR C carries the change artifacts, the watch fix, the digest exemption and the digest fixes. PR E follows PR C with the complete catalogue, and PR F with the original-source rule. Independently, the issue triage applies an approved ledger, first closures and re-scopes, then shaping. After the next watch run, the triage, PR E and PR F, PR D records verification and archives the change.
   A[PR A: regenerate the inventory] --> BOT[Queue #138, #139 and #117]
   A --> B1[B1: #35 deduplication]
   B1 --> B2[B2: #36] --> B3[B3: #37] --> B4[B4: #38]
   A --> C[PR C: artifacts, HEAD 400 fallback, digest exemption, limitations, RO-Crate link, usage entry]
   C --> E[PR E: complete catalogue cards, conventions, completeness test]
+  C --> F[PR F: cite the original source]
   L[Triage ledger approved] --> T1[Closures and re-scopes] --> T2[Shaping in batches, then Ready]
   C --> W[Next watch run]
   W --> D[PR D: verify, finish tasks, archive]
@@ -75,6 +76,7 @@ flowchart TD
   BOT --> D
   T2 --> D
   E --> D
+  F --> D
 ```
 
 | Step | What it carries | When |
@@ -84,6 +86,7 @@ flowchart TD
 | B1–B4 | Rebuilt content, one per issue, in issue order | After A, independent of the bot pull requests |
 | C | The change branch `agents/claude/restore-main-and-triage-open-work`: this change's artifacts and triage ledger, the HEAD 400 fallback and the digest exemption with their tests, the limitations, the RO-Crate link fix and the usage entry; each behaviour change travels with its spec delta | After A |
 | E | The complete catalogue of D8 with its tests and documentation, branched from `main` after PR C, which was already under review when the maintainer added this scope | After C |
+| F | The original-source rule of D10: the content rule and its generated copies, the `guide-knowledge-base` delta, the content model and how-to, this change's artifact updates and the usage entry | After C, independent of E |
 | Triage | The ledger on the change branch; its writes go to GitHub issues and the Project, not to a pull request | Now, independent of A |
 | D | Verification after the next watch run and the triage, the final task and usage-entry updates, and the archive after approval | Last |
 
@@ -97,7 +100,7 @@ Alternatives considered:
 
 **Bot pull requests** follow `docs/runbooks/merge.md`: the code owner approves them and chooses **Merge when ready**.
 
-**The maintainer's own pull requests** (A, B1–B4, C and D) need the administrator bypass, as #141 and #143 did,
+**The maintainer's own pull requests** (A, B1–B4, C, D, E and F) need the administrator bypass, as #141 and #143 did,
 because no other eligible reviewer exists. Before each bypass:
 
 - `checks` is green;
@@ -405,6 +408,31 @@ Alternatives considered:
 - Escaping in `plan_issue_shape.body_type`: rejected, because the comparison needs the value as written.
 - A local helper in the audit: rejected, because it would give the escaping rule a second owner.
 
+### D10. Cite the original source
+
+The review of B2 (#147) found that its handover advice had no clause. The first fix cited the TU Delft Digital
+Competence Centre's offboarding page, which summarises and links the offboarding checklist of Harvard's Longwood
+Medical Area Research Data Management Working Group. The checklist is published on Zenodo with a DOI under CC BY
+4.0, and it carries what the summary drops: who maintains the data next, and introducing the checklist when people
+join. The data dictionary in the same advice followed the same path, from RDMkit to the UK Data Service page that
+RDMkit links.
+
+- **The rule:** a clause cites the published work that originally states it, with that work's title, version, DOI
+  where it has one, wording and licence. A page that relays, summarises or links that work is cited only for what
+  it adds itself. Advice is worded from the original.
+- **Where it is stated:** the `guide-knowledge-base` requirement on published sources, the native content rule, the
+  `sources.toml` section of the content model and step 4 of the content how-to.
+- **Enforcement:** review only. No check can tell whether a page relays another work, so the reviewer follows a
+  source's links before accepting it. This residual is recorded here rather than covered by more prose.
+- **Scope:** clauses added or changed from now on. Existing clauses are revised when an edit touches them; this
+  change does not audit the ledger.
+
+Alternatives considered:
+
+- A `basedOn` field linking a relaying source to its original: rejected. It adds a contract field and still needs a
+  reviewer to find the original.
+- An audit of every existing source in this change: rejected. It is separate work, which an issue can track.
+
 ### Accessibility and migration
 
 - **Accessibility:** the rebuilt advice and the resource link use existing fields and rendering. The catalogue's new
@@ -418,6 +446,7 @@ Alternatives considered:
     `docs/runbooks/rollback-a-setting.md` together with their declaration.
   - The catalogue reads the crate as it is; no content, stored format or API record changes, and the cards revert
     with PR E.
+  - The original-source rule changes no content and no stored format; it reverts with PR F.
 
 ## Risks / Trade-offs
 
@@ -442,6 +471,8 @@ Alternatives considered:
   reads, and the page test checks that declared fields actually render.
 - [Showing people by name in the catalogue] → Only reviewed identities appear, as the crate already publishes them; an
   ORCID iD the person opted out of stays hidden.
+- [The original of a relaying page cannot be found or reached] → Cite the relaying page only for what it adds itself,
+  and narrow the advice to that.
 
 ## Migration Plan
 

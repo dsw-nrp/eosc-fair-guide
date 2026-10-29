@@ -497,7 +497,8 @@ recommendation is about). The IRI is
 ### `sources.toml`
 
 Published works the guide cites but does not recommend as a resource (a cited resource carries its citation in
-`resources.toml`). `[[source]]`: `id`, `code` (optional: the code its requirements' identifiers start with, where it is not the ID in capitals without a version suffix; see Identifiers), `type` (`report`, `article`, `dataset`, `webpage`, `document`, `standard`, `software`,
+`resources.toml`). A source is the work that originally states what its clauses record; a page that relays,
+summarises or links that work is cited only for what it adds itself. `[[source]]`: `id`, `code` (optional: the code its requirements' identifiers start with, where it is not the ID in capitals without a version suffix; see Identifiers), `type` (`report`, `article`, `dataset`, `webpage`, `document`, `standard`, `software`,
 `presentation`), `title` (a string, or a table whose `inLanguage` value is the original title), `short` (optional:
 the short name shown where the source is named often, as next to each requirement it holds), `version`,
 `inLanguage`, `url`, `doi` (without the resolver), `publisher` (an organisation ID, or a language-neutral name),

@@ -28,6 +28,8 @@ digest with 16 findings (#140):
   pre-fill them; FIP profiles show a count of declarations instead of the declarations; enabling resources, licences
   and superseded requirements lose fields too. Stations stay quiet by design; the catalogue is where they send readers
   for the detail.
+- A cited source can relay another. The review of B2 (#147) found its handover advice resting on a page that
+  summarises a published checklist, and the checklist carries what the summary drops. No rule asks for the original.
 
 ## What Changes
 
@@ -74,6 +76,9 @@ digest with 16 findings (#140):
      term cards;
    - relations shown in both directions, including a **Changes** row on every entry;
    - a test that fails when a recorded field is neither shown nor excluded with a reason.
+9. **Cite the original source.** A clause cites the published work that originally states it; a page that relays,
+   summarises or links that work is cited only for what it adds itself. The knowledge-base requirement, the content
+   rule, the content model and the content how-to state it.
 
 ### Exclusions
 
@@ -105,6 +110,7 @@ None.
     directions;
   - catalogue entries follow shared conventions for who made or runs an entry, licences, dates, status and qualified
     lists.
+- `fair-guide/guide-knowledge-base`: a ledger entry cites the published work that originally states it.
 
 ## Impact
 
@@ -122,8 +128,11 @@ None.
 - **Catalogue:** `assets/js/catalogue.js`, `assets/js/catalogue-view.js`, the shared badge helper in `assets/js/`,
   the labels and icons in `content/ui.toml`, the page tests under `tests/page/`, a completeness test, and the decision
   on paradata detail in `docs/design.md`.
-- **Specs:** `openspec/specs/fair-guide/guide-delivery/spec.md` and `openspec/specs/fair-guide/guide-experience/spec.md`
-  on archive.
+- **Original-source rule:** `.agents/guide/rules/fair-guide-content.md` with its generated copies under `.claude/`,
+  `.cursor/`, `.kilo/`, `.gemini/` and `.github/instructions/` and the guide region of `CODEX.md`;
+  `docs/content-model.md` and `docs/how-to/edit-content.md`.
+- **Specs:** `openspec/specs/fair-guide/guide-delivery/spec.md`, `openspec/specs/fair-guide/guide-experience/spec.md`
+  and `openspec/specs/fair-guide/guide-knowledge-base/spec.md` on archive.
 - **Records:** one usage entry under `.agents/reports/usage/` for this change, and the triage ledger
   `openspec/changes/restore-main-and-triage-open-work/triage.toml`.
 - **GitHub:**

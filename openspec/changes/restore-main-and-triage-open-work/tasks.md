@@ -184,9 +184,10 @@ alone do not complete them.
       approves both digests; re-scoped issues take their new scope; a body keeps its language and replaces links to
       `motyc/eosc-fair-guide`. Verify that every shaped body passes the planned-issue readiness check the audit uses
       and that its provenance comment exists.
-- [ ] 6.5 **Human hand-off:** for each shaped issue, set Priority, Effort and milestone from the ledger, then its
-      Status to Ready. Verify that a maintainer's `python scripts/audit_repository.py --section project` reports no
-      `ready` finding.
+- [ ] 6.5 **Human decision:** for each shaped issue, the agent proposes Priority, Effort and milestone from the ledger,
+      adjusted by what the shaping found, and the maintainer confirms them. The agent then sets them and the Status
+      Ready; the maintainer sets any field the agent's token cannot write. Verify that a maintainer's
+      `python scripts/audit_repository.py --section project` reports no `ready` finding.
 - [ ] 6.6 Verify the triage end state with a maintainer's `python scripts/audit_repository.py --section project`:
       - every ledger issue and every task from 5.1 is Ready or closed;
       - no ledger issue and not the digest has a `triage`, `ready` or `type` finding.
@@ -234,26 +235,42 @@ alone do not complete them.
 - [ ] 7.10 **Human hand-off:** review PR E, record acceptance and merge it (design D2). Verify that the deployment's
       full checks pass and that `/next/` shows a content change's person and tools in the catalogue.
 
-## 8. Integration check and close-out (PR D)
+## 8. Original-source rule (PR F)
 
-- [ ] 8.1 **Human hand-off:** after groups 1–7 are done, start **Live health and source watch** with both the audit
+- [ ] 8.1 From the latest `main`, create `agents/claude/cite-original-sources`. Add the original-source bullet of
+      design D10 to section 3 of `.agents/guide/rules/fair-guide-content.md` and run
+      `python scripts/generate_agent_surfaces.py`. Verify:
+      - every generated copy of the rule and the guide region of `CODEX.md` carry the bullet, and nothing else changes;
+      - `python scripts/generate_agent_surfaces.py --check`, `python scripts/check_agent_surfaces.py` and
+        `python scripts/check_sibling_delivery.py` report no difference.
+- [ ] 8.2 State the rule in the `sources.toml` section of `docs/content-model.md` and in step 4 of
+      `docs/how-to/edit-content.md`. Verify that `python scripts/check_docs.py` passes.
+- [ ] 8.3 Extend the usage entry, then run `npm run openspec:validate`, `python scripts/check_usage.py` and
+      `python scripts/check_all.py`. Commit, push and open PR F after the maintainer approves the commit message and
+      PR body. Verify that the PR's `checks` pass.
+- [ ] 8.4 **Human hand-off:** review PR F, record acceptance and merge it (design D2). Verify that the deployment's
+      full checks pass for the merge commit.
+
+## 9. Integration check and close-out (PR D)
+
+- [ ] 9.1 **Human hand-off:** after groups 1–8 are done, start **Live health and source watch** with both the audit
       and the watch selected, or wait for the scheduled run. Verify in the rebuilt #140:
       - the seven limitations appear as known;
       - the survey PDF and the RO-Crate address are no longer under **Needs triage**;
       - the findings from 5.1 show as tracked;
       - **Project and settings** lists neither #115–#135, the view sort, the digest nor any ledger issue.
-- [ ] 8.2 Using that run's results, decide on the two remaining hosts:
+- [ ] 9.2 Using that run's results, decide on the two remaining hosts:
       - if `asep.lib.cas.cz` still fails, open one host task and triage it to Ready as 6.4 and 6.5 describe;
       - if `data.eli-laser.eu` still fails, add an `unavailable` limitation with the maintainer's reason in PR D.
 
       Verify that the next digest lists neither host under **Needs triage**.
-- [ ] 8.3 Verify the end state:
+- [ ] 9.3 Verify the end state:
       - #39–#42 are closed;
-      - #117, #138 and #139 are merged, and so is PR E;
+      - #117, #138 and #139 are merged, and so are PR E and PR F;
       - #35–#38 are closed;
       - the end state of 6.6 still holds;
       - the latest deployment of `main` passed.
-- [ ] 8.4 On a branch from `main`:
+- [ ] 9.4 On a branch from `main`:
       - tick this task list;
       - extend the usage entry with the work since PR C;
       - run `python scripts/check_all.py` and `npm run openspec:validate`.
@@ -263,6 +280,7 @@ alone do not complete them.
 ## Workflow follow-up
 
 - Archive the change in PR D with `/openspec-archive-change restore-main-and-triage-open-work` after explicit approval.
-  The archive adds the `guide-delivery` link-check requirement and the modified Project audit requirement, and the two
-  `guide-experience` catalogue requirements, to `openspec/specs/`.
+  The archive adds the `guide-delivery` link-check requirement and the modified Project audit requirement, the two
+  `guide-experience` catalogue requirements and the modified `guide-knowledge-base` source requirement to
+  `openspec/specs/`.
 - Merge PR D by the route in design D2, then verify the archived spec with `npm run openspec:validate`.

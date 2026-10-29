@@ -56,6 +56,9 @@ use HTTPS.
 - Every clause in the ledger points to a published source: the FAIR analysis, the NRP conditions and
   documentation, or a published paper, dataset, standard or page. Keep original wording, conditions and
   normative strength; an original passage stays supplementary and quieter than the Guide's own text.
+- Cite the original. When a page relays, summarises or links another published work, follow it to that work and
+  cite it: its own title, version, DOI where it has one, wording and licence. Cite the relaying page only for what
+  it adds itself. Word the advice from the original, which often carries detail a summary drops.
 - The approved Layers-and-Seams manuscript is the sole exception: cite it as **in preparation** only for the
   conceptual model and scoped implementation examples in `content/model.toml`. It cannot supply ledger
   requirements, and no DOI, publication date, publisher or licence may be invented. For other unpublished
