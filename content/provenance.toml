@@ -1710,3 +1710,44 @@ instruments = ["claude-code", "claude-opus-5-5"]
 objects = ["cessda-dmeg", "coretrustseal", "datacite-schema", "force11-citation", "ostrails-cz-pilot"]
 results = ["cessda-dmeg", "coretrustseal", "datacite-schema", "force11-citation", "ostrails-cz-pilot", "CORETRUSTSEAL.01"]
 endTime = 2026-10-30T00:10:16+01:00
+
+[[action]]
+id = "2026-10-18-consent-appraisal"
+type = "update"
+name = "Practical guidance in Stations 1 and 2: informed consent, data appraisal and team continuity"
+description = "Added guidance on informed consent wording before human data collection, data selection for long-term preservation, and data handover when team members leave."
+agent = "karel-berka"
+instruments = [
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
+]
+objects = [
+  "CESSDA-DMEG.01",
+  "EINFRA-DOCS.01",
+  "ETHICAL-SEVEN.01",
+  "LAW-328-2025.83",
+  "POLICY-MANUAL.02",
+  "POLICY-MANUAL.04",
+  "POLICY-MANUAL.06",
+  "RDMKIT.collect.02",
+  "SURVEY-2025.01",
+]
+results = [
+  "collect.22",
+  "collect.23",
+  "plan.31",
+  "plan.32",
+]
+endTime = 2026-10-20T21:00:00+00:00
+
+[[action]]
+id = "2026-10-29-continuity-review"
+type = "update"
+name = "Source and qualify the team continuity and data appraisal advice"
+description = "Reviewed the new advice in Stations 1 and 2 against its cited clauses. plan.32 keeps its point that recomputable intermediate files need not be archived only where institutional or funder policy does not require them, because none of its clauses grants that permission and POLICY-MANUAL.04 leaves the choice to the institution. The handover advice in collect.22 and collect.23 now rests on the original published source, the research data management offboarding checklist of Harvard's Longwood Medical Area working group (HARVARD-OFFBOARDING.01 and HARVARD-OFFBOARDING.02): record where the data sit and who maintains them next, give each dataset a README with basic metadata, transfer access permissions, and introduce the checklist when people join. The README and data dictionary in both items rest on the UK Data Service's guidance on data-level documentation (UKDS-DATA-LEVEL.01), which RDMkit links for the concept: documentation that others can understand without the original team, reviewed for completeness. collect.22 no longer repeats the storage recommendation of collect.03."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5"]
+objects = ["CESSDA-DMEG.01", "EINFRA-DOCS.01", "HARVARD-OFFBOARDING.01", "HARVARD-OFFBOARDING.02", "LAW-328-2025.83", "POLICY-MANUAL.02", "POLICY-MANUAL.04", "POLICY-MANUAL.06", "UKDS-DATA-LEVEL.01"]
+results = ["HARVARD-OFFBOARDING.01", "HARVARD-OFFBOARDING.02", "UKDS-DATA-LEVEL.01", "collect.22", "collect.23", "harvard-offboarding", "plan.32", "ukds-data-level"]
+endTime = 2026-10-29T10:33:14+01:00

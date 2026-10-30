@@ -4732,3 +4732,36 @@ locator = "Version 1.0, pp. 10-11: Creative Commons"
 guidance = "Nejvyužívanějšími jsou typizované licence Creative Commons (CC), které jsou používány celosvětově a umožňují nakládání s dílem co nejširšímu okruhu osob za předem stanovených  podmínek. Jsou vhodné prakticky pro všechny typy autorských děl s výjimkou softwarů, pro které existují zvláštní typizované licence (viz níže). "
 guidanceLanguage = "cs"
 terms = ["creative-commons-license"]
+
+[[clause]]
+id = "HARVARD-OFFBOARDING.01"
+source = "harvard-offboarding"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Kontrolní seznam harvardské pracovní skupiny pro správu výzkumných dat doporučuje, aby výzkumník při odchodu ze skupiny zapsal do dokumentu pro předání znalostí, kde data leží a kdo je bude dál spravovat, uspořádal data ve sdílených složkách s README ke každému datasetu a předal přístupová práva členům laboratoře či kolegům.", en = "The checklist of Harvard's research data management working group recommends that a researcher leaving a group record in a knowledge transfer file where the data sit and who maintains them next, organise the data in shared folders with a README for each dataset, and transfer access permissions to lab members or colleagues." }
+guidance = "- Create a descriptive Knowledge Transfer File with relevant metadata. Refer to this document throughout the offboarding process.\n- Include in the Knowledge Transfer File the entity responsible for future maintenance of the data.\n- Review and organize data in collaborative folders so they are easily accessible to colleagues.\n- Create and/or update your README documents with basic metadata for each distinct dataset.\n- Document in your Knowledge Transfer File, and/or other format requested by your PI or lab manager, the location of data (electronic or otherwise) related to your research.\n- Transfer Access Permissions for Collaborative Data to Appropriate Lab Members or Colleagues"
+guidanceLanguage = "en"
+locator = "Checklist for Researcher Offboarding: Planning and Storage, pp. 3-4"
+
+[[clause]]
+id = "HARVARD-OFFBOARDING.02"
+source = "harvard-offboarding"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Harvardská pracovní skupina pro správu výzkumných dat doporučuje představit kontrolní seznam pro předání dat s dostatečným předstihem, nejlépe už při nástupu nového člena, a používat jej v celé laboratoři či na pracovišti, aby všichni dodržovali stejné postupy správy dat. Seznam lze přizpůsobit potřebám výzkumu.", en = "Harvard's research data management working group recommends introducing the offboarding checklist well before a departure, ideally when a person joins, and using it across a lab or department so that everyone follows the same data management practices. The checklist can be tailored to research needs." }
+guidance = "The RDM Offboarding Checklist relies on the creation of a Knowledge Transfer File, and should be introduced well in advance of a departure, ideally during RDM Onboarding.\n\nYou are encouraged to utilize the Offboarding Checklist to get everyone in the research lab or department following the same data management practices. The checklist can be tailored to various research needs."
+guidanceLanguage = "en"
+locator = "Record description; Purpose and Usage: Using the Checklist, p. 1"
+
+[[clause]]
+id = "UKDS-DATA-LEVEL.01"
+source = "ukds-data-level"
+principles = ["R1"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "UK Data Service doporučuje dokumentaci na úrovni dat, díky níž je struktura datového souboru srozumitelná i bez původního výzkumného týmu: u tabulkových dat názvy a popisky proměnných, datové typy, jednotky, kódování hodnot a chybějící hodnoty. Metadata vložená přímo v souboru doporučuje zkontrolovat, zda jsou úplná, a podle potřeby je doplnit strukturovaným kódovníkem či datovým slovníkem.", en = "The UK Data Service recommends data-level documentation that makes a dataset's structure understandable independently of the original research team: for tabular data, variable names and labels, data types, units, coding schemes and missing values. It recommends reviewing metadata embedded in a file for completeness and, where needed, supplementing it with a structured codebook or data dictionary." }
+guidance = "Data-level documentation explains how individual files are structured and how their contents should be interpreted. It makes explicit how information is organised within files, how elements are identified, and how different components relate to one another.\n\nData-level documentation clarifies this structure so that it can be understood independently of the original research team.\n\nDocumentation should describe:\n- Variable names and descriptive labels.\n- Data types.\n- Units of measurement.\n- Value labels and coding schemes.\n- Definitions of missing data and distinctions between types of non-response.\n- Applicability or universe information (e.g. filtered questions or subpopulations).\n- Weighting variables, where relevant.\n- Derived or constructed variables and how they were created.\n\nAlthough some statistical software (e.g. SPSS, Stata) often allows this information to be embedded within the file, embedded metadata should be reviewed for completeness. Supplementary documentation, such as a structured codebook or data dictionary, may be required to ensure clarity."
+guidanceLanguage = "en"
+locator = "Learning Hub / Data producer support / Documenting and describing data / Data-level documentation: introduction and Tabular data"
