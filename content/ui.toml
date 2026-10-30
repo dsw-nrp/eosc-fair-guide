@@ -149,6 +149,7 @@ nkr = { cs = "NKR", en = "NKR" }
 ark = { cs = "ARK", en = "ARK" }
 iri = { cs = "Trvalé IRI", en = "Persistent IRI" }
 dashboard = { cs = "FIP Dashboard", en = "FIP Dashboard" }
+address = { cs = "Adresa", en = "Address" }
 
 [station]
 stage = { cs = "Fáze {n} · {name}", en = "Stage {n} · {name}" }
@@ -634,7 +635,7 @@ table = { cs = "Data grafu jako tabulka", en = "The chart's data as a table" }
 noScore = { cs = "Průvodce nesčítá odpovědi do skóre; každá oblast i každý princip mají vlastní stav.", en = "The Guide adds no answers into a score; each area and each principle has its own state." }
 gaps = { cs = "Co chybí, podle toho, kdo to řeší", en = "What is missing, by who fixes it" }
 anyone = { cs = "Kdokoli z týmu", en = "Anyone on the team" }
-gapsRule = { cs = "U každé otázky Průvodce uvádí, kdo daný nedostatek obvykle odstraní, a podle toho jsou nedostatky seskupené. „Vy“ je ten, kdo kontrolu vyplňuje. Zvolený pohled skupiny nemění, jen řadí skupinu vaší role na první místo.", en = "For each question the Guide states who usually puts the gap right, and the gaps are grouped by that. “You” is whoever fills in the check. The chosen view does not change the groups; it only puts your role's group first." }
+gapsRule = { cs = "U každé otázky Průvodce uvádí, kdo daný nedostatek obvykle odstraní, a podle toho jsou nedostatky seskupené. Zvolený pohled skupiny nemění, jen řadí skupinu vaší role na první místo.", en = "For each question the Guide states who usually puts the gap right, and the gaps are grouped by that. The chosen view does not change the groups; it only puts your role's group first." }
 fixedBy = { cs = "Kdo to řeší: {who}", en = "Who puts it right: {who}" }
 yourRole = { cs = "vaše role", en = "your role" }
 agreementTitle = { cs = "Vaše odpovědi a hodnotitelé", en = "Your answers and the evaluators" }
@@ -921,14 +922,32 @@ singleMissing = { cs = "Položka {id} v katalogu není.", en = "The catalogue ha
 showAll = { cs = "Zobrazit vše: {kind} ({n})", en = "Show all: {kind} ({n})" }
 published = { cs = "vydáno {date}", en = "published {date}" }
 accessed = { cs = "navštíveno {date}", en = "accessed {date}" }
+modified = { cs = "upraveno {date}", en = "modified {date}" }
+snapshotOf = { cs = "snímek ze dne {date}", en = "snapshot of {date}" }
+fairDataType = { cs = "typ FAIR prostředku: {type}", en = "FAIR-enabling resource type: {type}" }
+lookup = { cs = "Ověřit v", en = "Look it up in" }
+appliesAlways = { cs = "v každém režimu a profilu", en = "in every mode and profile" }
+notApplicableOffered = { cs = "lze odpovědět „netýká se“", en = "“not applicable” is offered" }
+notApplicableNot = { cs = "odpověď „netýká se“ nabízena není", en = "“not applicable” is not offered" }
+prefillPartly = { cs = "navrhne nejvýš Částečně", en = "suggests at most Partly" }
+championOnly = { cs = "jen z podkladů FAIR Champion", en = "FAIR Champion evidence only" }
+testFiles = { cs = "Soubory", en = "Files" }
 version = { cs = "verze {version}", en = "version {version}" }
 declarations = { cs = "{n} deklarace|{n} deklarace|{n} deklarací", en = "{n} declaration|{n} declarations" }
 created = { cs = "obsah vytvořen", en = "content created" }
 updated = { cs = "obsah upraven", en = "content updated" }
-changedItems = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} item|{n} items" }
+changedItems = { cs = "změněna {n} položka|změněny {n} položky|změněno {n} položek", en = "{n} item changed|{n} items changed" }
+consultedCount = { cs = "{n} podklad|{n} podklady|{n} podkladů", en = "{n} source consulted|{n} sources consulted" }
+itemCount = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} item|{n} items" }
+changesOf = { cs = "{n} změna této položky v katalogu|{n} změny této položky v katalogu|{n} změn této položky v katalogu", en = "{n} change to this entry in the catalogue|{n} changes to this entry in the catalogue" }
+declarationsFull = { cs = "Tabulka deklarací na celé stránce", en = "The declarations table on a full page" }
+declarationsOf = { cs = "Deklarace: {name}", en = "Declarations: {name}" }
+backToEntry = { cs = "Profil v katalogu", en = "The profile in the catalogue" }
+# A tier named without addressing the reader: the catalogue is not read in a role.
+tierBasic = { cs = "úvodní", en = "introductory" }
 openEntry = { cs = "{id} v katalogu", en = "{id} in the catalogue" }
 guidance = { cs = "Původní znění ze zdroje", en = "Original source wording" }
-originalLicense = { cs = "Licence původního textu", en = "Original text licence" }
+quoteLicence = { cs = "Licence citovaného textu", en = "Licence of the quoted text" }
 knavSteps = { cs = "Kroky v katalogu KNAV", en = "Steps in the KNAV catalogue" }
 knavHttp = { cs = "Katalog uvádí adresu jen přes nezabezpečené HTTP; najdete ji v katalogu:", en = "The catalogue gives its address over unencrypted HTTP only; find it in the catalogue:" }
 entries = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} entry|{n} entries" }
@@ -981,7 +1000,7 @@ fips = { cs = "Profily FAIR implementace (FIP) komunit ze snímku FIP Dashboardu
 tests = { cs = "Automatické testy pro předvyplnění kontrol, s popisy, souvisejícími otázkami a principy, kódem nebo adresou služby a dokumentací.", en = "Automated tests used to prefill the checks, with descriptions, related questions and principles, code or service endpoints, and documentation." }
 clauses = { cs = "Požadavky, doporučení a zjištění z publikovaných podkladů, na kterých stojí rady a otázky Průvodce; hlavním podkladem je Analýza FAIR pro NRP/NDI. Identifikátor jako A.F1.N1 uvádí podklad, princip a pořadí.", en = "The requirements, recommendations and findings from published sources that the Guide's advice and questions rest on; the main source is the FAIR analysis for NRP/NDI. An identifier such as A.F1.N1 gives the source, the principle and the order." }
 questions = { cs = "Otázky všech kontrol sebehodnocení, s principy, které ověřují, a požadavky, ze kterých vycházejí.", en = "The questions of every self-check, with the principles they test and the requirements they rest on." }
-actions = { cs = "Kdy a jak se obsah Průvodce měnil. Kdo změnu provedl a s jakým nástrojem, zaznamenávají paradata ve znalostní bázi.", en = "When and how the Guide's content changed. Who made each change and with which tool is recorded in the paradata of the knowledge base." }
+actions = { cs = "Kdy a jak se obsah Průvodce měnil: kdo každou změnu provedl, s jakými nástroji, z jakých podkladů a které položky změnila.", en = "When and how the Guide's content changed: who made each change, with which tools, from which sources and which entries it changed." }
 resources = { cs = "Služby, nástroje, standardy, příručky i publikace: co Průvodce doporučuje, z čeho vychází a co eviduje FIP Dashboard. Značky říkají, jak je Průvodce používá.", en = "Services, tools, standards, guides and publications: what the Guide recommends, what it builds on and what the FIP Dashboard lists. The marks say how the Guide uses each." }
 
 # What one entry of each kind is, named by its kind's mark for screen readers.
@@ -1031,6 +1050,24 @@ memberOf = { cs = "Členství v ERIC", en = "ERIC membership" }
 operates = { cs = "Provozuje", en = "Operates" }
 fips = { cs = "Profil FIP komunity", en = "Community FIP" }
 developedBy = { cs = "Vyvinuli", en = "Developed by" }
+fixedBy = { cs = "Kdo to napraví", en = "Who puts it right" }
+applies = { cs = "Kdy se ptá", en = "Applies" }
+group = { cs = "Skupina", en = "Group" }
+nrpProfile = { cs = "Pro profil NRP", en = "For NRP profile" }
+prefilledFrom = { cs = "Předvyplňuje se z", en = "Pre-filled from" }
+prefills = { cs = "Předvyplňuje", en = "Pre-fills" }
+covers = { cs = "Pokrývá", en = "Covers" }
+correspondsTo = { cs = "Odpovídá", en = "Corresponds to" }
+declarations = { cs = "Deklarace", en = "Declarations" }
+declaredIn = { cs = "Deklarováno v", en = "Declared in" }
+tools = { cs = "Nástroje", en = "Tools" }
+providedBy = { cs = "Poskytovatel", en = "Provided by" }
+license = { cs = "Licence", en = "Licence" }
+replacedBy = { cs = "Nahrazeno", en = "Replaced by" }
+replaces = { cs = "Nahrazuje", en = "Replaces" }
+consulted = { cs = "Podklady", en = "Consulted" }
+changed = { cs = "Změněno", en = "Changed" }
+mentions = { cs = "Zmiňuje", en = "Mentions" }
 
 [catalogue.what]
 term = { cs = "pojem Hesláře", en = "Heslář term" }
@@ -1052,6 +1089,63 @@ partial = { cs = "pokrývá část otázky", en = "covers part of the question" 
 available = { cs = "funguje", en = "available" }
 degraded = { cs = "funguje omezeně", en = "degraded" }
 unavailable = { cs = "nefunguje", en = "unavailable" }
+
+[catalogue.prefill]
+resolver = { cs = "resolver DOI nebo Handle", en = "DOI or Handle resolver" }
+datacite = { cs = "záznam v DataCite", en = "DataCite record" }
+nkr = { cs = "záznam v NKR", en = "NKR record" }
+re3data = { cs = "záznam v re3data", en = "re3data record" }
+fip = { cs = "FIP Dashboard", en = "FIP Dashboard" }
+champion = { cs = "test FAIR Champion", en = "FAIR Champion test" }
+
+[catalogue.mode]
+before = { cs = "při přípravě zveřejnění", en = "while preparing publication" }
+after = { cs = "po zveřejnění s trvalým identifikátorem", en = "after publication with a persistent identifier" }
+
+[catalogue.instrumentKind]
+software = { cs = "software", en = "software" }
+"ai-model" = { cs = "model AI", en = "AI model" }
+service = { cs = "služba", en = "service" }
+
+# A content change's records grouped by what they are; catalogue kinds use their tab names.
+[catalogue.recordGroup]
+principles = { cs = "Principy FAIR", en = "FAIR principles" }
+stations = { cs = "Zastávky", en = "Stations" }
+checks = { cs = "Kontroly", en = "Checks" }
+organizations = { cs = "Organizace", en = "Organisations" }
+advice = { cs = "Rady na zastávkách", en = "Station advice" }
+callout = { cs = "Upozornění na zastávkách", en = "Station callouts" }
+"model-context" = { cs = "Souvislosti modelu na zastávkách", en = "Model context at stations" }
+page = { cs = "Stránky", en = "Pages" }
+guide = { cs = "Průvodce", en = "The Guide" }
+other = { cs = "Ostatní", en = "Other" }
+
+[catalogue.declarationStatus]
+"in-use" = { cs = "používá se", en = "in use" }
+planned = { cs = "plánováno", en = "planned" }
+"under-consideration" = { cs = "zvažuje se", en = "under consideration" }
+"to-be-replaced" = { cs = "bude nahrazeno", en = "to be replaced" }
+
+[catalogue.declarationCount]
+"in-use" = { cs = "{n} se používá|{n} se používají|{n} se používá", en = "{n} in use" }
+planned = { cs = "{n} plánovaná|{n} plánované|{n} plánovaných", en = "{n} planned" }
+"under-consideration" = { cs = "{n} zvažovaná|{n} zvažované|{n} zvažovaných", en = "{n} under consideration" }
+"to-be-replaced" = { cs = "{n} k nahrazení", en = "{n} to be replaced" }
+
+[catalogue.declarationColumn]
+principle = { cs = "Princip", en = "Principle" }
+resource = { cs = "FAIR prostředek", en = "FAIR-enabling resource" }
+status = { cs = "Stav", en = "Status" }
+note = { cs = "Poznámka", en = "Note" }
+
+[catalogue.fipStatus]
+published = { cs = "zveřejněný profil", en = "published profile" }
+draft = { cs = "koncept profilu", en = "draft profile" }
+
+[catalogue.spatial]
+global = { cs = "celosvětový dosah", en = "global coverage" }
+national = { cs = "národní dosah", en = "national coverage" }
+european = { cs = "evropský dosah", en = "European coverage" }
 
 [machines]
 preview = { cs = "Náhled znalostní báze", en = "Knowledge base preview" }
@@ -1166,6 +1260,7 @@ social-sciences-humanities = { cs = "společenské a humanitní vědy", en = "So
 earth-sciences = { cs = "vědy o Zemi", en = "Earth Sciences" }
 
 [catalogue.facet]
+record = { cs = "Položka", en = "Entry" }
 layers = { cs = "Vrstvy implementace", en = "Implementation layers" }
 seams = { cs = "Návaznosti", en = "Connections" }
 modelKind = { cs = "Část modelu", en = "Part of the model" }
@@ -1532,7 +1627,6 @@ parameter = { cs = "Identifikátor modelu, fáze nebo shody", en = "The model, s
 
 # A large research infrastructure in the catalogue (content/infrastructures.toml, D-174).
 [infrastructure]
-host = { cs = "hostitelská instituce: {host}", en = "hosting institution: {host}" }
 since = { cs = "na cestovní mapě od roku {year}", en = "on the roadmap since {year}" }
 ericSince = { cs = "{name}, ČR členem od roku {year}", en = "{name}, the Czech Republic a member since {year}" }
 ericExpected = { cs = "{name}, ČR zakládajícím členem po jeho založení", en = "{name}, the Czech Republic a founding member once it is set up" }

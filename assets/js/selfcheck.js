@@ -35,7 +35,7 @@
   const MAX_FILE = 8 * 1024 * 1024;
   const SOURCES = ["datacite", "resolver", "nkr", "re3data", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared", "landing", "pid-record", "github", "gitlab", "fair-checker", "f-uji"];
   const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved", "lookupFailed", "stewardFound", "stewardMissing", "stewardRole", "stewardOrcid", "partialCoverage", "sourceConflict", "representation", "repositoryScope", "profileDeclaration", "unsupportedPid", "sampleCoverage", "titleMeaning", "rightsCoverage", "classificationScheme", "descriptionCoverage", "creatorIdentifiers", "keywordScheme", "pidProfile", "commitVersion", "copyrightCoverage", "bundledLicences", "testsNotRun", "dependenciesCoverage", "testUnavailable", "providerUnavailable", "providerVersion", "providerFail", "providerUnknown", "providerBlank", "providerMapping", "providerHarvest"];
-  const LENS_ACTOR = { V: "#actor-user", DS: "#actor-data-steward", SR: "#actor-repository-admin", K: "#actor-community" };
+  const LENS_ACTOR = { V: "#actor-researcher", DS: "#actor-data-steward", SR: "#actor-repository-admin", K: "#actor-community" };
   /* The last thing a run reported, and the part it was reported on: the answers part shows only what was reported
      there, so a note left by the evidence does not stay pinned above the questions. */
   const status = { check: null, part: null, text: "", busy: false };
@@ -1717,7 +1717,7 @@
 
   function whom(item) {
     const own = LENS_ACTOR[FG.state.lens];
-    const actors = FG.refs(item, "fixedBy").filter((actor) => actor["@id"] !== "#actor-user" && actor["@id"] !== own);
+    const actors = FG.refs(item, "fixedBy").filter((actor) => actor["@id"] !== "#actor-researcher" && actor["@id"] !== own);
     if (FG.state.lens === "V" && !actors.some((actor) => actor["@id"] === "#actor-data-steward")) actors.push(FG.get("#actor-data-steward"));
     const helps = [];
     if (actors.some((actor) => actor && actor["@id"] === "#actor-data-steward")) helps.push(FG.get("#help-data-steward"));
@@ -2046,9 +2046,10 @@
   }
 
   /** The gaps, grouped by who fixes them: one card per actor, each gap with where on the path it is addressed. */
-  /* The owners a role stands for: the chosen role sees the gaps it puts right first. "You" is whoever fills in the
-     check, so it is the researcher's own group. */
-  const ROLE_OWNERS = { V: ["#actor-user"], DS: ["#actor-data-steward"], SR: ["#actor-repository-admin", "#actor-curator"], K: ["#actor-community"] };
+  /* The owners a role stands for: the chosen role sees the gaps it puts right first. Every owner is named by its
+     role, so a gap reads the same on screen, in a saved report and to whoever reads it; the researcher's group is the
+     Researcher lens's own. */
+  const ROLE_OWNERS = { V: ["#actor-researcher"], DS: ["#actor-data-steward"], SR: ["#actor-repository-admin", "#actor-curator"], K: ["#actor-community"] };
 
   /** The gaps grouped by who puts them right, as each question states it (its owners in the content); the rule is
       said above the groups, and the chosen role changes only which group comes first. */

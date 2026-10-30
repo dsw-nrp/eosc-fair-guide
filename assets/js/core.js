@@ -178,7 +178,7 @@
   FG.modelRows = function (entity) {
     return ["implementationLayers", "implementationSeams"].flatMap((property) => {
       const terms = FG.refs(entity, property);
-      return terms.length ? [FG.relationTerm(property), FG.h("dd", { class: "model-tags" }, terms.map(FG.modelLink))] : [];
+      return terms.length ? [FG.relationTerm(property), FG.h("dd", { class: "model-tags", "data-field": property }, terms.map(FG.modelLink))] : [];
     });
   };
   /** A labelled row's label with the row's icon, the same wherever the row appears; a row of a model term's own

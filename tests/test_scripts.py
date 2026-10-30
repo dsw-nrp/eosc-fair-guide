@@ -2360,6 +2360,25 @@ class SiteTests(unittest.TestCase):
         self.assertTrue(tracked)
         self.assertEqual(tracked - build_crate.PROTECTED_TREES, set())
 
+    def test_every_interface_key_the_page_names_has_its_strings(self) -> None:
+        # FG.t falls back to the key itself, so a key missing from content/ui.toml shows on the page as dotted text.
+        strings = tomllib.loads((build_crate.ROOT / "content" / "ui.toml").read_text(encoding="utf-8"))
+
+        def defined(key: str) -> bool:
+            node: object = strings
+            for part in key.split("."):
+                node = node.get(part) if isinstance(node, dict) else None
+            return isinstance(node, dict) and bool(node.get("cs") and node.get("en"))
+
+        call = re.compile(r'\bFG\.t\(\s*"([A-Za-z]\w*(?:\.\w+)+)"\s*[,)]')
+        named = [
+            (path.name, key)
+            for path in sorted((build_crate.ROOT / "assets" / "js").glob("*.js"))
+            for key in call.findall(path.read_text(encoding="utf-8"))
+        ]
+        self.assertGreater(len(named), 400)
+        self.assertEqual([f"{name}: {key}" for name, key in named if not defined(key)], [])
+
 
 def make_link(test: unittest.TestCase, path: Path, target: Path) -> None:
     """A directory link, or a junction where Windows refuses links without privilege; skips when neither exists."""

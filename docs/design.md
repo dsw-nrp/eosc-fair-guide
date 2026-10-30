@@ -210,8 +210,9 @@ covering it, and changes against the PR merge base need fresh coverage. Actions 
 person, instruments (actual AI tools when used), sources, results and end time. Generating the crate
 does not make the generator the author. Reviewed identities, GitHub accounts and optional ORCID iDs
 support credit; declined identifiers stay hidden and bots are not authors. Contributor suggestions do
-not guess identities. Stations show a quiet source/date line; full people/tool detail stays in the crate
-and About. The footer cites the Guide with its compiler as editor and credits analysis authors.
+not guess identities. Stations show a quiet source/date line; the catalogue shows each change's person, tools
+(an AI model as a tool, never an author), consulted sources and changed items, and About credits the roles. The
+footer cites the Guide with its compiler as editor and credits analysis authors.
 `CITATION.cff` credits software authors, points to the editor citation and keeps the analysis as a reference.
 
 ## Catalogue and infrastructure
@@ -224,6 +225,17 @@ in the address, and an entry link shows that entry with a route back to its kind
 a closed disclosure. Every matching card is present without a Show more step, and print lays all cards out. Long original definitions use disclosures,
 with complete text retained in search and exports. One resource-type vocabulary classifies recommendations, citations and Dashboard
 records rather than parallel taxonomies. Records expose source, use, qualification and identifiers separately.
+
+**The catalogue hides nothing.** Stations stay quiet; the catalogue is their full detail. Every entry shows
+each field its record carries or excludes it with a stated reason, a count never replaces the items it counts,
+and a relation shows on both of its ends. An entry leads to the dated changes that produced it, which stay in the
+catalogue's list of changes so that no entry grows with each one. The catalogue's own labels do not address the
+reader, since it is not read in a role. Shared facts sit
+in one place on every kind: the byline names who made the work, rows name who operates, develops or provides it,
+a work's own licence is a row while a quoted text's licence sits beside the quote, dates are in the details line,
+a status is one badge with icon, text and as-of date, and qualified lists are rows grouped by kind, folded when
+long and built when first opened. Each kind declares the fields it shows; `tests/page/check_catalogue.mjs` fails
+when a record field is neither shown nor excluded, or a shown field draws nothing.
 
 **Registries keep their facts.** The Guide and FIP Dashboard are complementary facets: the Guide
 explains what to do and why; the Dashboard owns profiles and FAIR-enabling-resource facts. They share
