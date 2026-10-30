@@ -196,11 +196,10 @@ shape = "full"
 
 [[issue]]
 number = 27  # Review adoption of a published national FAIR benchmark (Q-38)
-decision = "keep"
-priority = "Low"
-effort = "Medium"
+decision = "close"
+reason = "Closed as not planned on 30 October 2026: the maintainer decided during shaping that no national FAIR benchmark will exist, so there is nothing to adopt; the reviewed FAIR Champion selection stays. First approved as keep (Low, Medium, v1.0.0-beta.x, shaped in full)."
 milestone = "v1.0.0-beta.x"
-shape = "full"  # Its relative link to champion/selection.md resolves against the issue page; shaping links docs/champion/selection.md.
+shape = "none"
 
 [[issue]]
 number = 28  # Confirm the NRP organisation URL and Dashboard identity (Q-44)

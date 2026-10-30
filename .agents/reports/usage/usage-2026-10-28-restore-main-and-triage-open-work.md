@@ -116,11 +116,11 @@
   - PR F's rule appears in all five generated copies and only inside the guide region of `CODEX.md`;
     `python scripts/generate_agent_surfaces.py --check`, `python scripts/check_agent_surfaces.py`,
     `python scripts/check_sibling_delivery.py` and `python scripts/check_docs.py` pass;
-  - the quotation test fails at 201 words and passes at 200 and with the Public Domain Mark; #147's quote counts
-    145 words and the longest quote on `main` from a source without a licence 139 by the shipped counter (140 by
-    a whitespace split, the figure first recorded here);
+  - the quotation test fails at 201 words and passes at 200 and with the Public Domain Mark; on 29 October, before
+    #147 merged, its quote counted 145 words and the longest quote on `main` from a source without a licence 139 by
+    the shipped counter (140 by a whitespace split, the figure first recorded here);
   - PR F's review tests fail with the former word count and with a check that accepts any licence, and pass with the
-    fixes; the content check reports no error, five bounded quotes remain, the longest 19 words, and every clause
+    fixes; on 29 October the content check reported no error, five bounded quotes remained, the longest 19 words, and every clause
     among them has a locator; FORCE11's licence and authors, the pilot's version DOI, date and licence in Zenodo and
     the CoreTrustSeal sentence were checked at their sources, while the CESSDA guide was offline for migration;
     the second review's test fails with the former prefix match, which accepted a home page and trailing text, and
@@ -133,8 +133,8 @@
     for the change branch, for PR E and its review fix, and for PR F and both its review fixes; one full run of PR E's
     review fix failed the shared browser-slot timing test in `tests/runtime.test.mjs`, which passed alone twice and in
     the next full run; strict OpenSpec validation passes 6/6.
-- **Close-out:** 22 of 57 tasks ticked. PR C's review and merge (4.11 and 4.12) are done and, as the tasks header
-  says, are ticked in PR D. Open: the review and merge of B2 (#147), PR E (#149) and PR F (#148), the rebuilds B3–B4,
+- **Close-out (29 October):** 22 of 57 tasks ticked. PR C's review and merge (4.11 and 4.12) are done and, as the tasks header
+  says, are ticked in PR D. Open then: the review and merge of B2 (#147), PR E (#149) and PR F (#148), the rebuilds B3–B4,
   the digest actions outside the repository, the shaping of the remaining issues in the ledger, and the integration
   check after the next watch run.
 - **Later in the session (29–30 October):** the maintainer merged B2 (#147). B3 was rebuilt from draft #40 for #37
@@ -153,8 +153,9 @@
 - **MCP servers used:** none
 - **Workflow context used:** resumed from the Claude Code session's transcript; delivered `aiscr-planning-core`,
   `aiscr-quality-first-execution`, `aiscr-usage-logging` and `aiscr-model-logging` rules; the native
-  `fair-guide-content` and `fair-guide-surfaces` rules; `gh` API queries; GitHub's documentation on ruleset bypass
-  modes.
+  `fair-guide-content` and `fair-guide-surfaces` rules; `aiscr-plan-issue` through its delivered engine; `gh` API
+  queries; GitHub's documentation on ruleset bypass modes; a Playwright read of the live `/next/` catalogue; the
+  DataCite records and the survey PDF read for the two versionless licences.
 - **What:**
   - Restored `main` to `bed3284`: the maintainer ran the leased force push, because the Claude Code session's
     runtime had refused it and the agent did not repeat it by another route. The deployment and publication of
@@ -170,19 +171,36 @@
     licence, so its deed, legal-code and slash-less forms are refused and the message gives the canonical form; the
     native rule with its generated copies, the content model, the `guide-knowledge-base` delta and D10 say so; D10
     states the pre-change maximum as 139 words, the shipped counter's figure.
-- **Impacted:** `main` on GitHub; issue #37; pull requests #41, #148, #149 and #151; the `Main branch protection`
-  ruleset (applied by the maintainer); on PR F's branch `.github/repository.toml`,
-  `tests/fixtures/repository-audit.json`, `scripts/check_content.py`, `tests/test_scripts.py`,
-  `.agents/guide/rules/fair-guide-content.md` with its generated copies and the guide region of `CODEX.md`,
-  `docs/content-model.md`, the change's `design.md`, `proposal.md`, `tasks.md` and `guide-knowledge-base` delta, and
-  this usage entry.
+  - Addressed the fourth review of PR F (task 8.9): a recorded licence must name a known licence (Creative Commons
+    names and tools, GNU families, or a reviewed list of SPDX identifiers), with the Creative Commons version
+    required and any of its ports accepted; the survey and the policy manual record the CC BY 4.0 their sources
+    state; D11's bypass has its row in the settings table of `docs/deployment.md`.
+  - Verified task 7.10 on the live preview: a content change's card names its person with an ORCID link and its tools
+    with their kinds, in Czech and English and at phone width; checked task 4.12: the Project and labels audits
+    report no drift, and #137 is closed.
+  - Shaped and posted #26, #28, #29 and #30 after the maintainer approved their archives and bodies; closed #27 as
+    not planned at the maintainer's decision and recorded it in the triage ledger.
+  - Posted the approved decision comment on #140 and reported the three dead tool addresses to the KNAV catalogue
+    (Open-Science-Department-KNAV/Data-Management-Tools-Catalogue#1).
+- **Impacted:** `main` on GitHub; issues #26–#30, #37 and #140; pull requests #41, #148, #149 and #151; the issue
+  report in the KNAV catalogue; the `Main branch protection` ruleset (applied by the maintainer); on PR F's branch
+  `.github/repository.toml`, `tests/fixtures/repository-audit.json`, `scripts/check_content.py`,
+  `tests/test_scripts.py`, `.agents/guide/rules/fair-guide-content.md` with its generated copies and the guide region
+  of `CODEX.md`, `docs/content-model.md`, `docs/deployment.md`, `content/sources.toml`, `content/resources.toml`,
+  `content/provenance.toml`, the change's `design.md`, `proposal.md`, `tasks.md`, `triage.toml` and
+  `guide-knowledge-base` delta, and this usage entry.
 - **Corrections:**
   - The maintainer stated that B3 should not have reached `main` without a pull request and asked for `main` to be
     moved back rather than reverted, and for the prevention to be logged in this change instead of a new one.
   - The maintainer asked for `main` to be fixed first and escalated when the agent could not act itself; the lease in
     the earlier proposed command named a wrong commit, which would have refused, and was corrected before it ran.
   - For the third review of PR F, the maintainer chose one canonical address per licence over accepting every
-    published form.
+    published form; for the fourth, a reviewed list of SPDX identifiers over a vendored SPDX licence list.
+  - The maintainer closed #27, since no national FAIR benchmark will exist, and held the FIP Dashboard report, which
+    the Dashboard's own issue and its responsible person, Marek Suchánek, cover.
+  - For B3's review, the maintainer rejected citing repository-specific instructions for general advice on packaging
+    files and on spreadsheets, and asked for more generic sources or advice reworded so that an example does not carry
+    the claim.
 - **Verification:**
   - `git ls-remote` reports `main` at `bed3284`, and only B3's branch contains `2ba195d`; **Deploy the verified site**
     run 40982282070 passed its full checks and **Publish the verified site** run 40982793541 succeeded for
@@ -195,8 +213,18 @@
   - the licence boundary test fails with the former message and, once the message changed, with the former pattern,
     which accepted the legal-code form; it passes with the canonical pattern; `python scripts/check_content.py`
     reports no error, so every recorded licence is canonical; `LAW-328-2025.83.2` counts 139 words by
-    `quote_words`.
-- **Close-out:** task group 9 is done; PR D records its ticks. `npm run openspec:validate` passes 6/6 and
-  `python scripts/check_usage.py` passes. `python scripts/check_all.py` passed 35 of 36 checks; REUSE failed only on
-  the untracked session transcript under `.agents/local_scratch/`, which no commit carries. B3's review and merge
-  (3.6) and PR F's review and merge (8.7) remain open, with the open items of the session above.
+    `quote_words`;
+  - the fourth review's boundary matrix fails against the former pattern and passes with the known-licence pattern;
+    `python scripts/check_content.py` then reported only the two versionless records, and no error once they record
+    CC BY 4.0; at this head six quotes are bounded, the longest `UKDS-DATA-LEVEL.01` at 145 words;
+  - each shaped body passed `verify-composition` before posting; the `/next/` card was read in Czech and English at
+    1280 px and in English at 360 px, with no sideways scroll.
+- **Close-out:** on 30 October, 22 of 63 tasks are ticked; PR D records the ticks of the work done since, including task
+  group 9. PR E (#149) merged as `45bf1eb`. Open: B3's review fixes and merge (#151, 3.6), B4 (3.7–3.8), PR F's
+  review and merge (8.7), the tracked tasks from the digest (5.1) and their links to the upstream reports (5.2), the
+  shaping of #31, #33, #43, #80 and #136, Priority, Effort and Ready for the shaped issues (6.5), and the integration
+  check after the next watch run. For this round, `npm run openspec:validate` passes 6/6 and
+  `python scripts/check_usage.py` passes; `python scripts/check_all.py` passed 34 of 36 on the final tree: REUSE fails
+  only on the untracked session transcript under `.agents/local_scratch/`, which no commit carries, and `runtime`
+  failed its shared browser-slot timing test under the full run's load, passing alone (11 of 11) and in the previous
+  full run.

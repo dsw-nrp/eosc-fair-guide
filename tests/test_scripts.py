@@ -652,35 +652,48 @@ class ContentCheckTests(FixtureCase):
         self.edit("resources.toml", f'"{licence}" }}', f'"{licence}"{nested} }}')
         self.assertError("a citation describes one work")
         self.edit("resources.toml", nested, "")
-        # A licence is recorded as the whole canonical address of one licence, so a free-text value, a publisher's home
-        # page or text after an address cannot lift the bound unseen, and one licence never has two addresses.
+        # A licence is recorded as the whole canonical address of one known licence, so a free-text value, a
+        # publisher's home page, another page on its site or text after an address cannot lift the bound unseen, and
+        # one licence never has two addresses.
         refused = (
             "All rights reserved",
             "https://creativecommons.org/",
             f"{licence} and more",
+            "https://creativecommons.org/licenses/by/",
             "https://creativecommons.org/licenses/by/4.0",
             "https://creativecommons.org/licenses/by/4.0/deed.en",
             "https://creativecommons.org/licenses/by/4.0/legalcode",
             "https://creativecommons.org/licenses/by/4.0/legalcode.en",
+            "https://creativecommons.org/licenses/nonexistent/9.9/",
             "https://www.creativecommons.org/licenses/by/4.0/",
             "https://www.gnu.org/licenses/gpl-3.0",
             "https://www.gnu.org/licenses/gpl-3.0.en.html",
+            "https://www.gnu.org/licenses/gpl-faq.html",
+            "https://www.gnu.org/licenses/license-list.html",
             "https://gnu.org/licenses/gpl-3.0.html",
             "https://opensource.org/licenses/MIT",
+            "https://opensource.org/license/faq",
             "https://spdx.org/licenses/MIT.html",
+            "https://spdx.org/licenses/MIT.HTML",
+            # A Creative Commons licence is recorded at Creative Commons, not under its SPDX identifier.
+            "https://spdx.org/licenses/CC-BY-4.0",
         )
         for value in refused:
             self.edit("resources.toml", f'license = "{licence}"', f'license = "{value}"')
             self.assertError("license is the canonical HTTPS address of one licence or mark")
             self.edit("resources.toml", f'license = "{value}"', f'license = "{licence}"')
         accepted = (
-            "https://creativecommons.org/licenses/by/",
             "https://creativecommons.org/licenses/by/3.0/cz/",
+            "https://creativecommons.org/licenses/by/3.0/igo/",
+            "https://creativecommons.org/licenses/by/2.5/scotland/",
+            "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             "https://creativecommons.org/publicdomain/zero/1.0/",
             "https://www.gnu.org/licenses/gpl-3.0.html",
             "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+            "https://www.gnu.org/licenses/fdl-1.3.html",
             "https://opensource.org/license/MIT",
-            "https://spdx.org/licenses/CC-BY-4.0",
+            "https://spdx.org/licenses/Apache-2.0",
+            "https://spdx.org/licenses/ODbL-1.0",
         )
         for value in accepted:
             self.edit("resources.toml", f'license = "{licence}"', f'license = "{value}"')

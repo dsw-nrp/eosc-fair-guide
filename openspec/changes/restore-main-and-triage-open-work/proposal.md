@@ -133,7 +133,7 @@ None.
   `tests/fixtures/repository-audit.json`, `.github/repository.toml` (the Triage view filter and the `guide-health`
   description) and `docs/maintenance.md`.
 - **Ruleset bypass:** `.github/repository.toml` and `tests/fixtures/repository-audit.json` (the administrator bypass
-  of `Main branch protection`, for pull requests only).
+  of `Main branch protection`, for pull requests only), and its row in the settings table of `docs/deployment.md`.
 - **Catalogue:** `assets/js/catalogue.js`, `assets/js/catalogue-view.js`, the shared badge helper in `assets/js/`,
   the labels and icons in `content/ui.toml`, the page tests under `tests/page/`, a completeness test, and the decision
   on paradata detail in `docs/design.md`.

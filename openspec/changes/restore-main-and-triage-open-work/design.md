@@ -450,18 +450,24 @@ balance a review can apply without overstating it (29 October 2026).
   document the maintainer confirmed as an official work (29 October 2026).
 - **The bound:** on `main` before this change, the longest quote from a source without a licence ran 139 words by the
   counter below (`LAW-328-2025.83.2`), from the Act this change exempts; the longest call-rules quote ran 122
-  (`OS3-RULES.17`). With both exempt and the
-  cited works' licences read, five bounded quotes remain, the longest 19 words (`CORETRUSTSEAL.01`,
-  `CAMBRIDGE-ERN.01`), and #147's quote counts 145. 200 leaves room for one passage and stops a copied page.
+  (`OS3-RULES.17`). With both exempt and the cited works' licences read, five bounded quotes remained, the longest
+  19 words (`CORETRUSTSEAL.01`, `CAMBRIDGE-ERN.01`). Since #147 merged, its `UKDS-DATA-LEVEL.01` is a sixth and the
+  longest, at 145 words (30 October 2026). 200 leaves room for one passage and stops a copied page.
 - **Enforcement:** `scripts/check_content.py` counts a quote's words (letters and digits; a hyphenated word once,
   also across a line break; a bulleted or numbered list marker not at all), fails a clause over the bound and one
   without a locator, so the rule binds without review. A recorded licence must be the whole canonical address of one
-  licence or mark at Creative Commons, GNU, OSI or SPDX, so free text, a home page or text after an address cannot
-  lift the bound unseen. Canonical means one address per licence: Creative Commons' address ending in the version
-  and a slash (not its deed or legal-code page), GNU's `.html` page, OSI's licence page and SPDX's list entry. The
-  crate records the value as the licence's identifier, so the same licence never appears under two addresses; the
-  check's message gives an example. The third review of PR F found that the rule's surfaces said only "the address",
-  so they now say canonical.
+  known licence or mark at Creative Commons, GNU, OSI or SPDX, so free text, a home page, another page on a
+  licensing site or text after an address cannot lift the bound unseen. Known means a Creative Commons licence or
+  public-domain tool, a GNU licence family (GPL, LGPL, AGPL, FDL), or another licence whose SPDX identifier is on a
+  short list in the check, reviewed for the Guide's sources and extended through review. Canonical means one address
+  per licence: a Creative Commons licence's address with its version, and its port where it has one, ending in a
+  slash (not its deed or legal-code page) and never its SPDX entry; GNU's `.html` page on `www.gnu.org`; any other
+  licence's OSI page or SPDX list entry. The crate records the value as the licence's identifier, so the same
+  licence never appears under two addresses at one publisher; the check's message gives an example and says how to
+  add a licence. The third review of PR F found that the rule's surfaces said only "the address", so they now say
+  canonical; its fourth found that the pattern still accepted any page shaped like a licence, a versionless Creative
+  Commons address (which two records used; both now record the CC BY 4.0 their sources state) and a case variant
+  of SPDX's `.html`, and refused longer Creative Commons ports such as `igo`.
 - **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
   resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
   version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's
@@ -493,15 +499,17 @@ preview and closed #37; no release was made and no other branch contained the co
 - **Order:** the setting changes only after `main` is restored, because the restoring force push relies on the
   former bypass.
 - **Recording:** the maintainer applies the setting live; it is then declared in `.github/repository.toml` and
-  recorded in `tests/fixtures/repository-audit.json`, as D7 did for the Triage view.
+  recorded in `tests/fixtures/repository-audit.json`, as D7 did for the Triage view. Its precondition and rollback
+  are a row of the settings table in `docs/deployment.md`, which `docs/runbooks/rollback-a-setting.md` reads: the
+  bypass returns to **Always allow** only for an approved repair push to `main`, and to pull requests only after it.
 - **Verification:** the ruleset reports `current_user_can_bypass` as `pull_requests_only` for the maintainer, a
   maintainer's `python scripts/audit_repository.py --section rulesets` reports no drift, and
   `tests/test_audit_repository.py` fails when the recorded value is `always` again.
 - **Direct-commit releases:** the release tooling still accepts direct commits as release input (requirement
   "Release changelogs cover PRs and direct commits without duplication"); the setting only stops an administrator
   from creating them without a pull request. `docs/contribution-reference.md` already makes such a commit subject to
-  the configured protection, so no document changes. A deliberate direct commit would need the setting rolled back
-  through `docs/runbooks/rollback-a-setting.md` first.
+  the configured protection, so no contribution document changes. A deliberate direct commit would need the setting
+  rolled back through `docs/runbooks/rollback-a-setting.md` first, under the settings table's rollback.
 - **Agent branches:** branches are created without an upstream and pushed with an explicit refspec, as earlier
   branches of this change were. This is conduct; the setting is the mechanism that holds when it is forgotten.
 

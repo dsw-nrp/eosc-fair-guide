@@ -1703,13 +1703,13 @@ endTime = 2026-10-29T17:17:18+01:00
 [[action]]
 id = "2026-10-29-cited-work-licences"
 type = "update"
-name = "Give five cited works one complete citation"
-description = "Four resources carried a second, nested citation that neither the page, the crate nor the checks read. Each now has one citation. The CESSDA guide and the FORCE11 declaration gain their authors and CC BY-SA 4.0; the CESSDA values are those recorded on 11 October 2026, as its guide was offline for migration on 29 October. The OSTrails CZ pilot cites its deposited version, with that version's DOI, publication date and CC BY 4.0, as Zenodo records them. CoreTrustSeal cites the About page that its resource links and its clause quotes. The DataCite Metadata Schema, whose citation recorded no licence, cites its version 4.7 documentation with the title, DOI, authors and CC BY 4.0 that DataCite records."
+name = "Give seven cited works one complete citation and licence"
+description = "Four resources carried a second, nested citation that neither the page, the crate nor the checks read. Each now has one citation. The CESSDA guide and the FORCE11 declaration gain their authors and CC BY-SA 4.0; the CESSDA values are those recorded on 11 October 2026, as its guide was offline for migration on 29 October. The OSTrails CZ pilot cites its deposited version, with that version's DOI, publication date and CC BY 4.0, as Zenodo records them. CoreTrustSeal cites the About page that its resource links and its clause quotes. The DataCite Metadata Schema, whose citation recorded no licence, cites its version 4.7 documentation with the title, DOI, authors and CC BY 4.0 that DataCite records. The 2025 survey of research data management and the institutional data policy manual recorded CC BY without a version; they record CC BY 4.0, which the survey's PDF links and DataCite records for the manual's DOI."
 agent = "david-novak"
-instruments = ["claude-code", "claude-opus-5-5"]
-objects = ["cessda-dmeg", "coretrustseal", "datacite-schema", "force11-citation", "ostrails-cz-pilot"]
-results = ["cessda-dmeg", "coretrustseal", "datacite-schema", "force11-citation", "ostrails-cz-pilot", "CORETRUSTSEAL.01"]
-endTime = 2026-10-30T00:10:16+01:00
+instruments = ["claude-code", "claude-opus-5-5", "kilo-code"]
+objects = ["cessda-dmeg", "coretrustseal", "datacite-schema", "force11-citation", "ostrails-cz-pilot", "policy-manual", "survey-2025"]
+results = ["cessda-dmeg", "coretrustseal", "datacite-schema", "force11-citation", "ostrails-cz-pilot", "CORETRUSTSEAL.01", "policy-manual", "survey-2025"]
+endTime = 2026-10-30T22:41:36+01:00
 
 [[action]]
 id = "2026-10-29-researcher-actor"

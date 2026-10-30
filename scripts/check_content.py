@@ -377,16 +377,42 @@ QUOTE_LIMIT = 200
 QUOTE_WORD = re.compile(r"\w+(?:[-'’]\w+)*")
 QUOTE_MARKER = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+", re.MULTILINE)
 QUOTE_BREAK = re.compile(r"(?<=\w)-[ \t]*\n[ \t]*(?!(?:[-*+]|\d+[.)])[ \t])(?=\w)")
-# A recorded licence or mark is the whole canonical HTTPS address of one licence or mark at a publisher whose licences
-# the Guide cites, matched in full: a publisher's home page or text after the address names no licence, and the crate
-# records the value as the licence's identifier, so one licence has one address. Creative Commons: the licence ending
-# in a slash, with its version and port where it has them, not its deed or legal code; GNU: its `.html` page on
-# www.gnu.org; OSI: its `license/<SPDX ID>` page; SPDX: its list entry without `.html`.
+# The licences a recorded address may name. Creative Commons licences and public-domain tools, and the GNU licence
+# families, each at its publisher; any other licence by its SPDX identifier, from a list reviewed for the Guide's
+# sources: a source that records another licence adds its identifier here through review.
+CC_LICENCES = ("by", "by-sa", "by-nd", "by-nc", "by-nc-sa", "by-nc-nd")
+CC_PUBLIC_DOMAIN = ("zero", "mark")
+GNU_LICENCES = ("gpl", "lgpl", "agpl", "fdl")
+SPDX_LICENCES = (
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "EUPL-1.2",
+    "MIT",
+    "MPL-2.0",
+    "ODbL-1.0",
+    "ODC-By-1.0",
+    "PDDL-1.0",
+)
+
+
+def _any_of(names: tuple[str, ...]) -> str:
+    return "|".join(re.escape(name) for name in names)
+
+
+# A recorded licence or mark is the whole canonical HTTPS address of one of those licences, matched in full: a
+# publisher's home page, another page on its site or text after the address names no licence, and the crate records
+# the value as the licence's identifier, so one licence has one address. Creative Commons: the licence with its
+# version, and its port where it has one, ending in a slash, not its deed or legal code; GNU: its `.html` page on
+# www.gnu.org; any other licence: its `license/<SPDX ID>` page at OSI or its SPDX list entry without `.html`.
 LICENCE_ADDRESS = re.compile(
-    r"https://(?:creativecommons\.org/(?:licenses|publicdomain)/[a-z-]+/(?:\d+(?:\.\d+)*/(?:[a-z]{2}/)?)?"
-    r"|www\.gnu\.org/licenses/(?:old-licenses/)?[a-z0-9+-]+(?:\.\d+)*\.html"
-    r"|opensource\.org/license/[A-Za-z0-9.+-]+"
-    r"|spdx\.org/licenses/[A-Za-z0-9.+-]+(?<!\.html))"
+    "https://(?:"
+    rf"creativecommons\.org/licenses/(?:{_any_of(CC_LICENCES)})/\d+\.\d+/(?:(?!deed/|legalcode/)[a-z]+/)?"
+    rf"|creativecommons\.org/publicdomain/(?:{_any_of(CC_PUBLIC_DOMAIN)})/1\.0/"
+    rf"|www\.gnu\.org/licenses/(?:old-licenses/)?(?:{_any_of(GNU_LICENCES)})-\d+\.\d+\.html"
+    rf"|opensource\.org/license/(?:{_any_of(SPDX_LICENCES)})"
+    rf"|spdx\.org/licenses/(?:{_any_of(SPDX_LICENCES)})"
+    ")"
 )
 
 
@@ -431,7 +457,8 @@ def check_citation(report: Report, where: str, citation: dict[str, Any], own_url
         report.error(
             where,
             "license is the canonical HTTPS address of one licence or mark at Creative Commons, GNU, OSI or SPDX, "
-            "such as https://creativecommons.org/licenses/by/4.0/ or https://www.gnu.org/licenses/gpl-3.0.html",
+            "such as https://creativecommons.org/licenses/by/4.0/ or https://www.gnu.org/licenses/gpl-3.0.html; "
+            "another licence's SPDX identifier is added to SPDX_LICENCES in scripts/check_content.py through review",
         )
     if not (own_url or citation.get("url") or citation.get("doi")):
         report.error(where, "a source needs a URL or a DOI")

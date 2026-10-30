@@ -270,6 +270,14 @@ alone do not complete them.
       counter's figure. Verify that the boundary test fails against the former pattern and message and passes now,
       that every recorded licence still passes, and that `python scripts/check_all.py` passes, then extend PR F after
       the maintainer approves the commit message.
+- [ ] 8.9 Address the fourth review of PR F (design D10, D11): accept only known licences (Creative Commons names and
+      tools, GNU families and a reviewed list of SPDX identifiers), require the Creative Commons version, accept any
+      lowercase Creative Commons port and refuse SPDX's `.html` in any case; record CC BY 4.0 on the two versionless
+      records, as their sources state, extending the cited-works action; give the bypass of D11 its row in the
+      settings table of `docs/deployment.md`; bring the usage entry's figures up to date. Verify that the boundary
+      matrix fails against the former pattern and passes now, that `python scripts/check_content.py` reports the two
+      versionless records before their fix and no error after it, and that `python scripts/check_all.py` passes, then
+      extend PR F after the maintainer approves the commit message.
 
 ## 9. Direct push to `main` (design D11, recorded in PR F)
 
@@ -281,7 +289,8 @@ alone do not complete them.
       that the pull request closes #37 and that its `checks` pass; 3.6 remains its review and merge.
 - [ ] 9.3 **Human hand-off:** after 9.1, set the administrator bypass of `Main branch protection` to **For pull
       requests only**. Then declare it in `.github/repository.toml` and record it in
-      `tests/fixtures/repository-audit.json`. Verify that the ruleset reports `current_user_can_bypass` as
+      `tests/fixtures/repository-audit.json`, with its precondition and rollback in the settings table of
+      `docs/deployment.md`. Verify that the ruleset reports `current_user_can_bypass` as
       `pull_requests_only`, that `tests/test_audit_repository.py` fails with the former recorded value and passes with
       the new one, and that a maintainer's `python scripts/audit_repository.py --section rulesets` reports no drift.
 - [ ] 9.4 Record design D11 and extend the usage entry. Run `npm run openspec:validate`, `python scripts/check_usage.py`
