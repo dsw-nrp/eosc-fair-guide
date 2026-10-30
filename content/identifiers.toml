@@ -1032,6 +1032,7 @@ requirements = [
   "HARVARD-OFFBOARDING.01",
   "HARVARD-OFFBOARDING.02",
   "UKDS-DATA-LEVEL.01",
+  "LOC-DIGITAL-FORMATS.01",
 ]
 sources = [
   "layers-seams-manuscript",
@@ -1264,6 +1265,7 @@ resources = [
   "nrp-license-selector",
   "tess",
   "git",
+  "loc-digital-formats",
 ]
 repositories = [
   "zenodo",
@@ -1289,6 +1291,7 @@ actions = [
   "2026-10-18-consent-appraisal",
   "2026-10-29-continuity-review",
   "2026-10-18-formats-packaging",
+  "2026-10-30-loc-digital-formats",
 ]
 model = [
   "model:layers-seams",

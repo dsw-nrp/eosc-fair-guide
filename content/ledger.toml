@@ -4765,3 +4765,14 @@ text = { cs = "UK Data Service doporučuje dokumentaci na úrovni dat, díky ní
 guidance = "Data-level documentation explains how individual files are structured and how their contents should be interpreted. It makes explicit how information is organised within files, how elements are identified, and how different components relate to one another.\n\nData-level documentation clarifies this structure so that it can be understood independently of the original research team.\n\nDocumentation should describe:\n- Variable names and descriptive labels.\n- Data types.\n- Units of measurement.\n- Value labels and coding schemes.\n- Definitions of missing data and distinctions between types of non-response.\n- Applicability or universe information (e.g. filtered questions or subpopulations).\n- Weighting variables, where relevant.\n- Derived or constructed variables and how they were created.\n\nAlthough some statistical software (e.g. SPSS, Stata) often allows this information to be embedded within the file, embedded metadata should be reviewed for completeness. Supplementary documentation, such as a structured codebook or data dictionary, may be required to ensure clarity."
 guidanceLanguage = "en"
 locator = "Learning Hub / Data producer support / Documenting and describing data / Data-level documentation: introduction and Tabular data"
+
+[[clause]]
+id = "LOC-DIGITAL-FORMATS.01"
+source = "loc-digital-formats"
+principles = ["R1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Library of Congress posuzuje digitální formáty podle sedmi faktorů udržitelnosti: zveřejnění specifikace, rozšíření, průhlednosti, vlastní dokumentace, vnějších závislostí, vlivu patentů a technické ochrany. Ke každému formátu vede jeho popis.", en = "The Library of Congress assesses digital formats by seven sustainability factors: disclosure, adoption, transparency, self-documentation, external dependencies, the impact of patents and technical protection mechanisms. It keeps a description of each format." }
+guidance = "The seven sustainability factors listed below apply across digital formats for all categories of information. These factors influence the likely feasibility and cost of preserving the information content in the face of future change in the technological environment in which users and archiving institutions operate."
+guidanceLanguage = "en"
+locator = "Sustainability Factors, Overview of factors"

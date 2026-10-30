@@ -1770,3 +1770,14 @@ results = [
   "publication.30",
 ]
 endTime = 2026-10-20T21:00:00+00:00
+
+[[action]]
+id = "2026-10-30-loc-digital-formats"
+type = "update"
+name = "Point to the Library of Congress format descriptions where the Guide advises on formats"
+description = "Added the Library of Congress site Sustainability of Digital Formats as a catalogue resource with a clause quoting its seven sustainability factors, at the maintainer's request. Advice on choosing formats when planning, on open formats for sharing, on a repository's list of supported formats and on a community's recommended formats, and the question on open formats, now link to it and cite the clause."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5"]
+objects = ["LOC-DIGITAL-FORMATS.01"]
+results = ["loc-digital-formats", "LOC-DIGITAL-FORMATS.01", "plan.05", "process.03", "process.08", "process.09", "dataset.11"]
+endTime = 2026-10-30T01:25:53+01:00
