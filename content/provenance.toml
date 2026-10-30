@@ -1781,3 +1781,14 @@ instruments = ["claude-code", "claude-opus-5-5"]
 objects = ["LOC-DIGITAL-FORMATS.01"]
 results = ["loc-digital-formats", "LOC-DIGITAL-FORMATS.01", "plan.05", "process.03", "process.08", "process.09", "dataset.11"]
 endTime = 2026-10-30T01:25:53+01:00
+
+[[action]]
+id = "2026-10-30-formats-review"
+type = "update"
+name = "Source and qualify the format, synthetic sample and packaging advice"
+description = "Reviewed the advice rebuilt for #37 against its cited clauses. publication.30 now starts from the repository's own instructions on accepted formats and uploading, and gives packing thousands of small files into one archive described by the README only as an example of thinking of those who download the data; it cites RDMkit on preparing data for a repository and on transferring data, and checks checksums before and after upload. process.04 asks for a synthetic sample published beside controlled-access data as a separate open dataset, as the Swedish National Data Service's guide on synthetic research data advises, and both languages now say the same; an aggregated sample, which no source states, is dropped. process.03 asks for open or widely used formats, preferably ones that do not require proprietary software, and gives merged cells and colour that carries meaning as an example of what software cannot read correctly, as the Data Carpentry lesson on spreadsheets states; formulas, which no source names, are dropped."
+agent = "david-novak"
+instruments = ["kilo-code", "claude-opus-5-5"]
+objects = ["A.I1.X1", "A.A1.2.R2", "A.F3.N2", "CDIF.Manifest", "CDIF.REC5", "CDSC-README.01", "MBDB-2026.01", "RDMKIT.process.02", "RDMKIT.publication.01", "RDMKIT.transfer.01", "SND-SYNTHETIC.01", "DC-SPREADSHEETS.01"]
+results = ["process.03", "process.04", "publication.30", "RDMKIT.publication.01", "RDMKIT.transfer.01", "SND-SYNTHETIC.01", "DC-SPREADSHEETS.01", "snd-synthetic-data", "datacarpentry-spreadsheets"]
+endTime = 2026-10-30T23:19:26+01:00

@@ -1033,6 +1033,10 @@ requirements = [
   "HARVARD-OFFBOARDING.02",
   "UKDS-DATA-LEVEL.01",
   "LOC-DIGITAL-FORMATS.01",
+  "RDMKIT.publication.01",
+  "RDMKIT.transfer.01",
+  "SND-SYNTHETIC.01",
+  "DC-SPREADSHEETS.01",
 ]
 sources = [
   "layers-seams-manuscript",
@@ -1107,6 +1111,8 @@ sources = [
   "ggp-cz-project",
   "harvard-offboarding",
   "ukds-data-level",
+  "snd-synthetic-data",
+  "datacarpentry-spreadsheets",
 ]
 resources = [
   "dmp-eosc",
@@ -1292,6 +1298,7 @@ actions = [
   "2026-10-29-continuity-review",
   "2026-10-18-formats-packaging",
   "2026-10-30-loc-digital-formats",
+  "2026-10-30-formats-review",
 ]
 model = [
   "model:layers-seams",

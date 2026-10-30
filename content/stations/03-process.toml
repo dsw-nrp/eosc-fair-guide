@@ -31,20 +31,20 @@ sources = ["RDMKIT.process.01", "MBDB-2026.01"]
 id = "process.03"
 lens = "V"
 level = "L1"
-text = { cs = "Původní soubory z přístrojů uchovejte; pro sdílení přidejte [[term/machine-readable-document-format|otevřené a rozšířené formáty]], které nevyžadují proprietární software. Každý formát a jeho udržitelnost popisuje [[loc-digital-formats|Library of Congress]]. Například:", en = "Keep the original instrument files; for sharing, add [[term/machine-readable-document-format|open and widely used formats]] that do not require proprietary software. The [[loc-digital-formats|Library of Congress]] describes each format and how sustainable it is. For example:" }
+text = { cs = "Původní soubory z přístrojů uchovejte; pro sdílení přidejte [[term/machine-readable-document-format|otevřené nebo rozšířené formáty]], nejlépe takové, které nevyžadují proprietární software. Každý formát a jeho udržitelnost popisuje [[loc-digital-formats|Library of Congress]]. Například:", en = "Keep the original instrument files; for sharing, add [[term/machine-readable-document-format|open or widely used formats]], preferably ones that do not require proprietary software. The [[loc-digital-formats|Library of Congress]] describes each format and how sustainable it is. For example:" }
 steps = [
-  { cs = "tabulková data: CSV (v kódování UTF-8) nebo Parquet vedle sešitů .xlsx, kde sloučené buňky, barvy a vzorce brání strojovému čtení;", en = "tabular data: CSV (UTF-8) or Parquet alongside .xlsx workbooks, where merged cells, colours and formulas hinder machine reading;" },
+  { cs = "tabulková data: CSV (v kódování UTF-8) nebo Parquet vedle sešitů .xlsx; kupříkladu sloučené buňky nebo barvu, která nese význam, software správně nepřečte;", en = "tabular data: CSV (UTF-8) or Parquet alongside .xlsx workbooks; software cannot read correctly, for example, merged cells or colour that carries meaning;" },
   { cs = "texty a dokumentace: prostý text, Markdown nebo PDF/A vedle .docx;", en = "text and documentation: plain text, Markdown or PDF/A alongside .docx;" },
   { cs = "obrazová, zvuková a prostorová data: bezzeztrátové TIFF/PNG, WAV/FLAC a GeoPackage nebo GeoTIFF.", en = "image, audio and geospatial data: lossless TIFF/PNG, WAV/FLAC, and GeoPackage or GeoTIFF." },
 ]
-sources = ["A.I1.X1", "MBDB-2026.01", "LAW-328-2025.83.3", "LOC-DIGITAL-FORMATS.01"]
+sources = ["A.I1.X1", "MBDB-2026.01", "LAW-328-2025.83.3", "LOC-DIGITAL-FORMATS.01", "DC-SPREADSHEETS.01"]
 
 [[advice]]
 id = "process.04"
 lens = "V"
 level = "L1"
-text = { cs = "[[term/sensitive-data|Citlivá data]] co nejdřív pseudonymizujte nebo [[term/anonymisation-research-data|anonymizujte]] a zaznamenejte postup: nestačí odstranit jména a rodná čísla, pozor i na nepřímé identifikátory nebo údaje na fotografiích. Pokud data nelze plně anonymizovat a zůstávají v režimu řízeného přístupu, připravte k veřejnému záznamu malý syntetický (umělý) nebo agregovaný vzorek se stejnou strukturou sloupců, na kterém si ostatní mohou vyzkoušet skripty.", en = "Pseudonymise or [[term/anonymisation-research-data|anonymise]] [[term/sensitive-data|sensitive data]] as early as you can and record the procedure: removing names and ID numbers is not enough, watch also for indirect identifiers or details on photographs. If the data cannot be fully anonymised and remain under controlled access, provide a small synthetic (dummy) or aggregated sample dataset with the same column structure so others can test their scripts." }
-sources = ["RDMKIT.process.02", "A.A1.2.R2"]
+text = { cs = "[[term/sensitive-data|Citlivá data]] co nejdřív pseudonymizujte nebo [[term/anonymisation-research-data|anonymizujte]] a zaznamenejte postup: nestačí odstranit jména a rodná čísla, pozor i na nepřímé identifikátory nebo údaje na fotografiích. Pokud data nelze plně anonymizovat a zůstávají v režimu řízeného přístupu, zveřejněte vedle nich jako samostatnou otevřenou datovou sadu malý syntetický (umělý) vzorek se stejnou strukturou sloupců, z něhož ostatní pochopí data dřív, než požádají o přístup.", en = "Pseudonymise or [[term/anonymisation-research-data|anonymise]] [[term/sensitive-data|sensitive data]] as early as you can and record the procedure: removing names and ID numbers is not enough, watch also for indirect identifiers or details on photographs. If the data cannot be fully anonymised and remain under controlled access, publish beside them, as a separate open dataset, a small synthetic (dummy) sample with the same column structure, so others can understand the data before they apply for access." }
+sources = ["RDMKIT.process.02", "SND-SYNTHETIC.01"]
 
 [[advice]]
 id = "process.05"
