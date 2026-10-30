@@ -38,8 +38,12 @@ sources = ["EINFRA-DOCS.01", "CESSDA-DMEG.01"]
 id = "collect.04"
 lens = "V"
 level = "L1"
-text = { cs = "Dohodněte se v týmu předem na [[rdmkit-organisation|struktuře složek a pojmenování souborů]], způsobu verzování, [[rdmkit-quality|kontrolách kvality]] a [[rdmkit-security|zabezpečení dat]].", en = "Agree as a team in advance on [[rdmkit-organisation|folder structure and file naming]], versioning, [[rdmkit-quality|quality checks]] and [[rdmkit-security|data security]]." }
-sources = ["CESSDA-DMEG.01", "RDMKIT.tasks.01"]
+text = { cs = "Dohodněte se v týmu předem na [[rdmkit-organisation|struktuře složek a pojmenování souborů]], způsobu verzování, [[rdmkit-quality|kontrolách kvality]] a [[rdmkit-security|zabezpečení dat]]. Pro složky a názvy souborů například:", en = "Agree as a team in advance on [[rdmkit-organisation|folder structure and file naming]], versioning, [[rdmkit-quality|quality checks]] and [[rdmkit-security|data security]]. For folders and file names, for example:" }
+steps = [
+  { cs = "oddělte složky pro původní data pouze ke čtení (01_raw/), vyčištěná a odvozená data (02_processed/), skripty (03_scripts/), výstupy (04_outputs/) a kořenový README.md;", en = "separate folders for read-only original data (01_raw/), cleaned and derived data (02_processed/), scripts (03_scripts/), outputs (04_outputs/) and a root README.md;" },
+  { cs = "soubory pojmenovávejte jednotně bez mezer a diakritiky, s datem ve tvaru ISO a verzí (například 2026-05-14_projekt_vzorek03_v01.csv).", en = "name files consistently without spaces or diacritics, using an ISO date and version tag (for example 2026-05-14_project_sample03_v01.csv)." },
+]
+sources = ["CESSDA-DMEG.01", "RDMKIT.tasks.01", "CDSC-README.01"]
 
 [[advice]]
 id = "collect.05"

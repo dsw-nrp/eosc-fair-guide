@@ -362,6 +362,7 @@ advice = [
   "plan.32",
   "collect.22",
   "collect.23",
+  "publication.30",
 ]
 questions = [
   "cdif.01",
@@ -1287,6 +1288,7 @@ actions = [
   "2026-10-29-researcher-actor",
   "2026-10-18-consent-appraisal",
   "2026-10-29-continuity-review",
+  "2026-10-18-formats-packaging",
 ]
 model = [
   "model:layers-seams",
