@@ -358,6 +358,10 @@ advice = [
   "assessment.27",
   "assessment.28",
   "assessment.29",
+  "plan.31",
+  "plan.32",
+  "collect.22",
+  "collect.23",
 ]
 questions = [
   "cdif.01",
@@ -1024,6 +1028,9 @@ requirements = [
   "COPYRIGHT-LICENCES.05",
   "COPYRIGHT-LICENCES.06",
   "COPYRIGHT-LICENCES.07",
+  "HARVARD-OFFBOARDING.01",
+  "HARVARD-OFFBOARDING.02",
+  "UKDS-DATA-LEVEL.01",
 ]
 sources = [
   "layers-seams-manuscript",
@@ -1096,6 +1103,8 @@ sources = [
   "ri-portal",
   "isvavai-infrastructures",
   "ggp-cz-project",
+  "harvard-offboarding",
+  "ukds-data-level",
 ]
 resources = [
   "dmp-eosc",
@@ -1276,6 +1285,8 @@ actions = [
   "2026-10-18-station-dedup",
   "2026-10-28-licence-14-review",
   "2026-10-29-researcher-actor",
+  "2026-10-18-consent-appraisal",
+  "2026-10-29-continuity-review",
 ]
 model = [
   "model:layers-seams",
