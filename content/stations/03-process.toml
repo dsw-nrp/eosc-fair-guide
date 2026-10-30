@@ -35,7 +35,7 @@ text = { cs = "Původní soubory z přístrojů uchovejte; pro sdílení přidej
 steps = [
   { cs = "tabulková data: CSV (v kódování UTF-8) nebo Parquet vedle sešitů .xlsx; kupříkladu sloučené buňky nebo barvu, která nese význam, software správně nepřečte;", en = "tabular data: CSV (UTF-8) or Parquet alongside .xlsx workbooks; software cannot read correctly, for example, merged cells or colour that carries meaning;" },
   { cs = "texty a dokumentace: prostý text, Markdown nebo PDF/A vedle .docx;", en = "text and documentation: plain text, Markdown or PDF/A alongside .docx;" },
-  { cs = "obrazová, zvuková a prostorová data: bezzeztrátové TIFF/PNG, WAV/FLAC a GeoPackage nebo GeoTIFF.", en = "image, audio and geospatial data: lossless TIFF/PNG, WAV/FLAC, and GeoPackage or GeoTIFF." },
+  { cs = "obrazová, zvuková a prostorová data: bezztrátové TIFF/PNG, WAV/FLAC a GeoPackage nebo GeoTIFF.", en = "image, audio and geospatial data: lossless TIFF/PNG, WAV/FLAC, and GeoPackage or GeoTIFF." },
 ]
 sources = ["A.I1.X1", "MBDB-2026.01", "LAW-328-2025.83.3", "LOC-DIGITAL-FORMATS.01", "DC-SPREADSHEETS.01"]
 
