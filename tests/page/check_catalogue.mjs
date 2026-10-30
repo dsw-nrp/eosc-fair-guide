@@ -119,11 +119,12 @@ for (const [id, consulted, changed] of [["#action-2026-10-16-initial-state", 143
 }
 if (!(await row(await open("#action-2026-10-16-initial-state", "en"), "Tools")).includes("AI model")) fail("catalogue: the English change does not name an AI model as a tool");
 {
-  // A page of the Guide that a change altered leads to that page, named by its heading rather than its ID.
+  // A page of the Guide that a change altered leads to that page, named by its heading rather than its ID. The Guide
+  // record links to the About page too, so the heading is looked for among every such link, in whatever group order.
   const card = await open("#action-2026-10-26-workflow-follow-up", "en");
   await unfold(card);
-  const about = card.locator('dd[data-field="result"] a[href$="/page/about"]');
-  if (!(await about.count()) || (await about.first().textContent()).trim() !== "About the Guide") fail("catalogue: a change does not link the About page by its heading");
+  const about = await card.locator('dd[data-field="result"] a[href$="/page/about"]').allTextContents();
+  if (!about.map((text) => text.trim()).includes("About the Guide")) fail("catalogue: a change does not link the About page by its heading: " + about.join(", "));
 }
 {
   // A context question says what it is in the self-check's words, not by an interface key.
