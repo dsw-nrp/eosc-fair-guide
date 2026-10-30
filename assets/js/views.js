@@ -24,19 +24,24 @@
     return days > (FG.config.freshnessDays || 180);
   }
 
+  /** One status as a badge, the same wherever a status shows: its icon, its text and, where recorded, its as-of date,
+      so it reads without colour (design D8). `attrs` carries the data attribute that styles it. */
+  FG.stateBadge = function ({ icon, text, asOf, asOfKey = "status.asOf", attrs, field }) {
+    return h(
+      "span",
+      Object.assign({ class: "badge", "data-field": field || null }, attrs || {}),
+      h("span", { "aria-hidden": "true" }, icon || "•"), " ",
+      text,
+      asOf ? h("span", { class: "muted" }, " · " + FG.t(asOfKey, { date: FG.formatDate(String(asOf).slice(0, 10)) })) : null,
+      isStale(asOf) ? h("span", null, " · " + FG.t("status.stale")) : null
+    );
+  };
+
   function statusBadge(entity, asOfKey = "status.asOf") {
     const statusId = FG.id(entity.serviceStatus);
     if (!statusId) return null;
     const code = statusId.replace("#status-", "");
-    const asOf = entity.statusAsOf;
-    return h(
-      "span",
-      { class: "badge", "data-status": code },
-      h("span", { "aria-hidden": "true" }, STATUS_ICON[code] || "•"), " ",
-      FG.termName(statusId),
-      asOf ? h("span", { class: "muted" }, " · " + FG.t(asOfKey, { date: FG.formatDate(asOf) })) : null,
-      isStale(asOf) ? h("span", null, " · " + FG.t("status.stale")) : null
-    );
+    return FG.stateBadge({ icon: STATUS_ICON[code], text: FG.termName(statusId), asOf: entity.statusAsOf, asOfKey, attrs: { "data-status": code }, field: "serviceStatus statusAsOf" });
   }
 
   /** The FIP Dashboard record of a resource, if the guide links one, with its verifications. */
@@ -65,7 +70,7 @@
     return FG.refs(fer, "review").filter((review) => levels[review.reviewAspect]).map((review) => {
       const author = FG.get(review.author) || {};
       const name = FG.text(author.alternateName || author.name);
-      return h("span", { class: "badge", "data-verification": review.reviewAspect },
+      return h("span", { class: "badge", "data-verification": review.reviewAspect, "data-field": "review" },
         review.reviewAspect === "verified" ? [h("span", { "aria-hidden": "true" }, "✓"), " "] : null,
         FG.t("resource." + levels[review.reviewAspect], { verifiers: name }),
         review.dateCreated ? h("span", { class: "muted" }, " · " + FG.formatDate(review.dateCreated)) : null);
@@ -146,7 +151,7 @@
     const what = role === "repository" && membership.nodeMilestone ? FG.t("node.repository", { milestone: membership.nodeMilestone }) : FG.t("node." + role);
     return h(
       "span",
-      { class: "badge node-badge", "data-node": role },
+      { class: "badge node-badge", "data-node": role, "data-field": "nodeMembership" },
       h("span", { "aria-hidden": "true" }, "◆"), " ",
       h("span", null, "EOSC CZ Node · " + what),
       membership.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("node.checked", { date: FG.formatDate(membership.statusAsOf) })) : null,
@@ -1478,8 +1483,8 @@
   FG.modelDetail = function (term) {
     const fields = ["transfer", "sender", "recipient", "carrier", "maintainers"].filter((key) => term[key]);
     const examples = FG.refs(term, "hasPart").filter((entry) => entry.modelKind === "example");
-    return [fields.length ? h("dl", { class: "relations model-detail" }, fields.map((key) => [FG.relationTerm(key, FG.t("model.field." + key)), h("dd", null, FG.span(term[key]))])) : null,
-      examples.length ? h("details", { class: "model-examples" }, h("summary", null, FG.t("model.examples")), h("div", { class: "content" }, examples.map((example) => h("section", { class: "model-example" },
+    return [fields.length ? h("dl", { class: "relations model-detail" }, fields.map((key) => [FG.relationTerm(key, FG.t("model.field." + key)), h("dd", { "data-field": key }, FG.span(term[key]))])) : null,
+      examples.length ? h("details", { class: "model-examples", "data-field": "hasPart" }, h("summary", null, FG.t("model.examples")), h("div", { class: "content" }, examples.map((example) => h("section", { class: "model-example" },
         h("h4", null, FG.span(example.name)), example.scope ? h("p", { class: "small" }, FG.span(example.scope)) : null,
         FG.paragraphs(example.description), statusBadge(example, "model.statusAsOf"),
         h("p", { class: "small" }, FG.refs(example, "citation").map((source, index) => [index ? ", " : "", FG.sourceLink(source)])), FG.apiLink(example))))) : null];

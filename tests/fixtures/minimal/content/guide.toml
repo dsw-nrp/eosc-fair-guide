@@ -61,8 +61,8 @@ name = { cs = "NRP", en = "NRP" }
 role = "clause"
 
 [[actor]]
-id = "user"
-name = { cs = "vy", en = "you" }
+id = "researcher"
+name = { cs = "výzkumník", en = "researcher" }
 role = "owner"
 
 [[status]]

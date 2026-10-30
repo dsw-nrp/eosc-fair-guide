@@ -1,5 +1,5 @@
 {
-  "page": ["page", "embed"],
+  "page": ["page", "embed", "catalogue"],
   "embed": ["embed"],
   "deployment": ["deployment"],
   "discovery": ["discovery"],

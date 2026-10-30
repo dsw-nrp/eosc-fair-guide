@@ -777,7 +777,9 @@ name. `[ui]` maps an interface role (`search`, `external`, `download`, `met`, `g
 gives each catalogue kind its icon, shown in a disc of the kind's colour (`--kind-<kind>` in `assets/css/tokens.css`)
 in the kind facet and before an entry's title wherever the entry has no favicon of its own, while the entry's top
 strip carries the kind's colour, and `[relation]` gives each labelled row its icon, the catalogue
-card's rows and a model connection's detail rows alike; content files name their own icons in `icon` fields. A tool
+card's rows and a model connection's detail rows alike; content files name their own icons in `icon` fields. Which
+record fields each catalogue kind shows, and why it leaves any out, is declared beside its card in
+`assets/js/catalogue-view.js` ([design](design.md)). A tool
 or service (resource types `service`, `tool` and `registry`, repositories, KNAV catalogue tools and the self-check's
 evaluators) is marked by one badge, the same in the catalogue, among a step's resources and in the self-check: the
 service's own favicon wherever one could be obtained, otherwise its catalogue kind's icon on the kind's colour.
