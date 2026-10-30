@@ -117,7 +117,8 @@
     `python scripts/generate_agent_surfaces.py --check`, `python scripts/check_agent_surfaces.py`,
     `python scripts/check_sibling_delivery.py` and `python scripts/check_docs.py` pass;
   - the quotation test fails at 201 words and passes at 200 and with the Public Domain Mark; #147's quote counts
-    145 words and the longest quote on `main` from a source without a licence 140;
+    145 words and the longest quote on `main` from a source without a licence 139 by the shipped counter (140 by
+    a whitespace split, the figure first recorded here);
   - PR F's review tests fail with the former word count and with a check that accepts any licence, and pass with the
     fixes; the content check reports no error, five bounded quotes remain, the longest 19 words, and every clause
     among them has a locator; FORCE11's licence and authors, the pilot's version DOI, date and licence in Zenodo and
@@ -165,14 +166,23 @@
     design D11 and task group 9, declared it in `.github/repository.toml` and recorded it in the audit fixture.
   - Pruned stale remote-tracking refs and fast-forwarded local `main`; the maintainer deleted the four local branches
     whose work had merged, since the runtime refuses `git branch -D`.
-- **Impacted:** `main` on GitHub; issue #37; pull requests #41, #149 and #151; the `Main branch protection` ruleset
-  (applied by the maintainer); on PR F's branch `.github/repository.toml`, `tests/fixtures/repository-audit.json`,
-  the change's `design.md`, `proposal.md` and `tasks.md`, and this usage entry.
+  - Addressed the third review of PR F (task 8.8): a recorded licence must be the one canonical address of its
+    licence, so its deed, legal-code and slash-less forms are refused and the message gives the canonical form; the
+    native rule with its generated copies, the content model, the `guide-knowledge-base` delta and D10 say so; D10
+    states the pre-change maximum as 139 words, the shipped counter's figure.
+- **Impacted:** `main` on GitHub; issue #37; pull requests #41, #148, #149 and #151; the `Main branch protection`
+  ruleset (applied by the maintainer); on PR F's branch `.github/repository.toml`,
+  `tests/fixtures/repository-audit.json`, `scripts/check_content.py`, `tests/test_scripts.py`,
+  `.agents/guide/rules/fair-guide-content.md` with its generated copies and the guide region of `CODEX.md`,
+  `docs/content-model.md`, the change's `design.md`, `proposal.md`, `tasks.md` and `guide-knowledge-base` delta, and
+  this usage entry.
 - **Corrections:**
   - The maintainer stated that B3 should not have reached `main` without a pull request and asked for `main` to be
     moved back rather than reverted, and for the prevention to be logged in this change instead of a new one.
   - The maintainer asked for `main` to be fixed first and escalated when the agent could not act itself; the lease in
     the earlier proposed command named a wrong commit, which would have refused, and was corrected before it ran.
+  - For the third review of PR F, the maintainer chose one canonical address per licence over accepting every
+    published form.
 - **Verification:**
   - `git ls-remote` reports `main` at `bed3284`, and only B3's branch contains `2ba195d`; **Deploy the verified site**
     run 40982282070 passed its full checks and **Publish the verified site** run 40982793541 succeeded for
@@ -181,7 +191,11 @@
     `pull_requests_only`; `python scripts/audit_repository.py --check-config` passes and a maintainer's
     `python scripts/audit_repository.py --section rulesets` reports no drift; `tests/test_audit_repository.py` fails
     with the fixture's former `always` and passes with `pull_request`;
-  - #151 closes #37 at head `048a814`.
+  - #151 closes #37 at head `048a814`;
+  - the licence boundary test fails with the former message and, once the message changed, with the former pattern,
+    which accepted the legal-code form; it passes with the canonical pattern; `python scripts/check_content.py`
+    reports no error, so every recorded licence is canonical; `LAW-328-2025.83.2` counts 139 words by
+    `quote_words`.
 - **Close-out:** task group 9 is done; PR D records its ticks. `npm run openspec:validate` passes 6/6 and
   `python scripts/check_usage.py` passes. `python scripts/check_all.py` passed 35 of 36 checks; REUSE failed only on
   the untracked session transcript under `.agents/local_scratch/`, which no commit carries. B3's review and merge

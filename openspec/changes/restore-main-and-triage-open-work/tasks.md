@@ -264,6 +264,12 @@ alone do not complete them.
       maintainer approves the commit message.
 - [ ] 8.7 **Human hand-off:** review PR F, record acceptance and merge it (design D2). Verify that the deployment's
       full checks pass for the merge commit.
+- [ ] 8.8 Address the third review of PR F (design D10): require the one canonical address of a licence, refusing
+      its deed, legal-code and slash-less forms, and give the canonical form in the check's message, the native rule,
+      the content model and the `guide-knowledge-base` delta; state the pre-change maximum as 139 words, the shipped
+      counter's figure. Verify that the boundary test fails against the former pattern and message and passes now,
+      that every recorded licence still passes, and that `python scripts/check_all.py` passes, then extend PR F after
+      the maintainer approves the commit message.
 
 ## 9. Direct push to `main` (design D11, recorded in PR F)
 

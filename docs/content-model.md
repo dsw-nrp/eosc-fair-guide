@@ -503,7 +503,9 @@ summarises or links that work is cited only for what it adds itself. `[[source]]
 the short name shown where the source is named often, as next to each requirement it holds), `version`,
 `inLanguage`, `url`, `doi` (without the resolver), `publisher` (an organisation ID, or a language-neutral name),
 `authors`, `datePublished` or `dateAccessed`, `dateModified` (when the publisher records an update), `license`
-(the HTTPS address of the licence or mark at Creative Commons, GNU, OSI or SPDX). A resource's `citation` takes
+(the one canonical HTTPS address of the licence or mark at Creative Commons, GNU, OSI or SPDX: for example
+`https://creativecommons.org/licenses/by/4.0/` rather than its deed or legal code, or
+`https://www.gnu.org/licenses/gpl-3.0.html`). A resource's `citation` takes
 the same fields and describes one work: it never nests another citation. An author is a person ID from `guide.toml`, which
 puts the person (with their ORCID iD) into the crate, or a plain name.
 

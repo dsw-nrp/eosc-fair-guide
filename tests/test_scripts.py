@@ -652,11 +652,39 @@ class ContentCheckTests(FixtureCase):
         self.edit("resources.toml", f'"{licence}" }}', f'"{licence}"{nested} }}')
         self.assertError("a citation describes one work")
         self.edit("resources.toml", nested, "")
-        # A licence is recorded as the whole address of one licence, so a free-text value, a publisher's home page or
-        # text after an address cannot lift the bound unseen.
-        for value in ("All rights reserved", "https://creativecommons.org/", f"{licence} and more"):
+        # A licence is recorded as the whole canonical address of one licence, so a free-text value, a publisher's home
+        # page or text after an address cannot lift the bound unseen, and one licence never has two addresses.
+        refused = (
+            "All rights reserved",
+            "https://creativecommons.org/",
+            f"{licence} and more",
+            "https://creativecommons.org/licenses/by/4.0",
+            "https://creativecommons.org/licenses/by/4.0/deed.en",
+            "https://creativecommons.org/licenses/by/4.0/legalcode",
+            "https://creativecommons.org/licenses/by/4.0/legalcode.en",
+            "https://www.creativecommons.org/licenses/by/4.0/",
+            "https://www.gnu.org/licenses/gpl-3.0",
+            "https://www.gnu.org/licenses/gpl-3.0.en.html",
+            "https://gnu.org/licenses/gpl-3.0.html",
+            "https://opensource.org/licenses/MIT",
+            "https://spdx.org/licenses/MIT.html",
+        )
+        for value in refused:
             self.edit("resources.toml", f'license = "{licence}"', f'license = "{value}"')
-            self.assertError("license is the HTTPS address of a licence or mark")
+            self.assertError("license is the canonical HTTPS address of one licence or mark")
+            self.edit("resources.toml", f'license = "{value}"', f'license = "{licence}"')
+        accepted = (
+            "https://creativecommons.org/licenses/by/",
+            "https://creativecommons.org/licenses/by/3.0/cz/",
+            "https://creativecommons.org/publicdomain/zero/1.0/",
+            "https://www.gnu.org/licenses/gpl-3.0.html",
+            "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+            "https://opensource.org/license/MIT",
+            "https://spdx.org/licenses/CC-BY-4.0",
+        )
+        for value in accepted:
+            self.edit("resources.toml", f'license = "{licence}"', f'license = "{value}"')
+            self.assertEqual(self.errors(), [], value)
             self.edit("resources.toml", f'license = "{value}"', f'license = "{licence}"')
         self.assertEqual(self.errors(), [])
 

@@ -8,8 +8,8 @@ Every advice item and every check SHALL cite at least one entry of the clause le
 point to a published source: the FAIR analysis, the NRP conditions, the NRP documentation, or a published
 paper, dataset or web page. A ledger entry SHALL cite the published work that originally states it; a work that
 relays, summarises or links another published work SHALL be cited only for what it adds itself. A quoted passage
-SHALL carry the licence its source records, recorded as the address of that licence or mark at Creative Commons,
-GNU, OSI or SPDX. A passage quoted
+SHALL carry the licence its source records, recorded as the one canonical address of that licence or mark at
+Creative Commons, GNU, OSI or SPDX. A passage quoted
 from a source that records no licence SHALL stay within the right of quotation: at most 200 words per clause,
 attributed by its source and locator, with no licence claimed for it. A source outside copyright SHALL record the
 Public Domain Mark, and its passages are not bounded. Unpublished working material SHALL NOT supply assessment
@@ -45,7 +45,14 @@ requirements.
 
 #### Scenario: A source records its licence as text
 
-- **GIVEN** a source or a resource citation whose `license` is not the address of a licence or mark at Creative
-  Commons, GNU, OSI or SPDX
+- **GIVEN** a source or a resource citation whose `license` is not the canonical address of a licence or mark at
+  Creative Commons, GNU, OSI or SPDX
 - **WHEN** the content checks run
 - **THEN** the check fails and names the source or the resource citation, so the value cannot lift the bound unseen
+
+#### Scenario: A source records another address of the same licence
+
+- **GIVEN** a source whose `license` is a Creative Commons licence's deed or legal-code page, or its address without
+  the trailing slash
+- **WHEN** the content checks run
+- **THEN** the check fails, and its message gives the canonical form as an example, so one licence keeps one address

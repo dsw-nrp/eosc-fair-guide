@@ -377,12 +377,16 @@ QUOTE_LIMIT = 200
 QUOTE_WORD = re.compile(r"\w+(?:[-'’]\w+)*")
 QUOTE_MARKER = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+", re.MULTILINE)
 QUOTE_BREAK = re.compile(r"(?<=\w)-[ \t]*\n[ \t]*(?!(?:[-*+]|\d+[.)])[ \t])(?=\w)")
-# A recorded licence or mark is the whole HTTPS address of one licence or mark at a publisher whose licences the
-# Guide cites, matched in full: a publisher's home page or text after the address names no licence.
+# A recorded licence or mark is the whole canonical HTTPS address of one licence or mark at a publisher whose licences
+# the Guide cites, matched in full: a publisher's home page or text after the address names no licence, and the crate
+# records the value as the licence's identifier, so one licence has one address. Creative Commons: the licence ending
+# in a slash, with its version and port where it has them, not its deed or legal code; GNU: its `.html` page on
+# www.gnu.org; OSI: its `license/<SPDX ID>` page; SPDX: its list entry without `.html`.
 LICENCE_ADDRESS = re.compile(
-    r"https://(?:www\.)?(?:creativecommons\.org/(?:licenses|publicdomain)/[a-z-]+/(?:\d+(?:\.\d+)*/)?(?:legalcode)?"
-    r"|gnu\.org/licenses/[a-z0-9.+-]+\.html|opensource\.org/licenses?/[A-Za-z0-9.+-]+/?"
-    r"|spdx\.org/licenses/[A-Za-z0-9.+-]+(?:\.html)?)"
+    r"https://(?:creativecommons\.org/(?:licenses|publicdomain)/[a-z-]+/(?:\d+(?:\.\d+)*/(?:[a-z]{2}/)?)?"
+    r"|www\.gnu\.org/licenses/(?:old-licenses/)?[a-z0-9+-]+(?:\.\d+)*\.html"
+    r"|opensource\.org/license/[A-Za-z0-9.+-]+"
+    r"|spdx\.org/licenses/[A-Za-z0-9.+-]+(?<!\.html))"
 )
 
 
@@ -424,7 +428,11 @@ def check_citation(report: Report, where: str, citation: dict[str, Any], own_url
         report.error(where, "a citation describes one work; merge a nested citation or cite its work as a source")
     licence = citation.get("license")
     if licence is not None and not (isinstance(licence, str) and LICENCE_ADDRESS.fullmatch(licence)):
-        report.error(where, "license is the HTTPS address of a licence or mark at Creative Commons, GNU, OSI or SPDX")
+        report.error(
+            where,
+            "license is the canonical HTTPS address of one licence or mark at Creative Commons, GNU, OSI or SPDX, "
+            "such as https://creativecommons.org/licenses/by/4.0/ or https://www.gnu.org/licenses/gpl-3.0.html",
+        )
     if not (own_url or citation.get("url") or citation.get("doi")):
         report.error(where, "a source needs a URL or a DOI")
     if not (citation.get("datePublished") or citation.get("dateAccessed")):

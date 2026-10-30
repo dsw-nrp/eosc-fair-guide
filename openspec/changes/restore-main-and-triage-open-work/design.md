@@ -448,15 +448,20 @@ balance a review can apply without overstating it (29 October 2026).
   A work outside copyright records the Public Domain Mark as its `license` and has no bound. Two sources do today:
   the Act on research (`law-328-2025`) and the Open Science III call rules (`os3-rules`), an administrative
   document the maintainer confirmed as an official work (29 October 2026).
-- **The bound:** on `main` before this change, the longest quote from a source without a licence ran 140 words, from
-  the Act this change exempts; the longest call-rules quote ran 122 (`OS3-RULES.17`). With both exempt and the
+- **The bound:** on `main` before this change, the longest quote from a source without a licence ran 139 words by the
+  counter below (`LAW-328-2025.83.2`), from the Act this change exempts; the longest call-rules quote ran 122
+  (`OS3-RULES.17`). With both exempt and the
   cited works' licences read, five bounded quotes remain, the longest 19 words (`CORETRUSTSEAL.01`,
   `CAMBRIDGE-ERN.01`), and #147's quote counts 145. 200 leaves room for one passage and stops a copied page.
 - **Enforcement:** `scripts/check_content.py` counts a quote's words (letters and digits; a hyphenated word once,
   also across a line break; a bulleted or numbered list marker not at all), fails a clause over the bound and one
-  without a locator, so the rule binds without review. A recorded licence must be the whole address of one licence
-  or mark at Creative Commons, GNU, OSI or SPDX, so free text, a home page or text after an address cannot lift the
-  bound unseen.
+  without a locator, so the rule binds without review. A recorded licence must be the whole canonical address of one
+  licence or mark at Creative Commons, GNU, OSI or SPDX, so free text, a home page or text after an address cannot
+  lift the bound unseen. Canonical means one address per licence: Creative Commons' address ending in the version
+  and a slash (not its deed or legal-code page), GNU's `.html` page, OSI's licence page and SPDX's list entry. The
+  crate records the value as the licence's identifier, so the same licence never appears under two addresses; the
+  check's message gives an example. The third review of PR F found that the rule's surfaces said only "the address",
+  so they now say canonical.
 - **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
   resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
   version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's
