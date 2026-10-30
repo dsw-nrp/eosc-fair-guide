@@ -6,8 +6,8 @@ See proposal.md for the motivation. These constraints shape the approach:
 
 - **Merge rules.** The `Main branch protection` ruleset requires an approving code-owner review, the `checks`
   status and the merge queue. `.github/CODEOWNERS` names only `@motyc`, and repository administrators may bypass the
-  ruleset. The code owner can approve the bot pull requests but not their own; #141 and #143 were merged through the
-  administrator bypass while review was still required.
+  ruleset, by pull request only since D11. The code owner can approve the bot pull requests but not their own; #141
+  and #143 were merged through the administrator bypass while review was still required.
 - **Merge queue.** The queue checks `main` together with each pull request. Nothing queues successfully until the
   inventory row is regenerated.
 - **Drafts.** #39–#42 have seven or eight commits each, dated 17–20 October, all authored as
@@ -86,7 +86,7 @@ flowchart TD
 | B1–B4 | Rebuilt content, one per issue, in issue order | After A, independent of the bot pull requests |
 | C | The change branch `agents/claude/restore-main-and-triage-open-work`: this change's artifacts and triage ledger, the HEAD 400 fallback and the digest exemption with their tests, the limitations, the RO-Crate link fix and the usage entry; each behaviour change travels with its spec delta | After A |
 | E | The complete catalogue of D8 with its tests and documentation, branched from `main` after PR C, which was already under review when the maintainer added this scope | After C |
-| F | The original-source rule of D10: the content rule and its generated copies, the `guide-knowledge-base` delta, the content model and how-to, this change's artifact updates and the usage entry | After C, independent of E |
+| F | The original-source rule of D10: the content rule and its generated copies, the `guide-knowledge-base` delta, the content model and how-to, this change's artifact updates and the usage entry; also the record of D11 and its declared setting | After C, independent of E |
 | Triage | The ledger on the change branch; its writes go to GitHub issues and the Project, not to a pull request | Now, independent of A |
 | D | Verification after the next watch run and the triage, the final task and usage-entry updates, and the archive after approval | Last |
 
@@ -465,6 +465,45 @@ Alternatives considered: no bound, leaving "justified extent" to review (rejecte
 differently); 150 words (rejected: it would fail #147's quote, which the maintainer considers proportionate); a
 new field for works outside copyright (rejected: the Public Domain Mark says it in the existing `license`).
 
+### D11. Administrators bypass `main`'s protection only by pull request
+
+On 30 October 2026 B3's commit `2ba195d` reached `main` without a pull request. Its branch had been created from
+`origin/main` and kept it as its upstream, so a push from the editor sent the commit to `main`. The ruleset let it
+through because administrators bypass it `always`, which includes direct pushes. The deployment published B3 to the
+preview and closed #37; no release was made and no other branch contained the commit.
+
+- **Restoring `main`:** `main` moves back to `bed3284` with a push leased on `2ba195d`, so it refuses if `main` has
+  moved again. The maintainer runs it, because the agent's runtime refuses a force push. The deployment of
+  `bed3284` restores the preview. #37 is reopened with a comment saying why, and B3 returns through its own pull
+  request (#151), which closes #37 when it merges.
+- **The setting:** the bypass of `Main branch protection` becomes **For pull requests only**
+  (`RepositoryRole 5 pull_request`). An administrator must open a pull request, and can still merge it without
+  waiting for the requirements. The merges of D2 and `docs/runbooks/emergency-merge.md` work unchanged, and so does
+  the requirement "The merge queue verifies the merged result", which keeps an administrator's direct merge of a pull
+  request possible. A direct push or a force push to `main` is refused.
+- **Order:** the setting changes only after `main` is restored, because the restoring force push relies on the
+  former bypass.
+- **Recording:** the maintainer applies the setting live; it is then declared in `.github/repository.toml` and
+  recorded in `tests/fixtures/repository-audit.json`, as D7 did for the Triage view.
+- **Verification:** the ruleset reports `current_user_can_bypass` as `pull_requests_only` for the maintainer, a
+  maintainer's `python scripts/audit_repository.py --section rulesets` reports no drift, and
+  `tests/test_audit_repository.py` fails when the recorded value is `always` again.
+- **Direct-commit releases:** the release tooling still accepts direct commits as release input (requirement
+  "Release changelogs cover PRs and direct commits without duplication"); the setting only stops an administrator
+  from creating them without a pull request. `docs/contribution-reference.md` already makes such a commit subject to
+  the configured protection, so no document changes. A deliberate direct commit would need the setting rolled back
+  through `docs/runbooks/rollback-a-setting.md` first.
+- **Agent branches:** branches are created without an upstream and pushed with an explicit refspec, as earlier
+  branches of this change were. This is conduct; the setting is the mechanism that holds when it is forgotten.
+
+Alternatives considered:
+
+- Removing the administrator bypass: rejected, because D2's merges and the emergency merge need it while one code
+  owner cannot approve their own pull requests.
+- A revert commit on `main` instead of moving it back: rejected by the maintainer; it would keep the unreviewed
+  commit and its revert in `main`'s history.
+- A separate OpenSpec change for the setting: rejected by the maintainer; it is recorded in this change.
+
 ### Accessibility and migration
 
 - **Accessibility:** the rebuilt advice and the resource link use existing fields and rendering. The catalogue's new
@@ -479,6 +518,8 @@ new field for works outside copyright (rejected: the Public Domain Mark says it 
   - The catalogue reads the crate as it is; no content, stored format or API record changes, and the cards revert
     with PR E.
   - The original-source rule changes no content and no stored format; it reverts with PR F.
+  - The bypass mode is a setting, reverted through `docs/runbooks/rollback-a-setting.md` together with its
+    declaration.
 
 ## Risks / Trade-offs
 
@@ -505,6 +546,9 @@ new field for works outside copyright (rejected: the Public Domain Mark says it 
   ORCID iD the person opted out of stays hidden.
 - [The original of a relaying page cannot be found or reached] → Cite the relaying page only for what it adds itself,
   and narrow the advice to that.
+- [A pull request merged by the bypass still skips review] → D2's conditions still apply: green `checks` and the
+  maintainer's recorded acceptance before each bypass merge. The setting ensures that every change to `main` has a
+  pull request that shows them.
 
 ## Migration Plan
 

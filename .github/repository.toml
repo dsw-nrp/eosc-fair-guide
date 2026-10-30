@@ -33,8 +33,9 @@ target = "branch"
 enforcement = "active"
 include = ["~DEFAULT_BRANCH"]
 exclude = []
-# Repository administrators may bypass: the documented break-glass merge, which deployment checks in full.
-bypass = ["RepositoryRole 5 always"]
+# Repository administrators may bypass, for pull requests only: the documented break-glass merge, which deployment
+# checks in full. A direct or forced push to the default branch is refused (restore-main-and-triage-open-work, D11).
+bypass = ["RepositoryRole 5 pull_request"]
 
 [ruleset.rules.deletion]
 [ruleset.rules.non_fast_forward]

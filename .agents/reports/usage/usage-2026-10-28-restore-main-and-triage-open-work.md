@@ -136,3 +136,53 @@
   says, are ticked in PR D. Open: the review and merge of B2 (#147), PR E (#149) and PR F (#148), the rebuilds B3–B4,
   the digest actions outside the repository, the shaping of the remaining issues in the ledger, and the integration
   check after the next watch run.
+- **Later in the session (29–30 October):** the maintainer merged B2 (#147). B3 was rebuilt from draft #40 for #37
+  as `2ba195d`, and at the maintainer's request a second commit, `048a814`, added the Library of Congress site
+  Sustainability of Digital Formats as a catalogue guide with the clause `LOC-DIGITAL-FORMATS.01`; the full suite
+  passed 36/36 with both. B3's branch had been created from `origin/main` and kept it as its upstream, so a push
+  from the editor sent `2ba195d` straight to `main` (design D11). The session found it, proposed the restoration and
+  the prevention, and stopped at its usage limit before acting.
+
+## Kilo session (restore `main` after the direct push)
+
+- **When:** 2026-10-30
+- **Agent / runtime:** Kilo (VS Code extension)
+- **Model / backend:** anthropic/claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** resumed from the Claude Code session's transcript; delivered `aiscr-planning-core`,
+  `aiscr-quality-first-execution`, `aiscr-usage-logging` and `aiscr-model-logging` rules; the native
+  `fair-guide-content` and `fair-guide-surfaces` rules; `gh` API queries; GitHub's documentation on ruleset bypass
+  modes.
+- **What:**
+  - Restored `main` to `bed3284`: the maintainer ran the leased force push, because the Claude Code session's
+    runtime had refused it and the agent did not repeat it by another route. The deployment and publication of
+    `bed3284` passed, and the preview no longer carries B3.
+  - Reopened #37 with the approved comment; opened B3 with the Library of Congress commit as #151, after the
+    maintainer approved its body; closed draft #41 with a link to #147; pushed the approved review fix `d1e6c4c` to
+    PR E (#149). Every push named its remote branch explicitly.
+  - After the maintainer set the bypass of `Main branch protection` to **For pull requests only**, recorded it as
+    design D11 and task group 9, declared it in `.github/repository.toml` and recorded it in the audit fixture.
+  - Pruned stale remote-tracking refs and fast-forwarded local `main`; the maintainer deleted the four local branches
+    whose work had merged, since the runtime refuses `git branch -D`.
+- **Impacted:** `main` on GitHub; issue #37; pull requests #41, #149 and #151; the `Main branch protection` ruleset
+  (applied by the maintainer); on PR F's branch `.github/repository.toml`, `tests/fixtures/repository-audit.json`,
+  the change's `design.md`, `proposal.md` and `tasks.md`, and this usage entry.
+- **Corrections:**
+  - The maintainer stated that B3 should not have reached `main` without a pull request and asked for `main` to be
+    moved back rather than reverted, and for the prevention to be logged in this change instead of a new one.
+  - The maintainer asked for `main` to be fixed first and escalated when the agent could not act itself; the lease in
+    the earlier proposed command named a wrong commit, which would have refused, and was corrected before it ran.
+- **Verification:**
+  - `git ls-remote` reports `main` at `bed3284`, and only B3's branch contains `2ba195d`; **Deploy the verified site**
+    run 40982282070 passed its full checks and **Publish the verified site** run 40982793541 succeeded for
+    `bed3284`; the crate at `/next/` lists no action of B3;
+  - the ruleset reports the bypass `RepositoryRole 5 pull_request` and `current_user_can_bypass` as
+    `pull_requests_only`; `python scripts/audit_repository.py --check-config` passes and a maintainer's
+    `python scripts/audit_repository.py --section rulesets` reports no drift; `tests/test_audit_repository.py` fails
+    with the fixture's former `always` and passes with `pull_request`;
+  - #151 closes #37 at head `048a814`.
+- **Close-out:** task group 9 is done; PR D records its ticks. `npm run openspec:validate` passes 6/6 and
+  `python scripts/check_usage.py` passes. `python scripts/check_all.py` passed 35 of 36 checks; REUSE failed only on
+  the untracked session transcript under `.agents/local_scratch/`, which no commit carries. B3's review and merge
+  (3.6) and PR F's review and merge (8.7) remain open, with the open items of the session above.

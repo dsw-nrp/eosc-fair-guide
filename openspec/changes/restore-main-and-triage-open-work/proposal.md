@@ -30,6 +30,8 @@ digest with 16 findings (#140):
   for the detail.
 - A cited source can relay another. The review of B2 (#147) found its handover advice resting on a page that
   summarises a published checklist, and the checklist carries what the summary drops. No rule asks for the original.
+- On 30 October B3's commit reached `main` by a direct push, unreviewed, because its branch tracked `origin/main` and
+  administrators bypass `main`'s protection `always`, which includes direct pushes.
 
 ## What Changes
 
@@ -81,6 +83,9 @@ digest with 16 findings (#140):
    rule, the content model and the content how-to state it. A passage from a source that records no licence is
    quoted under the right of quotation, at most 200 words, which the content check enforces; a work outside
    copyright records the Public Domain Mark.
+10. **Refuse direct pushes to `main`.** `main` moves back to the last reviewed commit, and B3 returns through its own
+    pull request. Administrators then bypass `main`'s protection only by pull request, so D2's merges still work and
+    a direct or forced push is refused; the setting is declared and recorded like the other settings.
 
 ### Exclusions
 
@@ -127,6 +132,8 @@ None.
 - **Audit behaviour:** `scripts/audit_repository.py`, `tests/test_audit_repository.py`,
   `tests/fixtures/repository-audit.json`, `.github/repository.toml` (the Triage view filter and the `guide-health`
   description) and `docs/maintenance.md`.
+- **Ruleset bypass:** `.github/repository.toml` and `tests/fixtures/repository-audit.json` (the administrator bypass
+  of `Main branch protection`, for pull requests only).
 - **Catalogue:** `assets/js/catalogue.js`, `assets/js/catalogue-view.js`, the shared badge helper in `assets/js/`,
   the labels and icons in `content/ui.toml`, the page tests under `tests/page/`, a completeness test, and the decision
   on paradata detail in `docs/design.md`.
@@ -142,7 +149,9 @@ None.
   - issues #35–#38 and #140, plus new tracked tasks;
   - issues #5–#33, #43, #80, #136 and #137: bodies, titles, parents, Priority, Effort, milestones, Status and
     closures;
-  - the Project's Triage view and the `guide-health` label's description.
+  - the Project's Triage view and the `guide-health` label's description;
+  - `main`, moved back to `bed3284`, B3's pull request #151, #37 reopened, and the bypass mode of the
+    `Main branch protection` ruleset.
 - **Upstream:** the KNAV tools catalogue records and the FIP Dashboard record that carry dead addresses.
 
 ### Validation
@@ -150,7 +159,8 @@ None.
 - `npm run openspec:validate`.
 - `python scripts/check_all.py` on every pull request.
 - `python scripts/watch_sources.py check-config` for the limitations.
-- `python scripts/audit_repository.py --check-config` for the Triage view filter.
+- `python scripts/audit_repository.py --check-config` for the Triage view filter and the ruleset bypass, and a
+  maintainer's `python scripts/audit_repository.py --section rulesets` reporting no drift.
 - `checks` and the deployment run for each merge.
 - The next **Live health and source watch** run lists each addressed digest finding as known, tracked or no longer
   present.

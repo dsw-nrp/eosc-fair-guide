@@ -263,26 +263,42 @@ alone do not complete them.
 - [ ] 8.7 **Human hand-off:** review PR F, record acceptance and merge it (design D2). Verify that the deployment's
       full checks pass for the merge commit.
 
-## 9. Integration check and close-out (PR D)
+## 9. Direct push to `main` (design D11, recorded in PR F)
 
-- [ ] 9.1 **Human hand-off:** after groups 1–8 are done, start **Live health and source watch** with both the audit
+- [ ] 9.1 **Human hand-off:** move `main` back to `bed3284` with a push leased on `2ba195d`; the agent's runtime
+      refuses a force push. Verify that `main` names `bed3284`, that only B3's branch still contains `2ba195d`, and
+      that the deployment and publication of `bed3284` pass.
+- [ ] 9.2 Reopen #37 with the approved comment. Push B3's branch, with the Library of Congress commit, to its own
+      remote branch with an explicit refspec, and open its pull request after the maintainer approves the body. Verify
+      that the pull request closes #37 and that its `checks` pass; 3.6 remains its review and merge.
+- [ ] 9.3 **Human hand-off:** after 9.1, set the administrator bypass of `Main branch protection` to **For pull
+      requests only**. Then declare it in `.github/repository.toml` and record it in
+      `tests/fixtures/repository-audit.json`. Verify that the ruleset reports `current_user_can_bypass` as
+      `pull_requests_only`, that `tests/test_audit_repository.py` fails with the former recorded value and passes with
+      the new one, and that a maintainer's `python scripts/audit_repository.py --section rulesets` reports no drift.
+- [ ] 9.4 Record design D11 and extend the usage entry. Run `npm run openspec:validate`, `python scripts/check_usage.py`
+      and `python scripts/check_all.py`, then extend PR F after the maintainer approves the commit message.
+
+## 10. Integration check and close-out (PR D)
+
+- [ ] 10.1 **Human hand-off:** after groups 1–9 are done, start **Live health and source watch** with both the audit
       and the watch selected, or wait for the scheduled run. Verify in the rebuilt #140:
       - the seven limitations appear as known;
       - the survey PDF and the RO-Crate address are no longer under **Needs triage**;
       - the findings from 5.1 show as tracked;
       - **Project and settings** lists neither #115–#135, the view sort, the digest nor any ledger issue.
-- [ ] 9.2 Using that run's results, decide on the two remaining hosts:
+- [ ] 10.2 Using that run's results, decide on the two remaining hosts:
       - if `asep.lib.cas.cz` still fails, open one host task and triage it to Ready as 6.4 and 6.5 describe;
       - if `data.eli-laser.eu` still fails, add an `unavailable` limitation with the maintainer's reason in PR D.
 
       Verify that the next digest lists neither host under **Needs triage**.
-- [ ] 9.3 Verify the end state:
+- [ ] 10.3 Verify the end state:
       - #39–#42 are closed;
       - #117, #138 and #139 are merged, and so are PR E and PR F;
       - #35–#38 are closed;
       - the end state of 6.6 still holds;
       - the latest deployment of `main` passed.
-- [ ] 9.4 On a branch from `main`:
+- [ ] 10.4 On a branch from `main`:
       - tick this task list;
       - extend the usage entry with the work since PR C;
       - run `python scripts/check_all.py` and `npm run openspec:validate`.
