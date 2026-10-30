@@ -860,3 +860,33 @@ inLanguage = "en"
 url = "https://ukdataservice.ac.uk/learning-hub/data-producer-support/preparing-data-for-sharing-and-reuse/documenting-and-describing-data/data-leveldocumentation/"
 publisher = "UK Data Service"
 dateAccessed = 2026-10-29
+
+[[source]]
+guideRoute = "res/doc"
+id = "snd-synthetic-data"
+code = "SND-SYNTHETIC"
+type = "document"
+title = "Managing and publishing synthetic research data"
+short = { cs = "SND: syntetická výzkumná data", en = "SND: synthetic research data" }
+inLanguage = "en"
+version = "1"
+doi = "10.5281/zenodo.14887525"
+url = "https://doi.org/10.5281/zenodo.14887525"
+publisher = "Zenodo"
+authors = ["Swedish National Data Service"]
+datePublished = 2025-02-18
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+guideRoute = "res/doc"
+id = "datacarpentry-spreadsheets"
+code = "DC-SPREADSHEETS"
+type = "webpage"
+title = "Data Organization in Spreadsheets for Ecologists"
+short = { cs = "Data Carpentry: data v tabulkách", en = "Data Carpentry: data in spreadsheets" }
+inLanguage = "en"
+url = "https://datacarpentry.github.io/spreadsheet-ecology-lesson/"
+publisher = "The Carpentries"
+version = "7de126d91c0d02634e127bd36035d25bd034f01e"
+dateAccessed = 2026-10-30
+license = "https://creativecommons.org/licenses/by/4.0/"

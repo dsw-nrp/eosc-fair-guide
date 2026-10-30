@@ -221,3 +221,10 @@ text = { cs = "AI vám pomůže napsat do článku prohlášení o dostupnosti d
 check = { cs = "DOI, repozitář, licenci a podmínky přístupu porovnejte se záznamem datové sady, ověřte, že DOI vede na landing page, a dodržte pokyny časopisu.", en = "Compare the DOI, the repository, the licence and the access conditions with the dataset's record, check that the DOI leads to the landing page, and follow the journal's instructions." }
 prompt = { cs = "Z údajů níže napiš krátké prohlášení o dostupnosti dat do článku: kde jsou data uložena, pod jakým DOI, pod jakou licencí a za jakých podmínek jsou přístupná. Použij jen uvedené údaje a drž se pokynů časopisu.\n\nÚdaje o datové sadě (název, repozitář, DOI, licence, omezení přístupu): […]\n\nPokyny časopisu: […]", en = "From the facts below, write a short data availability statement for an article: where the data are deposited, under which DOI, under which licence and on what conditions they are accessible. Use only the facts given and follow the journal's instructions.\n\nFacts about the dataset (title, repository, DOI, licence, access restrictions): […]\n\nJournal instructions: […]" }
 sources = ["A.R1.2.N3", "EC-GENAI-GUIDELINES.01"]
+
+[[advice]]
+id = "publication.30"
+lens = "V"
+level = "L1"
+text = { cs = "Před uložením si v pokynech repozitáře přečtěte, jaké formáty souborů přijímá a jak se data nahrávají, a myslete i na ty, kdo budou data stahovat: například tisíce drobných souborů se snáz přenesou zabalené do jednoho archivu (.zip, .tar.gz), jehož obsah popíše README. Po nahrání porovnejte kontrolní součty souborů (SHA-256 nebo MD5) s těmi, které jste spočítali před nahráním.", en = "Before deposit, read in your repository's instructions which file formats it accepts and how data are uploaded, and think also of those who will download the data: thousands of small files, for example, are easier to transfer packed into one archive (.zip, .tar.gz) whose contents the README describes. After upload, compare the file checksums (SHA-256 or MD5) with those calculated before upload." }
+sources = ["RDMKIT.publication.01", "RDMKIT.transfer.01", "CDSC-README.01", "CDIF.REC5"]

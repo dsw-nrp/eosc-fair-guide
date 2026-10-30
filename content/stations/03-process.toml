@@ -31,15 +31,20 @@ sources = ["RDMKIT.process.01", "MBDB-2026.01"]
 id = "process.03"
 lens = "V"
 level = "L1"
-text = { cs = "Původní soubory z přístrojů uchovejte; pro sdílení přidejte otevřené a rozšířené formáty, pokud existují.", en = "Keep the original instrument files; for sharing, add open and widely used formats where they exist." }
-sources = ["A.I1.X1", "MBDB-2026.01"]
+text = { cs = "Původní soubory z přístrojů uchovejte; pro sdílení přidejte [[term/machine-readable-document-format|otevřené nebo rozšířené formáty]], nejlépe takové, které nevyžadují proprietární software. Každý formát a jeho udržitelnost popisuje [[loc-digital-formats|Library of Congress]]. Například:", en = "Keep the original instrument files; for sharing, add [[term/machine-readable-document-format|open or widely used formats]], preferably ones that do not require proprietary software. The [[loc-digital-formats|Library of Congress]] describes each format and how sustainable it is. For example:" }
+steps = [
+  { cs = "tabulková data: CSV (v kódování UTF-8) nebo Parquet vedle sešitů .xlsx; kupříkladu sloučené buňky nebo barvu, která nese význam, software správně nepřečte;", en = "tabular data: CSV (UTF-8) or Parquet alongside .xlsx workbooks; software cannot read correctly, for example, merged cells or colour that carries meaning;" },
+  { cs = "texty a dokumentace: prostý text, Markdown nebo PDF/A vedle .docx;", en = "text and documentation: plain text, Markdown or PDF/A alongside .docx;" },
+  { cs = "obrazová, zvuková a prostorová data: bezztrátové TIFF/PNG, WAV/FLAC a GeoPackage nebo GeoTIFF.", en = "image, audio and geospatial data: lossless TIFF/PNG, WAV/FLAC, and GeoPackage or GeoTIFF." },
+]
+sources = ["A.I1.X1", "MBDB-2026.01", "LAW-328-2025.83.3", "LOC-DIGITAL-FORMATS.01", "DC-SPREADSHEETS.01"]
 
 [[advice]]
 id = "process.04"
 lens = "V"
 level = "L1"
-text = { cs = "[[term/sensitive-data|Citlivá data]] co nejdřív pseudonymizujte nebo anonymizujte a zaznamenejte, jak jste to udělali. Nestačí odstranit jména a rodná čísla; pozor i na identifikující údaje jinde, například jména na fotografiích.", en = "Pseudonymise or anonymise [[term/sensitive-data|sensitive data]] as early as you can, and record how you did it. Removing names and personal ID numbers is not enough; watch for identifying details elsewhere too, such as names on photographs." }
-sources = ["RDMKIT.process.02"]
+text = { cs = "[[term/sensitive-data|Citlivá data]] co nejdřív pseudonymizujte nebo [[term/anonymisation-research-data|anonymizujte]] a zaznamenejte postup: nestačí odstranit jména a rodná čísla, pozor i na nepřímé identifikátory nebo údaje na fotografiích. Pokud data nelze plně anonymizovat a zůstávají v režimu řízeného přístupu, zveřejněte vedle nich jako samostatnou otevřenou datovou sadu malý syntetický (umělý) vzorek se stejnou strukturou sloupců, z něhož ostatní pochopí data dřív, než požádají o přístup.", en = "Pseudonymise or [[term/anonymisation-research-data|anonymise]] [[term/sensitive-data|sensitive data]] as early as you can and record the procedure: removing names and ID numbers is not enough, watch also for indirect identifiers or details on photographs. If the data cannot be fully anonymised and remain under controlled access, publish beside them, as a separate open dataset, a small synthetic (dummy) sample with the same column structure, so others can understand the data before they apply for access." }
+sources = ["RDMKIT.process.02", "SND-SYNTHETIC.01"]
 
 [[advice]]
 id = "process.05"
@@ -67,17 +72,17 @@ sources = ["RDMKIT.process.02", "EINFRA-DOCS.01"]
 id = "process.08"
 lens = "SR"
 level = "L0"
-text = { cs = "Zveřejněte seznam podporovaných formátů, ideálně strojově čitelně.", en = "Publish the list of supported formats, ideally in machine-readable form." }
+text = { cs = "Zveřejněte seznam podporovaných formátů, ideálně strojově čitelně. Jak je který formát udržitelný, popisuje [[loc-digital-formats|Library of Congress]].", en = "Publish the list of supported formats, ideally in machine-readable form. The [[loc-digital-formats|Library of Congress]] describes how sustainable each format is." }
 action = [{ label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "https://docs.nrp.eosc.cz/en/docs/repo_admins/operating-repositories-in-the-nrp/conditions-for-creating-repositories" }]
-sources = ["A.K2.3.2c", "NRP.CS"]
+sources = ["A.K2.3.2c", "NRP.CS", "LOC-DIGITAL-FORMATS.01"]
 
 [[advice]]
 id = "process.09"
 lens = "K"
 level = "L0"
-text = { cs = "Doporučte komunitě, jak zacházet s formáty: originální formáty z přístrojů uchovat, jejich popis sjednotit a doporučené formáty zapsat do FIP.", en = "Advise the community how to handle formats: keep the original instrument formats, harmonise their description and record the recommended formats in the FIP." }
+text = { cs = "Doporučte komunitě, jak zacházet s formáty: originální formáty z přístrojů uchovat, jejich popis sjednotit a doporučené formáty zapsat do FIP. Při jejich výběru pomohou [[loc-digital-formats|faktory udržitelnosti Library of Congress]].", en = "Advise the community how to handle formats: keep the original instrument formats, harmonise their description and record the recommended formats in the FIP. The [[loc-digital-formats|Library of Congress sustainability factors]] help in choosing them." }
 action = [{ label = { cs = "Standardy ve FIP Dashboardu", en = "Standards in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources" }]
-sources = ["MBDB-2026.01", "A.R1.3.F1"]
+sources = ["MBDB-2026.01", "A.R1.3.F1", "LOC-DIGITAL-FORMATS.01"]
 
 [[advice]]
 id = "process.10"

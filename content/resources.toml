@@ -2683,3 +2683,17 @@ asOf = 2026-10-15
 lenses = ["V", "DS"]
 stations = ["analyse", "publication"]
 languages = ["en"]
+
+[[resource]]
+guideRoute = "res/guide"
+id = "loc-digital-formats"
+name = { cs = "Udržitelnost digitálních formátů (Library of Congress)", en = "Sustainability of Digital Formats (Library of Congress)" }
+description = { cs = "Popisy digitálních formátů podle druhu obsahu a sedm faktorů, podle nichž lze posoudit, jak se formát hodí k dlouhodobému uchování.", en = "Descriptions of digital formats by kind of content, and seven factors for judging how well a format suits long-term preservation." }
+url = "https://www.loc.gov/preservation/digital/formats/index.html"
+type = "guide"
+stations = ["plan", "process"]
+lenses = ["V", "DS", "SR", "K"]
+citation = { type = "webpage", title = "Sustainability of Digital Formats: Planning for Library of Congress Collections", inLanguage = "en", publisher = "Library of Congress", dateModified = "2024-06-18", dateAccessed = "2026-10-30" }
+status = "operational"
+asOf = 2026-10-30
+languages = ["en"]

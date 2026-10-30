@@ -47,11 +47,11 @@ lens = "V"
 level = "L1"
 text = { cs = "Rozhodněte předem hlavní věci:", en = "Decide the main points in advance:" }
 steps = [
-  { cs = "typy a formáty dat a jejich přibližný objem;", en = "data types and formats and their approximate volume;" },
+  { cs = "typy a formáty dat a jejich přibližný objem (udržitelnost formátů popisuje [[loc-digital-formats|Library of Congress]]);", en = "data types and formats and their approximate volume (the [[loc-digital-formats|Library of Congress]] describes how sustainable formats are);" },
   { cs = "kam data uložíte (viz zastávka Repozitář);", en = "where you will deposit the data (see the Repository station);" },
   { cs = "licenci a režim přístupu (viz zastávka Licence a přístup).", en = "the licence and the access mode (see the Licence and access station)." },
 ]
-sources = ["A.K2.3.1"]
+sources = ["A.K2.3.1", "LOC-DIGITAL-FORMATS.01"]
 
 [[advice]]
 id = "plan.06"
