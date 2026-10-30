@@ -4772,7 +4772,7 @@ source = "loc-digital-formats"
 principles = ["R1"]
 actor = "other"
 kind = "statement"
-text = { cs = "Library of Congress posuzuje digitální formáty podle sedmi faktorů udržitelnosti: zveřejnění specifikace, rozšíření, průhlednosti, vlastní dokumentace, vnějších závislostí, vlivu patentů a technické ochrany. Ke každému formátu vede jeho popis.", en = "The Library of Congress assesses digital formats by seven sustainability factors: disclosure, adoption, transparency, self-documentation, external dependencies, the impact of patents and technical protection mechanisms. It keeps a description of each format." }
+text = { cs = "Library of Congress posuzuje digitální formáty podle sedmi faktorů udržitelnosti: zveřejnění specifikace, rozšíření, transparentnosti, sebedokumentace, vnějších závislostí a vlivu patentů a technické ochrany. Ke každému formátu vede jeho popis.", en = "The Library of Congress assesses digital formats by seven sustainability factors: disclosure, adoption, transparency, self-documentation, external dependencies, the impact of patents and technical protection mechanisms. It keeps a description of each format." }
 guidance = "The seven sustainability factors listed below apply across digital formats for all categories of information. These factors influence the likely feasibility and cost of preserving the information content in the face of future change in the technological environment in which users and archiving institutions operate."
 guidanceLanguage = "en"
 locator = "Sustainability Factors, Overview of factors"
