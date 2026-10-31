@@ -1825,3 +1825,14 @@ results = [
   "publication.05",
 ]
 endTime = 2026-10-20T21:00:00+00:00
+
+[[action]]
+id = "2026-10-31-ip-errata-review"
+type = "update"
+name = "Source and qualify the sample identifier, patent and post-publication error advice"
+description = "Reviewed the advice rebuilt for #38 against its cited clauses. metadata.05 asks for persistent identifiers where possible and names the funder with the project or grant number, as CDIF recommends, instead of a RIV linkage no clause states; IGSN now links its glossary entry, the provenance of samples and instruments rests on RDMkit, and DDRapp, which supports no statement in the text, is no longer cited. licence.31 cites the research act's exception with its effective date and Act No. 527/1990 Coll. for why data that disclose an invention wait until the patent application is filed; RDMkit's Data publication page supports asking the technology transfer office or legal team, the embargo, restricted access and publishing the metadata of data that cannot be published. The English now says Coll. publication.05 says why published files are not overwritten, leaves metadata fixes to the repository's change policy, offers a separately identified patch bundle only as the NRP conditions do, and withdraws data only when a new version cannot remedy the error, citing RDMkit on updating and withdrawing published entries."
+agent = "david-novak"
+instruments = ["kilo-code", "claude-opus-5-5"]
+objects = ["A.I3.R3", "A.I3.R5", "A.R1.2.N3", "CDIF.REC6", "RDMKIT.collect.02", "DDRAPP.01", "LAW-328-2025.83.5", "POLICY-MANUAL.05", "COPYRIGHT-LICENCES.04", "A.A1.2.R2", "NRP.M1", "NRP.M3", "A.R1.R3", "A.A2.R2", "RDMKIT.publication.02", "RDMKIT.publication.03", "LAW-527-1990.5"]
+results = ["metadata.05", "licence.31", "publication.05", "RDMKIT.publication.02", "RDMKIT.publication.03", "LAW-527-1990.5", "law-527-1990"]
+endTime = 2026-10-31T02:41:21+01:00

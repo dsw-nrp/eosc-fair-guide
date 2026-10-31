@@ -44,8 +44,8 @@ sources = ["A.R1.2.X1", "LONDON.4.6"]
 id = "metadata.05"
 lens = "V"
 level = "L1"
-text = { cs = "Uveďte vazby pomocí [[term/persistent-identifier|trvalých identifikátorů]]: související články, zdrojová data a předchozí verze, číslo projektu nebo grantu (pro propojení v RIV) a u experimentálních oborů také identifikátory fyzických vzorků (například IGSN nebo sbírkové kódy) a měřicích přístrojů.", en = "Give links through [[term/persistent-identifier|persistent identifiers]]: related articles, source data and previous versions, the project or grant code (for RIV linkage), and in experimental fields also identifiers of physical samples (for example IGSN or collection codes) and instruments." }
-sources = ["A.I3.R3", "A.R1.2.N3", "RDMKIT.collect.02", "DDRAPP.01", "CDIF.REC6"]
+text = { cs = "Vazby uveďte, kde to jde, pomocí [[term/persistent-identifier|trvalých identifikátorů]]: související články, zdrojová data a předchozí verze, poskytovatele a číslo projektu nebo grantu a v experimentálních oborech také identifikátory fyzických vzorků (například [[term/igsn|IGSN]] nebo sbírkové kódy) a měřicích přístrojů.", en = "Give links, through [[term/persistent-identifier|persistent identifiers]] where possible: related articles, source data and previous versions, the funder and the project or grant number, and in experimental fields also identifiers of physical samples (for example an [[term/igsn|IGSN]] or collection codes) and of instruments." }
+sources = ["A.I3.R3", "A.I3.R5", "A.R1.2.N3", "CDIF.REC6", "RDMKIT.collect.02"]
 
 [[advice]]
 id = "metadata.06"

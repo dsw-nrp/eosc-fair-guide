@@ -312,6 +312,16 @@ version = "2025-09-09"
 
 [[source]]
 guideRoute = "res/doc"
+id = "law-527-1990"
+type = "document"
+title = { cs = "Zákon č. 527/1990 Sb., o vynálezech a zlepšovacích návrzích", en = "Act No. 527/1990 Coll., on inventions and rationalisation proposals" }
+short = { cs = "Zákon č. 527/1990 Sb.", en = "Act No. 527/1990 Coll." }
+inLanguage = "cs"
+url = "https://e-sbirka.gov.cz/sb/1990/527"
+dateAccessed = 2026-10-31
+
+[[source]]
+guideRoute = "res/doc"
 id = "os3-faq"
 type = "webpage"
 title = { cs = "Open Science III: časté dotazy", en = "Open Science III: frequently asked questions" }
