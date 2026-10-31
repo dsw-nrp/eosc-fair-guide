@@ -207,3 +207,10 @@ lens = "*"
 level = "L1"
 text = { cs = "[[rdmkit-licensing|RDMkit]] uvádí CC0 jako možnost vzdát se práv. Česká [[copyright-licences|příručka NRP]] upřesňuje, že autorských práv se podle českého práva vzdát nelze: u autorského díla se CC0 vykládá jako nejširší možné oprávnění k užití. Zvláštní právo pořizovatele databáze má odlišný režim. Nezaměňujte otevřenou licenci s oprávněním zveřejnit osobní či jinak chráněná data.", en = "[[rdmkit-licensing|RDMkit]] presents CC0 as an option for waiving rights. The Czech [[copyright-licences|NRP handbook]] clarifies that authors' rights cannot be waived under Czech law: for a copyright work, CC0 is read as the broadest permission to use it. Database makers' sui generis rights follow a different regime. An open licence does not itself authorize disclosure of personal or otherwise protected data." }
 sources = ["COPYRIGHT-LICENCES.03"]
+
+[[advice]]
+id = "licence.31"
+lens = "V"
+level = "L1"
+text = { cs = "Plánujete-li patentovou přihlášku nebo pracujete s obchodním tajemstvím průmyslového partnera, konzultujte postup s pracovištěm transferu technologií před zveřejněním: do podání přihlášky využijte časově omezené [[term/embargoed-access|embargo]] a u trvale chráněných podkladů zveřejněte metadatový záznam s odůvodněním zákonné výjimky podle [[law-328-2025|§ 83 odst. 5 zákona č. 328/2025 Sb.]]", en = "If you plan a patent application or work with an industrial partner's trade secrets, consult your technology transfer office before publishing: use a time-limited [[term/embargoed-access|embargo]] until the patent is filed, and for permanently protected material publish a metadata record stating the legal exception under [[law-328-2025|Section 83(5) of Act No. 328/2025 Sb.]]" }
+sources = ["LAW-328-2025.83.5", "POLICY-MANUAL.05", "COPYRIGHT-LICENCES.04"]

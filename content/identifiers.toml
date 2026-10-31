@@ -363,6 +363,7 @@ advice = [
   "collect.22",
   "collect.23",
   "publication.30",
+  "licence.31",
 ]
 questions = [
   "cdif.01",
@@ -1299,6 +1300,7 @@ actions = [
   "2026-10-18-formats-packaging",
   "2026-10-30-loc-digital-formats",
   "2026-10-30-formats-review",
+  "2026-10-18-ip-errata-samples",
 ]
 model = [
   "model:layers-seams",
