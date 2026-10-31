@@ -8,8 +8,10 @@ Every advice item and every check SHALL cite at least one entry of the clause le
 point to a published source: the FAIR analysis, the NRP conditions, the NRP documentation, or a published
 paper, dataset or web page. A ledger entry SHALL cite the published work that originally states it; a work that
 relays, summarises or links another published work SHALL be cited only for what it adds itself. A quoted passage
-SHALL carry the licence its source records, recorded as the one canonical address of that licence or mark at
-Creative Commons, GNU, OSI or SPDX. A passage quoted
+SHALL carry the licence its source records, recorded as the one canonical address of a known licence or mark: a
+Creative Commons licence or public-domain tool, or a licence on the reviewed lists of GNU paths, OSI pages and SPDX
+entries that the content check keeps; a licence on none of them SHALL be added to its list through review before a
+source records it. A passage quoted
 from a source that records no licence SHALL stay within the right of quotation: at most 200 words per clause,
 attributed by its source and locator, with no licence claimed for it. A source outside copyright SHALL record the
 Public Domain Mark, and its passages are not bounded. Unpublished working material SHALL NOT supply assessment
@@ -56,3 +58,10 @@ requirements.
   the trailing slash
 - **WHEN** the content checks run
 - **THEN** the check fails, and its message gives the canonical form as an example, so one licence keeps one address
+
+#### Scenario: A source records a licence the Guide has not reviewed
+
+- **GIVEN** a source whose `license` is the canonical SPDX address of a licence on none of the reviewed lists
+- **WHEN** the content checks run
+- **THEN** the check fails, and its message names the lists and says that the licence is added to its list through
+  review

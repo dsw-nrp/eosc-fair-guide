@@ -653,8 +653,8 @@ class ContentCheckTests(FixtureCase):
         self.assertError("a citation describes one work")
         self.edit("resources.toml", nested, "")
         # A licence is recorded as the whole canonical address of one known licence, so a free-text value, a
-        # publisher's home page, another page on its site or text after an address cannot lift the bound unseen, and
-        # one licence never has two addresses.
+        # publisher's home page, another page on its site, an unreviewed licence or text after an address cannot lift
+        # the bound unseen, and one licence never has two addresses.
         refused = (
             "All rights reserved",
             "https://creativecommons.org/",
@@ -671,16 +671,25 @@ class ContentCheckTests(FixtureCase):
             "https://www.gnu.org/licenses/gpl-faq.html",
             "https://www.gnu.org/licenses/license-list.html",
             "https://gnu.org/licenses/gpl-3.0.html",
+            # GNU keeps a superseded version under old-licenses/ and redirects its root address there; a version it
+            # never published names no licence.
+            "https://www.gnu.org/licenses/gpl-2.0.html",
+            "https://www.gnu.org/licenses/old-licenses/gpl-3.0.html",
+            "https://www.gnu.org/licenses/gpl-9.9.html",
             "https://opensource.org/licenses/MIT",
             "https://opensource.org/license/faq",
+            # OSI publishes no page for an Open Data Commons licence; its SPDX entry is its address.
+            "https://opensource.org/license/ODbL-1.0",
             "https://spdx.org/licenses/MIT.html",
             "https://spdx.org/licenses/MIT.HTML",
             # A Creative Commons licence is recorded at Creative Commons, not under its SPDX identifier.
             "https://spdx.org/licenses/CC-BY-4.0",
+            # A licence the Guide has not reviewed is added to the list first.
+            "https://spdx.org/licenses/ISC",
         )
         for value in refused:
             self.edit("resources.toml", f'license = "{licence}"', f'license = "{value}"')
-            self.assertError("license is the canonical HTTPS address of one licence or mark")
+            self.assertError("license is the canonical HTTPS address of a known licence or mark")
             self.edit("resources.toml", f'license = "{value}"', f'license = "{licence}"')
         accepted = (
             "https://creativecommons.org/licenses/by/3.0/cz/",
@@ -690,6 +699,7 @@ class ContentCheckTests(FixtureCase):
             "https://creativecommons.org/publicdomain/zero/1.0/",
             "https://www.gnu.org/licenses/gpl-3.0.html",
             "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+            "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
             "https://www.gnu.org/licenses/fdl-1.3.html",
             "https://opensource.org/license/MIT",
             "https://spdx.org/licenses/Apache-2.0",

@@ -278,6 +278,13 @@ alone do not complete them.
       matrix fails against the former pattern and passes now, that `python scripts/check_content.py` reports the two
       versionless records before their fix and no error after it, and that `python scripts/check_all.py` passes, then
       extend PR F after the maintainer approves the commit message.
+- [ ] 8.10 Address the fifth review of PR F (design D10): name the reviewed licence lists, and how a licence joins
+      them, on every surface that states the rule (the `guide-knowledge-base` delta with a scenario for an unreviewed
+      licence, the native rule with its generated copies, the content model and the check's message); keep separate
+      lists of GNU paths, OSI pages and SPDX entries, so OSI is not accepted for Open Data Commons licences and a GNU
+      version has one address; update the triage ledger after #27's closure. Verify that the boundary matrix fails
+      against the former pattern and message and passes now, and that `python scripts/check_all.py` passes, then
+      extend PR F after the maintainer approves the commit message.
 
 ## 9. Direct push to `main` (design D11, recorded in PR F)
 

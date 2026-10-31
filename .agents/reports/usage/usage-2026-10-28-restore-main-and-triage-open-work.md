@@ -182,8 +182,25 @@
     not planned at the maintainer's decision and recorded it in the triage ledger.
   - Posted the approved decision comment on #140 and reported the three dead tool addresses to the KNAV catalogue
     (Open-Science-Department-KNAV/Data-Management-Tools-Catalogue#1).
-- **Impacted:** `main` on GitHub; issues #26–#30, #37 and #140; pull requests #41, #148, #149 and #151; the issue
-  report in the KNAV catalogue; the `Main branch protection` ruleset (applied by the maintainer); on PR F's branch
+  - Answered B3's review (#151) with a reviewer's action `2026-10-30-formats-review` and four new clauses from general
+    sources: `publication.30` starts from the repository's instructions, with packaging as an example
+    (`RDMKIT.publication.01`, `RDMKIT.transfer.01`); `process.04` cites the Swedish National Data Service's guide on
+    synthetic research data (`SND-SYNTHETIC.01`); `process.03` cites the Data Carpentry lesson on spreadsheets
+    (`DC-SPREADSHEETS.01`). The maintainer corrected the Czech and merged #151, which closed #37.
+  - Opened #152 for advice resting on a contributor's expert judgement, which the maintainer asked for during B3's
+    review.
+  - Shaped and posted #31, #33, #43, #80 (re-scoped to the OpenSSF Best Practices badge) and #136, and shaped #150 by
+    direct edit at the maintainer's request.
+  - Opened the digest's tracked tasks (task 5.1): #153 and #154 for the KNAV catalogue's dead addresses, #160 for the
+    FIP Dashboard's unresolved repository address, which the Dashboard team tracks there; and #155–#159, one keyed
+    task per FAIR Champion candidate, closed as not planned under the selection review's existing decision, since the
+    digest reads one finding key per task. Commented on #140 that ELAN needs no task.
+  - Addressed the fifth review of PR F (task 8.10): the reviewed licence lists are named on every surface, with
+    separate lists of GNU paths, OSI pages and SPDX entries; the triage ledger reflects #27's closure.
+- **Impacted:** `main` on GitHub; issues #26–#31, #33, #37, #43, #80, #136, #140, #150, #152–#160; pull requests #41,
+  #148, #149 and #151; the issue report in the KNAV catalogue; the `Main branch protection` ruleset (applied by the
+  maintainer); on B3's branch the station files, `content/ledger.toml`, `content/sources.toml`,
+  `content/provenance.toml` and `content/identifiers.toml`; on PR F's branch
   `.github/repository.toml`, `tests/fixtures/repository-audit.json`, `scripts/check_content.py`,
   `tests/test_scripts.py`, `.agents/guide/rules/fair-guide-content.md` with its generated copies and the guide region
   of `CODEX.md`, `docs/content-model.md`, `docs/deployment.md`, `content/sources.toml`, `content/resources.toml`,
@@ -200,7 +217,9 @@
     the Dashboard's own issue and its responsible person, Marek Suchánek, cover.
   - For B3's review, the maintainer rejected citing repository-specific instructions for general advice on packaging
     files and on spreadsheets, and asked for more generic sources or advice reworded so that an example does not carry
-    the claim.
+    the claim; the maintainer also corrected the Czech wording of `publication.30` and `process.03`.
+  - The maintainer said that the FIP Dashboard team tracks the dead repository address directly on the Guide's task,
+    not in an issue of its own, so #160 says so.
 - **Verification:**
   - `git ls-remote` reports `main` at `bed3284`, and only B3's branch contains `2ba195d`; **Deploy the verified site**
     run 40982282070 passed its full checks and **Publish the verified site** run 40982793541 succeeded for
@@ -218,13 +237,19 @@
     `python scripts/check_content.py` then reported only the two versionless records, and no error once they record
     CC BY 4.0; at this head six quotes are bounded, the longest `UKDS-DATA-LEVEL.01` at 145 words;
   - each shaped body passed `verify-composition` before posting; the `/next/` card was read in Czech and English at
-    1280 px and in English at 360 px, with no sideways scroll.
-- **Close-out:** on 30 October, 22 of 63 tasks are ticked; PR D records the ticks of the work done since, including task
-  group 9. PR E (#149) merged as `45bf1eb`. Open: B3's review fixes and merge (#151, 3.6), B4 (3.7–3.8), PR F's
-  review and merge (8.7), the tracked tasks from the digest (5.1) and their links to the upstream reports (5.2), the
-  shaping of #31, #33, #43, #80 and #136, Priority, Effort and Ready for the shaped issues (6.5), and the integration
-  check after the next watch run. For this round, `npm run openspec:validate` passes 6/6 and
-  `python scripts/check_usage.py` passes; `python scripts/check_all.py` passed 34 of 36 on the final tree: REUSE fails
-  only on the untracked session transcript under `.agents/local_scratch/`, which no commit carries, and `runtime`
-  failed its shared browser-slot timing test under the full run's load, passing alone (11 of 11) and in the previous
-  full run.
+    1280 px and in English at 360 px, with no sideways scroll;
+  - B3's review fixes passed `python scripts/check_all.py` (35 of 36, REUSE on the untracked transcript), and the
+    changed items render in Czech and English at 360 px; #151 merged as `93dd3f1`, whose deployment and publication
+    passed;
+  - every posted body (#26, #28–#31, #33, #43, #80, #136, #150, #152–#154, #160) passes the planned-issue readiness
+    check, and a maintainer's `python scripts/audit_repository.py --section project` reports no drift and no
+    attention finding;
+  - the fifth review's boundary matrix fails against the former pattern and message and passes now; GNU, OSI and
+    SPDX addresses were checked on 30 October 2026: OSI has no page for `ODbL-1.0` or `ODC-By-1.0`, and GNU
+    redirects `gpl-2.0.html`, `lgpl-2.1.html` and `fdl-1.2.html` to `old-licenses/`; with B3 merged, seven quotes are
+    bounded, `LOC-DIGITAL-FORMATS.01` adding one of 45 words, and the longest is still `UKDS-DATA-LEVEL.01` at 145.
+- **Close-out:** on 31 October, 22 of 64 tasks are ticked; PR D records the ticks of the work done since, including
+  task groups 5, 6 and 9 and B3 (3.5–3.6). PR E (#149) merged as `45bf1eb` and B3 (#151) as `93dd3f1`. Open: B4
+  (3.7–3.8), PR F's review and merge (8.7), and the integration check after the next watch run (group 10). For this
+  round, `npm run openspec:validate`, `python scripts/check_usage.py` and `python scripts/check_all.py`: see the
+  verification of its commit.

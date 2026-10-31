@@ -456,18 +456,22 @@ balance a review can apply without overstating it (29 October 2026).
 - **Enforcement:** `scripts/check_content.py` counts a quote's words (letters and digits; a hyphenated word once,
   also across a line break; a bulleted or numbered list marker not at all), fails a clause over the bound and one
   without a locator, so the rule binds without review. A recorded licence must be the whole canonical address of one
-  known licence or mark at Creative Commons, GNU, OSI or SPDX, so free text, a home page, another page on a
-  licensing site or text after an address cannot lift the bound unseen. Known means a Creative Commons licence or
-  public-domain tool, a GNU licence family (GPL, LGPL, AGPL, FDL), or another licence whose SPDX identifier is on a
-  short list in the check, reviewed for the Guide's sources and extended through review. Canonical means one address
-  per licence: a Creative Commons licence's address with its version, and its port where it has one, ending in a
-  slash (not its deed or legal-code page) and never its SPDX entry; GNU's `.html` page on `www.gnu.org`; any other
-  licence's OSI page or SPDX list entry. The crate records the value as the licence's identifier, so the same
-  licence never appears under two addresses at one publisher; the check's message gives an example and says how to
-  add a licence. The third review of PR F found that the rule's surfaces said only "the address", so they now say
-  canonical; its fourth found that the pattern still accepted any page shaped like a licence, a versionless Creative
-  Commons address (which two records used; both now record the CC BY 4.0 their sources state) and a case variant
-  of SPDX's `.html`, and refused longer Creative Commons ports such as `igo`.
+  known licence or mark, so free text, a home page, another page on a licensing site, an unreviewed licence or text
+  after an address cannot lift the bound unseen. Known means a Creative Commons licence or public-domain tool, or a
+  licence on one of three short lists in the check, reviewed for the Guide's sources: GNU's paths, the licences with
+  a page at OSI, and the SPDX entries, which add the Open Data Commons licences OSI does not list. A licence on none
+  of them is added to its list through review. Canonical means one address per licence at each publisher: a Creative
+  Commons licence's address with its version, and its port where it has one, ending in a slash (not its deed or
+  legal-code page) and never its SPDX entry; the `.html` page GNU serves for that version, under `old-licenses/` for
+  a superseded one, whose root address redirects there; the OSI page or SPDX entry of any other licence. The crate
+  records the value as the licence's identifier; the check's message names the lists and says how a licence joins
+  them. The third review of PR F found that the rule's surfaces said only "the address", so they now say canonical;
+  its fourth found that the pattern still accepted any page shaped like a licence, a versionless Creative Commons
+  address (which two records used; both now record the CC BY 4.0 their sources state) and a case variant of SPDX's
+  `.html`, and refused longer Creative Commons ports such as `igo`. Its fifth found that the requirement, rule,
+  content model and message still promised any address at the four publishers, that OSI was accepted for Open Data
+  Commons licences it has no page for, and that GNU's root and `old-licenses/` addresses of one version both passed;
+  the lists are now explicit per publisher and named on every surface.
 - **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
   resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
   version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's
