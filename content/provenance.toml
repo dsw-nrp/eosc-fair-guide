@@ -1761,3 +1761,56 @@ instruments = ["claude-code", "claude-opus-5-5"]
 objects = ["CESSDA-DMEG.01", "EINFRA-DOCS.01", "HARVARD-OFFBOARDING.01", "HARVARD-OFFBOARDING.02", "LAW-328-2025.83", "POLICY-MANUAL.02", "POLICY-MANUAL.04", "POLICY-MANUAL.06", "UKDS-DATA-LEVEL.01"]
 results = ["HARVARD-OFFBOARDING.01", "HARVARD-OFFBOARDING.02", "UKDS-DATA-LEVEL.01", "collect.22", "collect.23", "harvard-offboarding", "plan.32", "ukds-data-level"]
 endTime = 2026-10-29T10:33:14+01:00
+
+[[action]]
+id = "2026-10-18-formats-packaging"
+type = "update"
+name = "Practical guidance in Stations 2, 3 and 8: folder structure, open formats, synthetic samples and packaging"
+description = "Added concrete examples of folder structure and file naming, open formats across data domains, synthetic samples for sensitive data, and packaging large collections into archives with manifests and checksums."
+agent = "karel-berka"
+instruments = [
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
+]
+objects = [
+  "A.A1.2.R2",
+  "A.F3.N2",
+  "A.I1.X1",
+  "CDIF.Manifest",
+  "CDIF.REC5",
+  "CDSC-README.01",
+  "CESSDA-DMEG.01",
+  "LAW-328-2025.83.3",
+  "MBDB-2026.01",
+  "RDMKIT.process.02",
+]
+results = [
+  "collect.04",
+  "process.03",
+  "process.04",
+  "publication.30",
+]
+endTime = 2026-10-20T21:00:00+00:00
+
+[[action]]
+id = "2026-10-30-loc-digital-formats"
+type = "update"
+name = "Point to the Library of Congress format descriptions where the Guide advises on formats"
+description = "Added the Library of Congress site Sustainability of Digital Formats as a catalogue resource with a clause quoting its seven sustainability factors, at the maintainer's request. Advice on choosing formats when planning, on open formats for sharing, on a repository's list of supported formats and on a community's recommended formats, and the question on open formats, now link to it and cite the clause."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5"]
+objects = ["LOC-DIGITAL-FORMATS.01"]
+results = ["loc-digital-formats", "LOC-DIGITAL-FORMATS.01", "plan.05", "process.03", "process.08", "process.09", "dataset.11"]
+endTime = 2026-10-30T01:25:53+01:00
+
+[[action]]
+id = "2026-10-30-formats-review"
+type = "update"
+name = "Source and qualify the format, synthetic sample and packaging advice"
+description = "Reviewed the advice rebuilt for #37 against its cited clauses. publication.30 now starts from the repository's own instructions on accepted formats and uploading, and gives packing thousands of small files into one archive described by the README only as an example of thinking of those who download the data; it cites RDMkit on preparing data for a repository and on transferring data, and checks checksums before and after upload. process.04 asks for a synthetic sample published beside controlled-access data as a separate open dataset, as the Swedish National Data Service's guide on synthetic research data advises, and both languages now say the same; an aggregated sample, which no source states, is dropped. process.03 asks for open or widely used formats, preferably ones that do not require proprietary software, and gives merged cells and colour that carries meaning as an example of what software cannot read correctly, as the Data Carpentry lesson on spreadsheets states; formulas, which no source names, are dropped."
+agent = "david-novak"
+instruments = ["kilo-code", "claude-opus-5-5"]
+objects = ["A.I1.X1", "A.A1.2.R2", "A.F3.N2", "CDIF.Manifest", "CDIF.REC5", "CDSC-README.01", "MBDB-2026.01", "RDMKIT.process.02", "RDMKIT.publication.01", "RDMKIT.transfer.01", "SND-SYNTHETIC.01", "DC-SPREADSHEETS.01"]
+results = ["process.03", "process.04", "publication.30", "RDMKIT.publication.01", "RDMKIT.transfer.01", "SND-SYNTHETIC.01", "DC-SPREADSHEETS.01", "snd-synthetic-data", "datacarpentry-spreadsheets"]
+endTime = 2026-10-30T23:19:26+01:00

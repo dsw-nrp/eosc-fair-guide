@@ -197,7 +197,8 @@ id = "dataset.11"
 tier = "recommended"
 principles = ["I1", "R1"]
 statement = { cs = "Soubory jsou v otevřených nebo rozšířených formátech a mají README nebo datový slovník.", en = "The files are in open or widely used formats and have a README or a data dictionary." }
-sources = ["A.I1.X1", "CESSDA-DMEG.01"]
+help = { cs = "Jak je který formát otevřený a udržitelný, popisuje [[loc-digital-formats|Library of Congress]].", en = "The [[loc-digital-formats|Library of Congress]] describes how open and sustainable each format is." }
+sources = ["A.I1.X1", "CESSDA-DMEG.01", "LOC-DIGITAL-FORMATS.01"]
 fixAt = "process"
 owner = ["researcher"]
 modes = ["after"]

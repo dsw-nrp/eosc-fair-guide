@@ -4765,3 +4765,89 @@ text = { cs = "UK Data Service doporučuje dokumentaci na úrovni dat, díky ní
 guidance = "Data-level documentation explains how individual files are structured and how their contents should be interpreted. It makes explicit how information is organised within files, how elements are identified, and how different components relate to one another.\n\nData-level documentation clarifies this structure so that it can be understood independently of the original research team.\n\nDocumentation should describe:\n- Variable names and descriptive labels.\n- Data types.\n- Units of measurement.\n- Value labels and coding schemes.\n- Definitions of missing data and distinctions between types of non-response.\n- Applicability or universe information (e.g. filtered questions or subpopulations).\n- Weighting variables, where relevant.\n- Derived or constructed variables and how they were created.\n\nAlthough some statistical software (e.g. SPSS, Stata) often allows this information to be embedded within the file, embedded metadata should be reviewed for completeness. Supplementary documentation, such as a structured codebook or data dictionary, may be required to ensure clarity."
 guidanceLanguage = "en"
 locator = "Learning Hub / Data producer support / Documenting and describing data / Data-level documentation: introduction and Tabular data"
+
+[[clause]]
+id = "LOC-DIGITAL-FORMATS.01"
+source = "loc-digital-formats"
+principles = ["R1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Library of Congress posuzuje digitální formáty podle sedmi faktorů udržitelnosti: zveřejnění specifikace, rozšíření, transparentnosti, sebedokumentace, vnějších závislostí a vlivu patentů a technické ochrany. Ke každému formátu vede jeho popis.", en = "The Library of Congress assesses digital formats by seven sustainability factors: disclosure, adoption, transparency, self-documentation, external dependencies, the impact of patents and technical protection mechanisms. It keeps a description of each format." }
+guidance = "The seven sustainability factors listed below apply across digital formats for all categories of information. These factors influence the likely feasibility and cost of preserving the information content in the face of future change in the technological environment in which users and archiving institutions operate."
+guidanceLanguage = "en"
+locator = "Sustainability Factors, Overview of factors"
+
+[[clause]]
+id = "RDMKIT.publication.01"
+source = "rdmkit"
+principles = ["R1", "R1.3"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Před uložením do repozitáře se seznamte s jeho požadavky, nejlépe ještě před sběrem dat: s přijímanými formáty souborů, požadavky na metadata a způsobem nahrávání, které repozitáře popisují v oddílu pro předkladatele.", en = "Before depositing in a repository, learn its requirements, preferably before collecting the data: the file formats it accepts, its metadata requirements and how data are uploaded, which repositories describe in a section for submitters." }
+guidance = '''
+Once you have decided where to publish your data, you will have to make your (meta)data ready for repository submission. For this reason it is recommended to become aware of repository's requirements before start collecting the data.
+
+- Learn the following information about the chosen repositories:
+  - Required metadata schemas
+  - Required ontologies or controlled vocabularies
+  - Accepted file formats for data and metadata
+  - Costs for sharing and storing data
+- Repositories generally have information about data formats, metadata requirements and how data can be uploaded under a section called "submit", "submit data", "for submitters" or something similar. Read this section in detail.
+'''
+guidanceLanguage = "en"
+locator = "Your tasks › Data publication › How do you prepare your data for publication in data repositories?"
+
+[[clause]]
+id = "RDMKIT.transfer.01"
+source = "rdmkit"
+principles = ["A1", "R1"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Přenos dat usnadní jejich archivace do jednoho souboru (tar, komprese gzip). Neporušenost přenesených souborů ověří kontrolní součty spočítané před přenosem a po něm, například MD5 nebo SHA-2.", en = "Archiving data into a single file (tar, compressed with gzip) eases their transfer. Checksums calculated before and after the transfer, for example MD5 or SHA-2, verify that the transferred files are intact." }
+guidance = '''
+During a transfer, some data might become corrupted. Thus, it is important to check if the files you transferred have conserved their integrity. This can be done with hash algorithms. A checksum file is calculated for each file before transfer and compared to a checksum calculated on the transferred files. If the checksums are the same, then the files are not corrupted.
+
+- Try to optimise and ease your data transfer by archiving your data in a single file. This can be done with two tools available on most systems.
+  - tar (tape archive) will create an archive, a single file containing several files or directories.
+  - gzip: since tar does not compress the archive created, a compression tool such as gzip is often used to reduce the size of the archive.
+'''
+guidanceLanguage = "en"
+locator = "Your tasks › Data transfer › How do you transfer large data files? (Considerations; Solutions)"
+
+[[clause]]
+id = "SND-SYNTHETIC.01"
+source = "snd-synthetic-data"
+principles = ["A1.2", "R1"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Syntetická data odvozená ze skutečných dat se nemají míchat se skutečnými daty v jedné datové sadě: zveřejněte dvě propojené sady, skutečná data s omezeným přístupem a syntetická data otevřeně. Vzorová datová sada bez rizika pomůže uživatelům porozumět datům s omezeným přístupem dřív, než o přístup požádají.", en = "Synthetic data linked to real data should not be mixed with the real data in one dataset: publish two related datasets, the real data with restricted access and the synthetic data openly. A zero-risk sample dataset helps users understand data with restricted access before they apply for access." }
+guidance = '''
+If the synthetic data is linked to real data, avoid mixing both within the same dataset. This is particularly important if the real data are personal data, as it will probably result in all the data having restricted access. Instead, publish two related datasets: one restricted-access dataset with the real data, and one openly accessible dataset with the synthetic data.
+
+- Providing sample data: When datasets require restricted access, a zero-risk "sample dataset" may help users understand the data before applying for full access.
+'''
+guidanceLanguage = "en"
+locator = "Contributing a dataset to a research data repository › Preparing synthetic data for a repository; Special considerations for synthetic personal data"
+
+[[clause]]
+id = "DC-SPREADSHEETS.01"
+source = "datacarpentry-spreadsheets"
+principles = ["I1", "R1"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Formátování tabulky nemá nést informaci: sloučené buňky učiní data pro statistický software nečitelnými a místo zvýraznění buněk má informaci nést samostatné pole.", en = "Spreadsheet formatting should not carry information: merged cells make the data unreadable by statistical software, and a separate field rather than highlighted cells should carry the information." }
+guidance = '''
+Using formatting to convey information
+
+Example: highlighting cells, rows or columns that should be excluded from an analysis, leaving blank rows to indicate separations in data.
+
+Solution: create a new field to encode which data should be excluded.
+
+Using formatting to make the data sheet look pretty
+
+Example: merging cells.
+
+Solution: If you're not careful, formatting a worksheet to be more aesthetically pleasing can compromise your computer's ability to see associations in the data. Merged cells will make your data unreadable by statistics software. Consider restructuring your data in such a way that you will not need to merge cells to organize your data.
+'''
+guidanceLanguage = "en"
+locator = "Episode 3, Formatting problems: Using formatting to convey information; Using formatting to make the data sheet look pretty"
