@@ -184,9 +184,10 @@ alone do not complete them.
       approves both digests; re-scoped issues take their new scope; a body keeps its language and replaces links to
       `motyc/eosc-fair-guide`. Verify that every shaped body passes the planned-issue readiness check the audit uses
       and that its provenance comment exists.
-- [ ] 6.5 **Human hand-off:** for each shaped issue, set Priority, Effort and milestone from the ledger, then its
-      Status to Ready. Verify that a maintainer's `python scripts/audit_repository.py --section project` reports no
-      `ready` finding.
+- [ ] 6.5 **Human decision:** for each shaped issue, the agent proposes Priority, Effort and milestone from the ledger,
+      adjusted by what the shaping found, and the maintainer confirms them. The agent then sets them and the Status
+      Ready; the maintainer sets any field the agent's token cannot write. Verify that a maintainer's
+      `python scripts/audit_repository.py --section project` reports no `ready` finding.
 - [ ] 6.6 Verify the triage end state with a maintainer's `python scripts/audit_repository.py --section project`:
       - every ledger issue and every task from 5.1 is Ready or closed;
       - no ledger issue and not the digest has a `triage`, `ready` or `type` finding.
@@ -236,26 +237,100 @@ alone do not complete them.
 - [ ] 7.10 **Human hand-off:** review PR E, record acceptance and merge it (design D2). Verify that the deployment's
       full checks pass and that `/next/` shows a content change's person and tools in the catalogue.
 
-## 8. Integration check and close-out (PR D)
+## 8. Original-source rule (PR F)
 
-- [ ] 8.1 **Human hand-off:** after groups 1–7 are done, start **Live health and source watch** with both the audit
+- [ ] 8.1 From the latest `main`, create `agents/claude/cite-original-sources`. Add the original-source bullet of
+      design D10 to section 3 of `.agents/guide/rules/fair-guide-content.md` and run
+      `python scripts/generate_agent_surfaces.py`. Verify:
+      - every generated copy of the rule and the guide region of `CODEX.md` carry the bullet, and nothing else changes;
+      - `python scripts/generate_agent_surfaces.py --check`, `python scripts/check_agent_surfaces.py` and
+        `python scripts/check_sibling_delivery.py` report no difference.
+- [ ] 8.2 State the rule in the `sources.toml` section of `docs/content-model.md` and in step 4 of
+      `docs/how-to/edit-content.md`. Verify that `python scripts/check_docs.py` passes.
+- [ ] 8.3 Extend the usage entry, then run `npm run openspec:validate`, `python scripts/check_usage.py` and
+      `python scripts/check_all.py`. Commit, push and open PR F after the maintainer approves the commit message and
+      PR body. Verify that the PR's `checks` pass.
+- [ ] 8.4 Add the right-of-quotation bullet of design D10 to the native content rule and regenerate it; state the
+      rule in the ledger section of `docs/content-model.md`; record the Public Domain Mark on `law-328-2025` with a
+      provenance action. Verify that `python scripts/check_docs.py` and `python scripts/check_content.py` pass.
+- [ ] 8.5 In `scripts/check_content.py`, fail a clause that quotes more than 200 words from a source that records
+      no licence, with a test in `tests/test_scripts.py`. Verify that the test fails at 201 words and passes at 200
+      and with the Public Domain Mark, then extend PR F after the maintainer approves the commit message and body.
+- [ ] 8.6 Address the review of PR F (design D10): read cited works' licences from one citation each, merging the four
+      nested citations with a provenance action and rejecting a nested one; require a locator for a quote from a source
+      without a licence; record a licence as a known licence address; count numbered list markers and line-break
+      hyphenation correctly; record the Public Domain Mark on `os3-rules`. Verify that the new tests fail against the
+      former behaviour and pass now, and that `python scripts/check_all.py` passes, then extend PR F after the
+      maintainer approves the commit message.
+- [ ] 8.7 **Human hand-off:** review PR F, record acceptance and merge it (design D2). Verify that the deployment's
+      full checks pass for the merge commit.
+- [ ] 8.8 Address the third review of PR F (design D10): require the one canonical address of a licence, refusing
+      its deed, legal-code and slash-less forms, and give the canonical form in the check's message, the native rule,
+      the content model and the `guide-knowledge-base` delta; state the pre-change maximum as 139 words, the shipped
+      counter's figure. Verify that the boundary test fails against the former pattern and message and passes now,
+      that every recorded licence still passes, and that `python scripts/check_all.py` passes, then extend PR F after
+      the maintainer approves the commit message.
+- [ ] 8.9 Address the fourth review of PR F (design D10, D11): accept only known licences (Creative Commons names and
+      tools, GNU families and a reviewed list of SPDX identifiers), require the Creative Commons version, accept any
+      lowercase Creative Commons port and refuse SPDX's `.html` in any case; record CC BY 4.0 on the two versionless
+      records, as their sources state, extending the cited-works action; give the bypass of D11 its row in the
+      settings table of `docs/deployment.md`; bring the usage entry's figures up to date. Verify that the boundary
+      matrix fails against the former pattern and passes now, that `python scripts/check_content.py` reports the two
+      versionless records before their fix and no error after it, and that `python scripts/check_all.py` passes, then
+      extend PR F after the maintainer approves the commit message.
+- [ ] 8.10 Address the fifth review of PR F (design D10): name the reviewed licence lists, and how a licence joins
+      them, on every surface that states the rule (the `guide-knowledge-base` delta with a scenario for an unreviewed
+      licence, the native rule with its generated copies, the content model and the check's message); keep separate
+      lists of GNU paths, OSI pages and SPDX entries, so OSI is not accepted for Open Data Commons licences and a GNU
+      version has one address; update the triage ledger after #27's closure. Verify that the boundary matrix fails
+      against the former pattern and message and passes now, and that `python scripts/check_all.py` passes, then
+      extend PR F after the maintainer approves the commit message.
+- [ ] 8.11 Address the sixth review of PR F (design D10): name OSI pages by the lowercase slug OSI names as
+      canonical and keep SPDX identifiers for SPDX entries; accept only published Creative Commons versions, with a
+      port only on a version before 4.0, and BY-NC-ND 1.0 under its published name `by-nd-nc`; count B3's seventh
+      bounded quote in D10; name the three lists in the native
+      rule and regenerate its copies. After merging `main` with B4, record the Public Domain Mark on `law-527-1990`
+      by extending the official-works action. Verify that the boundary matrix fails against the former pattern and
+      passes now, and that `python scripts/check_all.py` passes, then extend PR F after the maintainer approves the
+      commit message.
+
+## 9. Direct push to `main` (design D11, recorded in PR F)
+
+- [ ] 9.1 **Human hand-off:** move `main` back to `bed3284` with a push leased on `2ba195d`; the agent's runtime
+      refuses a force push. Verify that `main` names `bed3284`, that only B3's branch still contains `2ba195d`, and
+      that the deployment and publication of `bed3284` pass.
+- [ ] 9.2 Reopen #37 with the approved comment. Push B3's branch, with the Library of Congress commit, to its own
+      remote branch with an explicit refspec, and open its pull request after the maintainer approves the body. Verify
+      that the pull request closes #37 and that its `checks` pass; 3.6 remains its review and merge.
+- [ ] 9.3 **Human hand-off:** after 9.1, set the administrator bypass of `Main branch protection` to **For pull
+      requests only**. Then declare it in `.github/repository.toml` and record it in
+      `tests/fixtures/repository-audit.json`, with its precondition and rollback in the settings table of
+      `docs/deployment.md`. Verify that the ruleset reports `current_user_can_bypass` as
+      `pull_requests_only`, that `tests/test_audit_repository.py` fails with the former recorded value and passes with
+      the new one, and that a maintainer's `python scripts/audit_repository.py --section rulesets` reports no drift.
+- [ ] 9.4 Record design D11 and extend the usage entry. Run `npm run openspec:validate`, `python scripts/check_usage.py`
+      and `python scripts/check_all.py`, then extend PR F after the maintainer approves the commit message.
+
+## 10. Integration check and close-out (PR D)
+
+- [ ] 10.1 **Human hand-off:** after groups 1–9 are done, start **Live health and source watch** with both the audit
       and the watch selected, or wait for the scheduled run. Verify in the rebuilt #140:
       - the seven limitations appear as known;
       - the survey PDF and the RO-Crate address are no longer under **Needs triage**;
       - the findings from 5.1 show as tracked;
       - **Project and settings** lists neither #115–#135, the view sort, the digest nor any ledger issue.
-- [ ] 8.2 Using that run's results, decide on the two remaining hosts:
+- [ ] 10.2 Using that run's results, decide on the two remaining hosts:
       - if `asep.lib.cas.cz` still fails, open one host task and triage it to Ready as 6.4 and 6.5 describe;
       - if `data.eli-laser.eu` still fails, add an `unavailable` limitation with the maintainer's reason in PR D.
 
       Verify that the next digest lists neither host under **Needs triage**.
-- [ ] 8.3 Verify the end state:
+- [ ] 10.3 Verify the end state:
       - #39–#42 are closed;
-      - #117, #138 and #139 are merged, and so is PR E;
+      - #117, #138 and #139 are merged, and so are PR E and PR F;
       - #35–#38 are closed;
       - the end state of 6.6 still holds;
       - the latest deployment of `main` passed.
-- [ ] 8.4 On a branch from `main`:
+- [ ] 10.4 On a branch from `main`:
       - tick this task list;
       - extend the usage entry with the work since PR C;
       - run `python scripts/check_all.py` and `npm run openspec:validate`.
@@ -265,6 +340,7 @@ alone do not complete them.
 ## Workflow follow-up
 
 - Archive the change in PR D with `/openspec-archive-change restore-main-and-triage-open-work` after explicit approval.
-  The archive adds the `guide-delivery` link-check requirement and the modified Project audit requirement, and the two
-  `guide-experience` catalogue requirements, to `openspec/specs/`.
+  The archive adds the `guide-delivery` link-check requirement and the modified Project audit requirement, the two
+  `guide-experience` catalogue requirements and the modified `guide-knowledge-base` source requirement to
+  `openspec/specs/`.
 - Merge PR D by the route in design D2, then verify the archived spec with `npm run openspec:validate`.

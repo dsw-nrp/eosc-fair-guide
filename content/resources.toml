@@ -78,7 +78,7 @@ version = "0.1"
 doi = "10.71495/scvx-yn57"
 publisher = "eosc-cz"
 datePublished = 2026-09-08
-license = "https://creativecommons.org/licenses/by/"
+license = "https://creativecommons.org/licenses/by/4.0/"
 
 
 [[resource]]
@@ -221,8 +221,9 @@ type = "webpage"
 title = "CESSDA Data Management Expert Guide"
 inLanguage = "en"
 publisher = "CESSDA ERIC"
-dateAccessed = 2026-10-08
-citation = { type = "webpage", title = "CESSDA Data Management Expert Guide", inLanguage = "en", publisher = "CESSDA ERIC", dateAccessed = "2026-10-11", authors = ["CESSDA Training Team"], license = "https://creativecommons.org/licenses/by-sa/4.0/" }
+dateAccessed = 2026-10-11
+authors = ["CESSDA Training Team"]
+license = "https://creativecommons.org/licenses/by-sa/4.0/"
 
 [[resource]]
 guideRoute = "res/srv"
@@ -488,12 +489,11 @@ stations = ["repository", "assessment"]
 languages = ["en"]
 
 [resource.citation]
-type = "standard"
-title = "CoreTrustSeal Requirements 2023–2025"
+type = "webpage"
+title = "About CoreTrustSeal"
 inLanguage = "en"
 publisher = "CoreTrustSeal"
-dateAccessed = 2026-10-08
-citation = { type = "webpage", title = "About CoreTrustSeal", inLanguage = "en", publisher = "CoreTrustSeal", dateAccessed = "2026-10-11" }
+dateAccessed = 2026-10-29
 
 [[resource]]
 guideRoute = "res/doc"
@@ -796,11 +796,14 @@ sameAs = ["http://purl.org/np/RABtwdGxVZoYNbhMoN-xeEmB5ctXCsgSCOc8G-5QQR7fA#data
 
 [resource.citation]
 type = "standard"
-title = "DataCite Metadata Schema"
+title = "DataCite Metadata Schema Documentation for the Publication and Citation of Research Data and Other Research Outputs"
 inLanguage = "en"
+doi = "10.14454/qdd3-ps68"
 publisher = "DataCite"
-dateAccessed = 2026-10-08
+authors = ["DataCite Metadata Working Group"]
+datePublished = "2026"
 version = "4.7"
+license = "https://creativecommons.org/licenses/by/4.0/"
 
 
 [[resource]]
@@ -1204,7 +1207,8 @@ title = "Joint Declaration of Data Citation Principles"
 inLanguage = "en"
 publisher = "FORCE11"
 datePublished = "2014"
-citation = { type = "standard", title = "Joint Declaration of Data Citation Principles", inLanguage = "en", publisher = "FORCE11", datePublished = "2014", authors = ["Data Citation Synthesis Group; Martone, M. (editor)"], license = "https://creativecommons.org/licenses/by-sa/4.0/" }
+authors = ["Data Citation Synthesis Group; Martone, M. (editor)"]
+license = "https://creativecommons.org/licenses/by-sa/4.0/"
 
 [[resource]]
 guideRoute = "res/doc"
@@ -1391,11 +1395,11 @@ languages = ["en"]
 type = "dataset"
 title = "FAIR assessment of a sample of the CTU DSpace repository (OSTrails CZ Pilot, FAIR Champion, July 2026)"
 inLanguage = "en"
-doi = "10.5281/zenodo.21726258"
+doi = "10.5281/zenodo.21726259"
 publisher = "Zenodo"
 authors = ["M. Suchánek", "J. Martínková", "E. Hnátková", "R. Pergl"]
-datePublished = "2026-07"
-citation = { type = "dataset", title = "FAIR assessment of a sample of the CTU DSpace repository (OSTrails CZ Pilot, FAIR Champion, July 2026)", inLanguage = "en", doi = "10.5281/zenodo.21726259", publisher = "Zenodo", authors = ["M. Suchánek", "J. Martínková", "E. Hnátková", "R. Pergl"], datePublished = "2026-07-31", license = "https://creativecommons.org/licenses/by/4.0/" }
+datePublished = "2026-07-31"
+license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[resource]]
 guideRoute = "repo/reg"

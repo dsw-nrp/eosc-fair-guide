@@ -6,8 +6,8 @@ See proposal.md for the motivation. These constraints shape the approach:
 
 - **Merge rules.** The `Main branch protection` ruleset requires an approving code-owner review, the `checks`
   status and the merge queue. `.github/CODEOWNERS` names only `@motyc`, and repository administrators may bypass the
-  ruleset. The code owner can approve the bot pull requests but not their own; #141 and #143 were merged through the
-  administrator bypass while review was still required.
+  ruleset, by pull request only since D11. The code owner can approve the bot pull requests but not their own; #141
+  and #143 were merged through the administrator bypass while review was still required.
 - **Merge queue.** The queue checks `main` together with each pull request. Nothing queues successfully until the
   inventory row is regenerated.
 - **Drafts.** #39–#42 have seven or eight commits each, dated 17–20 October, all authored as
@@ -57,17 +57,18 @@ See proposal.md for the motivation. These constraints shape the approach:
 
 ## Decisions
 
-### D1. One change, delivered by eight pull requests and one triage pass
+### D1. One change, delivered by nine pull requests and one triage pass
 
 ```mermaid
 flowchart TD
   accTitle: Pull request and triage order for this change
-  accDescr: PR A restores main first. Then the bot pull requests are queued, the four rebuilt content pull requests merge in issue order, and PR C carries the change artifacts, the watch fix, the digest exemption and the digest fixes. PR E follows PR C with the complete catalogue. Independently, the issue triage applies an approved ledger, first closures and re-scopes, then shaping. After the next watch run, the triage and PR E, PR D records verification and archives the change.
+  accDescr: PR A restores main first. Then the bot pull requests are queued, the four rebuilt content pull requests merge in issue order, and PR C carries the change artifacts, the watch fix, the digest exemption and the digest fixes. PR E follows PR C with the complete catalogue, and PR F with the original-source rule. Independently, the issue triage applies an approved ledger, first closures and re-scopes, then shaping. After the next watch run, the triage, PR E and PR F, PR D records verification and archives the change.
   A[PR A: regenerate the inventory] --> BOT[Queue #138, #139 and #117]
   A --> B1[B1: #35 deduplication]
   B1 --> B2[B2: #36] --> B3[B3: #37] --> B4[B4: #38]
   A --> C[PR C: artifacts, HEAD 400 fallback, digest exemption, limitations, RO-Crate link, usage entry]
   C --> E[PR E: complete catalogue cards, conventions, completeness test]
+  C --> F[PR F: cite the original source]
   L[Triage ledger approved] --> T1[Closures and re-scopes] --> T2[Shaping in batches, then Ready]
   C --> W[Next watch run]
   W --> D[PR D: verify, finish tasks, archive]
@@ -75,6 +76,7 @@ flowchart TD
   BOT --> D
   T2 --> D
   E --> D
+  F --> D
 ```
 
 | Step | What it carries | When |
@@ -84,6 +86,7 @@ flowchart TD
 | B1–B4 | Rebuilt content, one per issue, in issue order | After A, independent of the bot pull requests |
 | C | The change branch `agents/claude/restore-main-and-triage-open-work`: this change's artifacts and triage ledger, the HEAD 400 fallback and the digest exemption with their tests, the limitations, the RO-Crate link fix and the usage entry; each behaviour change travels with its spec delta | After A |
 | E | The complete catalogue of D8 with its tests and documentation, branched from `main` after PR C, which was already under review when the maintainer added this scope | After C |
+| F | The original-source rule of D10: the content rule and its generated copies, the `guide-knowledge-base` delta, the content model and how-to, this change's artifact updates and the usage entry; also the record of D11 and its declared setting | After C, independent of E |
 | Triage | The ledger on the change branch; its writes go to GitHub issues and the Project, not to a pull request | Now, independent of A |
 | D | Verification after the next watch run and the triage, the final task and usage-entry updates, and the archive after approval | Last |
 
@@ -97,7 +100,7 @@ Alternatives considered:
 
 **Bot pull requests** follow `docs/runbooks/merge.md`: the code owner approves them and chooses **Merge when ready**.
 
-**The maintainer's own pull requests** (A, B1–B4, C and D) need the administrator bypass, as #141 and #143 did,
+**The maintainer's own pull requests** (A, B1–B4, C, D, E and F) need the administrator bypass, as #141 and #143 did,
 because no other eligible reviewer exists. Before each bypass:
 
 - `checks` is green;
@@ -409,6 +412,129 @@ Alternatives considered:
 - Escaping in `plan_issue_shape.body_type`: rejected, because the comparison needs the value as written.
 - A local helper in the audit: rejected, because it would give the escaping rule a second owner.
 
+### D10. Cite the original source
+
+The review of B2 (#147) found that its handover advice had no clause. The first fix cited the TU Delft Digital
+Competence Centre's offboarding page, which summarises and links the offboarding checklist of Harvard's Longwood
+Medical Area Research Data Management Working Group. The checklist is published on Zenodo with a DOI under CC BY
+4.0, and it carries what the summary drops: who maintains the data next, and introducing the checklist when people
+join. The data dictionary in the same advice followed the same path, from RDMkit to the UK Data Service page that
+RDMkit links.
+
+- **The rule:** a clause cites the published work that originally states it, with that work's title, version, DOI
+  where it has one, wording and licence. A page that relays, summarises or links that work is cited only for what
+  it adds itself. Advice is worded from the original.
+- **Where it is stated:** the `guide-knowledge-base` requirement on published sources, the native content rule, the
+  `sources.toml` section of the content model and step 4 of the content how-to.
+- **Enforcement:** review only. No check can tell whether a page relays another work, so the reviewer follows a
+  source's links before accepting it. This residual is recorded here rather than covered by more prose.
+- **Scope:** clauses added or changed from now on. Existing clauses are revised when an edit touches them; this
+  change does not audit the ledger.
+
+Alternatives considered:
+
+- A `basedOn` field linking a relaying source to its original: rejected. It adds a contract field and still needs a
+  reviewer to find the original.
+- An audit of every existing source in this change: rejected. It is separate work, which an issue can track.
+
+**Quoting a source without a licence.** The review of #147 flagged a 151-word quote from a UK Data Service page
+that records no licence, because the content model asked every quoted passage for permitted reuse and a licence.
+Research quotes by right: § 31(1)(a) of the Copyright Act permits excerpts "v odůvodněné míře" with author, title
+and source named, and § 3(a) leaves laws and other official works outside copyright. The maintainer asked for a
+balance a review can apply without overstating it (29 October 2026).
+
+- **The rule:** a passage carries the licence its source records and follows its terms. From a source that records
+  no licence, a clause quotes what it needs, at most 200 words, with its source and locator and no licence claimed.
+  A work outside copyright records the Public Domain Mark as its `license` and has no bound. Three sources do today:
+  the Act on research (`law-328-2025`), the Open Science III call rules (`os3-rules`), an administrative
+  document the maintainer confirmed as an official work (29 October 2026), and the Patent Act (`law-527-1990`),
+  which B4 ([dsw-nrp/eosc-fair-guide#161](https://github.com/dsw-nrp/eosc-fair-guide/pull/161)) added.
+- **The bound:** on `main` before this change, the longest quote from a source without a licence ran 139 words by the
+  counter below (`LAW-328-2025.83.2`), from the Act this change exempts; the longest call-rules quote ran 122
+  (`OS3-RULES.17`). With both exempt and the cited works' licences read, five bounded quotes remained, the longest
+  19 words (`CORETRUSTSEAL.01`, `CAMBRIDGE-ERN.01`). Since #147 merged, its `UKDS-DATA-LEVEL.01` is a sixth and the
+  longest, at 145 words (30 October 2026); B3 adds a seventh, `LOC-DIGITAL-FORMATS.01` at 45 words, and the longest
+  is unchanged. 200 leaves room for one passage and stops a copied page.
+- **Enforcement:** `scripts/check_content.py` counts a quote's words (letters and digits; a hyphenated word once,
+  also across a line break; a bulleted or numbered list marker not at all), fails a clause over the bound and one
+  without a locator, so the rule binds without review. A recorded licence must be the whole canonical address of one
+  known licence or mark, so free text, a home page, another page on a licensing site, an unreviewed licence or text
+  after an address cannot lift the bound unseen. Known means a Creative Commons licence or public-domain tool, or a
+  licence on one of three short lists in the check, reviewed for the Guide's sources: GNU's paths, the licences with
+  a page at OSI, and the SPDX entries, which add the Open Data Commons licences OSI does not list. A licence on none
+  of them is added to its list through review. Canonical means one address per licence at each publisher: a Creative
+  Commons licence's address with a version Creative Commons published, and its port where it has one, ending in a
+  slash (not its deed or legal-code page) and never its SPDX entry; the `.html` page GNU serves for that version, under
+  `old-licenses/` for a superseded one, whose root address redirects there; the OSI page, by the lowercase slug OSI
+  names as canonical, or the SPDX entry of any other licence. A port is accepted only on a version before 4.0, which
+  is international; any lowercase port is accepted there, as the check does not keep Creative Commons' list of
+  ports. BY-NC-ND 1.0 is recorded as `by-nd-nc/1.0/`, the name it was published under and to which
+  `by-nc-nd/1.0/` redirects. The crate
+  records the value as the licence's identifier; the check's message names the lists and says how a licence joins
+  them. The third review of PR F found that the rule's surfaces said only "the address", so they now say canonical;
+  its fourth found that the pattern still accepted any page shaped like a licence, a versionless Creative Commons
+  address (which two records used; both now record the CC BY 4.0 their sources state) and a case variant of SPDX's
+  `.html`, and refused longer Creative Commons ports such as `igo`. Its fifth found that the requirement, rule,
+  content model and message still promised any address at the four publishers, that OSI was accepted for Open Data
+  Commons licences it has no page for, and that GNU's root and `old-licenses/` addresses of one version both passed;
+  the lists are now explicit per publisher and named on every surface. Its sixth found that the OSI list named SPDX
+  identifiers, which OSI serves but does not name as canonical, and that any numeric Creative Commons version and any
+  port passed, so a missing version (`by/9.9/`) or a port of 4.0 that lands on the deed lifted the bound; OSI pages
+  are now named by their slugs, versions are the published ones, and the content rule names the three lists as the
+  content model does; at the maintainer's request BY-NC-ND 1.0 also keeps its published name (31 October 2026).
+- **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
+  resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
+  version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's
+  Zenodo record and CoreTrustSeal's About page (which its resource links and its clause quotes) were checked on 29
+  October 2026; the CESSDA guide was offline for migration, so its values are those recorded on 11 October. The
+  content check rejects a nested citation. The DataCite Metadata Schema, whose citation recorded no licence, now
+  cites its version 4.7 documentation with the DOI, authors and CC BY 4.0 that DataCite records.
+
+Alternatives considered: no bound, leaving "justified extent" to review (rejected: reviews would keep judging it
+differently); 150 words (rejected: it would fail #147's quote, which the maintainer considers proportionate); a
+new field for works outside copyright (rejected: the Public Domain Mark says it in the existing `license`).
+
+### D11. Administrators bypass `main`'s protection only by pull request
+
+On 30 October 2026 B3's commit `2ba195d` reached `main` without a pull request. Its branch had been created from
+`origin/main` and kept it as its upstream, so a push from the editor sent the commit to `main`. The ruleset let it
+through because administrators bypass it `always`, which includes direct pushes. The deployment published B3 to the
+preview and closed #37; no release was made and no other branch contained the commit.
+
+- **Restoring `main`:** `main` moves back to `bed3284` with a push leased on `2ba195d`, so it refuses if `main` has
+  moved again. The maintainer runs it, because the agent's runtime refuses a force push. The deployment of
+  `bed3284` restores the preview. #37 is reopened with a comment saying why, and B3 returns through its own pull
+  request (#151), which closes #37 when it merges.
+- **The setting:** the bypass of `Main branch protection` becomes **For pull requests only**
+  (`RepositoryRole 5 pull_request`). An administrator must open a pull request, and can still merge it without
+  waiting for the requirements. The merges of D2 and `docs/runbooks/emergency-merge.md` work unchanged, and so does
+  the requirement "The merge queue verifies the merged result", which keeps an administrator's direct merge of a pull
+  request possible. A direct push or a force push to `main` is refused.
+- **Order:** the setting changes only after `main` is restored, because the restoring force push relies on the
+  former bypass.
+- **Recording:** the maintainer applies the setting live; it is then declared in `.github/repository.toml` and
+  recorded in `tests/fixtures/repository-audit.json`, as D7 did for the Triage view. Its precondition and rollback
+  are a row of the settings table in `docs/deployment.md`, which `docs/runbooks/rollback-a-setting.md` reads: the
+  bypass returns to **Always allow** only for an approved repair push to `main`, and to pull requests only after it.
+- **Verification:** the ruleset reports `current_user_can_bypass` as `pull_requests_only` for the maintainer, a
+  maintainer's `python scripts/audit_repository.py --section rulesets` reports no drift, and
+  `tests/test_audit_repository.py` fails when the recorded value is `always` again.
+- **Direct-commit releases:** the release tooling still accepts direct commits as release input (requirement
+  "Release changelogs cover PRs and direct commits without duplication"); the setting only stops an administrator
+  from creating them without a pull request. `docs/contribution-reference.md` already makes such a commit subject to
+  the configured protection, so no contribution document changes. A deliberate direct commit would need the setting
+  rolled back through `docs/runbooks/rollback-a-setting.md` first, under the settings table's rollback.
+- **Agent branches:** branches are created without an upstream and pushed with an explicit refspec, as earlier
+  branches of this change were. This is conduct; the setting is the mechanism that holds when it is forgotten.
+
+Alternatives considered:
+
+- Removing the administrator bypass: rejected, because D2's merges and the emergency merge need it while one code
+  owner cannot approve their own pull requests.
+- A revert commit on `main` instead of moving it back: rejected by the maintainer; it would keep the unreviewed
+  commit and its revert in `main`'s history.
+- A separate OpenSpec change for the setting: rejected by the maintainer; it is recorded in this change.
+
 ### Accessibility and migration
 
 - **Accessibility:** the rebuilt advice and the resource link use existing fields and rendering. The catalogue's new
@@ -422,6 +548,9 @@ Alternatives considered:
     `docs/runbooks/rollback-a-setting.md` together with their declaration.
   - The catalogue reads the crate as it is; no content, stored format or API record changes, and the cards revert
     with PR E.
+  - The original-source rule changes no content and no stored format; it reverts with PR F.
+  - The bypass mode is a setting, reverted through `docs/runbooks/rollback-a-setting.md` together with its
+    declaration.
 
 ## Risks / Trade-offs
 
@@ -446,6 +575,11 @@ Alternatives considered:
   reads, and the page test checks that declared fields actually render.
 - [Showing people by name in the catalogue] → Only reviewed identities appear, as the crate already publishes them; an
   ORCID iD the person opted out of stays hidden.
+- [The original of a relaying page cannot be found or reached] → Cite the relaying page only for what it adds itself,
+  and narrow the advice to that.
+- [A pull request merged by the bypass still skips review] → D2's conditions still apply: green `checks` and the
+  maintainer's recorded acceptance before each bypass merge. The setting ensures that every change to `main` has a
+  pull request that shows them.
 
 ## Migration Plan
 

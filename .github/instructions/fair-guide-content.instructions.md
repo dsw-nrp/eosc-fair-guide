@@ -60,6 +60,18 @@ use HTTPS.
 - Every clause in the ledger points to a published source: the FAIR analysis, the NRP conditions and
   documentation, or a published paper, dataset, standard or page. Keep original wording, conditions and
   normative strength; an original passage stays supplementary and quieter than the Guide's own text.
+- Cite the original. When a page relays, summarises or links another published work, follow it to that work and
+  cite it: its own title, version, DOI where it has one, wording and licence. Cite the relaying page only for what
+  it adds itself. Word the advice from the original, which often carries detail a summary drops.
+- Quote what the clause needs. A passage carries the licence its source records and follows its terms; record a
+  licence as the one canonical address of a known licence: a Creative Commons licence or public-domain tool, or a
+  licence on the reviewed lists of GNU paths, OSI pages and SPDX entries in `scripts/check_content.py` (for example
+  `https://creativecommons.org/licenses/by/4.0/`, not its deed or legal code). A licence on none of them is added to
+  its list through review first. From a source that records no licence, quote under the right of quotation (Act
+  No. 121/2000 Coll., § 31(1)(a)): at most 200 words per clause, attributed by its source and locator, with no
+  licence claimed for it. A work outside copyright, such as a law or another official work (§ 3(a)) or a work in the
+  public domain, records the Public Domain Mark and has no bound. Judge such a quote by its length and attribution,
+  not by a licence its source does not offer.
 - The approved Layers-and-Seams manuscript is the sole exception: cite it as **in preparation** only for the
   conceptual model and scoped implementation examples in `content/model.toml`. It cannot supply ledger
   requirements, and no DOI, publication date, publisher or licence may be invented. For other unpublished

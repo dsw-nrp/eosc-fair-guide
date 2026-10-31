@@ -622,6 +622,114 @@ class ContentCheckTests(FixtureCase):
         self.edit("ledger.toml", "guidance = '''", "guidance = 1\nnote = '''")
         self.assertError("guidance is the source's own text")
 
+    def test_a_quote_without_a_licence_stays_within_the_right_of_quotation(self) -> None:
+        within = " ".join(["word"] * (check_content.QUOTE_LIMIT - 2))
+        # List markers, bulleted or numbered, are not words, and a word hyphenated at a line break is one word.
+        quote = f"- {within}\n1. hyphen-\nated\n2) word"
+        self.edit("ledger.toml", "Guidance as the standard publishes it.\n\n- One item.", quote)
+        self.assertEqual(self.errors(), [])
+        self.edit("ledger.toml", "2) word", "2) word more")
+        self.assertError(f"guidance quotes {check_content.QUOTE_LIMIT + 1} words from a source that records no licence")
+        # The quote is attributed to its place in the source.
+        self.edit("ledger.toml", 'locator = "R12"\n', "")
+        self.assertError("guidance quoted from a source that records no licence needs a locator")
+        # A licence the source records, or the Public Domain Mark of a source outside copyright, lifts both.
+        public_domain = 'license = "https://creativecommons.org/publicdomain/mark/1.0/"\n'
+        self.edit("sources.toml", 'title = "Test standard"\n', 'title = "Test standard"\n' + public_domain)
+        self.assertEqual(self.errors(), [])
+
+    def test_a_cited_work_records_one_citation_and_a_known_licence(self) -> None:
+        # A resource's citation is a cited work too, and the licence it records is the one its quotes carry.
+        licence = "https://creativecommons.org/licenses/by/4.0/"
+        service = 'url = "https://example.org/service"\n'
+        fields = f'type = "webpage", title = "Test service", dateAccessed = 2026-01-01, license = "{licence}"'
+        self.edit("resources.toml", service, f"{service}citation = {{ {fields} }}\n")
+        self.assertEqual(self.errors(), [])
+        cited = check_content.cited_licences(build_crate.load_content(self.root / "content"))
+        self.assertEqual(cited["service"], licence)
+        # A second citation nested in the first is read by nothing, so it is rejected rather than ignored.
+        nested = ', citation = { type = "webpage", title = "Other page" }'
+        self.edit("resources.toml", f'"{licence}" }}', f'"{licence}"{nested} }}')
+        self.assertError("a citation describes one work")
+        self.edit("resources.toml", nested, "")
+        # A licence is recorded as the whole canonical address of one known licence, so a free-text value, a
+        # publisher's home page, another page on its site, an unreviewed licence or text after an address cannot lift
+        # the bound unseen, and one licence never has two addresses.
+        refused = (
+            "All rights reserved",
+            "https://creativecommons.org/",
+            f"{licence} and more",
+            "https://creativecommons.org/licenses/by/",
+            "https://creativecommons.org/licenses/by/4.0",
+            "https://creativecommons.org/licenses/by/4.0/deed.en",
+            "https://creativecommons.org/licenses/by/4.0/legalcode",
+            "https://creativecommons.org/licenses/by/4.0/legalcode.en",
+            "https://creativecommons.org/licenses/nonexistent/9.9/",
+            # Creative Commons published no version 9.9 and no unported 2.1, and 4.0 has no ports: such an address is
+            # missing or lands on the deed.
+            "https://creativecommons.org/licenses/by/9.9/",
+            "https://creativecommons.org/licenses/by/2.1/",
+            "https://creativecommons.org/licenses/by/4.0/xyz/",
+            "https://creativecommons.org/licenses/by/4.0/cz/",
+            # BY-NC-ND 1.0 is published as by-nd-nc, to which by-nc-nd/1.0/ redirects; later versions keep by-nc-nd.
+            "https://creativecommons.org/licenses/by-nc-nd/1.0/",
+            "https://creativecommons.org/licenses/by-nc-nd/1.0/fi/",
+            "https://creativecommons.org/licenses/by-nd-nc/2.0/",
+            "https://www.creativecommons.org/licenses/by/4.0/",
+            "https://www.gnu.org/licenses/gpl-3.0",
+            "https://www.gnu.org/licenses/gpl-3.0.en.html",
+            "https://www.gnu.org/licenses/gpl-faq.html",
+            "https://www.gnu.org/licenses/license-list.html",
+            "https://gnu.org/licenses/gpl-3.0.html",
+            # GNU keeps a superseded version under old-licenses/ and redirects its root address there; a version it
+            # never published names no licence.
+            "https://www.gnu.org/licenses/gpl-2.0.html",
+            "https://www.gnu.org/licenses/old-licenses/gpl-3.0.html",
+            "https://www.gnu.org/licenses/gpl-9.9.html",
+            "https://opensource.org/licenses/MIT",
+            "https://opensource.org/license/faq",
+            # OSI serves a licence's page under its SPDX identifier too, but names the lowercase slug as canonical.
+            "https://opensource.org/license/MIT",
+            "https://opensource.org/license/Apache-2.0",
+            # OSI publishes no page for an Open Data Commons licence; its SPDX entry is its address.
+            "https://opensource.org/license/ODbL-1.0",
+            "https://spdx.org/licenses/MIT.html",
+            "https://spdx.org/licenses/MIT.HTML",
+            # A Creative Commons licence is recorded at Creative Commons, not under its SPDX identifier.
+            "https://spdx.org/licenses/CC-BY-4.0",
+            # A licence the Guide has not reviewed is added to the list first.
+            "https://spdx.org/licenses/ISC",
+        )
+        for value in refused:
+            self.edit("resources.toml", f'license = "{licence}"', f'license = "{value}"')
+            self.assertError("license is the canonical HTTPS address of a known licence or mark")
+            self.edit("resources.toml", f'license = "{value}"', f'license = "{licence}"')
+        accepted = (
+            "https://creativecommons.org/licenses/by/3.0/cz/",
+            "https://creativecommons.org/licenses/by/3.0/igo/",
+            "https://creativecommons.org/licenses/by/2.5/scotland/",
+            "https://creativecommons.org/licenses/by/2.1/jp/",
+            "https://creativecommons.org/licenses/by/1.0/",
+            "https://creativecommons.org/licenses/by-nd-nc/1.0/",
+            "https://creativecommons.org/licenses/by-nd-nc/1.0/fi/",
+            "https://creativecommons.org/licenses/by-nc-nd/2.0/",
+            "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            "https://creativecommons.org/publicdomain/zero/1.0/",
+            "https://www.gnu.org/licenses/gpl-3.0.html",
+            "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+            "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
+            "https://www.gnu.org/licenses/fdl-1.3.html",
+            "https://opensource.org/license/mit",
+            "https://opensource.org/license/apache-2-0",
+            "https://spdx.org/licenses/Apache-2.0",
+            "https://spdx.org/licenses/ODbL-1.0",
+        )
+        for value in accepted:
+            self.edit("resources.toml", f'license = "{licence}"', f'license = "{value}"')
+            self.assertEqual(self.errors(), [], value)
+            self.edit("resources.toml", f'license = "{value}"', f'license = "{licence}"')
+        self.assertEqual(self.errors(), [])
+
     def test_a_principle_links_only_existing_requirements(self) -> None:
         self.edit("principles.toml", 'cts = ["R12"]', 'cts = ["R99"]')
         self.assertError("cts names no CoreTrustSeal requirement clause 'CTS.R99'")

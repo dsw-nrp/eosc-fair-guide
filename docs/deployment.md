@@ -123,6 +123,7 @@ The [audit runbook](runbooks/audit-settings.md) owns approved application of one
 | Remove the reviewer from `github-pages` and limit it to `main` | The `approve-production` job is on `main` | Re-add the reviewer and the `v*.*.*` tag rule |
 | Create `staging` without reviewers, limited to `main` | Publication's channel records are on `main` | Delete it; Tag release then refuses until it exists again |
 | Require both deployment gates and `checks` for release tags | A publication has recorded a successful `staging` deployment and the commit passed `checks` | Restore the reviewed previous policy only after approval of the exact recovery diff; preserve live gates while diagnosing |
+| Let administrators bypass `Main branch protection` only by pull request | `main` is at a reviewed commit | Set the bypass back to **Always allow** only for an approved repair push to `main`, and return it to **For pull requests only** after it |
 
 ## Preview behaviour
 
