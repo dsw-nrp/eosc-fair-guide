@@ -363,6 +363,7 @@ advice = [
   "collect.22",
   "collect.23",
   "publication.30",
+  "licence.31",
 ]
 questions = [
   "cdif.01",
@@ -1037,6 +1038,9 @@ requirements = [
   "RDMKIT.transfer.01",
   "SND-SYNTHETIC.01",
   "DC-SPREADSHEETS.01",
+  "LAW-527-1990.5",
+  "RDMKIT.publication.02",
+  "RDMKIT.publication.03",
 ]
 sources = [
   "layers-seams-manuscript",
@@ -1113,6 +1117,7 @@ sources = [
   "ukds-data-level",
   "snd-synthetic-data",
   "datacarpentry-spreadsheets",
+  "law-527-1990",
 ]
 resources = [
   "dmp-eosc",
@@ -1301,6 +1306,8 @@ actions = [
   "2026-10-18-formats-packaging",
   "2026-10-30-loc-digital-formats",
   "2026-10-30-formats-review",
+  "2026-10-18-ip-errata-samples",
+  "2026-10-31-ip-errata-review",
 ]
 model = [
   "model:layers-seams",

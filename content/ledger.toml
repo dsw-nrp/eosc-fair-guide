@@ -2765,6 +2765,18 @@ guidance = "(5) Příjemce může odmítnout poskytnutí údajů z výzkumu v p�
 guidanceLanguage = "cs"
 locator = "§ 83 odst. 5, vyhlášené znění, s. 49–50"
 
+# Zákon č. 527/1990 Sb., o vynálezech a zlepšovacích návrzích: novelty and the right of priority.
+[[clause]]
+id = "LAW-527-1990.5"
+source = "law-527-1990"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Vynález je nový, není-li součástí stavu techniky. Stavem techniky je vše, co bylo zpřístupněno veřejnosti přede dnem, od něhož přihlašovateli přísluší právo přednosti; právo přednosti vzniká podáním přihlášky vynálezu (§ 5 odst. 1 a 2, § 27 odst. 1).", en = "An invention is new if it does not form part of the state of the art. The state of the art comprises everything made available to the public before the date from which the applicant has the right of priority, and the right of priority arises when the patent application is filed (section 5(1) and (2), section 27(1))." }
+guidance = "§ 5 Novost\n\n(1) Vynález je nový, není-li součástí stavu techniky.\n\n(2) Stavem techniky je vše, k čemu byl přede dnem, od něhož přísluší přihlašovateli právo přednosti (§ 27), umožněn přístup veřejnosti písemně, ústně, využíváním nebo jiným způsobem.\n\n§ 27\n\n(1) Podáním přihlášky vynálezu vzniká přihlašovateli právo přednosti."
+guidanceLanguage = "cs"
+locator = "§ 5 odst. 1 a 2, § 27 odst. 1"
+
 [[clause]]
 id = "OS3-RULES.19"
 source = "os3-rules"
@@ -4796,6 +4808,37 @@ Once you have decided where to publish your data, you will have to make your (me
 '''
 guidanceLanguage = "en"
 locator = "Your tasks › Data publication › How do you prepare your data for publication in data repositories?"
+
+[[clause]]
+id = "RDMKIT.publication.02"
+source = "rdmkit"
+principles = ["A1.2", "R1.1"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Týkají-li se dat etické, právní nebo smluvní otázky, například jejich obchodní hodnota nebo duševní vlastnictví, požádejte o radu právní oddělení, pracoviště transferu technologií nebo pověřence pro ochranu osobních údajů své instituce. Mnoho repozitářů umožňuje uložená data embargovat a některé nabízejí omezený přístup, takže data jsou dohledatelná, i když je nelze zveřejnit otevřeně. I když data zveřejnit nelze, je dobrou praxí zveřejnit jejich metadata.", en = "If ethical, legal or contractual issues apply to the data, such as their commercial value or intellectual property, ask your institution's legal team, technology transfer office or data protection officer for advice. Many repositories let you put an embargo on a deposited dataset, and some offer restricted access, so that data are findable even when they cannot be published openly. Even if the data cannot be published, it is good practice to publish their metadata." }
+guidance = '''
+- If ethical, legal or contractual issues apply to your data type (e.g. personal or sensitive data, confidential or third-party data, data with copyright, data with potential economic or commercial value, intellectual property or IP data, etc.), ask for help and advice from the Legal Team, Tech Transfer Office, and/or Data Protection Officer of your institute.
+- Certain repositories offer solutions for depositing data that need to be under restricted access. This allows for data to be findable even when it can not be published openly.
+- Many repositories provide the option to put an embargo on a deposited dataset. This might be useful if you prefer to use the data in a publication before making it available for others to use.
+- Even if the data cannot be published, it is good practice to publish the metadata of your datasets.
+'''
+guidanceLanguage = "en"
+locator = "Your tasks › Data publication › Can you really deposit your data in a public repository? (Solutions)"
+
+[[clause]]
+id = "RDMKIT.publication.03"
+source = "rdmkit"
+principles = ["R1", "A2"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Jak lze zveřejněný záznam aktualizovat nebo stáhnout, se mezi repozitáři liší; ověřte, co umožňuje ten váš. Uložená data se obvykle nemažou, na žádost je však lze skrýt z veřejného pohledu, a aktualizace se nemusí automaticky přenést do navazujících registrů. Bezpečnější je proto odevzdat správný záznam hned napoprvé.", en = "How a published entry can be updated or withdrawn varies between repositories; check what yours allows. Submitted data generally may not be deleted but may be suppressed from public view on request, and updates may not reach linked registries automatically. It is therefore safer to submit the right entry from the start." }
+guidance = '''
+You will sometimes need to update or delete some entries that were incomplete or wrongly submitted for publication. Note however that upon creation of a new record, data is generally tagged for distribution and selected metadata fields may be exchanged with other repositories. Thus, redistribution of updated records may not be triggered automatically and updating records fully can be a time consuming and manual process for the repository. Also, in general, submitted data may not be deleted, but may be suppressed from public view upon request. In a nutshell, it is therefore safer to make sure to submit the right entry from the start, rather than updating it or asking for its withdrawal at a later stage.
+
+Solutions are very much repository-dependent. … Please check these points with your repository of choice.
+'''
+guidanceLanguage = "en"
+locator = "Your tasks › Data publication › How do you update or delete a published entry from a data repository? (Description; Solutions)"
 
 [[clause]]
 id = "RDMKIT.transfer.01"

@@ -45,8 +45,13 @@ sources = ["A.F1.R2"]
 id = "publication.05"
 lens = "V"
 level = "L1"
-text = { cs = "Oprava, nebo nová verze? Podstatná změna dat znamená novou verzi s novým PID, propojenou s předchozí.", en = "Correction or new version? A substantial change to the data means a new version with a new PID, linked to the previous one." }
-sources = ["A.R1.R3", "A.I3.R5"]
+text = { cs = "Zjistíte-li po zveřejnění chybu, publikované soubory nepřepisujte ani nemažte, aby každý, kdo data citoval, našel stejná data, jaká použil. Jak postupovat, záleží na druhu chyby a na politice změn repozitáře:", en = "If you discover an error after publication, do not overwrite or delete the published files, so that anyone who cited the data finds the same data they used. What to do depends on the kind of error and on the repository's change policy:" }
+steps = [
+  { cs = "v metadatech záznamu doplňte chybějící vazbu (například na opravu nebo související článek) nebo opravte překlep v popisu, pokud to politika změn repozitáře dovoluje;", en = "in the record's metadata, add a missing link (for example to a correction or a related article) or fix a typo in the description, where the repository's change policy allows it;" },
+  { cs = "chybu v datech opravte novou verzí s vlastním PID, propojenou s původní verzí; u velkých datových sad může repozitář místo nové verze nabízet samostatně identifikovaný „patch“ balíček;", en = "correct an error in the data with a new version that has its own PID and is linked to the original version; for large datasets, the repository may offer a separately identified patch bundle instead;" },
+  { cs = "data znepřístupněte, jen když chybu nelze napravit novou verzí a data nemohou zůstat dostupná, například z právních důvodů; ověřte, že repozitář ponechá PID a tombstone stránku s citací a důvodem nedostupnosti.", en = "withdraw data only when a new version cannot remedy the error and the data cannot remain available, for example for legal reasons; check that the repository keeps the PID and a tombstone page with the citation and the reason for unavailability." },
+]
+sources = ["NRP.M1", "NRP.M3", "RDMKIT.publication.03", "A.R1.R3", "A.I3.R5", "A.A2.R2"]
 
 [[advice]]
 id = "publication.06"
