@@ -1792,3 +1792,47 @@ instruments = ["kilo-code", "claude-opus-5-5"]
 objects = ["A.I1.X1", "A.A1.2.R2", "A.F3.N2", "CDIF.Manifest", "CDIF.REC5", "CDSC-README.01", "MBDB-2026.01", "RDMKIT.process.02", "RDMKIT.publication.01", "RDMKIT.transfer.01", "SND-SYNTHETIC.01", "DC-SPREADSHEETS.01"]
 results = ["process.03", "process.04", "publication.30", "RDMKIT.publication.01", "RDMKIT.transfer.01", "SND-SYNTHETIC.01", "DC-SPREADSHEETS.01", "snd-synthetic-data", "datacarpentry-spreadsheets"]
 endTime = 2026-10-30T23:19:26+01:00
+
+[[action]]
+id = "2026-10-18-ip-errata-samples"
+type = "update"
+name = "Practical guidance in Stations 6, 7 and 8: sample identifiers, patent/IP exceptions and error handling"
+description = "Expanded metadata linkages to physical sample, instrument and grant identifiers, added patent and commercial embargo procedures under Act No. 328/2025 Sb., and defined immutable error remediation steps."
+agent = "karel-berka"
+instruments = [
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
+]
+objects = [
+  "A.A2.R2",
+  "A.I3.R3",
+  "A.I3.R5",
+  "A.R1.2.N3",
+  "A.R1.R3",
+  "CDIF.REC6",
+  "COPYRIGHT-LICENCES.04",
+  "DDRAPP.01",
+  "LAW-328-2025.83.5",
+  "NRP.M1",
+  "NRP.M3",
+  "POLICY-MANUAL.05",
+  "RDMKIT.collect.02",
+]
+results = [
+  "licence.31",
+  "metadata.05",
+  "publication.05",
+]
+endTime = 2026-10-20T21:00:00+00:00
+
+[[action]]
+id = "2026-10-31-ip-errata-review"
+type = "update"
+name = "Source and qualify the sample identifier, patent and post-publication error advice"
+description = "Reviewed the advice rebuilt for #38 against its cited clauses. metadata.05 asks for persistent identifiers where possible and names the funder with the project or grant number, as CDIF recommends, instead of a RIV linkage no clause states; IGSN now links its glossary entry, the provenance of samples and instruments rests on RDMkit, and DDRapp, which supports no statement in the text, is no longer cited. licence.31 cites the research act's exception with its effective date and Act No. 527/1990 Coll. for why data that disclose an invention wait until the patent application is filed; RDMkit's Data publication page supports asking the technology transfer office or legal team, the embargo, restricted access and publishing the metadata of data that cannot be published. The English now says Coll. publication.05 says why published files are not overwritten, leaves metadata fixes to the repository's change policy, offers a separately identified patch bundle only as the NRP conditions do, and withdraws data only when a new version cannot remedy the error, citing RDMkit on updating and withdrawing published entries."
+agent = "david-novak"
+instruments = ["kilo-code", "claude-opus-5-5"]
+objects = ["A.I3.R3", "A.I3.R5", "A.R1.2.N3", "CDIF.REC6", "RDMKIT.collect.02", "DDRAPP.01", "LAW-328-2025.83.5", "POLICY-MANUAL.05", "COPYRIGHT-LICENCES.04", "A.A1.2.R2", "NRP.M1", "NRP.M3", "A.R1.R3", "A.A2.R2", "RDMKIT.publication.02", "RDMKIT.publication.03", "LAW-527-1990.5"]
+results = ["metadata.05", "licence.31", "publication.05", "RDMKIT.publication.02", "RDMKIT.publication.03", "LAW-527-1990.5", "law-527-1990"]
+endTime = 2026-10-31T02:41:21+01:00
