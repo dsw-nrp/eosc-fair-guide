@@ -285,6 +285,14 @@ alone do not complete them.
       version has one address; update the triage ledger after #27's closure. Verify that the boundary matrix fails
       against the former pattern and message and passes now, and that `python scripts/check_all.py` passes, then
       extend PR F after the maintainer approves the commit message.
+- [ ] 8.11 Address the sixth review of PR F (design D10): name OSI pages by the lowercase slug OSI names as
+      canonical and keep SPDX identifiers for SPDX entries; accept only published Creative Commons versions, with a
+      port only on a version before 4.0, and BY-NC-ND 1.0 under its published name `by-nd-nc`; count B3's seventh
+      bounded quote in D10; name the three lists in the native
+      rule and regenerate its copies. After merging `main` with B4, record the Public Domain Mark on `law-527-1990`
+      by extending the official-works action. Verify that the boundary matrix fails against the former pattern and
+      passes now, and that `python scripts/check_all.py` passes, then extend PR F after the maintainer approves the
+      commit message.
 
 ## 9. Direct push to `main` (design D11, recorded in PR F)
 

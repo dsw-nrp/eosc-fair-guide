@@ -61,7 +61,7 @@ use HTTPS.
   it adds itself. Word the advice from the original, which often carries detail a summary drops.
 - Quote what the clause needs. A passage carries the licence its source records and follows its terms; record a
   licence as the one canonical address of a known licence: a Creative Commons licence or public-domain tool, or a
-  licence on the reviewed lists in `scripts/check_content.py` (for example
+  licence on the reviewed lists of GNU paths, OSI pages and SPDX entries in `scripts/check_content.py` (for example
   `https://creativecommons.org/licenses/by/4.0/`, not its deed or legal code). A licence on none of them is added to
   its list through review first. From a source that records no licence, quote under the right of quotation (Act
   No. 121/2000 Coll., § 31(1)(a)): at most 200 words per clause, attributed by its source and locator, with no

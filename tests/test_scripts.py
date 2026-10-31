@@ -665,6 +665,16 @@ class ContentCheckTests(FixtureCase):
             "https://creativecommons.org/licenses/by/4.0/legalcode",
             "https://creativecommons.org/licenses/by/4.0/legalcode.en",
             "https://creativecommons.org/licenses/nonexistent/9.9/",
+            # Creative Commons published no version 9.9 and no unported 2.1, and 4.0 has no ports: such an address is
+            # missing or lands on the deed.
+            "https://creativecommons.org/licenses/by/9.9/",
+            "https://creativecommons.org/licenses/by/2.1/",
+            "https://creativecommons.org/licenses/by/4.0/xyz/",
+            "https://creativecommons.org/licenses/by/4.0/cz/",
+            # BY-NC-ND 1.0 is published as by-nd-nc, to which by-nc-nd/1.0/ redirects; later versions keep by-nc-nd.
+            "https://creativecommons.org/licenses/by-nc-nd/1.0/",
+            "https://creativecommons.org/licenses/by-nc-nd/1.0/fi/",
+            "https://creativecommons.org/licenses/by-nd-nc/2.0/",
             "https://www.creativecommons.org/licenses/by/4.0/",
             "https://www.gnu.org/licenses/gpl-3.0",
             "https://www.gnu.org/licenses/gpl-3.0.en.html",
@@ -678,6 +688,9 @@ class ContentCheckTests(FixtureCase):
             "https://www.gnu.org/licenses/gpl-9.9.html",
             "https://opensource.org/licenses/MIT",
             "https://opensource.org/license/faq",
+            # OSI serves a licence's page under its SPDX identifier too, but names the lowercase slug as canonical.
+            "https://opensource.org/license/MIT",
+            "https://opensource.org/license/Apache-2.0",
             # OSI publishes no page for an Open Data Commons licence; its SPDX entry is its address.
             "https://opensource.org/license/ODbL-1.0",
             "https://spdx.org/licenses/MIT.html",
@@ -695,13 +708,19 @@ class ContentCheckTests(FixtureCase):
             "https://creativecommons.org/licenses/by/3.0/cz/",
             "https://creativecommons.org/licenses/by/3.0/igo/",
             "https://creativecommons.org/licenses/by/2.5/scotland/",
+            "https://creativecommons.org/licenses/by/2.1/jp/",
+            "https://creativecommons.org/licenses/by/1.0/",
+            "https://creativecommons.org/licenses/by-nd-nc/1.0/",
+            "https://creativecommons.org/licenses/by-nd-nc/1.0/fi/",
+            "https://creativecommons.org/licenses/by-nc-nd/2.0/",
             "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             "https://creativecommons.org/publicdomain/zero/1.0/",
             "https://www.gnu.org/licenses/gpl-3.0.html",
             "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
             "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
             "https://www.gnu.org/licenses/fdl-1.3.html",
-            "https://opensource.org/license/MIT",
+            "https://opensource.org/license/mit",
+            "https://opensource.org/license/apache-2-0",
             "https://spdx.org/licenses/Apache-2.0",
             "https://spdx.org/licenses/ODbL-1.0",
         )

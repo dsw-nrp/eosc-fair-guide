@@ -1693,12 +1693,12 @@ endTime = 2026-10-28T23:46:50+01:00
 id = "2026-10-29-statute-public-domain"
 type = "update"
 name = "Record that the official works the Guide quotes are outside copyright"
-description = "Act No. 328/2025 Coll. and the Open Science III call rules are official works, which § 3(a) of the Copyright Act excludes from copyright; the maintainer confirmed the call rules as an administrative document. Their sources now record the Public Domain Mark instead of no licence, so the right-of-quotation bound for sources without a licence does not apply to their passages."
+description = "Act No. 328/2025 Coll. and the Open Science III call rules are official works, which § 3(a) of the Copyright Act excludes from copyright; the maintainer confirmed the call rules as an administrative document. Their sources now record the Public Domain Mark instead of no licence, so the right-of-quotation bound for sources without a licence does not apply to their passages. Act No. 527/1990 Coll., which #161 added for the novelty of an invention, is a law too and records the same mark."
 agent = "david-novak"
-instruments = ["claude-code", "claude-opus-5-5"]
-objects = ["law-328-2025", "os3-rules"]
-results = ["law-328-2025", "os3-rules"]
-endTime = 2026-10-29T17:17:18+01:00
+instruments = ["claude-code", "claude-opus-5-5", "kilo-code"]
+objects = ["law-328-2025", "os3-rules", "law-527-1990"]
+results = ["law-328-2025", "os3-rules", "law-527-1990"]
+endTime = 2026-10-31T11:10:27+01:00
 
 [[action]]
 id = "2026-10-29-cited-work-licences"

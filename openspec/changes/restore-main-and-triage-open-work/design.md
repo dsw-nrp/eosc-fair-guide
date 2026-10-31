@@ -445,14 +445,16 @@ balance a review can apply without overstating it (29 October 2026).
 
 - **The rule:** a passage carries the licence its source records and follows its terms. From a source that records
   no licence, a clause quotes what it needs, at most 200 words, with its source and locator and no licence claimed.
-  A work outside copyright records the Public Domain Mark as its `license` and has no bound. Two sources do today:
-  the Act on research (`law-328-2025`) and the Open Science III call rules (`os3-rules`), an administrative
-  document the maintainer confirmed as an official work (29 October 2026).
+  A work outside copyright records the Public Domain Mark as its `license` and has no bound. Three sources do today:
+  the Act on research (`law-328-2025`), the Open Science III call rules (`os3-rules`), an administrative
+  document the maintainer confirmed as an official work (29 October 2026), and the Patent Act (`law-527-1990`),
+  which B4 ([dsw-nrp/eosc-fair-guide#161](https://github.com/dsw-nrp/eosc-fair-guide/pull/161)) added.
 - **The bound:** on `main` before this change, the longest quote from a source without a licence ran 139 words by the
   counter below (`LAW-328-2025.83.2`), from the Act this change exempts; the longest call-rules quote ran 122
   (`OS3-RULES.17`). With both exempt and the cited works' licences read, five bounded quotes remained, the longest
   19 words (`CORETRUSTSEAL.01`, `CAMBRIDGE-ERN.01`). Since #147 merged, its `UKDS-DATA-LEVEL.01` is a sixth and the
-  longest, at 145 words (30 October 2026). 200 leaves room for one passage and stops a copied page.
+  longest, at 145 words (30 October 2026); B3 adds a seventh, `LOC-DIGITAL-FORMATS.01` at 45 words, and the longest
+  is unchanged. 200 leaves room for one passage and stops a copied page.
 - **Enforcement:** `scripts/check_content.py` counts a quote's words (letters and digits; a hyphenated word once,
   also across a line break; a bulleted or numbered list marker not at all), fails a clause over the bound and one
   without a locator, so the rule binds without review. A recorded licence must be the whole canonical address of one
@@ -461,9 +463,13 @@ balance a review can apply without overstating it (29 October 2026).
   licence on one of three short lists in the check, reviewed for the Guide's sources: GNU's paths, the licences with
   a page at OSI, and the SPDX entries, which add the Open Data Commons licences OSI does not list. A licence on none
   of them is added to its list through review. Canonical means one address per licence at each publisher: a Creative
-  Commons licence's address with its version, and its port where it has one, ending in a slash (not its deed or
-  legal-code page) and never its SPDX entry; the `.html` page GNU serves for that version, under `old-licenses/` for
-  a superseded one, whose root address redirects there; the OSI page or SPDX entry of any other licence. The crate
+  Commons licence's address with a version Creative Commons published, and its port where it has one, ending in a
+  slash (not its deed or legal-code page) and never its SPDX entry; the `.html` page GNU serves for that version, under
+  `old-licenses/` for a superseded one, whose root address redirects there; the OSI page, by the lowercase slug OSI
+  names as canonical, or the SPDX entry of any other licence. A port is accepted only on a version before 4.0, which
+  is international; any lowercase port is accepted there, as the check does not keep Creative Commons' list of
+  ports. BY-NC-ND 1.0 is recorded as `by-nd-nc/1.0/`, the name it was published under and to which
+  `by-nc-nd/1.0/` redirects. The crate
   records the value as the licence's identifier; the check's message names the lists and says how a licence joins
   them. The third review of PR F found that the rule's surfaces said only "the address", so they now say canonical;
   its fourth found that the pattern still accepted any page shaped like a licence, a versionless Creative Commons
@@ -471,7 +477,11 @@ balance a review can apply without overstating it (29 October 2026).
   `.html`, and refused longer Creative Commons ports such as `igo`. Its fifth found that the requirement, rule,
   content model and message still promised any address at the four publishers, that OSI was accepted for Open Data
   Commons licences it has no page for, and that GNU's root and `old-licenses/` addresses of one version both passed;
-  the lists are now explicit per publisher and named on every surface.
+  the lists are now explicit per publisher and named on every surface. Its sixth found that the OSI list named SPDX
+  identifiers, which OSI serves but does not name as canonical, and that any numeric Creative Commons version and any
+  port passed, so a missing version (`by/9.9/`) or a port of 4.0 that lands on the deed lifted the bound; OSI pages
+  are now named by their slugs, versions are the published ones, and the content rule names the three lists as the
+  content model does; at the maintainer's request BY-NC-ND 1.0 also keeps its published name (31 October 2026).
 - **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
   resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
   version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's

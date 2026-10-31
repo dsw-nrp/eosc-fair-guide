@@ -381,6 +381,13 @@ QUOTE_BREAK = re.compile(r"(?<=\w)-[ \t]*\n[ \t]*(?!(?:[-*+]|\d+[.)])[ \t])(?=\w
 # lists below, each naming only addresses its publisher serves. A source that records a licence on none of them adds
 # it here through review.
 CC_LICENCES = ("by", "by-sa", "by-nd", "by-nc", "by-nc-sa", "by-nc-nd")
+# Creative Commons publishes these versions unported, and 2.1 only ported. Ports exist for versions before 4.0, which is
+# international and has none; a port is any lowercase token, not checked against Creative Commons' list of ports.
+CC_VERSIONS = ("1.0", "2.0", "2.5", "3.0", "4.0")
+CC_PORTED_VERSIONS = ("1.0", "2.0", "2.1", "2.5", "3.0")
+# Version 1.0 of BY-NC-ND, unported and ported, is published as by-nd-nc, to which Creative Commons redirects
+# by-nc-nd/1.0/; no other version has that name.
+CC_FIRST_NAME = ("by-nc-nd", "by-nd-nc")
 CC_PUBLIC_DOMAIN = ("zero", "mark")
 # GNU serves the current version of a licence at its root and a superseded one under old-licenses/, to which the
 # root address of that version redirects; each path below is the one GNU serves.
@@ -393,17 +400,29 @@ GNU_LICENCES = (
     "old-licenses/lgpl-2.1",
     "old-licenses/fdl-1.2",
 )
-# Licences with a page at OSI, by SPDX identifier; their SPDX entries are accepted as well.
+# Licences with a page at OSI, by the lowercase slug OSI names as the page's canonical address; OSI also serves the
+# page under the SPDX identifier, which is not canonical.
 OSI_LICENCES = (
+    "apache-2-0",
+    "bsd-2-clause",
+    "bsd-3-clause",
+    "eupl-1-2",
+    "mit",
+    "mpl-2-0",
+)
+# Licences recorded by their SPDX entry, by SPDX identifier: the licences OSI lists above, and the Open Data Commons
+# licences, which OSI does not list.
+SPDX_LICENCES = (
     "Apache-2.0",
     "BSD-2-Clause",
     "BSD-3-Clause",
     "EUPL-1.2",
     "MIT",
     "MPL-2.0",
+    "ODbL-1.0",
+    "ODC-By-1.0",
+    "PDDL-1.0",
 )
-# Licences recorded by their SPDX entry: the OSI licences and the Open Data Commons licences, which OSI does not list.
-SPDX_LICENCES = OSI_LICENCES + ("ODbL-1.0", "ODC-By-1.0", "PDDL-1.0")
 
 
 def _any_of(names: tuple[str, ...]) -> str:
@@ -412,13 +431,15 @@ def _any_of(names: tuple[str, ...]) -> str:
 
 # A recorded licence or mark is the whole canonical HTTPS address of one of those licences, matched in full: a
 # publisher's home page, another page on its site or text after the address names no licence, and the crate records
-# the value as the licence's identifier, so one licence has one address. Creative Commons: the licence with its
+# the value as the licence's identifier, so one licence has one address. Creative Commons: the licence with a published
 # version, and its port where it has one, ending in a slash, not its deed or legal code; GNU: the `.html` page of a
-# listed path on www.gnu.org; any other licence: its `license/<SPDX ID>` page at OSI or its SPDX list entry without
+# listed path on www.gnu.org; any other licence: its `license/<slug>` page at OSI or its SPDX list entry without
 # `.html`.
 LICENCE_ADDRESS = re.compile(
     "https://(?:"
-    rf"creativecommons\.org/licenses/(?:{_any_of(CC_LICENCES)})/\d+\.\d+/(?:(?!deed/|legalcode/)[a-z]+/)?"
+    rf"creativecommons\.org/licenses/"
+    rf"(?:(?!{re.escape(CC_FIRST_NAME[0])}/1\.0/)(?:{_any_of(CC_LICENCES)})|{re.escape(CC_FIRST_NAME[1])}(?=/1\.0/))/"
+    rf"(?:(?:{_any_of(CC_VERSIONS)})/|(?:{_any_of(CC_PORTED_VERSIONS)})/(?!deed/|legalcode/)[a-z]+/)"
     rf"|creativecommons\.org/publicdomain/(?:{_any_of(CC_PUBLIC_DOMAIN)})/1\.0/"
     rf"|www\.gnu\.org/licenses/(?:{_any_of(GNU_LICENCES)})\.html"
     rf"|opensource\.org/license/(?:{_any_of(OSI_LICENCES)})"

@@ -146,7 +146,7 @@
 
 ## Kilo session (restore `main` after the direct push)
 
-- **When:** 2026-10-30
+- **When:** 2026-10-30 – 2026-10-31
 - **Agent / runtime:** Kilo (VS Code extension)
 - **Model / backend:** anthropic/claude-opus-5-5
 - **Subagents used:** none
@@ -155,7 +155,9 @@
   `aiscr-quality-first-execution`, `aiscr-usage-logging` and `aiscr-model-logging` rules; the native
   `fair-guide-content` and `fair-guide-surfaces` rules; `aiscr-plan-issue` through its delivered engine; `gh` API
   queries; GitHub's documentation on ruleset bypass modes; a Playwright read of the live `/next/` catalogue; the
-  DataCite records and the survey PDF read for the two versionless licences.
+  DataCite records and the survey PDF read for the two versionless licences; for B4, RDMkit's *Data publication* page
+  at its pinned revision and the Industrial Property Office's consolidated text of Act No. 527/1990 Coll.; live
+  requests to OSI and Creative Commons licence addresses for the sixth review.
 - **What:**
   - Restored `main` to `bed3284`: the maintainer ran the leased force push, because the Claude Code session's
     runtime had refused it and the agent did not repeat it by another route. The deployment and publication of
@@ -197,10 +199,21 @@
     digest reads one finding key per task. Commented on #140 that ELAN needs no task.
   - Addressed the fifth review of PR F (task 8.10): the reviewed licence lists are named on every surface, with
     separate lists of GNU paths, OSI pages and SPDX entries; the triage ledger reflects #27's closure.
-- **Impacted:** `main` on GitHub; issues #26–#31, #33, #37, #43, #80, #136, #140, #150, #152–#160; pull requests #41,
-  #148, #149 and #151; the issue report in the KNAV catalogue; the `Main branch protection` ruleset (applied by the
-  maintainer); on B3's branch the station files, `content/ledger.toml`, `content/sources.toml`,
-  `content/provenance.toml` and `content/identifiers.toml`; on PR F's branch
+  - Rebuilt B4 from Karel Berka's draft #42 for #38 (tasks 3.7–3.8) and, at the maintainer's request, settled the
+    claims its clauses did not state before opening #161, with a reviewer's action `2026-10-31-ip-errata-review`:
+    `metadata.05` names the funder and grant number (`CDIF.REC6`) instead of a RIV linkage; `licence.31` gives three
+    steps resting on RDMkit's *Data publication* page (`RDMKIT.publication.02`) and on the novelty and priority
+    sections of Act No. 527/1990 Coll. (`LAW-527-1990.5`, source `law-527-1990`); `publication.05` follows the NRP
+    change policy and RDMkit on updating published entries (`RDMKIT.publication.03`). The maintainer corrected the
+    Czech of `publication.05` and merged #161 as `1cdbd1d`, which closed #38.
+  - Merged `main` with B4 into PR F and addressed its sixth review (task 8.11): OSI pages are named by OSI's
+    canonical lowercase slugs, SPDX identifiers stay for SPDX entries, Creative Commons versions are the published
+    ones with a port only before 4.0 and BY-NC-ND 1.0 under its published name `by-nd-nc`, D10 counts B3's seventh
+    bounded quote, and the native rule names the three lists. The Patent Act records the Public Domain Mark, as the other laws do, extending the official-works action.
+- **Impacted:** `main` on GitHub; issues #26–#31, #33, #37, #38, #43, #80, #136, #140, #150, #152–#160; pull
+  requests #41, #42, #148, #149, #151 and #161; the issue report in the KNAV catalogue; the `Main branch protection`
+  ruleset (applied by the maintainer); on B3's and B4's branches the station files, `content/ledger.toml`,
+  `content/sources.toml`, `content/provenance.toml` and `content/identifiers.toml`; on PR F's branch
   `.github/repository.toml`, `tests/fixtures/repository-audit.json`, `scripts/check_content.py`,
   `tests/test_scripts.py`, `.agents/guide/rules/fair-guide-content.md` with its generated copies and the guide region
   of `CODEX.md`, `docs/content-model.md`, `docs/deployment.md`, `content/sources.toml`, `content/resources.toml`,
@@ -220,6 +233,11 @@
     the claim; the maintainer also corrected the Czech wording of `publication.30` and `process.03`.
   - The maintainer said that the FIP Dashboard team tracks the dead repository address directly on the Guide's task,
     not in an issue of its own, so #160 says so.
+  - For B4, the maintainer asked for the claims the comparison had found unsupported to be solved before review
+    rather than listed for review to restate, and changed the Czech "stahujte" to "znepřístupněte" in
+    `publication.05`.
+  - For the sixth review of PR F, the maintainer asked to fix BY-NC-ND 1.0's published name as well, which the agent
+    had proposed to leave as a residual.
 - **Verification:**
   - `git ls-remote` reports `main` at `bed3284`, and only B3's branch contains `2ba195d`; **Deploy the verified site**
     run 40982282070 passed its full checks and **Publish the verified site** run 40982793541 succeeded for
@@ -247,9 +265,19 @@
   - the fifth review's boundary matrix fails against the former pattern and message and passes now; GNU, OSI and
     SPDX addresses were checked on 30 October 2026: OSI has no page for `ODbL-1.0` or `ODC-By-1.0`, and GNU
     redirects `gpl-2.0.html`, `lgpl-2.1.html` and `fdl-1.2.html` to `old-licenses/`; with B3 merged, seven quotes are
-    bounded, `LOC-DIGITAL-FORMATS.01` adding one of 45 words, and the longest is still `UKDS-DATA-LEVEL.01` at 145.
-- **Close-out:** on 31 October, 22 of 64 tasks are ticked; PR D records the ticks of the work done since, including
-  task groups 5, 6 and 9 and B3 (3.5–3.6). PR E (#149) merged as `45bf1eb` and B3 (#151) as `93dd3f1`. Open: B4
-  (3.7–3.8), PR F's review and merge (8.7), and the integration check after the next watch run (group 10). For this
-  round, `npm run openspec:validate`, `python scripts/check_usage.py` and `python scripts/check_all.py`: see the
-  verification of its commit.
+    bounded, `LOC-DIGITAL-FORMATS.01` adding one of 45 words, and the longest is still `UKDS-DATA-LEVEL.01` at 145;
+  - B4's review fixes passed `python scripts/check_all.py` (35 of 36, REUSE on the untracked transcript), with
+    `check_content.py --base origin/main` and `check_duplicates.py` reporting no error; the three items render in
+    Czech and English at 360 and 1280 px with no sideways scroll, and their links open the glossary and catalogue
+    entries; #161 merged as `1cdbd1d`;
+  - the sixth review's boundary matrix fails against the former pattern on twelve addresses and passes now; on 31
+    October OSI named `mit`, `apache-2-0`, `bsd-2-clause`, `bsd-3-clause`, `eupl-1-2` and `mpl-2-0` as its pages'
+    canonical addresses, Creative Commons answered 404 for `by/9.9/`, `by/3.0/xyz/` and `by-nd-nc/2.0/` and 403 for
+    an unported `by/2.1/`, redirected `by/4.0/xyz/` and `by/4.0/cz/` to the 4.0 deed, and redirected
+    `by-nc-nd/1.0/` and its ports to `by-nd-nc/1.0/`; with B4 merged and the Patent Act
+    marked, seven quotes remain bounded, the longest still `UKDS-DATA-LEVEL.01` at 145.
+- **Close-out:** on 31 October, 22 of 65 tasks are ticked; PR D records the ticks of the work done since, including
+  task groups 5, 6 and 9, B3 (3.5–3.6) and B4 (3.7–3.8). PR E (#149) merged as `45bf1eb`, B3 (#151) as `93dd3f1`
+  and B4 (#161) as `1cdbd1d`. Open: PR F's review and merge (8.7), closing draft #42, and the integration check after
+  the next watch run (group 10). For this round, `npm run openspec:validate`, `python scripts/check_usage.py` and
+  `python scripts/check_all.py`: see the verification of its commit.

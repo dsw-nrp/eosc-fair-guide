@@ -322,6 +322,8 @@ short = { cs = "Zákon č. 527/1990 Sb.", en = "Act No. 527/1990 Coll." }
 inLanguage = "cs"
 url = "https://e-sbirka.gov.cz/sb/1990/527"
 dateAccessed = 2026-10-31
+# An official work, outside copyright under § 3(a) of Act No. 121/2000 Coll.
+license = "https://creativecommons.org/publicdomain/mark/1.0/"
 
 [[source]]
 guideRoute = "res/doc"
