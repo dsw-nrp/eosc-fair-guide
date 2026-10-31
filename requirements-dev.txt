@@ -1,7 +1,7 @@
 # Tools for repository checks. The generator and content checks need only the Python standard library.
 reuse[charset-normalizer]==6.2.0
 cffconvert==2.0.0
-jsonschema==3.2.0
+jsonschema==4.26.0
 roc-validator==0.13.0
 # The RDF tests import these directly; the pins match what roc-validator resolves.
 rdflib==7.6.0
