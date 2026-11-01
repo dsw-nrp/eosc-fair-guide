@@ -15,8 +15,8 @@
 # parent    Omitted: the parent stays as it is.
 #
 # Evidence: every body was read on 28 October 2026; no issue except the digest has a comment. Cross-references and
-# files are named per entry. Bodies link the repository's former address `motyc/eosc-fair-guide` in #16, #20, #24
-# and #27; shaping replaces those links (task 6.4).
+# files are named per entry. Bodies link the repository's former address `motyc/eosc-fair-guide` in #16, #20 and
+# #24; shaping replaces those links (task 6.4). #27 also linked it; it closed before its body was replaced.
 
 [[issue]]
 number = 5  # Allow FIP Dashboard reads from the Guide's approved origins (Q-33)
@@ -30,7 +30,7 @@ shape = "full"
 number = 6  # Audit test validity and gaps against the first official prerelease (Q-39)
 decision = "keep"
 priority = "High"  # Its trigger has passed: #34 records alpha.1 as the first official prerelease.
-effort = "High"  # Every criterion, mapping and evidence-to-answer rule; #27 coordinates with it.
+effort = "High"  # Every criterion, mapping and evidence-to-answer rule; #27, which was to coordinate with it, closed.
 milestone = "v1.0.0-alpha.x"
 shape = "full"
 
@@ -196,11 +196,10 @@ shape = "full"
 
 [[issue]]
 number = 27  # Review adoption of a published national FAIR benchmark (Q-38)
-decision = "keep"
-priority = "Low"
-effort = "Medium"
+decision = "close"
+reason = "Closed as not planned on 30 October 2026: the maintainer decided during shaping that no national FAIR benchmark will exist, so there is nothing to adopt; the reviewed FAIR Champion selection stays. The ledger first approved it as keep (Low, Medium, v1.0.0-beta.x, to be shaped in full); its body was drafted but never posted."
 milestone = "v1.0.0-beta.x"
-shape = "full"  # Its relative link to champion/selection.md resolves against the issue page; shaping links docs/champion/selection.md.
+shape = "none"
 
 [[issue]]
 number = 28  # Confirm the NRP organisation URL and Dashboard identity (Q-44)

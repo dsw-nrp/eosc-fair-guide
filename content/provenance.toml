@@ -1690,6 +1690,28 @@ results = ["licence.14"]
 endTime = 2026-10-28T23:46:50+01:00
 
 [[action]]
+id = "2026-10-29-statute-public-domain"
+type = "update"
+name = "Record that the official works the Guide quotes are outside copyright"
+description = "Act No. 328/2025 Coll. and the Open Science III call rules are official works, which § 3(a) of the Copyright Act excludes from copyright; the maintainer confirmed the call rules as an administrative document. Their sources now record the Public Domain Mark instead of no licence, so the right-of-quotation bound for sources without a licence does not apply to their passages. Act No. 527/1990 Coll., which #161 added for the novelty of an invention, is a law too and records the same mark."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5", "kilo-code"]
+objects = ["law-328-2025", "os3-rules", "law-527-1990"]
+results = ["law-328-2025", "os3-rules", "law-527-1990"]
+endTime = 2026-10-31T11:10:27+01:00
+
+[[action]]
+id = "2026-10-29-cited-work-licences"
+type = "update"
+name = "Give seven cited works one complete citation and licence"
+description = "Four resources carried a second, nested citation that neither the page, the crate nor the checks read. Each now has one citation. The CESSDA guide and the FORCE11 declaration gain their authors and CC BY-SA 4.0; the CESSDA values are those recorded on 11 October 2026, as its guide was offline for migration on 29 October. The OSTrails CZ pilot cites its deposited version, with that version's DOI, publication date and CC BY 4.0, as Zenodo records them. CoreTrustSeal cites the About page that its resource links and its clause quotes. The DataCite Metadata Schema, whose citation recorded no licence, cites its version 4.7 documentation with the title, DOI, authors and CC BY 4.0 that DataCite records. The 2025 survey of research data management and the institutional data policy manual recorded CC BY without a version; they record CC BY 4.0, which the survey's PDF links and DataCite records for the manual's DOI."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5", "kilo-code"]
+objects = ["cessda-dmeg", "coretrustseal", "datacite-schema", "force11-citation", "ostrails-cz-pilot", "policy-manual", "survey-2025"]
+results = ["cessda-dmeg", "coretrustseal", "datacite-schema", "force11-citation", "ostrails-cz-pilot", "CORETRUSTSEAL.01", "policy-manual", "survey-2025"]
+endTime = 2026-10-30T22:41:36+01:00
+
+[[action]]
 id = "2026-10-29-researcher-actor"
 type = "update"
 name = "Name the researcher's tasks by role"

@@ -176,7 +176,7 @@ url = "https://events.eosc.cz/event/414/attachments/379/631/EOSCCZ-260401-stav_s
 publisher = "eosc-cz"
 authors = ["M. Vávra", "T. Čížek", "J. Klusáček"]
 datePublished = 2026-04-01
-license = "https://creativecommons.org/licenses/by/"
+license = "https://creativecommons.org/licenses/by/4.0/"
 
 
 [[source]]
@@ -297,6 +297,7 @@ version = "1"
 url = "https://opjak.cz/wp-content/uploads/2026/06/PpZP_specificka_cast_vyzva_Open_Science_III_web.pdf"
 publisher = "msmt"
 dateAccessed = 2026-10-09
+license = "https://creativecommons.org/publicdomain/mark/1.0/"
 
 [[source]]
 guideRoute = "res/doc"
@@ -309,6 +310,8 @@ url = "https://e-sbirka.gov.cz/sb/2025/328"
 datePublished = 2025-09-09
 dateAccessed = 2026-10-09
 version = "2025-09-09"
+# An official work, outside copyright under § 3(a) of Act No. 121/2000 Coll.
+license = "https://creativecommons.org/publicdomain/mark/1.0/"
 
 [[source]]
 guideRoute = "res/doc"
@@ -319,6 +322,8 @@ short = { cs = "Zákon č. 527/1990 Sb.", en = "Act No. 527/1990 Coll." }
 inLanguage = "cs"
 url = "https://e-sbirka.gov.cz/sb/1990/527"
 dateAccessed = 2026-10-31
+# An official work, outside copyright under § 3(a) of Act No. 121/2000 Coll.
+license = "https://creativecommons.org/publicdomain/mark/1.0/"
 
 [[source]]
 guideRoute = "res/doc"
