@@ -47,7 +47,10 @@ def bare_orcid(value: str) -> str:
 def reviewed_affiliations(person: dict, organizations: dict[str, dict]) -> tuple[list[dict], str]:
     """Zenodo's affiliation for a reviewed person: structured ROR IDs, or the English names alone.
 
-    The two forms are exclusive: a scalar `affiliation` overrides structured affiliations in Zenodo's importer.
+    A person with any reviewed ROR affiliation keeps every reviewed organisation in the structured form, including
+    the name-only entry the importer accepts for an organisation without a ROR. The scalar `affiliation` is written
+    only when no organisation carries one, because it overrides structured affiliations in the importer; the two
+    forms never appear together for one person.
     """
     structured: list[dict] = []
     names: list[str] = []
@@ -60,6 +63,9 @@ def reviewed_affiliations(person: dict, organizations: dict[str, dict]) -> tuple
             structured.append({"id": str(ror).rstrip("/").rsplit("/", 1)[-1], "name": english})
         elif english:
             names.append(english)
+    if structured:
+        structured.extend({"name": name} for name in names)
+        return structured, ""
     return structured, "; ".join(names)
 
 

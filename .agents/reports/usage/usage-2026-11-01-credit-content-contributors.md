@@ -32,7 +32,8 @@
     missing, unknown).
   - Documented the split and the generation in `docs/deployment.md` and `docs/content-model.md`; added one provenance
     action and registered its identifier. `CHANGELOG.md` stays untouched.
-  - No commit, push or pull request: the maintainer did not ask for them.
+  - Committed on `agents/kilo/credit-content-contributors` and opened as
+    [dsw-nrp/eosc-fair-guide#166](https://github.com/dsw-nrp/eosc-fair-guide/pull/166).
 - **Impacted:** `.zenodo.json`; `content/identifiers.toml`; `content/pages.toml`; `content/provenance.toml`;
   `content/ui.toml`; `docs/content-model.md`; `docs/deployment.md`; `scripts/build_crate.py`;
   `scripts/check_citation_metadata.py`; `scripts/release_versions.py`; `tests/page/check_page.mjs`;
@@ -63,3 +64,33 @@
   pass reported the visual pass as unrecorded; the maintainer confirmed it was done, so task 1.4 now records it, and
   the verification warnings and suggestions were fixed: an ORCID-less contributor test, the Czech 320 px reflow case
   and ORCID-first contributor matching with a duplicate-entry diagnostic.
+
+## Review-fix session (2026-11-01)
+
+- **When:** 2026-11-01 (+01:00)
+- **Agent / runtime:** Kilo Code (VS Code extension)
+- **Model / backend:** `deepseek-v4.1-flash-thinking` (e-infra-cz), exposed by the runtime
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `aiscr-review-pr` (review of PR 166, findings not posted), delivered
+  `aiscr-review-conduct`, `aiscr-planning-core`, `aiscr-quality-first-execution` and `aiscr-model-logging` rules, the
+  native `fair-guide-content` and `fair-guide-surfaces` rules, `python scripts/check_all.py` job inventory and the
+  Playwright page checks.
+- **What:**
+  - Reviewed PR 166 without posting the findings, then fixed the three Low observations the review reported.
+  - `reviewed_affiliations()` keeps every reviewed organisation for a person with any ROR affiliation: an
+    organisation without a ROR enters the structured list as a name-only entry, and the scalar `affiliation` stays
+    the form only when no organisation carries a ROR. This makes the writer match the synced requirement that an
+    organisation without a ROR be written by its English name.
+  - `docs/deployment.md` now states that a pull request adding someone to `[guide] contributors` also mirrors the
+    entry into `.zenodo.json`, because `check_citation_metadata.py` runs in the pull-request checks and before
+    preparation.
+  - This entry no longer says that no commit, push or pull request was made; it names the branch and PR 166.
+  - Added the mixed-affiliation preparation test.
+- **Impacted:** `.agents/reports/usage/usage-2026-11-01-credit-content-contributors.md`; `docs/deployment.md`;
+  `scripts/release_versions.py`; `tests/test_release_versions.py`.
+- **Verification:** `python -m unittest tests.test_release_versions tests.test_citation_metadata tests.test_scripts`
+  passes, `python scripts/check_citation_metadata.py` is green, and `python scripts/check_content.py --base origin/main`,
+  `python scripts/check_docs.py` and `python scripts/check_usage.py` pass.
+- **Close-out:** the review run directories are retained because no review was posted; the fixes are committed on the
+  pull-request branch and the summary is prepared for the description.
