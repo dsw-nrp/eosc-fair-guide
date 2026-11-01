@@ -2,9 +2,9 @@
 reuse[charset-normalizer]==6.2.0
 cffconvert==2.0.0
 jsonschema==3.2.0
-roc-validator==0.13.0
+roc-validator==0.13.1
 # The RDF tests import these directly; the pins match what roc-validator resolves.
 rdflib==7.6.0
-pyshacl==0.40.1
-ruff==0.17.2
+pyshacl==0.40.2
+ruff==0.17.3
 PyYAML==6.0.3
