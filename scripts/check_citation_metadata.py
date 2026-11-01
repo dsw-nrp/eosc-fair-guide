@@ -235,6 +235,7 @@ def credits(cff: dict, zenodo: dict, guide: dict) -> list[str]:
             errors.append(
                 f".zenodo.json creators/{index}: use one affiliation form; the scalar overrides structured IDs"
             )
+            continue
         affiliations = creator.get("affiliations")
         if affiliations is None:
             continue
@@ -242,16 +243,72 @@ def credits(cff: dict, zenodo: dict, guide: dict) -> list[str]:
         if not person:
             errors.append(f".zenodo.json creators/{index}: structured affiliations need a reviewed Guide person/ORCID")
             continue
-        reviewed = [organizations[key] for key in person.get("affiliation", [])]
-        expected_ids = {item["ror"].rsplit("/", 1)[-1] for item in reviewed if item.get("ror")}
-        actual_ids = {item.get("id") for item in affiliations}
-        if actual_ids != expected_ids or len(actual_ids) != len(affiliations):
-            errors.append(f".zenodo.json creators/{index}: affiliations must match the reviewed organization ROR IDs")
-        by_ror = {item["ror"].rsplit("/", 1)[-1]: item for item in reviewed if item.get("ror")}
-        for item in affiliations:
-            organization = by_ror.get(item.get("id"))
-            if organization and item.get("name") and item["name"] != organization["name"]["en"]:
-                errors.append(f".zenodo.json creators/{index}: affiliation name differs from the reviewed English name")
+        structured, _ = release_versions.reviewed_affiliations(person, organizations)
+        if affiliations != structured:
+            errors.append(
+                f".zenodo.json creators/{index}: affiliations must match the reviewed ROR IDs and English names"
+            )
+    return errors
+
+
+def contributor_credits(zenodo: dict, guide: dict) -> list[str]:
+    """Zenodo's content contributors mirror the Guide's reviewed list; CFF stays software authorship."""
+    errors = []
+    organizations = {item["id"]: item for item in guide.get("organization", [])}
+    people = {person["id"]: person for person in guide.get("person", [])}
+    expected = []
+    for person_id in guide.get("guide", {}).get("contributors", []):
+        person = people.get(person_id)
+        if person is None:
+            errors.append(f"content/guide.toml contributors: unknown person '{person_id}'")
+            continue
+        expected.append(release_versions.zenodo_person(person, organizations, release_versions.CONTRIBUTOR_TYPE))
+    entries = []
+    seen: set[str] = set()
+    for index, entry in enumerate(zenodo.get("contributors", [])):
+        identity = entry.get("orcid") or normalized(entry.get("name", ""))
+        if identity in seen:
+            name = normalized(entry.get("name", ""))
+            errors.append(f".zenodo.json contributors/{index}: duplicate contributor '{name}'")
+            continue
+        seen.add(identity)
+        entries.append((index, entry))
+    for wanted in expected:
+        name = normalized(wanted["name"])
+        match = next(
+            ((i, e) for i, e in entries if wanted.get("orcid") and e.get("orcid") == wanted["orcid"]),
+            None,
+        )
+        if match is None:
+            match = next(((i, e) for i, e in entries if normalized(e.get("name", "")) == name), None)
+        if match is None:
+            errors.append(
+                f".zenodo.json contributors: missing contributor '{wanted['name']}' from "
+                "content/guide.toml contributors"
+            )
+            continue
+        entries.remove(match)
+        index, entry = match
+        if normalized(entry.get("name", "")) != name:
+            errors.append(f".zenodo.json contributors/{index}: name differs from the reviewed person")
+        if entry.get("orcid") != wanted.get("orcid"):
+            errors.append(f".zenodo.json contributors/{index}: ORCID iD differs from the reviewed person")
+        if entry.get("type") != wanted.get("type"):
+            errors.append(f".zenodo.json contributors/{index}: type must be {wanted.get('type')}")
+        if "affiliation" in entry and "affiliations" in entry:
+            errors.append(
+                f".zenodo.json contributors/{index}: use one affiliation form; the scalar overrides structured IDs"
+            )
+        elif "affiliations" in entry:
+            if entry["affiliations"] != wanted.get("affiliations"):
+                errors.append(
+                    f".zenodo.json contributors/{index}: affiliations must match the reviewed ROR IDs and English names"
+                )
+        elif entry.get("affiliation") != wanted.get("affiliation"):
+            errors.append(f".zenodo.json contributors/{index}: affiliation must match the reviewed English name")
+    for index, entry in entries:
+        name = normalized(entry.get("name", ""))
+        errors.append(f".zenodo.json contributors/{index}: '{name}' is not in content/guide.toml contributors")
     return errors
 
 
@@ -277,6 +334,7 @@ def check(root: Path) -> list[str]:
         guide = tomllib.loads((root / "content/guide.toml").read_text(encoding="utf-8"))
         errors.extend(release_versions.metadata(root)[2])
         errors.extend(credits(cff, zenodo, guide))
+        errors.extend(contributor_credits(zenodo, guide))
         for key in ("title", "keywords"):
             if zenodo.get(key) != cff.get(key):
                 errors.append(f".zenodo.json {key} differs from CITATION.cff")

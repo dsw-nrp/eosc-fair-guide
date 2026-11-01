@@ -1858,3 +1858,14 @@ instruments = ["kilo-code", "claude-opus-5-5"]
 objects = ["A.I3.R3", "A.I3.R5", "A.R1.2.N3", "CDIF.REC6", "RDMKIT.collect.02", "DDRAPP.01", "LAW-328-2025.83.5", "POLICY-MANUAL.05", "COPYRIGHT-LICENCES.04", "A.A1.2.R2", "NRP.M1", "NRP.M3", "A.R1.R3", "A.A2.R2", "RDMKIT.publication.02", "RDMKIT.publication.03", "LAW-527-1990.5"]
 results = ["metadata.05", "licence.31", "publication.05", "RDMKIT.publication.02", "RDMKIT.publication.03", "LAW-527-1990.5", "law-527-1990"]
 endTime = 2026-10-31T02:41:21+01:00
+
+[[action]]
+id = "2026-11-01-content-contributors"
+type = "update"
+name = "Credit content contributors on the about page and in the archive record"
+description = "Added a content-contributors row to the about page's roles table, painted from the Guide's reviewed contributors with their ORCID iDs, and made release preparation write that same reviewed list into the Zenodo record as DataCurator contributors. The citation checks reconcile the archive record with the Guide, and CITATION.cff stays the software-authorship record, whose schema has no contributor field."
+agent = "david-novak"
+instruments = ["kilo-code", "einfra-deepseek-4-1-ft"]
+objects = []
+results = ["page:about"]
+endTime = 2026-11-01T12:57:49+01:00

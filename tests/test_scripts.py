@@ -1039,7 +1039,15 @@ class ContentCheckTests(FixtureCase):
         self.edit(
             "sources.toml", 'title = "Test report"', 'title = "Test report"\nauthors = ["tester", "Other Author"]'
         )
-        self.edit("guide.toml", 'editors = ["tester"]', 'editors = ["tester"]\nisBasedOn = ["report"]')
+        self.append(
+            "guide.toml",
+            '\n[[person]]\nid = "helper"\nname = "Helper Person"\norcid = "https://orcid.org/0000-0002-0000-0000"\n',
+        )
+        self.edit(
+            "guide.toml",
+            'editors = ["tester"]',
+            'editors = ["tester"]\ncontributors = ["tester", "helper"]\nisBasedOn = ["report"]',
+        )
         self.assertEqual(self.errors(), [])
         content = build_crate.load_content(self.root / "content")
         graph = {entity["@id"]: entity for entity in build_crate.build_crate(content)["@graph"]}
@@ -1050,7 +1058,18 @@ class ContentCheckTests(FixtureCase):
         self.assertEqual(report["author"], {"@id": "#person-tester"})
         self.assertEqual(report["creditText"], "Test Person; Other Author")
         credits = build_crate.page_config(content)["config"]["credits"]
-        self.assertEqual([credit["role"] for credit in credits], ["analysis", "editor", "tools"])
+        self.assertEqual([credit["role"] for credit in credits], ["analysis", "editor", "contributors", "tools"])
+        contributors = next(credit for credit in credits if credit["role"] == "contributors")
+        self.assertEqual(
+            contributors["people"],
+            [
+                {"name": "Test Person", "url": None},
+                {"name": "Helper Person", "url": "https://orcid.org/0000-0002-0000-0000"},
+            ],
+        )
+        self.edit("guide.toml", 'contributors = ["tester", "helper"]', "contributors = []")
+        without = build_crate.page_config(build_crate.load_content(self.root / "content"))["config"]["credits"]
+        self.assertEqual([credit["role"] for credit in without], ["analysis", "editor", "tools"])
         self.edit("guide.toml", 'publisher = "org"', 'publisher = "org"\nfunder = "org"')
         funding = build_crate.page_config(build_crate.load_content(self.root / "content"))["config"]["credits"][-1]
         self.assertEqual(funding["role"], "funding")

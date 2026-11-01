@@ -887,6 +887,7 @@ who = { cs = "Kdo", en = "Who" }
 analysis = { cs = "Autoři obsahového základu: {work}", en = "Authors of the content basis: {work}" }
 editor = { cs = "Sestavení a vývoj Průvodce (editor)", en = "Compilation and development of the Guide (editor)" }
 review = { cs = "Redakční kontrola", en = "Editorial review" }
+contributors = { cs = "Spolupráce na obsahu", en = "Content contributors" }
 tools = { cs = "Nástroje použité při přípravě, včetně AI", en = "Tools used in preparation, AI included" }
 funding = { cs = "Financování", en = "Funding" }
 
