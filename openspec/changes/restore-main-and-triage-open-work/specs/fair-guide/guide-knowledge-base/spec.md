@@ -11,7 +11,10 @@ relays, summarises or links another published work SHALL be cited only for what 
 SHALL carry the licence its source records, recorded as the one canonical address of a known licence or mark: a
 Creative Commons licence or public-domain tool, or a licence on the reviewed lists of GNU paths, OSI pages and SPDX
 entries that the content check keeps; a licence on none of them SHALL be added to its list through review before a
-source records it. A passage quoted
+source records it. A Creative Commons address SHALL name a version Creative Commons published, with a port only
+before 4.0, and BY-NC-ND 1.0 as `by-nd-nc/1.0/`; a licence OSI publishes SHALL be recorded at OSI by its lowercase
+slug, and an SPDX entry only for a licence OSI does not publish. The check's message SHALL state these forms. A
+passage quoted
 from a source that records no licence SHALL stay within the right of quotation: at most 200 words per clause,
 attributed by its source and locator, with no licence claimed for it. A source outside copyright SHALL record the
 Public Domain Mark, and its passages are not bounded. Unpublished working material SHALL NOT supply assessment
@@ -65,3 +68,11 @@ requirements.
 - **WHEN** the content checks run
 - **THEN** the check fails, and its message names the lists and says that the licence is added to its list through
   review
+
+#### Scenario: A source records an unpublished version, a later port or a second address
+
+- **GIVEN** a source whose `license` names a Creative Commons version that was never published (`by/9.9/`), a port of
+  4.0 (`by/4.0/cz/`), BY-NC-ND 1.0 as `by-nc-nd/1.0/`, or the SPDX entry of a licence OSI publishes
+- **WHEN** the content checks run
+- **THEN** the check fails, and its message states the published versions, that a port is accepted only before 4.0,
+  that BY-NC-ND 1.0 is `by-nd-nc/1.0/`, and that a licence OSI publishes is recorded at OSI by its lowercase slug

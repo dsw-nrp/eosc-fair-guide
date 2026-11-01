@@ -461,17 +461,18 @@ balance a review can apply without overstating it (29 October 2026).
   known licence or mark, so free text, a home page, another page on a licensing site, an unreviewed licence or text
   after an address cannot lift the bound unseen. Known means a Creative Commons licence or public-domain tool, or a
   licence on one of three short lists in the check, reviewed for the Guide's sources: GNU's paths, the licences with
-  a page at OSI, and the SPDX entries, which add the Open Data Commons licences OSI does not list. A licence on none
-  of them is added to its list through review. Canonical means one address per licence at each publisher: a Creative
+  a page at OSI, and the SPDX entries of the Open Data Commons licences, which OSI does not publish. A licence on none
+  of them is added to its list through review. Canonical means one address per licence: a Creative
   Commons licence's address with a version Creative Commons published, and its port where it has one, ending in a
   slash (not its deed or legal-code page) and never its SPDX entry; the `.html` page GNU serves for that version, under
-  `old-licenses/` for a superseded one, whose root address redirects there; the OSI page, by the lowercase slug OSI
-  names as canonical, or the SPDX entry of any other licence. A port is accepted only on a version before 4.0, which
+  `old-licenses/` for a superseded one, whose root address redirects there; the OSI page of a licence OSI publishes,
+  by the lowercase slug OSI names as canonical, and never its SPDX entry; the SPDX entry of an Open Data Commons
+  licence. A port is accepted only on a version before 4.0, which
   is international; any lowercase port is accepted there, as the check does not keep Creative Commons' list of
   ports. BY-NC-ND 1.0 is recorded as `by-nd-nc/1.0/`, the name it was published under and to which
   `by-nc-nd/1.0/` redirects. The crate
-  records the value as the licence's identifier; the check's message names the lists and says how a licence joins
-  them. The third review of PR F found that the rule's surfaces said only "the address", so they now say canonical;
+  records the value as the licence's identifier; the check's message names the lists, states these forms and says
+  how a licence joins them. The third review of PR F found that the rule's surfaces said only "the address", so they now say canonical;
   its fourth found that the pattern still accepted any page shaped like a licence, a versionless Creative Commons
   address (which two records used; both now record the CC BY 4.0 their sources state) and a case variant of SPDX's
   `.html`, and refused longer Creative Commons ports such as `igo`. Its fifth found that the requirement, rule,
@@ -481,7 +482,12 @@ balance a review can apply without overstating it (29 October 2026).
   identifiers, which OSI serves but does not name as canonical, and that any numeric Creative Commons version and any
   port passed, so a missing version (`by/9.9/`) or a port of 4.0 that lands on the deed lifted the bound; OSI pages
   are now named by their slugs, versions are the published ones, and the content rule names the three lists as the
-  content model does; at the maintainer's request BY-NC-ND 1.0 also keeps its published name (31 October 2026).
+  content model does; at the maintainer's request BY-NC-ND 1.0 also keeps its published name (31 October 2026). Its
+  seventh found that the version, port and BY-NC-ND rules were enforced but stated nowhere a contributor reads; the
+  rule, the content model, the requirement with a scenario of its own and the message now state them, the message
+  built from the check's lists. The same review observed that a licence OSI publishes passed at both its OSI page and
+  its SPDX entry, so one licence had two identifiers; the maintainer chose one address, so such a licence is recorded
+  at OSI only and the SPDX list keeps the Open Data Commons licences (1 November 2026).
 - **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
   resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
   version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's

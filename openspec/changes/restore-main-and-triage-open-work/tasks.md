@@ -293,6 +293,12 @@ alone do not complete them.
       by extending the official-works action. Verify that the boundary matrix fails against the former pattern and
       passes now, and that `python scripts/check_all.py` passes, then extend PR F after the maintainer approves the
       commit message.
+- [ ] 8.12 Address the seventh review of PR F (design D10): state the published-version, port and BY-NC-ND 1.0 rules
+      and OSI's lowercase slug in the native rule with its generated copies, the content model, the
+      `guide-knowledge-base` delta with a scenario of its own, and the check's message, built from the check's lists;
+      at the maintainer's decision, record a licence OSI publishes at OSI only, so the SPDX list keeps the Open Data
+      Commons licences. Verify that the licence test fails against the former check and passes now, and that
+      `python scripts/check_all.py` passes, then extend PR F after the maintainer approves the commit message.
 
 ## 9. Direct push to `main` (design D11, recorded in PR F)
 

@@ -697,6 +697,9 @@ class ContentCheckTests(FixtureCase):
             "https://spdx.org/licenses/MIT.HTML",
             # A Creative Commons licence is recorded at Creative Commons, not under its SPDX identifier.
             "https://spdx.org/licenses/CC-BY-4.0",
+            # A licence OSI publishes is recorded at OSI only, so it keeps one address.
+            "https://spdx.org/licenses/MIT",
+            "https://spdx.org/licenses/Apache-2.0",
             # A licence the Guide has not reviewed is added to the list first.
             "https://spdx.org/licenses/ISC",
         )
@@ -704,6 +707,19 @@ class ContentCheckTests(FixtureCase):
             self.edit("resources.toml", f'license = "{licence}"', f'license = "{value}"')
             self.assertError("license is the canonical HTTPS address of a known licence or mark")
             self.edit("resources.toml", f'license = "{value}"', f'license = "{licence}"')
+        # A refused value learns the accepted form of its licence from the message, not only from the check's code.
+        unpublished = 'license = "https://creativecommons.org/licenses/by/9.9/"'
+        self.edit("resources.toml", f'license = "{licence}"', unpublished)
+        for rule in (
+            "names a version Creative Commons published (1.0, 2.0, 2.5, 3.0, 4.0; 2.1 only with a port)",
+            "a port only on a version before 4.0",
+            "BY-NC-ND 1.0 as by-nd-nc/1.0/",
+            "a licence OSI publishes is recorded at OSI by its lowercase slug",
+            "an SPDX entry only for a licence OSI does not publish",
+            "is added to its list through review",
+        ):
+            self.assertError(rule)
+        self.edit("resources.toml", unpublished, f'license = "{licence}"')
         accepted = (
             "https://creativecommons.org/licenses/by/3.0/cz/",
             "https://creativecommons.org/licenses/by/3.0/igo/",
@@ -721,8 +737,8 @@ class ContentCheckTests(FixtureCase):
             "https://www.gnu.org/licenses/fdl-1.3.html",
             "https://opensource.org/license/mit",
             "https://opensource.org/license/apache-2-0",
-            "https://spdx.org/licenses/Apache-2.0",
             "https://spdx.org/licenses/ODbL-1.0",
+            "https://spdx.org/licenses/PDDL-1.0",
         )
         for value in accepted:
             self.edit("resources.toml", f'license = "{licence}"', f'license = "{value}"')

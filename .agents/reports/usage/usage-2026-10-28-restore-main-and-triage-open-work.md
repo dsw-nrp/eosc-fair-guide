@@ -146,7 +146,7 @@
 
 ## Kilo session (restore `main` after the direct push)
 
-- **When:** 2026-10-30 – 2026-10-31
+- **When:** 2026-10-30 – 2026-11-01
 - **Agent / runtime:** Kilo (VS Code extension)
 - **Model / backend:** anthropic/claude-opus-5-5
 - **Subagents used:** none
@@ -209,7 +209,12 @@
   - Merged `main` with B4 into PR F and addressed its sixth review (task 8.11): OSI pages are named by OSI's
     canonical lowercase slugs, SPDX identifiers stay for SPDX entries, Creative Commons versions are the published
     ones with a port only before 4.0 and BY-NC-ND 1.0 under its published name `by-nd-nc`, D10 counts B3's seventh
-    bounded quote, and the native rule names the three lists. The Patent Act records the Public Domain Mark, as the other laws do, extending the official-works action.
+    bounded quote, and the native rule names the three lists. The Patent Act records the Public Domain Mark, as the
+    other laws do, extending the official-works action. Closed draft #42 with a link to #161.
+  - Addressed the seventh review of PR F (task 8.12): the version, port, BY-NC-ND 1.0 and OSI-slug forms are stated
+    in the native rule with its copies, the content model, the requirement with a new scenario, and the check's
+    message, which is built from the check's lists. At the maintainer's decision on the review's observation, a
+    licence OSI publishes is recorded at OSI only, and the SPDX list keeps the Open Data Commons licences.
 - **Impacted:** `main` on GitHub; issues #26–#31, #33, #37, #38, #43, #80, #136, #140, #150, #152–#160; pull
   requests #41, #42, #148, #149, #151 and #161; the issue report in the KNAV catalogue; the `Main branch protection`
   ruleset (applied by the maintainer); on B3's and B4's branches the station files, `content/ledger.toml`,
@@ -238,6 +243,8 @@
     `publication.05`.
   - For the sixth review of PR F, the maintainer asked to fix BY-NC-ND 1.0's published name as well, which the agent
     had proposed to leave as a residual.
+  - On the seventh review's observation that an OSI licence passed at two addresses, the maintainer chose one
+    address, at OSI, over rewording the rule to allow both.
 - **Verification:**
   - `git ls-remote` reports `main` at `bed3284`, and only B3's branch contains `2ba195d`; **Deploy the verified site**
     run 40982282070 passed its full checks and **Publish the verified site** run 40982793541 succeeded for
@@ -275,9 +282,13 @@
     canonical addresses, Creative Commons answered 404 for `by/9.9/`, `by/3.0/xyz/` and `by-nd-nc/2.0/` and 403 for
     an unported `by/2.1/`, redirected `by/4.0/xyz/` and `by/4.0/cz/` to the 4.0 deed, and redirected
     `by-nc-nd/1.0/` and its ports to `by-nd-nc/1.0/`; with B4 merged and the Patent Act
-    marked, seven quotes remain bounded, the longest still `UKDS-DATA-LEVEL.01` at 145.
-- **Close-out:** on 31 October, 22 of 65 tasks are ticked; PR D records the ticks of the work done since, including
+    marked, seven quotes remain bounded, the longest still `UKDS-DATA-LEVEL.01` at 145; PR F's `checks` passed at
+    `4ef2c1b`;
+  - the seventh review's licence test fails against the former check, which accepted `spdx.org/licenses/MIT` and
+    whose message stated no version or port rule, and passes now; no recorded licence uses an SPDX entry of an OSI
+    licence, and `python scripts/check_content.py` reports no error.
+- **Close-out:** on 1 November, 22 of 66 tasks are ticked; PR D records the ticks of the work done since, including
   task groups 5, 6 and 9, B3 (3.5–3.6) and B4 (3.7–3.8). PR E (#149) merged as `45bf1eb`, B3 (#151) as `93dd3f1`
-  and B4 (#161) as `1cdbd1d`. Open: PR F's review and merge (8.7), closing draft #42, and the integration check after
+  and B4 (#161) as `1cdbd1d`; draft #42 is closed. Open: PR F's review and merge (8.7) and the integration check after
   the next watch run (group 10). For this round, `npm run openspec:validate`, `python scripts/check_usage.py` and
   `python scripts/check_all.py`: see the verification of its commit.

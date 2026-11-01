@@ -400,8 +400,8 @@ GNU_LICENCES = (
     "old-licenses/lgpl-2.1",
     "old-licenses/fdl-1.2",
 )
-# Licences with a page at OSI, by the lowercase slug OSI names as the page's canonical address; OSI also serves the
-# page under the SPDX identifier, which is not canonical.
+# Licences with a page at OSI, by the lowercase slug OSI names as the page's canonical address, and recorded only
+# there; OSI also serves the page under the SPDX identifier, which is not canonical.
 OSI_LICENCES = (
     "apache-2-0",
     "bsd-2-clause",
@@ -410,15 +410,9 @@ OSI_LICENCES = (
     "mit",
     "mpl-2-0",
 )
-# Licences recorded by their SPDX entry, by SPDX identifier: the licences OSI lists above, and the Open Data Commons
-# licences, which OSI does not list.
+# Licences recorded by their SPDX entry, by SPDX identifier: the Open Data Commons licences, which OSI does not
+# publish. A licence on the OSI list is not recorded here, so it keeps one address.
 SPDX_LICENCES = (
-    "Apache-2.0",
-    "BSD-2-Clause",
-    "BSD-3-Clause",
-    "EUPL-1.2",
-    "MIT",
-    "MPL-2.0",
     "ODbL-1.0",
     "ODC-By-1.0",
     "PDDL-1.0",
@@ -433,8 +427,8 @@ def _any_of(names: tuple[str, ...]) -> str:
 # publisher's home page, another page on its site or text after the address names no licence, and the crate records
 # the value as the licence's identifier, so one licence has one address. Creative Commons: the licence with a published
 # version, and its port where it has one, ending in a slash, not its deed or legal code; GNU: the `.html` page of a
-# listed path on www.gnu.org; any other licence: its `license/<slug>` page at OSI or its SPDX list entry without
-# `.html`.
+# listed path on www.gnu.org; a licence OSI publishes: its `license/<slug>` page at OSI; an Open Data Commons licence:
+# its SPDX list entry without `.html`.
 LICENCE_ADDRESS = re.compile(
     "https://(?:"
     rf"creativecommons\.org/licenses/"
@@ -445,6 +439,19 @@ LICENCE_ADDRESS = re.compile(
     rf"|opensource\.org/license/(?:{_any_of(OSI_LICENCES)})"
     rf"|spdx\.org/licenses/(?:{_any_of(SPDX_LICENCES)})"
     ")"
+)
+# What a refused value is told, built from the lists above so that a source learns the accepted form of its licence.
+_CC_PORTED_ONLY = ", ".join(version for version in CC_PORTED_VERSIONS if version not in CC_VERSIONS)
+_CC_UNPORTED_FROM = next(version for version in CC_VERSIONS if version not in CC_PORTED_VERSIONS)
+LICENCE_MESSAGE = (
+    "license is the canonical HTTPS address of a known licence or mark: a Creative Commons licence or "
+    "public-domain tool, or a licence on the reviewed lists in scripts/check_content.py (GNU_LICENCES, "
+    "OSI_LICENCES, SPDX_LICENCES), such as https://creativecommons.org/licenses/by/4.0/, "
+    "https://www.gnu.org/licenses/gpl-3.0.html or https://opensource.org/license/mit. A Creative Commons address "
+    f"names a version Creative Commons published ({', '.join(CC_VERSIONS)}; {_CC_PORTED_ONLY} only with a port), "
+    f"a port only on a version before {_CC_UNPORTED_FROM}, and BY-NC-ND 1.0 as {CC_FIRST_NAME[1]}/1.0/; a licence "
+    "OSI publishes is recorded at OSI by its lowercase slug, and an SPDX entry only for a licence OSI does not "
+    "publish. A licence on none of the lists is added to its list through review"
 )
 
 
@@ -486,13 +493,7 @@ def check_citation(report: Report, where: str, citation: dict[str, Any], own_url
         report.error(where, "a citation describes one work; merge a nested citation or cite its work as a source")
     licence = citation.get("license")
     if licence is not None and not (isinstance(licence, str) and LICENCE_ADDRESS.fullmatch(licence)):
-        report.error(
-            where,
-            "license is the canonical HTTPS address of a known licence or mark: a Creative Commons licence or "
-            "public-domain tool, or a licence on the reviewed lists in scripts/check_content.py (GNU_LICENCES, "
-            "OSI_LICENCES, SPDX_LICENCES), such as https://creativecommons.org/licenses/by/4.0/ or "
-            "https://www.gnu.org/licenses/gpl-3.0.html; a licence on none of them is added to its list through review",
-        )
+        report.error(where, LICENCE_MESSAGE)
     if not (own_url or citation.get("url") or citation.get("doi")):
         report.error(where, "a source needs a URL or a DOI")
     if not (citation.get("datePublished") or citation.get("dateAccessed")):

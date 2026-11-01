@@ -506,7 +506,10 @@ the short name shown where the source is named often, as next to each requiremen
 (the one canonical HTTPS address of a known licence or mark: a Creative Commons licence or public-domain tool, or a
 licence on the reviewed lists of GNU paths, OSI pages and SPDX entries in `scripts/check_content.py`, which a licence
 joins through review; for example `https://creativecommons.org/licenses/by/4.0/` rather than its deed or legal code,
-or `https://www.gnu.org/licenses/gpl-3.0.html`). A resource's `citation` takes
+or `https://www.gnu.org/licenses/gpl-3.0.html`. A Creative Commons address names a version Creative Commons
+published, with a port only before 4.0, and BY-NC-ND 1.0 as `by-nd-nc/1.0/`; a licence OSI publishes is recorded at
+OSI by its lowercase slug, such as `https://opensource.org/license/mit`, and an SPDX entry only for a licence OSI does
+not publish, so every licence has one address). A resource's `citation` takes
 the same fields and describes one work: it never nests another citation. An author is a person ID from `guide.toml`, which
 puts the person (with their ORCID iD) into the crate, or a plain name.
 
