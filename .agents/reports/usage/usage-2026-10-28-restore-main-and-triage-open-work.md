@@ -220,9 +220,21 @@
     Creative Commons licence joins through review.
   - Addressed the ninth review of PR F (task 8.14): the requirement and its unreviewed-licence scenario enumerate the
     families and tools, and this entry records each round's check results and the commit that carries it.
-- **Impacted:** `main` on GitHub; issues #26–#31, #33, #37, #38, #43, #80, #136, #140, #150, #152–#160; pull
-  requests #41, #42, #148, #149, #151 and #161; the issue report in the KNAV catalogue; the `Main branch protection`
-  ruleset (applied by the maintainer); on B3's and B4's branches the station files, `content/ledger.toml`,
+  - PR D (group 10): after the maintainer merged PR F (`b4a3018`) and ran the watch with the audit (run
+    41265242542), verified the rebuilt digest (10.1) and the end state (10.3). From today's probes, the maintainer
+    decided the remaining hosts and three new findings (10.2, 10.5, design D4):
+    - `data.eli-laser.eu` and both `asep.lib.cas.cz` links answer every network but GitHub's runners, so they are
+      limitations instead of the planned host task for asep;
+    - both Software Heritage links fail only on the runners' trust store, which lacks the root their chain ends at,
+      so they are limitations too;
+    - CDS and ImageNet answered no network, so the agent opened tasks #162 and #163 from the digest's prefilled tasks.
+  - Recorded in the triage ledger the maintainer's closures of #19, #21, #22 and #24 on 29 October, ticked every task
+    with evidence, and archived the change.
+- **Impacted:** `main` on GitHub; issues #19, #21, #22, #24, #26–#31, #33, #37, #38, #43, #80, #136, #140, #150,
+  #152–#160, #162 and #163; pull requests #41, #42, #148, #149, #151 and #161; the issue report in the KNAV catalogue;
+  the `Main branch protection` ruleset (applied by the maintainer); on PR D's branch `.github/health-watch.toml`, the
+  change's `design.md`, `tasks.md` and `triage.toml` and the archive that moves the change and syncs its specs into
+  `openspec/specs/`; on B3's and B4's branches the station files, `content/ledger.toml`,
   `content/sources.toml`, `content/provenance.toml` and `content/identifiers.toml`; on PR F's branch
   `.github/repository.toml`, `tests/fixtures/repository-audit.json`, `scripts/check_content.py`,
   `tests/test_scripts.py`, `.agents/guide/rules/fair-guide-content.md` with its generated copies and the guide region
@@ -250,6 +262,9 @@
     had proposed to leave as a residual.
   - On the seventh review's observation that an OSI licence passed at two addresses, the maintainer chose one
     address, at OSI, over rewording the rule to allow both.
+  - Task 10.2 planned a host task for `asep.lib.cas.cz`. The maintainer chose two limitations once the probes showed
+    that only the runners get its 404. The maintainer also asked to handle in PR D the three findings the plan had
+    not foreseen, instead of leaving them for ordinary triage.
 - **Verification:**
   - `git ls-remote` reports `main` at `bed3284`, and only B3's branch contains `2ba195d`; **Deploy the verified site**
     run 40982282070 passed its full checks and **Publish the verified site** run 40982793541 succeeded for
@@ -297,10 +312,32 @@
     openspec:validate` 6 of 6, and `python scripts/check_usage.py` and `python scripts/check_docs.py` passed; PR F's
     `checks` passed at `78f7250`, the commit that carries it;
   - the ninth review's fix changes only the requirement's wording and this record; `python scripts/check_all.py`
-    passed 36 of 36, `npm run openspec:validate` 6 of 6, and `python scripts/check_usage.py` passed.
-- **Close-out:** on 1 November, 22 of 68 tasks are ticked; PR D records the ticks of the work done since, including
-  task groups 5, 6 and 9, B3 (3.5–3.6) and B4 (3.7–3.8). PR E (#149) merged as `45bf1eb`, B3 (#151) as `93dd3f1`
-  and B4 (#161) as `1cdbd1d`; draft #42 is closed. Open: PR F's review and merge (8.7) and the integration check after
-  the next watch run (group 10). Each round's verification above records its local `npm run openspec:validate`,
+    passed 36 of 36, `npm run openspec:validate` 6 of 6, and `python scripts/check_usage.py` passed; PR F's `checks`
+    passed at `3c353ba`, and #148 merged as `b4a3018` with the same tree;
+  - **Deploy the verified site** passed its full checks for every merge commit of this change: `541bd46` (PR C),
+    `bed3284` (B2), `45bf1eb` (PR E), `93dd3f1` (B3), `1cdbd1d` (B4) and `b4a3018` (PR F);
+  - the digest rebuilt by run 41265242542 lists the seven limitations as known and neither the survey PDF nor the
+    RO-Crate address under Needs triage. It lists #153, #154, #160 and #155–#159 as tracked, and Project and
+    settings reports that every readable setting and Project item matches. Its audit could not read the
+    organisation's issue types and fields: their separate App token was refused, and the digest says an organisation
+    owner may still need to accept those read permissions for the App's installation;
+  - from a maintainer's network on 1 November, with the watch's User-Agent, `data.eli-laser.eu` answered 200 and
+    `asep.lib.cas.cz` redirected to an English page that answered 200. Software Heritage answered 200 from two
+    networks and serves a chain ending at Let's Encrypt's Root YR. The CDS and ImageNet hosts resolved but timed out
+    from two networks;
+  - `python scripts/watch_sources.py check-config` validates 12 limitations. Replaying the watch's `findings` on
+    run 41265242542's state with them moves all five new targets to known limitations, leaving CDS and ImageNet
+    (now #162 and #163) and the three tracked addresses;
+  - #162 and #163 pass the planned-issue readiness check and carry their finding keys;
+  - for the ledger, every one of its 37 entries matches its issue's state on GitHub, and every open entry is shaped
+    and Ready; a maintainer's `python scripts/audit_repository.py --section project` and `--section labels` report
+    no drift and no attention finding. Neither digest version (28 October, 1 November) reported overdue triage;
+  - PR D's local results before the archive: `python scripts/check_all.py` passed 36 of 36,
+    `npm run openspec:validate` 6 of 6, and `python scripts/check_usage.py` passed; the archive's own validation is
+    recorded with its commit.
+- **Close-out:** on 1 November, all 69 tasks are ticked, and the change is archived in PR D. PR E (#149) merged as
+  `45bf1eb`, B3 (#151) as `93dd3f1`, B4 (#161) as `1cdbd1d` and PR F (#148) as `b4a3018`; drafts #39–#42 are
+  closed. After PR D merges, the next digest is to confirm that only #162, #163 and the earlier tracked tasks remain
+  for these findings. Each round's verification above records its local `npm run openspec:validate`,
   `python scripts/check_usage.py` and `python scripts/check_all.py` results; the `checks` of the commit that carries
-  a round are recorded with the next round, and those of PR F's final head on the pull request.
+  a round are recorded with the next round, and those of PR D on the pull request.
