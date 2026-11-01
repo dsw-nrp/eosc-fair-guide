@@ -665,6 +665,8 @@ class ContentCheckTests(FixtureCase):
             "https://creativecommons.org/licenses/by/4.0/legalcode",
             "https://creativecommons.org/licenses/by/4.0/legalcode.en",
             "https://creativecommons.org/licenses/nonexistent/9.9/",
+            # A retired Creative Commons licence is outside the reviewed families until review adds it.
+            "https://creativecommons.org/licenses/sampling/1.0/",
             # Creative Commons published no version 9.9 and no unported 2.1, and 4.0 has no ports: such an address is
             # missing or lands on the deed.
             "https://creativecommons.org/licenses/by/9.9/",
@@ -711,12 +713,14 @@ class ContentCheckTests(FixtureCase):
         unpublished = 'license = "https://creativecommons.org/licenses/by/9.9/"'
         self.edit("resources.toml", f'license = "{licence}"', unpublished)
         for rule in (
+            "a Creative Commons licence of the families in CC_LICENCES (by, by-sa, by-nd, by-nc, by-nc-sa, by-nc-nd)",
+            "a public-domain tool in CC_PUBLIC_DOMAIN (zero, mark)",
+            "another Creative Commons licence included, is added to its list through review",
             "names a version Creative Commons published (1.0, 2.0, 2.5, 3.0, 4.0; 2.1 only with a port)",
             "a port only on a version before 4.0",
             "BY-NC-ND 1.0 as by-nd-nc/1.0/",
             "a licence OSI publishes is recorded at OSI by its lowercase slug",
             "an SPDX entry only for a licence OSI does not publish",
-            "is added to its list through review",
         ):
             self.assertError(rule)
         self.edit("resources.toml", unpublished, f'license = "{licence}"')

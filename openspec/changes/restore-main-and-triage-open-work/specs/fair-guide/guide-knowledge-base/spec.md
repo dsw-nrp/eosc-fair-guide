@@ -8,10 +8,10 @@ Every advice item and every check SHALL cite at least one entry of the clause le
 point to a published source: the FAIR analysis, the NRP conditions, the NRP documentation, or a published
 paper, dataset or web page. A ledger entry SHALL cite the published work that originally states it; a work that
 relays, summarises or links another published work SHALL be cited only for what it adds itself. A quoted passage
-SHALL carry the licence its source records, recorded as the one canonical address of a known licence or mark: a
-Creative Commons licence or public-domain tool, or a licence on the reviewed lists of GNU paths, OSI pages and SPDX
-entries that the content check keeps; a licence on none of them SHALL be added to its list through review before a
-source records it. A Creative Commons address SHALL name a version Creative Commons published, with a port only
+SHALL carry the licence its source records, recorded as the one canonical address of a known licence or mark, one on
+the reviewed lists that the content check keeps: the Creative Commons licence families and public-domain tools, GNU
+paths, OSI pages and SPDX entries; a licence on none of them, another Creative Commons licence included, SHALL be
+added to its list through review before a source records it. A Creative Commons address SHALL name a version Creative Commons published, with a port only
 before 4.0, and BY-NC-ND 1.0 as `by-nd-nc/1.0/`; a licence OSI publishes SHALL be recorded at OSI by its lowercase
 slug, and an SPDX entry only for a licence OSI does not publish. The check's message SHALL state these forms. A
 passage quoted
@@ -64,10 +64,11 @@ requirements.
 
 #### Scenario: A source records a licence the Guide has not reviewed
 
-- **GIVEN** a source whose `license` is the canonical SPDX address of a licence on none of the reviewed lists
+- **GIVEN** a source whose `license` is the canonical SPDX address of a licence on none of the reviewed lists, or a
+  Creative Commons licence outside the reviewed families, such as Sampling 1.0
 - **WHEN** the content checks run
-- **THEN** the check fails, and its message names the lists and says that the licence is added to its list through
-  review
+- **THEN** the check fails, and its message names the lists, with the Creative Commons families and public-domain
+  tools, and says that the licence is added to its list through review
 
 #### Scenario: A source records an unpublished version, a later port or a second address
 

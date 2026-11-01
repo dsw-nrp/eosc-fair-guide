@@ -377,9 +377,9 @@ QUOTE_LIMIT = 200
 QUOTE_WORD = re.compile(r"\w+(?:[-'’]\w+)*")
 QUOTE_MARKER = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+", re.MULTILINE)
 QUOTE_BREAK = re.compile(r"(?<=\w)-[ \t]*\n[ \t]*(?!(?:[-*+]|\d+[.)])[ \t])(?=\w)")
-# The licences a recorded address may name: the Creative Commons licences and public-domain tools, and the reviewed
-# lists below, each naming only addresses its publisher serves. A source that records a licence on none of them adds
-# it here through review.
+# The licences a recorded address may name: the reviewed lists below, each naming only addresses its publisher
+# serves. A source that records a licence on none of them, a retired Creative Commons licence such as Sampling 1.0
+# included, adds it here through review. The Creative Commons licence families:
 CC_LICENCES = ("by", "by-sa", "by-nd", "by-nc", "by-nc-sa", "by-nc-nd")
 # Creative Commons publishes these versions unported, and 2.1 only ported. Ports exist for versions before 4.0, which is
 # international and has none; a port is any lowercase token, not checked against Creative Commons' list of ports.
@@ -388,6 +388,7 @@ CC_PORTED_VERSIONS = ("1.0", "2.0", "2.1", "2.5", "3.0")
 # Version 1.0 of BY-NC-ND, unported and ported, is published as by-nd-nc, to which Creative Commons redirects
 # by-nc-nd/1.0/; no other version has that name.
 CC_FIRST_NAME = ("by-nc-nd", "by-nd-nc")
+# The Creative Commons public-domain tools: CC0 and the Public Domain Mark, each at version 1.0.
 CC_PUBLIC_DOMAIN = ("zero", "mark")
 # GNU serves the current version of a licence at its root and a superseded one under old-licenses/, to which the
 # root address of that version redirects; each path below is the one GNU serves.
@@ -444,14 +445,16 @@ LICENCE_ADDRESS = re.compile(
 _CC_PORTED_ONLY = ", ".join(version for version in CC_PORTED_VERSIONS if version not in CC_VERSIONS)
 _CC_UNPORTED_FROM = next(version for version in CC_VERSIONS if version not in CC_PORTED_VERSIONS)
 LICENCE_MESSAGE = (
-    "license is the canonical HTTPS address of a known licence or mark: a Creative Commons licence or "
-    "public-domain tool, or a licence on the reviewed lists in scripts/check_content.py (GNU_LICENCES, "
-    "OSI_LICENCES, SPDX_LICENCES), such as https://creativecommons.org/licenses/by/4.0/, "
+    "license is the canonical HTTPS address of a known licence or mark, a licence on the reviewed lists in "
+    "scripts/check_content.py: a Creative Commons licence of the families in CC_LICENCES "
+    f"({', '.join(CC_LICENCES)}) or a public-domain tool in CC_PUBLIC_DOMAIN ({', '.join(CC_PUBLIC_DOMAIN)}), or a "
+    "licence in GNU_LICENCES, OSI_LICENCES or SPDX_LICENCES, such as https://creativecommons.org/licenses/by/4.0/, "
     "https://www.gnu.org/licenses/gpl-3.0.html or https://opensource.org/license/mit. A Creative Commons address "
     f"names a version Creative Commons published ({', '.join(CC_VERSIONS)}; {_CC_PORTED_ONLY} only with a port), "
     f"a port only on a version before {_CC_UNPORTED_FROM}, and BY-NC-ND 1.0 as {CC_FIRST_NAME[1]}/1.0/; a licence "
     "OSI publishes is recorded at OSI by its lowercase slug, and an SPDX entry only for a licence OSI does not "
-    "publish. A licence on none of the lists is added to its list through review"
+    "publish. A licence on none of the lists, another Creative Commons licence included, is added to its list "
+    "through review"
 )
 
 

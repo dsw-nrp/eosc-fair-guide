@@ -459,10 +459,10 @@ balance a review can apply without overstating it (29 October 2026).
   also across a line break; a bulleted or numbered list marker not at all), fails a clause over the bound and one
   without a locator, so the rule binds without review. A recorded licence must be the whole canonical address of one
   known licence or mark, so free text, a home page, another page on a licensing site, an unreviewed licence or text
-  after an address cannot lift the bound unseen. Known means a Creative Commons licence or public-domain tool, or a
-  licence on one of three short lists in the check, reviewed for the Guide's sources: GNU's paths, the licences with
-  a page at OSI, and the SPDX entries of the Open Data Commons licences, which OSI does not publish. A licence on none
-  of them is added to its list through review. Canonical means one address per licence: a Creative
+  after an address cannot lift the bound unseen. Known means a licence on one of the check's short lists, reviewed for
+  the Guide's sources: the six Creative Commons families and its two public-domain tools, GNU's paths, the licences
+  with a page at OSI, and the SPDX entries of the Open Data Commons licences, which OSI does not publish. A licence on
+  none of them, a retired Creative Commons licence such as Sampling 1.0 included, is added to its list through review. Canonical means one address per licence: a Creative
   Commons licence's address with a version Creative Commons published, and its port where it has one, ending in a
   slash (not its deed or legal-code page) and never its SPDX entry; the `.html` page GNU serves for that version, under
   `old-licenses/` for a superseded one, whose root address redirects there; the OSI page of a licence OSI publishes,
@@ -487,7 +487,10 @@ balance a review can apply without overstating it (29 October 2026).
   rule, the content model, the requirement with a scenario of its own and the message now state them, the message
   built from the check's lists. The same review observed that a licence OSI publishes passed at both its OSI page and
   its SPDX entry, so one licence had two identifiers; the maintainer chose one address, so such a licence is recorded
-  at OSI only and the SPDX list keeps the Open Data Commons licences (1 November 2026).
+  at OSI only and the SPDX list keeps the Open Data Commons licences (1 November 2026). Its eighth found that every
+  surface admitted any Creative Commons licence while the check accepts six families and two tools; the rule, the
+  content model, the requirement and the message now name them as a reviewed list that another licence joins
+  through review (1 November 2026).
 - **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
   resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
   version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's

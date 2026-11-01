@@ -299,6 +299,11 @@ alone do not complete them.
       at the maintainer's decision, record a licence OSI publishes at OSI only, so the SPDX list keeps the Open Data
       Commons licences. Verify that the licence test fails against the former check and passes now, and that
       `python scripts/check_all.py` passes, then extend PR F after the maintainer approves the commit message.
+- [ ] 8.13 Address the eighth review of PR F (design D10): name the six Creative Commons families and the two
+      public-domain tools as a reviewed list in the native rule with its generated copies, the content model, the
+      `guide-knowledge-base` delta and the check's message, and say that another Creative Commons licence joins it
+      through review. Verify that the licence test fails against the former message and passes now, and that
+      `python scripts/check_all.py` passes, then extend PR F after the maintainer approves the commit message.
 
 ## 9. Direct push to `main` (design D11, recorded in PR F)
 

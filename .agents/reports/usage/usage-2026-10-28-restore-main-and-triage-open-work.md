@@ -215,6 +215,9 @@
     in the native rule with its copies, the content model, the requirement with a new scenario, and the check's
     message, which is built from the check's lists. At the maintainer's decision on the review's observation, a
     licence OSI publishes is recorded at OSI only, and the SPDX list keeps the Open Data Commons licences.
+  - Addressed the eighth review of PR F (task 8.13): the rule, the content model, the requirement and the check's
+    message name the six Creative Commons families and two public-domain tools as a reviewed list, which another
+    Creative Commons licence joins through review.
 - **Impacted:** `main` on GitHub; issues #26–#31, #33, #37, #38, #43, #80, #136, #140, #150, #152–#160; pull
   requests #41, #42, #148, #149, #151 and #161; the issue report in the KNAV catalogue; the `Main branch protection`
   ruleset (applied by the maintainer); on B3's and B4's branches the station files, `content/ledger.toml`,
@@ -286,8 +289,10 @@
     `4ef2c1b`;
   - the seventh review's licence test fails against the former check, which accepted `spdx.org/licenses/MIT` and
     whose message stated no version or port rule, and passes now; no recorded licence uses an SPDX entry of an OSI
-    licence, and `python scripts/check_content.py` reports no error.
-- **Close-out:** on 1 November, 22 of 66 tasks are ticked; PR D records the ticks of the work done since, including
+    licence, and `python scripts/check_content.py` reports no error; PR F's `checks` passed at `53c7398`;
+  - the eighth review's licence test fails against the former message, which named no Creative Commons family, and
+    passes now; Sampling 1.0 is refused by both.
+- **Close-out:** on 1 November, 22 of 67 tasks are ticked; PR D records the ticks of the work done since, including
   task groups 5, 6 and 9, B3 (3.5–3.6) and B4 (3.7–3.8). PR E (#149) merged as `45bf1eb`, B3 (#151) as `93dd3f1`
   and B4 (#161) as `1cdbd1d`; draft #42 is closed. Open: PR F's review and merge (8.7) and the integration check after
   the next watch run (group 10). For this round, `npm run openspec:validate`, `python scripts/check_usage.py` and

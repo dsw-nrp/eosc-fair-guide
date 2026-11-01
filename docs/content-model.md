@@ -503,9 +503,11 @@ summarises or links that work is cited only for what it adds itself. `[[source]]
 the short name shown where the source is named often, as next to each requirement it holds), `version`,
 `inLanguage`, `url`, `doi` (without the resolver), `publisher` (an organisation ID, or a language-neutral name),
 `authors`, `datePublished` or `dateAccessed`, `dateModified` (when the publisher records an update), `license`
-(the one canonical HTTPS address of a known licence or mark: a Creative Commons licence or public-domain tool, or a
-licence on the reviewed lists of GNU paths, OSI pages and SPDX entries in `scripts/check_content.py`, which a licence
-joins through review; for example `https://creativecommons.org/licenses/by/4.0/` rather than its deed or legal code,
+(the one canonical HTTPS address of a known licence or mark, one on the reviewed lists in `scripts/check_content.py`:
+the six Creative Commons families (BY, BY-SA, BY-ND, BY-NC, BY-NC-SA, BY-NC-ND) and its public-domain tools (CC0, the
+Public Domain Mark), GNU paths, OSI pages and SPDX entries; a licence on none of them, another Creative Commons licence
+included, joins its list through review; for example `https://creativecommons.org/licenses/by/4.0/` rather than its
+deed or legal code,
 or `https://www.gnu.org/licenses/gpl-3.0.html`. A Creative Commons address names a version Creative Commons
 published, with a port only before 4.0, and BY-NC-ND 1.0 as `by-nd-nc/1.0/`; a licence OSI publishes is recorded at
 OSI by its lowercase slug, such as `https://opensource.org/license/mit`, and an SPDX entry only for a licence OSI does

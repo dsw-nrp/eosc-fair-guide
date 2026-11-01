@@ -758,14 +758,16 @@ use HTTPS.
   cite it: its own title, version, DOI where it has one, wording and licence. Cite the relaying page only for what
   it adds itself. Word the advice from the original, which often carries detail a summary drops.
 - Quote what the clause needs. A passage carries the licence its source records and follows its terms; record a
-  licence as the one canonical address of a known licence: a Creative Commons licence or public-domain tool, or a
-  licence on the reviewed lists of GNU paths, OSI pages and SPDX entries in `scripts/check_content.py` (for example
+  licence as the one canonical address of a known licence, one on the reviewed lists in `scripts/check_content.py`:
+  the six Creative Commons families (BY, BY-SA, BY-ND, BY-NC, BY-NC-SA, BY-NC-ND) and its public-domain tools (CC0,
+  the Public Domain Mark), GNU paths, OSI pages and SPDX entries (for example
   `https://creativecommons.org/licenses/by/4.0/`, not its deed or legal code). A Creative Commons address names a
   version Creative Commons published, with a port only before 4.0, and BY-NC-ND 1.0 as `by-nd-nc/1.0/`; a licence
   OSI publishes is recorded at OSI by its lowercase slug (`https://opensource.org/license/mit`), and an SPDX entry
-  only for one it does not. A licence on none of the lists is added to its list through review first. From a source
-  that records no licence, quote under the right of quotation (Act No. 121/2000 Coll., § 31(1)(a)): at most 200
-  words per clause, attributed by its source and locator, with no licence claimed for it. A work outside copyright, such as a law or another official work (§ 3(a)) or a work in the
+  only for one it does not. A licence on none of the lists, another Creative Commons licence included, is added to
+  its list through review first. From a source that records no licence, quote under the right of quotation (Act
+  No. 121/2000 Coll., § 31(1)(a)): at most 200 words per clause, attributed by its source and locator, with no
+  licence claimed for it. A work outside copyright, such as a law or another official work (§ 3(a)) or a work in the
   public domain, records the Public Domain Mark and has no bound. Judge such a quote by its length and attribution,
   not by a licence its source does not offer.
 - The approved Layers-and-Seams manuscript is the sole exception: cite it as **in preparation** only for the
