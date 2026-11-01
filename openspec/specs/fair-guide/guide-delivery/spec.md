@@ -2470,3 +2470,57 @@ described as combining CI builds.
 
 - **WHEN** a maintainer evaluates queue tuning
 - **THEN** the evidence treats build and merge controls independently, existing values remain until a choice, and any hosted mutation requires its approved exact diff
+
+### Requirement: A link check judges a rejected HEAD request by its GET answer
+
+The health watch SHALL check a linked address with HEAD. It SHALL repeat the request with GET when HEAD is answered
+with HTTP 400, 403, 405 or 501, and SHALL record the outcome of the GET answer together with both methods. A HEAD
+answer of 404, 410 or 429, a success or a transport failure SHALL NOT be repeated with GET.
+
+#### Scenario: A server rejects HEAD with HTTP 400
+
+- **GIVEN** a linked address whose server answers HEAD with HTTP 400 and GET with HTTP 200
+- **WHEN** the watch checks it
+- **THEN** the link is recorded as answering, with the methods `HEAD then GET`
+- **AND** an earlier triage finding for that link recovers instead of continuing
+
+#### Scenario: Both methods are refused
+
+- **GIVEN** a linked address answering HEAD and GET with HTTP 403
+- **WHEN** the watch checks it
+- **THEN** the outcome is access denied and the evidence names `HEAD then GET 403`
+
+#### Scenario: A throttled HEAD request is not repeated
+
+- **GIVEN** a linked address answering HEAD with HTTP 429
+- **WHEN** the watch checks it
+- **THEN** no GET request is sent and the outcome is rate limited
+
+#### Scenario: A missing address is not repeated
+
+- **GIVEN** a linked address answering HEAD with HTTP 404
+- **WHEN** the watch checks it
+- **THEN** no GET request is sent and the outcome is broken
+
+### Requirement: The published digest is audited as monitoring output
+
+The digest that monitoring publishes SHALL be exempt from the Project audit's triage-age and Ready checks only. A
+value the digest takes from an issue body SHALL appear as inert text.
+
+#### Scenario: The published digest is not triaged
+
+- **WHEN** the digest that monitoring published has stayed in Needs triage for more than 14 days, or is in Ready
+  without the planned-issue shape
+- **THEN** the audit reports neither
+- **AND** it still reports the digest when it is missing from the Project or has no Issue Type
+
+#### Scenario: A person's issue resembles the digest
+
+- **WHEN** an issue opened by a person carries the digest's label or begins with its marker, and has stayed in Needs
+  triage for more than 14 days
+- **THEN** the audit reports its overdue triage
+
+#### Scenario: A Type row carries Markdown
+
+- **WHEN** an issue's Type row holds a backtick, a link and a mention, and differs from its Issue Type
+- **THEN** the digest names the difference with that value as inert text: no link, formatting or notification

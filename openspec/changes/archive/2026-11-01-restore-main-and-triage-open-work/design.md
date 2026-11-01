@@ -506,7 +506,11 @@ balance a review can apply without overstating it (29 October 2026).
   surface admitted any Creative Commons licence while the check accepts six families and two tools; the rule, the
   content model, the requirement and the message now name them as a reviewed list that another licence joins
   through review (1 November 2026). Its ninth found that the requirement named the families and tools only as
-  categories; it and its scenario now enumerate them as the rule and the content model do.
+  categories; it and its scenario now enumerate them as the rule and the content model do. Before the archive, strict
+  validation of the synced specs refused the source requirement at 1,608 characters and the Project audit requirement
+  at 536, where the limit is 500. At the maintainer's decision, the deltas split them without changing their meaning:
+  the source requirement keeps the original-work rule, three new ones hold the licence lists, the canonical address
+  and the quotation bound, and the digest's exemption moves into a requirement of its own.
 - **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
   resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
   version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's

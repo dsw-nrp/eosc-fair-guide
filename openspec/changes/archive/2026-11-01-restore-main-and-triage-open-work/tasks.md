@@ -368,7 +368,9 @@ alone do not complete them.
 ## Workflow follow-up
 
 - Archive the change in PR D with `/openspec-archive-change restore-main-and-triage-open-work` after explicit approval.
-  The archive adds the `guide-delivery` link-check requirement and the modified Project audit requirement, the two
-  `guide-experience` catalogue requirements and the modified `guide-knowledge-base` source requirement to
-  `openspec/specs/`.
+  The archive adds to `openspec/specs/` the `guide-delivery` link-check and published-digest requirements, the two
+  `guide-experience` catalogue requirements, and the modified `guide-knowledge-base` source requirement with its three
+  licence and quotation requirements. At the maintainer's decision on 1 November, the two requirements that exceeded
+  the 500-character description limit were split in the deltas before the archive, moving their sentences and
+  scenarios without changing their meaning (design D10).
 - Merge PR D by the route in design D2, then verify the archived spec with `npm run openspec:validate`.

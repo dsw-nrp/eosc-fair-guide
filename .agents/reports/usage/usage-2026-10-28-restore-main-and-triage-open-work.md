@@ -229,7 +229,9 @@
       so they are limitations too;
     - CDS and ImageNet answered no network, so the agent opened tasks #162 and #163 from the digest's prefilled tasks.
   - Recorded in the triage ledger the maintainer's closures of #19, #21, #22 and #24 on 29 October, ticked every task
-    with evidence, and archived the change.
+    with evidence, and archived the change. Strict validation of the first sync refused two of this change's
+    requirements as longer than 500 characters, so the archive was undone. The deltas split them without changing
+    their meaning, and the archive was redone.
 - **Impacted:** `main` on GitHub; issues #19, #21, #22, #24, #26–#31, #33, #37, #38, #43, #80, #136, #140, #150,
   #152–#160, #162 and #163; pull requests #41, #42, #148, #149, #151 and #161; the issue report in the KNAV catalogue;
   the `Main branch protection` ruleset (applied by the maintainer); on PR D's branch `.github/health-watch.toml`, the
@@ -265,6 +267,8 @@
   - Task 10.2 planned a host task for `asep.lib.cas.cz`. The maintainer chose two limitations once the probes showed
     that only the runners get its 404. The maintainer also asked to handle in PR D the three findings the plan had
     not foreseen, instead of leaving them for ordinary triage.
+  - When strict validation refused the two long requirements after the sync, the maintainer chose to split them in
+    the deltas and archive in PR D rather than defer the archive.
 - **Verification:**
   - `git ls-remote` reports `main` at `bed3284`, and only B3's branch contains `2ba195d`; **Deploy the verified site**
     run 40982282070 passed its full checks and **Publish the verified site** run 40982793541 succeeded for
@@ -333,8 +337,10 @@
     and Ready; a maintainer's `python scripts/audit_repository.py --section project` and `--section labels` report
     no drift and no attention finding. Neither digest version (28 October, 1 November) reported overdue triage;
   - PR D's local results before the archive: `python scripts/check_all.py` passed 36 of 36,
-    `npm run openspec:validate` 6 of 6, and `python scripts/check_usage.py` passed; the archive's own validation is
-    recorded with its commit.
+    `npm run openspec:validate` 6 of 6, and `python scripts/check_usage.py` passed. The first sync failed strict
+    validation on two requirements (536 and 1,608 characters). With the split deltas, every delta block appears once
+    and verbatim in its main spec, and no delta header remains. After the archive, `npm run openspec:validate` passed
+    5 of 5 specs and `python scripts/check_all.py` 36 of 36.
 - **Close-out:** on 1 November, all 69 tasks are ticked, and the change is archived in PR D. PR E (#149) merged as
   `45bf1eb`, B3 (#151) as `93dd3f1`, B4 (#161) as `1cdbd1d` and PR F (#148) as `b4a3018`; drafts #39–#42 are
   closed. After PR D merges, the next digest is to confirm that only #162, #163 and the earlier tracked tasks remain
