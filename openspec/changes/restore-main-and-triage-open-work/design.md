@@ -490,7 +490,8 @@ balance a review can apply without overstating it (29 October 2026).
   at OSI only and the SPDX list keeps the Open Data Commons licences (1 November 2026). Its eighth found that every
   surface admitted any Creative Commons licence while the check accepts six families and two tools; the rule, the
   content model, the requirement and the message now name them as a reviewed list that another licence joins
-  through review (1 November 2026).
+  through review (1 November 2026). Its ninth found that the requirement named the families and tools only as
+  categories; it and its scenario now enumerate them as the rule and the content model do.
 - **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
   resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
   version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's

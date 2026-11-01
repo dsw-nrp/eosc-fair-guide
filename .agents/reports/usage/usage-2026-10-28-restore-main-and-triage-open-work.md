@@ -218,6 +218,8 @@
   - Addressed the eighth review of PR F (task 8.13): the rule, the content model, the requirement and the check's
     message name the six Creative Commons families and two public-domain tools as a reviewed list, which another
     Creative Commons licence joins through review.
+  - Addressed the ninth review of PR F (task 8.14): the requirement and its unreviewed-licence scenario enumerate the
+    families and tools, and this entry records each round's check results and the commit that carries it.
 - **Impacted:** `main` on GitHub; issues #26–#31, #33, #37, #38, #43, #80, #136, #140, #150, #152–#160; pull
   requests #41, #42, #148, #149, #151 and #161; the issue report in the KNAV catalogue; the `Main branch protection`
   ruleset (applied by the maintainer); on B3's and B4's branches the station files, `content/ledger.toml`,
@@ -291,9 +293,14 @@
     whose message stated no version or port rule, and passes now; no recorded licence uses an SPDX entry of an OSI
     licence, and `python scripts/check_content.py` reports no error; PR F's `checks` passed at `53c7398`;
   - the eighth review's licence test fails against the former message, which named no Creative Commons family, and
-    passes now; Sampling 1.0 is refused by both.
-- **Close-out:** on 1 November, 22 of 67 tasks are ticked; PR D records the ticks of the work done since, including
+    passes now; Sampling 1.0 is refused by both; `python scripts/check_all.py` passed 36 of 36, `npm run
+    openspec:validate` 6 of 6, and `python scripts/check_usage.py` and `python scripts/check_docs.py` passed; PR F's
+    `checks` passed at `78f7250`, the commit that carries it;
+  - the ninth review's fix changes only the requirement's wording and this record; `python scripts/check_all.py`
+    passed 36 of 36, `npm run openspec:validate` 6 of 6, and `python scripts/check_usage.py` passed.
+- **Close-out:** on 1 November, 22 of 68 tasks are ticked; PR D records the ticks of the work done since, including
   task groups 5, 6 and 9, B3 (3.5–3.6) and B4 (3.7–3.8). PR E (#149) merged as `45bf1eb`, B3 (#151) as `93dd3f1`
   and B4 (#161) as `1cdbd1d`; draft #42 is closed. Open: PR F's review and merge (8.7) and the integration check after
-  the next watch run (group 10). For this round, `npm run openspec:validate`, `python scripts/check_usage.py` and
-  `python scripts/check_all.py`: see the verification of its commit.
+  the next watch run (group 10). Each round's verification above records its local `npm run openspec:validate`,
+  `python scripts/check_usage.py` and `python scripts/check_all.py` results; the `checks` of the commit that carries
+  a round are recorded with the next round, and those of PR F's final head on the pull request.

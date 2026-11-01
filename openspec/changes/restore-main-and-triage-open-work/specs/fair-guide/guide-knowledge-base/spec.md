@@ -9,16 +9,16 @@ point to a published source: the FAIR analysis, the NRP conditions, the NRP docu
 paper, dataset or web page. A ledger entry SHALL cite the published work that originally states it; a work that
 relays, summarises or links another published work SHALL be cited only for what it adds itself. A quoted passage
 SHALL carry the licence its source records, recorded as the one canonical address of a known licence or mark, one on
-the reviewed lists that the content check keeps: the Creative Commons licence families and public-domain tools, GNU
-paths, OSI pages and SPDX entries; a licence on none of them, another Creative Commons licence included, SHALL be
-added to its list through review before a source records it. A Creative Commons address SHALL name a version Creative Commons published, with a port only
-before 4.0, and BY-NC-ND 1.0 as `by-nd-nc/1.0/`; a licence OSI publishes SHALL be recorded at OSI by its lowercase
-slug, and an SPDX entry only for a licence OSI does not publish. The check's message SHALL state these forms. A
-passage quoted
-from a source that records no licence SHALL stay within the right of quotation: at most 200 words per clause,
-attributed by its source and locator, with no licence claimed for it. A source outside copyright SHALL record the
-Public Domain Mark, and its passages are not bounded. Unpublished working material SHALL NOT supply assessment
-requirements.
+the reviewed lists that the content check keeps: the six Creative Commons families (BY, BY-SA, BY-ND, BY-NC,
+BY-NC-SA, BY-NC-ND) and its public-domain tools (CC0, the Public Domain Mark), GNU paths, OSI pages and SPDX entries;
+a licence on none of them, another Creative Commons licence included, SHALL be added to its list through review
+before a source records it. A Creative Commons address SHALL name a version Creative Commons published, with a port
+only before 4.0, and BY-NC-ND 1.0 as `by-nd-nc/1.0/`; a licence OSI publishes SHALL be recorded at OSI by its
+lowercase slug, and an SPDX entry only for a licence OSI does not publish. The check's message SHALL state these
+forms. A passage quoted from a source that records no licence SHALL stay within the right of quotation: at most 200
+words per clause, attributed by its source and locator, with no licence claimed for it. A source outside copyright
+SHALL record the Public Domain Mark, and its passages are not bounded. Unpublished working material SHALL NOT supply
+assessment requirements.
 
 #### Scenario: Advice without a source
 
@@ -67,8 +67,9 @@ requirements.
 - **GIVEN** a source whose `license` is the canonical SPDX address of a licence on none of the reviewed lists, or a
   Creative Commons licence outside the reviewed families, such as Sampling 1.0
 - **WHEN** the content checks run
-- **THEN** the check fails, and its message names the lists, with the Creative Commons families and public-domain
-  tools, and says that the licence is added to its list through review
+- **THEN** the check fails, and its message names the lists, with the six Creative Commons families (BY, BY-SA,
+  BY-ND, BY-NC, BY-NC-SA, BY-NC-ND) and the two public-domain tools (CC0, the Public Domain Mark), and says that the
+  licence is added to its list through review
 
 #### Scenario: A source records an unpublished version, a later port or a second address
 

@@ -304,6 +304,11 @@ alone do not complete them.
       `guide-knowledge-base` delta and the check's message, and say that another Creative Commons licence joins it
       through review. Verify that the licence test fails against the former message and passes now, and that
       `python scripts/check_all.py` passes, then extend PR F after the maintainer approves the commit message.
+- [ ] 8.14 Address the ninth review of PR F (design D10): enumerate the six Creative Commons families and two
+      public-domain tools in the `guide-knowledge-base` requirement and its unreviewed-licence scenario; record each
+      round's local check results and the `checks` of the commit that carries it in the usage entry. Verify that
+      `npm run openspec:validate`, `python scripts/check_usage.py` and `python scripts/check_all.py` pass, then
+      extend PR F after the maintainer approves the commit message.
 
 ## 9. Direct push to `main` (design D11, recorded in PR F)
 
