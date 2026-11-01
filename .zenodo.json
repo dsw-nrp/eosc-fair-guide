@@ -18,6 +18,19 @@
       ]
     }
   ],
+  "contributors": [
+    {
+      "name": "Karel Berka",
+      "orcid": "0000-0001-9472-2589",
+      "affiliations": [
+        {
+          "id": "04qxnmv42",
+          "name": "Palacký University Olomouc"
+        }
+      ],
+      "type": "DataCurator"
+    }
+  ],
   "version": "1.0.0-alpha.4",
   "publication_date": "2026-10-28",
   "access_right": "open",

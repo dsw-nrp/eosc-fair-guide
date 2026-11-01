@@ -1308,6 +1308,7 @@ actions = [
   "2026-10-30-formats-review",
   "2026-10-18-ip-errata-samples",
   "2026-10-31-ip-errata-review",
+  "2026-11-01-content-contributors",
 ]
 model = [
   "model:layers-seams",

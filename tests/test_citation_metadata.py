@@ -80,6 +80,47 @@ class CitationMetadataTests(unittest.TestCase):
         self.write(data)
         self.assertIn("overrides structured", "\n".join(citation.check(self.root)))
 
+    def test_contributors_mirror_the_guides_reviewed_list(self):
+        contributor = {
+            "name": "Karel Berka",
+            "orcid": "0000-0001-9472-2589",
+            "affiliations": [{"id": "04qxnmv42", "name": "Palacký University Olomouc"}],
+            "type": "DataCurator",
+        }
+        self.assertEqual(self.zenodo.get("contributors"), [contributor])
+        self.assertEqual(citation.check(self.root), [])
+        self.assertNotIn("contributors:", (self.root / "CITATION.cff").read_text(encoding="utf-8"))
+        for field, value, message in (
+            ("name", "K. Berka", "name differs from the reviewed person"),
+            ("orcid", "0000-0002-0000-0000", "ORCID iD differs"),
+            ("type", "Editor", "type must be DataCurator"),
+        ):
+            with self.subTest(field=field):
+                data = copy.deepcopy(self.zenodo)
+                data["contributors"][0][field] = value
+                self.write(data)
+                self.assertIn(message, "\n".join(citation.check(self.root)))
+        data = copy.deepcopy(self.zenodo)
+        data["contributors"][0]["affiliations"][0]["id"] = "0287jta43"
+        self.write(data)
+        self.assertIn("affiliations must match", "\n".join(citation.check(self.root)))
+        data = copy.deepcopy(self.zenodo)
+        data["contributors"][0]["affiliation"] = "Would override the IDs"
+        self.write(data)
+        self.assertIn("overrides structured", "\n".join(citation.check(self.root)))
+        data = copy.deepcopy(self.zenodo)
+        data["contributors"] = []
+        self.write(data)
+        self.assertIn("missing contributor 'Karel Berka'", "\n".join(citation.check(self.root)))
+        data = copy.deepcopy(self.zenodo)
+        data["contributors"].append({"name": "Jane Doe", "type": "DataCurator"})
+        self.write(data)
+        self.assertIn("is not in content/guide.toml contributors", "\n".join(citation.check(self.root)))
+        data = copy.deepcopy(self.zenodo)
+        data["contributors"].append(copy.deepcopy(contributor))
+        self.write(data)
+        self.assertIn("duplicate contributor 'Karel Berka'", "\n".join(citation.check(self.root)))
+
     def test_reference_link_and_curated_supported_fields_are_retained(self):
         self.write({**self.zenodo, "related_identifiers": []})
         self.assertIn("reference DOI", "\n".join(citation.check(self.root)))

@@ -248,11 +248,90 @@ class ReleaseVersions(unittest.TestCase):
         self.assertEqual(prepared_zenodo["publication_date"], "2026-10-14")
         for field in set(original_zenodo) - {"version", "publication_date"}:
             self.assertEqual(prepared_zenodo[field], original_zenodo[field], field)
+        self.assertEqual(
+            prepared_zenodo["contributors"],
+            [
+                {
+                    "name": "Karel Berka",
+                    "orcid": "0000-0001-9472-2589",
+                    "affiliations": [{"id": "04qxnmv42", "name": "Palacký University Olomouc"}],
+                    "type": "DataCurator",
+                }
+            ],
+        )
         actions = tomllib.loads((self.root / "content/provenance.toml").read_text(encoding="utf-8"))["action"]
         self.assertEqual(actions[-1]["agent"], "david-novak")
         self.assertEqual(actions[-1]["endTime"], stamp)
         register = tomllib.loads((self.root / "content/identifiers.toml").read_text(encoding="utf-8"))
         self.assertEqual(register["issued"]["actions"][-1], "release-1.0.0-alpha.2")
+
+    @patch.object(release, "history", return_value=(None, {"a", "b"}))
+    def test_preparation_omits_contributors_when_the_guide_lists_none(self, _history) -> None:
+        guide = self.root / "content/guide.toml"
+        text = guide.read_text(encoding="utf-8")
+        self.assertIn('contributors = ["karel-berka"]', text)
+        guide.write_text(text.replace('contributors = ["karel-berka"]', "contributors = []"), encoding="utf-8")
+        release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", self.prs, "motyc")
+        zenodo = json.loads((self.root / ".zenodo.json").read_text(encoding="utf-8"))
+        self.assertNotIn("contributors", zenodo)
+
+    @patch.object(release, "history", return_value=(None, {"a", "b"}))
+    def test_preparation_writes_name_only_and_scalar_affiliation_contributors(self, _history) -> None:
+        guide = self.root / "content/guide.toml"
+        text = guide.read_text(encoding="utf-8")
+        text = text.replace('contributors = ["karel-berka"]', 'contributors = ["ilona-trtikova", "petra-bartkova"]')
+        anchor = 'id = "petra-bartkova"\nname = "Petra Bártková"\norcid = "https://orcid.org/0000-0001-6484-4710"'
+        self.assertIn(anchor, text)
+        guide.write_text(text.replace(anchor, anchor + '\naffiliation = ["nrp"]'), encoding="utf-8")
+        release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", self.prs, "motyc")
+        zenodo = json.loads((self.root / ".zenodo.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            zenodo["contributors"],
+            [
+                {"name": "Ilona Trtíková", "orcid": "0000-0001-6491-2947", "type": "DataCurator"},
+                {
+                    "name": "Petra Bártková",
+                    "orcid": "0000-0001-6484-4710",
+                    "affiliation": "National Repository Platform for Research Data",
+                    "type": "DataCurator",
+                },
+            ],
+        )
+
+    @patch.object(release, "history", return_value=(None, {"a", "b"}))
+    def test_preparation_writes_a_contributor_who_listed_no_orcid(self, _history) -> None:
+        guide = self.root / "content/guide.toml"
+        text = guide.read_text(encoding="utf-8")
+        text = text.replace('contributors = ["karel-berka"]', 'contributors = ["petra-bartkova"]')
+        anchor = 'id = "petra-bartkova"\nname = "Petra Bártková"\norcid = "https://orcid.org/0000-0001-6484-4710"'
+        self.assertIn(anchor, text)
+        guide.write_text(text.replace(anchor, 'id = "petra-bartkova"\nname = "Petra Bártková"'), encoding="utf-8")
+        release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", self.prs, "motyc")
+        zenodo = json.loads((self.root / ".zenodo.json").read_text(encoding="utf-8"))
+        self.assertEqual(zenodo["contributors"], [{"name": "Petra Bártková", "type": "DataCurator"}])
+
+    @patch.object(release, "history", return_value=(None, {"a", "b"}))
+    def test_preparation_keeps_a_mixed_affiliation_list_whole(self, _history) -> None:
+        guide = self.root / "content/guide.toml"
+        text = guide.read_text(encoding="utf-8")
+        self.assertIn('affiliation = ["upol"]', text)
+        guide.write_text(text.replace('affiliation = ["upol"]', 'affiliation = ["upol", "nrp"]'), encoding="utf-8")
+        release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", self.prs, "motyc")
+        zenodo = json.loads((self.root / ".zenodo.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            zenodo["contributors"],
+            [
+                {
+                    "name": "Karel Berka",
+                    "orcid": "0000-0001-9472-2589",
+                    "affiliations": [
+                        {"id": "04qxnmv42", "name": "Palacký University Olomouc"},
+                        {"name": "National Repository Platform for Research Data"},
+                    ],
+                    "type": "DataCurator",
+                }
+            ],
+        )
 
     @patch.object(release, "history", return_value=(None, {"a", "b"}))
     def test_bad_actor_empty_log_and_bad_input_never_write(self, _history) -> None:

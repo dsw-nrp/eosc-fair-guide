@@ -1013,7 +1013,7 @@ async function checkViews(views) {
 // 3. Reflow at 320 CSS pixels: no horizontal scrolling, and the main views keep their alignment and spacing.
 sections.push(["reflow", async () => {
   const { context, page } = await openPage({ width: 320, height: 800 });
-  const narrow = ["#/cs/V/path/start", "#/cs/SR/path/publication", "#/en/DS/catalogue/k!resources", "#/cs/V/catalogue/clauses", "#/cs/K/explorer/F1", "#/cs/V/selfcheck", "#/cs/V/check/dataset", "#/cs/V/tools", "#/cs/V/page/machines", "#/en/V/page/about"];
+  const narrow = ["#/cs/V/path/start", "#/cs/SR/path/publication", "#/en/DS/catalogue/k!resources", "#/cs/V/catalogue/clauses", "#/cs/K/explorer/F1", "#/cs/V/selfcheck", "#/cs/V/check/dataset", "#/cs/V/tools", "#/cs/V/page/machines", "#/cs/V/page/about", "#/en/V/page/about"];
   for (const hash of narrow) {
     await gotoView(page, pageUrl + hash);
     await rendered(page);
@@ -1367,11 +1367,15 @@ sections.push(["self-check", async () => {
   if (!basis.includes("Trtíková, I.") || !basis.includes("Čížek, T.") || !basis.includes("verze 1.2") || !basis.includes("doi.org/10.71495/5dv6-v116")) fail("footer: the analysis is not cited with its authors: " + basis);
   const guideCitation = await page.locator(".site-footer p", { hasText: "Jak citovat Průvodce" }).textContent();
   if (!guideCitation.includes("Novák, D. (ed.)") || !guideCitation.includes("[software]")) fail("footer: the guide is not cited as software with its editor: " + guideCitation);
+  if (/Berka/.test(guideCitation)) fail("footer: the guide's citation names a content contributor as an author: " + guideCitation);
   await page.locator(".site-footer a", { hasText: "Kdo se podílel" }).click();
   await page.waitForFunction(() => document.activeElement && document.activeElement.id === "credits");
   const roles = await page.locator(".credits tbody th").allTextContents();
-  if (roles.length !== 5 || !roles[0].includes("Autoři obsahového základu") || !roles[1].includes("editor")) fail("about: the roles table is incomplete: " + roles.join(" | "));
+  if (roles.length !== 6 || !roles[0].includes("Autoři obsahového základu") || !roles[1].includes("editor") || !roles[3].includes("Spolupráce na obsahu")) fail("about: the roles table is incomplete: " + roles.join(" | "));
   if (!(await page.locator('.credits a[href="https://orcid.org/0000-0001-6491-2947"]').count())) fail("about: the analysis authors do not link their ORCID iDs");
+  const contributors = page.locator(".credits tbody tr", { has: page.locator("th", { hasText: "Spolupráce na obsahu" }) });
+  if (!(await contributors.textContent()).includes("Karel Berka")) fail("about: the content contributors row does not name Karel Berka");
+  if (!(await contributors.locator('a[href="https://orcid.org/0000-0001-9472-2589"]').count())) fail("about: a content contributor does not link their ORCID iD");
   await go("#/cs/SR/path/licence");
 
   // The header logo leads to the EOSC CZ home page; the title opens the path's start.

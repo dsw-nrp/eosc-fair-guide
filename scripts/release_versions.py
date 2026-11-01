@@ -35,6 +35,53 @@ ROOT = Path(__file__).resolve().parent.parent
 BUILD_UI = "assets/data/ui.js"
 PATH_POLICY = ".github/release-prepared-files.json"
 FILES = tuple(json.loads((ROOT / PATH_POLICY).read_text(encoding="utf-8"))["metadata"])
+# The DataCite type of a person credited for the Guide's content; the about page shows a label, not this term.
+CONTRIBUTOR_TYPE = "DataCurator"
+
+
+def bare_orcid(value: str) -> str:
+    """The bare ORCID iD Zenodo stores, from the Guide's full URL."""
+    return value.removeprefix("https://orcid.org/").rstrip("/")
+
+
+def reviewed_affiliations(person: dict, organizations: dict[str, dict]) -> tuple[list[dict], str]:
+    """Zenodo's affiliation for a reviewed person: structured ROR IDs, or the English names alone.
+
+    A person with any reviewed ROR affiliation keeps every reviewed organisation in the structured form, including
+    the name-only entry the importer accepts for an organisation without a ROR. The scalar `affiliation` is written
+    only when no organisation carries one, because it overrides structured affiliations in the importer; the two
+    forms never appear together for one person.
+    """
+    structured: list[dict] = []
+    names: list[str] = []
+    for key in person.get("affiliation", []):
+        organization = organizations.get(key, {})
+        name = organization.get("name")
+        english = name.get("en") if isinstance(name, dict) else name
+        ror = organization.get("ror")
+        if ror:
+            structured.append({"id": str(ror).rstrip("/").rsplit("/", 1)[-1], "name": english})
+        elif english:
+            names.append(english)
+    if structured:
+        structured.extend({"name": name} for name in names)
+        return structured, ""
+    return structured, "; ".join(names)
+
+
+def zenodo_person(person: dict, organizations: dict[str, dict], role: str | None = None) -> dict:
+    """A person as Zenodo's importer reads it: authored name, bare ORCID iD and reviewed affiliations."""
+    entry: dict = {"name": person["name"]}
+    if person.get("orcid") and not person.get("orcidOptOut"):
+        entry["orcid"] = bare_orcid(person["orcid"])
+    affiliations, affiliation = reviewed_affiliations(person, organizations)
+    if affiliations:
+        entry["affiliations"] = affiliations
+    elif affiliation:
+        entry["affiliation"] = affiliation
+    if role:
+        entry["type"] = role
+    return entry
 
 
 def prepared_paths(root: Path) -> set[str]:
@@ -374,7 +421,15 @@ def prepare(
     if previous == "v" + target:
         raise ValueError("the requested version is already tagged")
     texts = {path: (root / path).read_text(encoding="utf-8") for path in FILES}
-    people = tomllib.loads(texts["content/guide.toml"]).get("person", [])
+    guide_file = tomllib.loads(texts["content/guide.toml"])
+    people = guide_file.get("person", [])
+    organizations = {item["id"]: item for item in guide_file.get("organization", [])}
+    by_id = {person["id"]: person for person in people}
+    contributors = [
+        zenodo_person(by_id[person_id], organizations, CONTRIBUTOR_TYPE)
+        for person_id in guide_file["guide"].get("contributors", [])
+        if person_id in by_id
+    ]
     agents = [person["id"] for person in people if person.get("github", "").casefold() == actor.casefold()]
     if len(agents) != 1:
         raise ValueError("dispatch actor needs one reviewed person.github identity in content/guide.toml")
@@ -394,6 +449,10 @@ def prepare(
             data["packages"][""]["version"] = target
         if path == ".zenodo.json":
             data["publication_date"] = released
+            if contributors:
+                data["contributors"] = contributors
+            else:
+                data.pop("contributors", None)
         texts[path] = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
     texts["pyproject.toml"] = scalar(texts["pyproject.toml"], "version", json.dumps(target), section="project")
     texts["CHANGELOG.md"] = changelog(

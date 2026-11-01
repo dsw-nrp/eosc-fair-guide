@@ -467,7 +467,7 @@ publisher named like a curated organisation.
 | | `doi` | string | The guide's DOI once it has one; the page head and the linkset then name it as `cite-as` |
 | | `freshnessDays` | integer | Age after which a status is reported as stale |
 | | `editors` | list of IDs | People who compile and develop the guide; the guide's citation names them as editors (at least one) |
-| | `reviewers`, `contributors` | list of IDs | People who review the texts, and other contributors |
+| | `reviewers`, `contributors` | list of IDs | People who review the texts, and other contributors; contributors are shown with their ORCID iDs in the about page's roles table and are mirrored into `.zenodo.json` by release preparation |
 | | `publisher`, `funder` | ID | Organisations from `[[organization]]` |
 | | `isBasedOn` | list of IDs | Sources the guide refreshes (the FAIR analysis) |
 | | `acknowledgement`, `aiStatement` | text | Mandatory NRP acknowledgement; statement on AI use |

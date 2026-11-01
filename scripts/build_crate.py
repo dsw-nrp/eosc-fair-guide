@@ -3297,8 +3297,8 @@ def script_json(value: Any) -> str:
 
 
 def build_credits(content: dict[str, Any]) -> list[dict[str, Any]]:
-    """The roles shown on the about page: who wrote the content basis, who compiled and reviewed the guide, the
-    tools used and the funding."""
+    """The roles shown on the about page: who wrote the content basis, who compiled and reviewed the guide, who
+    contributed content, the tools used and the funding."""
     guide_file = content["guide"]
     guide = guide_file["guide"]
     persons = {person["id"]: person for person in guide_file.get("person", [])}
@@ -3320,6 +3320,7 @@ def build_credits(content: dict[str, Any]) -> list[dict[str, Any]]:
     ]
     credits.append({"role": "editor", "people": [person(entry) for entry in guide.get("editors", [])]})
     credits.append({"role": "review", "people": [person(entry) for entry in guide.get("reviewers", [])]})
+    credits.append({"role": "contributors", "people": [person(entry) for entry in guide.get("contributors", [])]})
     used = {tool for action in content["provenance"] for tool in action.get("instruments", [])}
     tools = [tool for tool in guide_file.get("instrument", []) if tool["id"] in used]
     credits.append({"role": "tools", "people": [{"name": tool["name"], "url": tool.get("url")} for tool in tools]})
