@@ -181,8 +181,10 @@ rebuild's tools to the author.
 | `dmeg.cessda.eu/Data-Management-Expert-Guide` | KNAV tools snapshot | Upstream report (the root address answers) and tracked task |
 | `docs.it4i.cz/lumi/about/` | KNAV tools snapshot | Upstream report and tracked task |
 | `tla.mpi.nl` ELAN | KNAV tools snapshot | Upstream report of the new address `https://archive.mpi.nl/tla/elan` |
-| `asep.lib.cas.cz` (2 links) | FIP Dashboard and re3data snapshots | Decide after the next run; one host task if it persists |
-| `data.eli-laser.eu` | re3data snapshot | Decide after the next run; limitation `unavailable` if it persists |
+| `asep.lib.cas.cz` (2 links) | FIP Dashboard and re3data snapshots | Decide after the next run; one host task if it persists. Decided on 1 November: limitation `broken` per link, since only GitHub-hosted runners get the 404 |
+| `data.eli-laser.eu` | re3data snapshot | Decide after the next run; limitation `unavailable` if it persists. Decided on 1 November: limitation `unavailable` |
+| `www.softwareheritage.org` (2 links), new on 1 November | Guide `resources[software-heritage]`, `resources[software-heritage-guide]`; KNAV tools snapshot | Limitation `unavailable`: the runners' trust store lacks the root the site's chain ends at |
+| `cdsweb.u-strasbg.fr`, `www.image-net.org`, new on 1 November | KNAV tools snapshot | Tracked task each: the hosts answered no network on 1 November |
 
 - **Limitation entries** take the digest's key, outcome and evidence. The reviewer is the maintainer's person ID,
   the review-by date is the one the digest offers, and the `reason` is written by the maintainer.
@@ -202,6 +204,19 @@ rebuild's tools to the author.
     audit skips closed issues.
 - **Approval before writing:** every write to GitHub or upstream (tasks, comments, reports, issue bodies and fields,
   and the Project) is shown to the maintainer and approved before it is made.
+- **Outcome (1 November 2026).** Three dispositions differ from the plan above, each at the maintainer's decision:
+  - The Champion candidates became five keyed tasks (#155–#159), closed as not planned under the selection review's
+    existing decision, because the digest reads one finding key per task.
+  - `data.narodni-repozitar.cz` has no separate upstream report: the FIP Dashboard team tracks it on its task, #160.
+  - `asep.lib.cas.cz` became two limitations instead of a host task. The watch run of 1 November still got HEAD 404
+    from GitHub-hosted runners. From a maintainer's network, with the watch's User-Agent, the root redirected to
+    the catalogue and the English page answered 200, so the 404 reaches only the runners, as with
+    `data.eli-laser.eu`.
+
+  The same run reported three findings that this table did not plan for. Software Heritage serves a chain ending
+  at Let's Encrypt's Root YR, which the runners cannot verify but other systems do, so it takes limitations. The
+  CDS and ImageNet hosts resolve but answered neither the runners nor two other networks, so each gets a tracked
+  task that waits for recovery or reports upstream.
 
 ### D5. Repeat a HEAD 400 with GET
 
@@ -491,7 +506,11 @@ balance a review can apply without overstating it (29 October 2026).
   surface admitted any Creative Commons licence while the check accepts six families and two tools; the rule, the
   content model, the requirement and the message now name them as a reviewed list that another licence joins
   through review (1 November 2026). Its ninth found that the requirement named the families and tools only as
-  categories; it and its scenario now enumerate them as the rule and the content model do.
+  categories; it and its scenario now enumerate them as the rule and the content model do. Before the archive, strict
+  validation of the synced specs refused the source requirement at 1,608 characters and the Project audit requirement
+  at 536, where the limit is 500. At the maintainer's decision, the deltas split them without changing their meaning:
+  the source requirement keeps the original-work rule, three new ones hold the licence lists, the canonical address
+  and the quotation bound, and the digest's exemption moves into a requirement of its own.
 - **Cited works:** the licence check reads a resource's citation as well as a source. The review of PR F found four
   resources (`cessda-dmeg`, `coretrustseal`, `force11-citation`, `ostrails-cz-pilot`) whose authors, licence or
   version DOI sat in a second, nested citation that nothing read. Each now has one citation: FORCE11, the pilot's

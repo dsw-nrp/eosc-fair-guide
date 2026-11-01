@@ -16,7 +16,7 @@
 #
 # Evidence: every body was read on 28 October 2026; no issue except the digest has a comment. Cross-references and
 # files are named per entry. Bodies link the repository's former address `motyc/eosc-fair-guide` in #16, #20 and
-# #24; shaping replaces those links (task 6.4). #27 also linked it; it closed before its body was replaced.
+# #24; shaping replaces those links (task 6.4). #24 and #27 closed before their bodies were replaced.
 
 [[issue]]
 number = 5  # Allow FIP Dashboard reads from the Guide's approved origins (Q-33)
@@ -132,11 +132,10 @@ shape = "full"
 
 [[issue]]
 number = 19  # Confirm DMP.eosc.cz CCMM exports and stable question links (Q-19, Q-46)
-decision = "keep"
-priority = "Low"
-effort = "Low"
+decision = "close"
+reason = "Closed as not planned on 29 October 2026 with the maintainer's comment: no advice, requirement or planned feature of the Guide depends on a CCMM export from DMP.eosc.cz or on stable links to its questions, and the Guide links only DMP.eosc.cz's home page; both belong to DMP.eosc.cz's roadmap. The ledger first approved it as keep (Low, Low, v1.0.0, to be shaped in full); it closed before shaping."
 milestone = "v1.0.0"
-shape = "full"
+shape = "none"
 
 [[issue]]
 number = 20  # Confirm the NRP recommended-licence catalogue (Q-20)
@@ -148,19 +147,17 @@ shape = "full"
 
 [[issue]]
 number = 21  # Provide working Czech NMA documentation links (Q-23)
-decision = "keep"
-priority = "Low"
-effort = "Low"
+decision = "close"
+reason = "Closed as not planned on 29 October 2026 with the maintainer's comment: the NRP documentation is published in English only, the Czech path of the cited NMA page returned 404, and the Guide already links the working English pages with `inLanguage = \"en\"`. The ledger first approved it as keep (Low, Low, v1.0.0, to be shaped in full); it closed before shaping."
 milestone = "v1.0.0"
-shape = "full"
+shape = "none"
 
 [[issue]]
 number = 22  # Decide the applicability of Minimum pro RIV (Q-27)
-decision = "keep"
-priority = "Medium"  # The decision can change question wording, applicability and defaults.
-effort = "Medium"
+decision = "close"
+reason = "Closed as not planned on 29 October 2026 with the maintainer's comment: no published source defines a \"Minimum pro RIV\"; the Guide cites the FAIR analysis's minimum (`A.MIN1`) and NMA's documentation for RIV (`NMA-RIV-DOCS.01`), so there is no applicability to decide. The ledger first approved it as keep (Medium, Medium, v1.0.0, to be shaped in full); it closed before shaping."
 milestone = "v1.0.0"
-shape = "full"
+shape = "none"
 
 [[issue]]
 number = 23  # Confirm the NMA CCMM support roadmap (Q-32)
@@ -172,11 +169,10 @@ shape = "full"
 
 [[issue]]
 number = 24  # Document Dashboard coverage of nanopublication-only FIPs (Q-34)
-decision = "keep"
-priority = "Low"
-effort = "Low"
+decision = "close"
+reason = "Closed as not planned on 29 October 2026 with the maintainer's comment: the premise does not hold, as the FIP check reads a published FIP nanopublication itself when the reader gives its identifier, so no answer depends on the Dashboard's coverage; documenting the Dashboard's inclusion policy is the Dashboard team's work. The ledger first approved it as keep (Low, Low, v1.0.0, to be shaped in full); it closed before shaping."
 milestone = "v1.0.0"
-shape = "full"
+shape = "none"
 
 [[issue]]
 number = 25  # Review crate/profile upgrade readiness and migration gates (Q-36)

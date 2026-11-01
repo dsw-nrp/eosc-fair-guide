@@ -77,3 +77,48 @@ evidence = "HEAD then GET 403 from GitHub-hosted runners since 2026-10-28"
 reviewer = "david-novak"
 reviewed = 2026-10-28
 reviewBy = 2027-04-26
+
+[[limitation]]
+key = "link:https://data.eli-laser.eu/"
+outcome = "unavailable"
+reason = "The ELI ERIC open-data portal does not answer requests from GitHub-hosted runners; it opens from other networks, and its address comes from the re3data snapshot."
+evidence = "HEAD timed out from GitHub-hosted runners in 6 checks since 2026-10-28; 200 from a maintainer's network on 2026-11-01"
+reviewer = "david-novak"
+reviewed = 2026-11-01
+reviewBy = 2027-04-30
+
+[[limitation]]
+key = "link:https://asep.lib.cas.cz/"
+outcome = "broken"
+reason = "The Czech Academy of Sciences' ASEP repository answers 404 only to GitHub-hosted runners; from other networks the address opens its catalogue, and it comes from the FIP Dashboard snapshot."
+evidence = "HEAD 404 from GitHub-hosted runners in 6 checks; 301 to /arl-cav/cs/ and then 200 from a maintainer's network with the watch's User-Agent on 2026-11-01"
+reviewer = "david-novak"
+reviewed = 2026-11-01
+reviewBy = 2027-04-30
+
+[[limitation]]
+key = "link:https://asep.lib.cas.cz/arl-cav/en/"
+outcome = "broken"
+reason = "The Czech Academy of Sciences' ASEP repository answers 404 only to GitHub-hosted runners; from other networks its English catalogue opens, and the address comes from the re3data snapshot."
+evidence = "HEAD 404 from GitHub-hosted runners in 6 checks; HEAD and GET 200 from a maintainer's network with the watch's User-Agent on 2026-11-01"
+reviewer = "david-novak"
+reviewed = 2026-11-01
+reviewBy = 2027-04-30
+
+[[limitation]]
+key = "link:https://www.softwareheritage.org/"
+outcome = "unavailable"
+reason = "Software Heritage's certificate chain ends at Let's Encrypt's Root YR, which the trust store of GitHub-hosted runners does not include; browsers verify it, and the page opens for readers."
+evidence = "certificate verify failed (unable to get local issuer certificate) from GitHub-hosted runners in 2 checks since 2026-10-28; the server sends its certificate and YR2, issued by Root YR; 200 from a maintainer's network and another network on 2026-11-01"
+reviewer = "david-novak"
+reviewed = 2026-11-01
+reviewBy = 2027-04-30
+
+[[limitation]]
+key = "link:https://www.softwareheritage.org/how-to-archive-reference-code/"
+outcome = "unavailable"
+reason = "Software Heritage's certificate chain ends at Let's Encrypt's Root YR, which the trust store of GitHub-hosted runners does not include; browsers verify it, and the guide opens for readers."
+evidence = "certificate verify failed (unable to get local issuer certificate) from GitHub-hosted runners in 2 checks since 2026-10-28; the server sends its certificate and YR2, issued by Root YR; 200 from a maintainer's network and another network on 2026-11-01"
+reviewer = "david-novak"
+reviewed = 2026-11-01
+reviewBy = 2027-04-30

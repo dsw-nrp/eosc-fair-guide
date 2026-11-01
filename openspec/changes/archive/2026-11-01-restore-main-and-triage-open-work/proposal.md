@@ -117,7 +117,10 @@ None.
     directions;
   - catalogue entries follow shared conventions for who made or runs an entry, licences, dates, status and qualified
     lists.
-- `fair-guide/guide-knowledge-base`: a ledger entry cites the published work that originally states it.
+- `fair-guide/guide-knowledge-base`:
+  - a ledger entry cites the published work that originally states it;
+  - a quoted passage records its source's licence as one canonical address on the reviewed licence lists;
+  - a passage from a source that records no licence stays within the right of quotation.
 
 ## Impact
 

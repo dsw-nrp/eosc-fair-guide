@@ -33,35 +33,10 @@ answer of 404, 410 or 429, a success or a transport failure SHALL NOT be repeate
 - **WHEN** the watch checks it
 - **THEN** no GET request is sent and the outcome is broken
 
-## MODIFIED Requirements
+### Requirement: The published digest is audited as monitoring output
 
-### Requirement: Project consistency is audited with actionable fixes
-
-A weekly read-only audit SHALL report open issues or PRs missing from Project #1, issues without a type, a body type
-that differs from the native type, Ready issues lacking an area label, Priority, Effort or the planned-issue shape,
-triage older than 14 days, Urgent issues without progress, state mismatches and automation or view drift, each with
-a link or fix step. The digest that monitoring publishes SHALL be exempt from the triage-age and Ready checks only.
-A value the digest takes from an issue body SHALL appear as inert text.
-
-#### Scenario: An open issue is missing from the Project
-
-- **WHEN** an open issue is not a Project item
-- **THEN** the audit lists it with the fix command
-
-#### Scenario: A Ready issue is incomplete
-
-- **WHEN** an issue in Ready has no Effort or lacks a planned-issue section
-- **THEN** the audit lists the missing parts and links the issue
-
-#### Scenario: Urgent work has not started
-
-- **WHEN** an Urgent issue has stayed in Needs triage or Ready for more than three days
-- **THEN** the digest lists it
-
-#### Scenario: A built-in automation is switched off
-
-- **WHEN** a Project automation expected to be on is disabled
-- **THEN** the audit names it and the affected items
+The digest that monitoring publishes SHALL be exempt from the Project audit's triage-age and Ready checks only. A
+value the digest takes from an issue body SHALL appear as inert text.
 
 #### Scenario: The published digest is not triaged
 
