@@ -7,11 +7,36 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.5] - 2026-11-01
+
 ### Changed
 
 - Breaking: release container images are tagged with the version, without the git tag's `v`
   (`ghcr.io/dsw-nrp/eosc-fair-guide:<version>`); the images of `1.0.0-alpha.1` to `1.0.0-alpha.4` carry it beside
   their `v` tags.
+
+Since v1.0.0-alpha.4.
+
+### Merged pull requests
+
+- Tag release images with the version and finish the CI change ([#143](https://github.com/dsw-nrp/eosc-fair-guide/pull/143))
+- fix\(agent-tooling\): regenerate the inventory after the AIS CR redelivery ([#144](https://github.com/dsw-nrp/eosc-fair-guide/pull/144))
+- chore\(deps-dev\): Bump ruff from 0.17.1 to 0.17.2 in the minor-and-patch group ([#138](https://github.com/dsw-nrp/eosc-fair-guide/pull/138))
+- chore\(deps\): Bump the minor-and-patch group with 2 updates ([#139](https://github.com/dsw-nrp/eosc-fair-guide/pull/139))
+- Refresh the re3data snapshot ([#117](https://github.com/dsw-nrp/eosc-fair-guide/pull/117))
+- content: streamline stations and merge duplicate advice \(\#35\) ([#145](https://github.com/dsw-nrp/eosc-fair-guide/pull/145))
+- Restore main and triage open work: watch, audit and digest fixes ([#146](https://github.com/dsw-nrp/eosc-fair-guide/pull/146))
+- content: add consent, data appraisal and team continuity advice \(\#36\) ([#147](https://github.com/dsw-nrp/eosc-fair-guide/pull/147))
+- feat\(catalogue\): show every field a catalogue entry carries ([#149](https://github.com/dsw-nrp/eosc-fair-guide/pull/149))
+- content: add folder, format, synthetic sample and packaging advice \(\#37\) ([#151](https://github.com/dsw-nrp/eosc-fair-guide/pull/151))
+- content: add sample identifier, patent and post-publication error advice \(\#38\) ([#161](https://github.com/dsw-nrp/eosc-fair-guide/pull/161))
+- feat\(content\): cite the original source and bound quotes without a licence ([#148](https://github.com/dsw-nrp/eosc-fair-guide/pull/148))
+- chore: close out and archive restore-main-and-triage-open-work ([#164](https://github.com/dsw-nrp/eosc-fair-guide/pull/164))
+- feat\(credit\): show content contributors on the about page and in Zenodo ([#166](https://github.com/dsw-nrp/eosc-fair-guide/pull/166))
+
+### Direct commits
+
+- Update AIS CR delivered tools ([b3474e5](https://github.com/dsw-nrp/eosc-fair-guide/commit/b3474e50b4e5403c7630dbe7be71d5036c529701))
 
 ## [1.0.0-alpha.4] - 2026-10-28
 
