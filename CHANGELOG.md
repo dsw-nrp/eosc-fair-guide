@@ -7,6 +7,8 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+- Breaking: repository API records may omit `url` while planned or in development when they link an NKR record.
+
 ## [1.0.0-alpha.5] - 2026-11-01
 
 ### Changed

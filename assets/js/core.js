@@ -250,7 +250,8 @@
   FG.abbreviatedName = function (entity, lang) {
     const name = FG.text(entity.name, lang);
     const abbreviation = entity.abbreviation ? FG.text(entity.abbreviation, lang) : "";
-    return abbreviation && !name.includes(abbreviation) ? name + " (" + abbreviation + ")" : name;
+    const endsWithAbbreviation = abbreviation && name.endsWith(abbreviation) && /[\s\-–—]$/.test(name.slice(0, -abbreviation.length));
+    return abbreviation && !name.endsWith("(" + abbreviation + ")") && name !== abbreviation && !endsWithAbbreviation ? name + " (" + abbreviation + ")" : name;
   };
 
   /** The same name in the other language, where it differs, so an entry keeps both forms. */

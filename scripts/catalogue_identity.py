@@ -71,6 +71,8 @@ TYPE_CODES = {
     "licence": "lic",
     "course": "course",
 }
+# NKR's published Repository types, shared by refresh routing and catalogue build.
+NKR_KIND = {"disciplinary": "domain", "institutional": "institutional", "generic": "general"}
 SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
 MAX_ID = 32
 PARTICLES = frozenset(
@@ -219,7 +221,15 @@ def identity_seed(row: dict[str, Any]) -> str:
             continue
         parsed = urlsplit(value)
         host = parsed.hostname or ""
-        if host in {"www.re3data.org", "re3data.org", "heslar.openscience.cz", "doi.org", "purl.org", "w3id.org"}:
+        if host in {
+            "www.re3data.org",
+            "re3data.org",
+            "heslar.openscience.cz",
+            "repo.cz",
+            "doi.org",
+            "purl.org",
+            "w3id.org",
+        }:
             continue  # A registry record or resolver URL does not name the described service.
         parts = [unquote(part).split(".")[0] for part in parsed.path.split("/") if part]
         specific = [part for part in parts if part.casefold() not in generic and len(part) >= 3 and not part.isdigit()]
@@ -346,7 +356,8 @@ def preserve_snapshot(
                     subtype = TYPE_CODES.get(str(row.get("kind")), str(row.get("kind") or ""))
                     prefix = "/".join(filter(None, ("repo", subtype)))
                 elif kind == "record" and incoming.get("snapshot", {}).get("source") == "NKR":
-                    prefix = "repo"
+                    subtype = TYPE_CODES.get(NKR_KIND.get(str(row.get("type")), ""), "")
+                    prefix = "/".join(filter(None, ("repo", subtype)))
                 if prefix:
                     fields["guideRoute"] = prefix
             claimed.add(identifier)

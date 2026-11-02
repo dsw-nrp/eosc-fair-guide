@@ -318,7 +318,7 @@
     const re3data = registries.map((entry) => live.parseRe3data(entry && entry.relatedRegistryUrl)).find(Boolean);
     return {
       id: record && record.sourceId ? String(record.sourceId) : null,
-      name: String(content.repositoryName || ""),
+      name: String((FG.state.lang === "en" && FG.list(content.additionalNames).find((item) => item.lang === "English" && item.additionalName)?.additionalName) || content.repositoryName || ""),
       url: String(content.mainUrl || ""),
       kind: NKR_KIND[content.type] || null,
       keywords: FG.list(FG.state.lang === "cs" ? content.keywordCz : content.keywordEn).map(String),

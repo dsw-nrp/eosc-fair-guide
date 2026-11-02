@@ -66,6 +66,7 @@ asOf = 2026-10-09
 [[repository]]
 guideRoute = "repo/dom"
 id = "czech-bioimaging"
+nkr = "20.500.14818/srhtp4ek"
 functions = ["deposit-data"]
 name = { cs = "Repozitář Czech-BioImaging", en = "Czech-BioImaging repository" }
 url = "https://dev.cbird.jh-inst.cas.cz/"

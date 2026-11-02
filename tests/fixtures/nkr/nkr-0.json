@@ -1,0 +1,337 @@
+{
+  "pageNum": 0,
+  "pageSize": 100,
+  "size": 5,
+  "results": [
+    {
+      "id": "20.500.14818/jgu5fyqf",
+      "type": "Repository",
+      "content": {
+        "id": "20.500.14818/jgu5fyqf",
+        "doi": "",
+        "repositoryName": "Repozitář herbářových sbírek",
+        "additionalNames": [
+          {
+            "additionalName": "Herbarium Collections Repository",
+            "lang": "English"
+          }
+        ],
+        "type": "disciplinary",
+        "status": "production",
+        "software": [
+          "custom-built"
+        ],
+        "releaseDate": "2028-01-01",
+        "subject": [
+          "https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/10000/10600/10611"
+        ],
+        "keywordCz": [
+          "biodiverzita",
+          "botanika",
+          "herbář",
+          "herbářové sbírky",
+          "houby",
+          "lišejníky",
+          "mechy",
+          "řasy",
+          "rostliny",
+          "obrazová data"
+        ],
+        "keywordEn": [
+          "biodiversity",
+          "botany",
+          "herbarium",
+          "herbarium collections",
+          "fungi",
+          "lichens",
+          "bryophytes",
+          "algae",
+          "plants",
+          "image data"
+        ],
+        "mainContact": "contact@example.org",
+        "organization": [
+          {
+            "organizationId": "20.500.14818/ir5a6v79",
+            "organizationRole": "founder"
+          }
+        ],
+        "mainUrl": "https://herbarium.biodiversity.cz",
+        "workingGroup": [
+          "ENVI - Environmental Sciences"
+        ],
+        "fundingProject": [
+          "20.500.14818/hy6a7ry7"
+        ],
+        "handleUrl": "https://hdl.handle.net/20.500.14818/jgu5fyqf"
+      }
+    },
+    {
+      "id": "20.500.14818/m4riedm6",
+      "type": "Repository",
+      "content": {
+        "id": "20.500.14818/m4riedm6",
+        "doi": "",
+        "repositoryName": "Molecular Biophysics Database - MBDB",
+        "additionalNames": [
+          {
+            "additionalName": "Molecular Biophysics Database - MBDB",
+            "lang": "English"
+          }
+        ],
+        "type": "disciplinary",
+        "status": "production",
+        "software": [
+          "CESNET Invenio"
+        ],
+        "releaseDate": "2028-01-01",
+        "subject": [
+          "https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/10000/10600/10610"
+        ],
+        "keywordCz": [
+          "molekulární biofyzika",
+          "molekulární biologie",
+          "termoforéza v mikroměřítku (MST)",
+          "interferometrie na biovrstvě (BLI)",
+          "povrchová plazmonová rezonance (SPR)",
+          "izotermická titrační kalorimetrie (ITC)",
+          "hmotnostní fotometrie",
+          "molekulární entita",
+          "protein",
+          "polypeptid",
+          "nukleová kyselina",
+          "deoxyribonukleová kyselina",
+          "ribonukleová kyselina",
+          "molekulární komplex",
+          "tělní tekutina",
+          "buněčná frakce",
+          "virion",
+          "tkáňový vzorek",
+          "komplexní látka environmentálního původu",
+          "lipidový komplex",
+          "vazba malých molekul",
+          "molekulární interakce",
+          "vazba",
+          "popis vzorku",
+          "experimentální podmínky"
+        ],
+        "keywordEn": [
+          "molecular biophysics",
+          "molecular biology",
+          "Microscale Thermophoresis (MST)",
+          "Biolayer interferometry (BLI)",
+          "Surface Plasmon Resonance (SPR)",
+          "Isothermal Titration Calorimetry (ITC)",
+          "Mass Photometry",
+          "molecular entity",
+          "protein",
+          "polypeptide",
+          "nucleic acid",
+          "deoxyribonucleic acid",
+          "ribonucleic acid",
+          "molecular assembly",
+          "body fluid",
+          "cell fraction",
+          "virion",
+          "tissue sample",
+          "complex substance of environmental origin",
+          "lipid assembly",
+          "small molecule binding",
+          "molecular interaction",
+          "binding",
+          "sample description",
+          "experimental condition"
+        ],
+        "mainContact": "contact@example.org",
+        "organization": [
+          {
+            "organizationId": "20.500.14818/hfasdge3",
+            "organizationRole": "founder"
+          }
+        ],
+        "mainUrl": "https://mbdb-data.org/",
+        "workingGroup": [
+          "B/H/F - Bio/Health/Food"
+        ],
+        "fundingProject": [
+          "20.500.14818/hy6a7ry7"
+        ],
+        "handleUrl": "https://hdl.handle.net/20.500.14818/m4riedm6"
+      }
+    },
+    {
+      "id": "20.500.14818/9lloktrg",
+      "type": "Repository",
+      "content": {
+        "id": "20.500.14818/9lloktrg",
+        "doi": "",
+        "repositoryName": "ArchaeoVault",
+        "additionalNames": [
+          {
+            "additionalName": "ArchaeoVault",
+            "lang": "English"
+          }
+        ],
+        "type": "disciplinary",
+        "status": "pilot - accepting data",
+        "software": [
+          "Islandora"
+        ],
+        "releaseDate": "2028-01-01",
+        "subject": [
+          "https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/60000/60100/60102"
+        ],
+        "keywordCz": [
+          "archeologie",
+          "neterénní archeologie",
+          "3D modely",
+          "antropologická data",
+          "geoprostorová data",
+          "laboratorní data"
+        ],
+        "keywordEn": [
+          "archaeology",
+          "non-field archaeology",
+          "3D models",
+          "anthropological data",
+          "geospatial data",
+          "laboratory data"
+        ],
+        "mainContact": "contact@example.org",
+        "organization": [
+          {
+            "organizationId": "20.500.14818/2r0k8cvg",
+            "organizationRole": "founder"
+          },
+          {
+            "organizationId": "20.500.14818/okofb54c",
+            "organizationRole": "partner"
+          }
+        ],
+        "mainUrl": "https://archaeo-vault.cz",
+        "workingGroup": [
+          "HUMA - Humanities and the Arts"
+        ],
+        "fundingProject": [
+          "20.500.14818/hy6a7ry7"
+        ],
+        "handleUrl": "https://hdl.handle.net/20.500.14818/9lloktrg"
+      }
+    },
+    {
+      "id": "20.500.14818/srhtp4ek",
+      "type": "Repository",
+      "content": {
+        "id": "20.500.14818/srhtp4ek",
+        "doi": "",
+        "repositoryName": "CzBIRD",
+        "additionalNames": [
+          {
+            "additionalName": "CzBIRD",
+            "lang": "English"
+          }
+        ],
+        "type": "disciplinary",
+        "status": "development",
+        "software": [
+          "CESNET Invenio"
+        ],
+        "releaseDate": "2028-01-01",
+        "subject": [
+          "https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/10000/10600"
+        ],
+        "keywordCz": [
+          "Biologické Zobrazování",
+          "Světelná Mikroskopie",
+          "Elektronová Mikroskopie",
+          "Zobrazovací Data",
+          "REMBI",
+          "CzBI"
+        ],
+        "keywordEn": [
+          "Biological Imaging",
+          "BioImaing",
+          "Light Microscopy",
+          "Electron Microscopy",
+          "Imaging Data",
+          "REMBI",
+          "CzBI"
+        ],
+        "mainContact": "contact@example.org",
+        "organization": [
+          {
+            "organizationId": "20.500.14818/o6qc4rbe",
+            "organizationRole": "founder"
+          },
+          {
+            "organizationId": "20.500.14818/8bxavh6i",
+            "organizationRole": "partner"
+          }
+        ],
+        "mainUrl": "",
+        "workingGroup": [
+          "B/H/F - Bio/Health/Food"
+        ],
+        "fundingProject": [
+          "20.500.14818/hy6a7ry7"
+        ],
+        "handleUrl": "https://hdl.handle.net/20.500.14818/srhtp4ek"
+      }
+    },
+    {
+      "id": "20.500.14818/sr3o5j0c",
+      "type": "Repository",
+      "content": {
+        "id": "20.500.14818/sr3o5j0c",
+        "doi": "",
+        "repositoryName": "Datový catch-all repozitář",
+        "additionalNames": [
+          {
+            "additionalName": "Data Catch-all Repository",
+            "lang": "English"
+          }
+        ],
+        "type": "generic",
+        "status": "production",
+        "software": [
+          "CESNET Invenio"
+        ],
+        "releaseDate": "2028-01-01",
+        "subject": [
+          "https://vocabs.ccmm.cz/registry/codelist/SubjectCategory"
+        ],
+        "keywordCz": [
+          "catch-all",
+          "obecný",
+          "generický",
+          "long-tail"
+        ],
+        "keywordEn": [
+          "catch-all",
+          "general",
+          "long-tail"
+        ],
+        "mainContact": "contact@example.org",
+        "organization": [
+          {
+            "organizationId": "20.500.14818/0p899i32",
+            "organizationRole": "founder"
+          },
+          {
+            "organizationId": "20.500.14818/u5aavpoa",
+            "organizationRole": "partner"
+          },
+          {
+            "organizationId": "20.500.14818/4gqst4yo",
+            "organizationRole": "partner"
+          }
+        ],
+        "mainUrl": "https://datarepo.eosc.cz/",
+        "fundingProject": [
+          "20.500.14818/hy6a7ry7"
+        ],
+        "handleUrl": "https://hdl.handle.net/20.500.14818/sr3o5j0c"
+      }
+    }
+  ]
+}

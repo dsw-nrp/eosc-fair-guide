@@ -245,7 +245,12 @@ uses Dashboard profiles first and published nanopublications as fallback, preser
 use/planning/replacement status. No declaration leaves a question open, not a proven gap.
 
 Repository discovery combines curated entries with NKR, re3data, FAIRsharing and DataCite snapshots,
-deduplicated through reviewed links. FAIRsharing uses DataCite DOI metadata, not its credentialed API;
+deduplicated through reviewed links. NKR additionally joins by exact normalized repository address, while a
+record without an address needs a reviewed NKR handle to join an existing entry. Ambiguous joins fail for review.
+NKR's non-empty published names, kind, status, keywords and address take precedence; Guide-owned functions and
+operator facts remain, and empty NKR values remove nothing. Status dates record the harvest observation, while
+decommissioned records stay out of the catalogue and appear in maintainer health findings.
+FAIRsharing uses DataCite DOI metadata, not its credentialed API;
 not finding a record is not proof of non-registration. DataCite figures are requested only for reviewed
 repository identities and are dated with record links. Samples expose titles, allow editing/replacement
 and exclude subordinate file records; usage-count zero is not interpreted as measured quality.

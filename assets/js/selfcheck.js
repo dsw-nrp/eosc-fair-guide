@@ -322,6 +322,7 @@
     if (!match || path === "@record") return [];
     const [, field, key, wanted, sub] = match;
     let value = record[field];
+    if (field === "mainContact" && value === true) return ["present"];
     if (key) value = FG.list(value).filter((entry) => entry && String(entry[key]) === wanted);
     const values = (sub ? FG.list(value).map((entry) => entry && entry[sub]) : FG.list(value))
       .flatMap((entry) => (Array.isArray(entry) ? entry : [entry]))
@@ -767,6 +768,7 @@
   const foundFields = (pre) => FG.list(pre.fields).filter((field) => field && FG.list(field.values).length);
 
   const FIELD_LABELS = {
+    "mainContact": "contact",
     "rightsList[].rightsUri": "licence", "rightsList[].rights": "licence", "license": "licence", "licence": "licence",
     "titles[].title": "title", "title": "title", "name": "title", "description": "description", "descriptions[].description": "description",
     "creators[].name": "creators", "contributors[].name": "contributors", "identifier": "identifier", "doi": "identifier",
@@ -785,7 +787,11 @@
   }
   const readableField = (field) => (FIELD_LABELS[field.path] ? FG.t("selfcheck.field." + FIELD_LABELS[field.path]) : field.path);
   const readableValue = (value) => licenceName(value) || String(value);
-  const valueNode = (value, shorten) => webUrl(value) ? FG.external(value, shorten ? licenceName(value) || brief(value) : value) : shorten ? brief(value) : value;
+  const fieldValue = (field, value) => field.path === "mainContact" && value === "present" ? FG.t("selfcheck.evidence.present") : value;
+  const valueNode = (value, shorten, field) => {
+    if (field) value = fieldValue(field, value);
+    return webUrl(value) ? FG.external(value, shorten ? licenceName(value) || brief(value) : value) : shorten ? brief(value) : value;
+  };
 
   const observationBody = (...args) => inspection.observationBody(...args);
   const evidenceDetails = (...args) => inspection.evidenceDetails(...args);
@@ -1857,7 +1863,7 @@
     return observationsOf(entry).map((pre) => {
       const fers = FG.list(pre.list).filter((fer) => fer && fer.name).map((fer) => String(fer.name));
       return [label(pre.source), FG.formatDate(pre.date), FG.t("selfcheck.evidence.suggestion") + ": " + (pre.value ? FG.t("selfcheck.answer." + pre.value) : FG.t("selfcheck.result.unanswered"))]
-        .concat(foundFields(pre).map((field) => readableField(field) + ": " + field.values.map(readableValue).join(", ") + (field.more ? ` (+${field.more})` : "")))
+        .concat(foundFields(pre).map((field) => readableField(field) + ": " + field.values.map((value) => readableValue(fieldValue(field, value))).join(", ") + (field.more ? ` (+${field.more})` : "")))
         .concat(fers.length ? [FG.t("selfcheck.note.declared") + ": " + fers.join(", ")] : [])
         .concat(FG.list(pre.notes).map(noteText)).concat([pre.subject, pre.representation, pre.commit, pre.coverage, pre.record].filter(Boolean))
         .concat(pre.truncated ? [FG.t("selfcheck.evidence.bounded")] : []).join("; ");
@@ -1874,7 +1880,7 @@
     if (owner) meta.push(h("span", { class: "answer-owner" }, owner));
     for (const { seen, fields } of observedFacts(entry).slice(0, 3)) {
       meta.push(h("span", { class: "answer-observation" }, FG.t("selfcheck.evidence.observedBy", { source: label(seen.source), date: FG.formatDate(seen.date) }),
-        fields.slice(0, 2).map((field) => [" ", h("span", { class: "evidence-readable" }, readableField(field), ": ", field.values.slice(0, 3).map((found, index) => [index ? ", " : "", valueNode(found, true)]))])));
+        fields.slice(0, 2).map((field) => [" ", h("span", { class: "evidence-readable" }, readableField(field), ": ", field.values.slice(0, 3).map((found, index) => [index ? ", " : "", valueNode(found, true, field)]))])));
     }
     return h(
       "li",

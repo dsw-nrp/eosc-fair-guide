@@ -199,6 +199,7 @@ snapshot = { cs = "Snímek ze dne {date}", en = "Snapshot of {date}" }
 disclaimer = { cs = "Upozornění FIP Dashboardu", en = "FIP Dashboard notice" }
 
 [repositories]
+noPublicAddress = { cs = "Repozitář zatím nemá veřejnou adresu.", en = "The repository has no public address yet." }
 intro = { cs = "Vyberte podle toho, co potřebujete: uložit data nebo publikace, hledat metadata, standardy, repozitáře či nástroje. Pro uložení dat dejte přednost oborovému repozitáři, potom institucionálnímu a nakonec obecnému. Zařazení v katalogu samo o sobě neznamená doporučení ani kvalifikaci NRP nebo EOSC CZ; ověření uvádí, kdo je provedl.", en = "Choose by what you need: deposit data or publications, find metadata, standards, repositories or tools. For data deposit, prefer a domain repository, then an institutional one and finally a general-purpose one. Listing alone does not imply a recommendation or NRP or EOSC CZ qualification; verification names who performed it." }
 curated = { cs = "výběr Průvodce", en = "the Guide's selection" }
 nkrEmpty = { cs = "NKR zatím žádný repozitář neuvádí; jakmile je uvede, Průvodce je při pravidelné aktualizaci převezme.", en = "NKR does not list any repository yet; once it does, the Guide takes them over at its regular update." }
@@ -713,6 +714,7 @@ principles = { cs = "podle FAIR principů", en = "by FAIR principle" }
 steps = { cs = "podle kroků cesty", en = "by path step" }
 
 [selfcheck.evidence]
+present = { cs = "uveden", en = "present" }
 changed = { cs = "změněno vámi", en = "changed by you" }
 differs = { cs = "liší se od návrhu", en = "differs from the suggestion" }
 none = { cs = "bez podkladu", en = "no evidence" }
@@ -755,6 +757,7 @@ localTest = { cs = "test Průvodce v prohlížeči", en = "a Guide test in the b
 withdrawToSuggestion = { cs = "Zrušit odpověď a vrátit návrh", en = "Withdraw the answer and restore the suggestion" }
 
 [selfcheck.field]
+contact = { cs = "Hlavní kontakt", en = "Main contact" }
 licence = { cs = "Licence", en = "Licence" }
 title = { cs = "Název", en = "Title" }
 description = { cs = "Popis", en = "Description" }

@@ -165,6 +165,7 @@ async function publish({ github, context, core }, read = readFileSync, exists = 
     }
     const body = [`Validated refresh of the **${source}** snapshot from the default branch at \`${current.sha}\`.`, "",
       "The response passed the shape, completeness, size and removal checks of `scripts/refresh_snapshots.py`.", "",
+      ...(outcome.reason ? [String(outcome.reason).replace(/[\r\n]+/g, " "), ""] : []),
       handoff({ next: "a maintainer reviews the snapshot change as content and merges it through the queue; nothing merges automatically.",
         blocked: "close this pull request if the change is wrong; identical content is not proposed again.",
         done: "this pull request is merged or closed." }), "", marker].join("\n");

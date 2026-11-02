@@ -16,7 +16,8 @@ nothing reaches the Guide unreviewed.
      refresh tries again.
 2. **Review the refresh pull request.**
    - **Where:** the pull request "Refresh the `<source>` snapshot", labelled `source-refresh`.
-   - **Do:** read the snapshot change as content and confirm that `checks` passed.
+   - **Do:** read the snapshot change as content and confirm that `checks` passed. For NKR, read the PR's
+     unavailable pre-fill fields and review its repository joins; contact presence contains no address.
    - **Done when:** you approve it, or close it as wrong.
    - **If it fails:** a closed proposal is not offered again with identical content; the next real change is.
 3. **Merge it.**

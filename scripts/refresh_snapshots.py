@@ -8,7 +8,7 @@ Writes, each only after its response passes validation:
 - ``content/snapshots/re3data.toml`` with the Czech repositories registered in re3data;
 - ``content/snapshots/fip-dashboard.toml`` with the FIP Dashboard's metadata, resources and profiles, which depend
   on each other and are replaced together in one file or not at all;
-- ``content/snapshots/nkr.toml`` with the reviewed fields (``NKR_FIELDS``) of the repositories the National Repository
+- ``content/snapshots/nkr.toml`` with the schema-defined reviewed fields of the repositories the National Repository
   Catalogue lists. Its repositories join the catalogue and the repository check's NKR pre-fill at build time; nothing
   is written while NKR lists no repository;
 - ``content/snapshots/fairsharing.toml`` with the FAIRsharing record of each repository the catalogue lists, found
@@ -28,7 +28,7 @@ Usage::
 Without source names, all are refreshed. With ``--input``, responses are read from files in DIR instead of the
 network (``heslar.json``, ``re3data-list.xml``, ``re3data-<id>.xml``, ``fip-dashboard-meta.json``,
 ``fip-dashboard-resource-types.json``, ``fip-dashboard-organizations.json``, ``fip-dashboard-resources.json``,
-``fip-dashboard-fips.json``, ``nkr-<page>.json``, ``knav-tools.json``, ``knav-tools-commit.json``,
+``fip-dashboard-fips.json``, ``nkr-<page>.json``, ``nkr-schema.json``, ``knav-tools.json``, ``knav-tools-commit.json``,
 ``fairsharing-<batch>.json``, ``datacite-<r3d id>.json``). FAIRsharing and DataCite read the repositories from the
 checkout's content, the re3data snapshot included, so they follow a re3data refresh.
 
@@ -91,7 +91,7 @@ NKR_PAGE_SIZE = 100
 MAX_REMOVED_SHARE = 0.25
 # The NKR fields a snapshot keeps: what identifies a repository and what the guide's checks read (the `nkr` prefill
 # paths in content/checks). Personal contact data are never copied; a contact is recorded only as present.
-NKR_IDENTITY = ("repositoryName", "mainUrl", "type", "keywordCz", "keywordEn", "relatedRegistry")
+NKR_IDENTITY = ("repositoryName", "additionalNames", "mainUrl", "type", "status", "keywordCz", "keywordEn")
 NKR_PERSONAL = ("mainContact",)
 KNAV_REPOSITORY = "Open-Science-Department-KNAV/Data-Management-Tools-Catalogue"
 KNAV_TOOLS = f"https://raw.githubusercontent.com/{KNAV_REPOSITORY}/main/dmtools.json"
@@ -149,6 +149,7 @@ class Snapshot:
     counts: dict[str, int]
     required: tuple[str, ...] = ()
     retrieved: str = ""
+    notes: str = ""
 
     def text(self) -> str:
         return self.header + "\n" + "\n\n".join(self.blocks) + "\n"
@@ -492,7 +493,7 @@ def nkr_fields(root: Path) -> tuple[str, ...]:
         for item in tomllib.loads(check.read_text(encoding="utf-8")).get("item", []):
             for value in item.get("prefill", {}).get("nkr", []):
                 if not value.startswith("@"):
-                    paths.add(value.split(".", 1)[0])
+                    paths.add(re.split(r"[.\[=]", value, maxsplit=1)[0])
     return tuple(dict.fromkeys([*NKR_IDENTITY, *sorted(paths - set(NKR_IDENTITY))]))
 
 
@@ -525,27 +526,46 @@ def nkr_pages(fetch: Fetcher) -> list[dict[str, Any]]:
 
 
 def nkr(fetch: Fetcher, today: str, root: Path | None = None) -> Snapshot:
-    fields = nkr_fields(root or ROOT)
+    try:
+        schema = fetch.json(NKR + "/schemas/Repository", "nkr-schema.json")
+    except (OSError, ValueError, RejectedError) as error:
+        raise RejectedError(f"NKR Repository schema cannot be read: {error}") from error
+    if not isinstance(schema, dict) or not isinstance(schema.get("properties"), dict) or not schema["properties"]:
+        raise RejectedError("NKR Repository schema has no properties")
+    requested = nkr_fields(root or ROOT)
+    fields = tuple(name for name in requested if name in schema["properties"])
+    unavailable = [name for name in requested if name not in schema["properties"]]
+    notes = "Repository schema does not carry pre-fill fields: " + ", ".join(unavailable) if unavailable else ""
     blocks = [f'[snapshot]\nsource = "NKR"\nurl = "{NKR}/"\nretrieved = {today}\nfields = {q(list(fields))}']
     records = sorted(nkr_pages(fetch), key=lambda record: str(record.get("id", "")))
     for record in records:
         content = record.get("content") if isinstance(record, dict) else None
         if not isinstance(content, dict) or not record.get("id") or not content.get("repositoryName"):
             raise RejectedError("an NKR result has no ID or repository name")
+        if not str(content.get("mainUrl") or "").strip() and content.get("status") not in (
+            "intended",
+            "development",
+            "test",
+            "decomissioned",
+        ):
+            raise RejectedError(
+                f"NKR record {record['id']} ({content['repositoryName']}) has no address "
+                "and is neither planned, in development nor decommissioned"
+            )
         record_url = f"{NKR}/objects/{record['id']}"
         lines = ["[[record]]", f"id = {q(str(record['id']))}", f"url = {q(record_url)}"]
         for name in fields:
             if name in content and name not in NKR_PERSONAL:
                 lines.append(f"{name} = {toml_value(content[name])}")
         for name in NKR_PERSONAL:
-            if content.get(name):
+            if name in fields and content.get(name):
                 lines.append(f"{name}Present = true")
         blocks.append("\n".join(lines))
     header = (
         "# Snapshot of the repositories in the National Repository Catalogue (NKR): the reviewed fields only, no\n"
         "# personal contact data. Generated by scripts/refresh_snapshots.py; do not edit by hand.\n"
     )
-    return Snapshot("content/snapshots/nkr.toml", header, blocks, {"record": len(records)}, (), today)
+    return Snapshot("content/snapshots/nkr.toml", header, blocks, {"record": len(records)}, (), today, notes)
 
 
 def knav_steps(root: Path) -> set[str]:
@@ -856,7 +876,9 @@ def commit(snapshot: Snapshot, root: Path) -> Outcome:
     """Validate a replacement against the existing snapshot and write it atomically, or explain why not."""
     target = root / snapshot.path
     previous = counts_in(target, list(snapshot.counts)) if target.exists() else {}
-    outcome = Outcome("", "", snapshot.path, snapshot.counts, previous, retrieved=snapshot.retrieved)
+    outcome = Outcome(
+        "", "", snapshot.path, snapshot.counts, previous, reason=snapshot.notes, retrieved=snapshot.retrieved
+    )
     for key in snapshot.required:
         if snapshot.counts.get(key, 0) == 0:
             raise RejectedError(f"{snapshot.path}: the response holds no {key} records")
@@ -866,6 +888,8 @@ def commit(snapshot: Snapshot, root: Path) -> Outcome:
             raise RejectedError(f"{snapshot.path}: {after} of {before} {key} records would remain")
     if not target.exists() and not any(snapshot.counts.values()):
         outcome.status, outcome.reason = "empty", "the source lists no records; nothing is written"
+        if snapshot.notes:
+            outcome.reason += "; " + snapshot.notes
         return outcome
     vocabulary_path = root / "content" / "guide.toml"
     vocabulary = tomllib.loads(vocabulary_path.read_text(encoding="utf-8")) if vocabulary_path.exists() else {}
@@ -883,6 +907,8 @@ def commit(snapshot: Snapshot, root: Path) -> Outcome:
         raise RejectedError(f"{snapshot.path}: identity needs review: {error}") from error
     if target.exists() and without_date(target.read_text(encoding="utf-8")) == without_date(new_text):
         outcome.status, outcome.reason = "unchanged", "only the retrieval date would change"
+        if snapshot.notes:
+            outcome.reason += "; " + snapshot.notes
         return outcome
     target.parent.mkdir(parents=True, exist_ok=True)
     handle, temporary = tempfile.mkstemp(prefix=f".{target.name}.", dir=target.parent)

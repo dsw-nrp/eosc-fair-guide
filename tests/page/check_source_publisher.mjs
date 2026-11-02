@@ -86,6 +86,9 @@ assert.deepEqual(writes.find(([kind]) => kind === "commit")[1].parents, ["m".rep
 const pull = writes.find(([kind]) => kind === "createPull")[1];
 assert.equal(pull.base, "main");
 assert(pull.body.includes(marker));
+({ github, writes } = fakeGithub());
+await publish({ github, context, core }, read(changed.map((outcome) => ({ ...outcome, reason: "Repository schema does not carry pre-fill fields: pidType" }))), exists, bot);
+assert(writes.find(([kind]) => kind === "createPull")[1].body.includes("pre-fill fields: pidType"), "the PR body carries unavailable schema fields");
 assert(!writes.some(([, value]) => String(value?.name || value?.ref || "").includes("main")), "the default branch is never written");
 assert.deepEqual(writes.find(([kind]) => kind === "labels")[1], { ...repo, issue_number: 7, labels: ["source-refresh"] }, "a new refresh PR is labelled");
 

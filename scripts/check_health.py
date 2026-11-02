@@ -414,7 +414,9 @@ def original_coverage(content: dict[str, Any]) -> dict[str, Any]:
     return {"counts": counts, "clauses": clauses, **coverage, "by_source": by_source}
 
 
-def integrity(content: dict[str, Any], root: Path, today: date) -> list[dict[str, Any]]:
+def integrity(
+    content: dict[str, Any], root: Path, today: date, graph: build_crate.Graph | None = None
+) -> list[dict[str, Any]]:
     """Small named checks per item type, complementing the full content and duplicate validators."""
     groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
     ledger = {item["id"] for item in content["ledger"]}
@@ -443,6 +445,41 @@ def integrity(content: dict[str, Any], root: Path, today: date) -> list[dict[str
         return "published-clause citations resolve", bool(citations) and all(
             identifier in ledger for identifier in citations
         )
+
+    retired = [
+        row
+        for snapshot in content["snapshots"]
+        if snapshot.get("snapshot", {}).get("source") == "NKR"
+        for row in snapshot.get("record", [])
+        if row.get("status") == "decomissioned"
+    ]
+    if retired:
+        if graph is None:
+            graph = build_crate.Graph()
+            build_crate.build_crate(content, graph)
+        repositories = [
+            graph.entities[link["@id"]] for link in build_crate.as_list(graph.entities["#repositories"].get("hasPart"))
+        ]
+        for row in retired:
+            handle = build_crate.alternate_id(row, "nkr")
+            reached = [
+                entity["@id"]
+                for entity in repositories
+                if (
+                    row.get("mainUrl")
+                    and build_crate.bare_url(entity.get("url")) == build_crate.bare_url(row["mainUrl"])
+                )
+                or build_crate.ref(build_crate.NKR_OBJECTS + handle) in build_crate.as_list(entity.get("sameAs"))
+            ]
+            add(
+                "NKR maintainer findings",
+                {"id": handle, "name": row["repositoryName"]},
+                [("decommissioned record excluded from catalogue", True)],
+                [
+                    "NKR marks this record decommissioned; review the source record. Entries reached: "
+                    + (", ".join(reached) or "none")
+                ],
+            )
 
     def dated(item: dict[str, Any], key: str = "asOf") -> tuple[list[tuple[str, bool]], list[str]]:
         observed = iso_date(item.get(key))
@@ -799,7 +836,7 @@ def make_report(
             "reason": "A dated resource or test status is not a current live availability probe; the scheduled live "
             "watch (scripts/watch_sources.py) observes services separately.",
         },
-        "integrity": integrity(content, root, today or date.today()),
+        "integrity": integrity(content, root, today or date.today(), graph),
         "original_coverage": original_coverage(content),
         "missing_links": link_review.pop("pending"),
         "missing_link_review": link_review,

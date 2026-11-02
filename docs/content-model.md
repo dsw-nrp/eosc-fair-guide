@@ -631,6 +631,22 @@ name corrects or completes them: the entry's own `name`, or the `name` of the re
 record. Where re3data tags a Czech name for a record and a curated name is given, the content check requires its Czech
 form (the Czech counterpart of the English-name rule). Without a curated name, the first name re3data tags as Czech
 serves Czech readers.
+For an NKR-listed repository, NKR's non-empty `repositoryName` supplies the Czech name and its English
+`additionalNames` value supplies the English name, falling back to `repositoryName`. NKR also takes precedence
+for kind, keywords and address; an empty value keeps the existing fact. Guide-owned functions, abbreviations,
+operators and recommendation remain. A name already ending with its abbreviation after a space, hyphen or dash
+does not receive the abbreviation again.
+
+Catalogue joins retain each source's existing re3data key, otherwise address key, and add an NKR handle wherever
+one is named. NKR records additionally look up their exact normalized `mainUrl` among all entry addresses;
+similar names or hosts never join records. An address-free record joins only through a reviewed `nkr` handle.
+Keys reaching two entries reject the build and are reported by the duplicate check.
+
+NKR statuses map at build time: `intended` to planned; `development` and `test` to in development;
+both pilot states to pilot; `production` to operational. Their `statusAsOf` is the snapshot's `retrieved` date,
+never NKR's placeholder release date. A `decomissioned` record contributes no catalogue entry or override;
+the health inventory names it and any entry it reaches for maintainer review. Contact presence supplies the
+`mainContact` pre-fill path as a boolean and is shown as present, with no contact address in evidence or exports.
 
 `functions` on a repository or registry resource lists values of `[[repositoryFunction]]` in `guide.toml`:
 `deposit-data`, `deposit-publications`, `preserve-software`, `find-metadata`, `find-standards`,
@@ -638,6 +654,11 @@ serves Czech readers.
 The catalogue groups by meaning, irrespective of source; recommendation and verification remain separate facts.
 Research-data repository records from re3data default to `deposit-data`. A registry is not a deposit destination
 unless its stated functions include depositing.
+The derived `acceptsDeposits = false` marks planned, in-development or prospective entries and NKR pilots not
+accepting data. It removes the data-deposit facet value while retaining the entry's functions on its card.
+Availability otherwise stays unknown; the absence of the property does not certify acceptance. A repository
+without an HTTPS address is valid only while planned or in development with an NKR record in `sameAs`;
+its card states that it has no public address yet, and the API and profile enforce the same exception.
 
 `[[record]]` annotations in `repositories.toml` identify imported records by `re3data`, `fipDashboard` and/or `knav`,
 carry their reviewed `functions` (for a repository or registry), a curated `name`, `abbreviation` and `url` taken from
@@ -670,6 +691,16 @@ The reservation also covers retired IDs in the central `content/identifiers.toml
 - `snapshots/fip-dashboard.toml` adds `datasetName`, `datasetVersion`, `datasetUpdated` and, while the dashboard
   publishes one, `disclaimer`; it lists `[[resourceType]]`, `[[organization]]`, `[[resource]]` (with
   `verification`: verifier, level, date) and `[[fip]]` (with `declarations`: principle, resource, status, note);
+- `snapshots/nkr.toml` lists `[[record]]` rows with their local `id`, typed NKR handle in `alternateIds`,
+  frozen `guideRoute` and NKR record `url`. Refresh reads the published
+  [Repository schema](https://repo.cz/schemas/Repository) before selecting identity fields (`repositoryName`,
+  `additionalNames`, `mainUrl`, `type`, `status`, `keywordCz`, `keywordEn`) and top-level `prefill.nkr` fields
+  that its `properties` defines. The snapshot's `fields` records that selection. Unavailable pre-fill fields
+  appear in the outcome and refresh PR, rather than being expected from Repository. `mainContact` is stored
+  only as `mainContactPresent`; no contact address or repository description is copied. An unreadable schema
+  rejects the refresh. A record without `mainUrl` is accepted only when intended, in development, in test or
+  decommissioned; every other such record rejects the replacement with its name and handle, preserving the
+  previous snapshot. New IDs use the repository's address or name, with routes by its NKR type;
 - `snapshots/knav-tools.toml`, the KNAV Data Management Tools Catalogue at its last commit (`datasetVersion`,
   `datasetUpdated`), lists `[[tool]]` entries with `id`, `name`, `url` (or `httpUrl` for an address served only over
   plain HTTP, which the page does not link), `steps` (stages of the `knav-tools` life-cycle model), `disciplines`

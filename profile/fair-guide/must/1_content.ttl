@@ -234,12 +234,26 @@ fair-guide:Resource a sh:NodeShape ;
 
 fair-guide:Repository a sh:NodeShape ;
     sh:name "Repository" ;
-    sh:description "A repository in the finder has a name, an HTTPS link and credits its source" ;
+    sh:description "A repository has an HTTPS address, or is not yet public with planned/development status and an NKR record" ;
     sh:targetSubjectsOf fg:repositoryKind ;
+    sh:or (
+        [ sh:property [ sh:path schema:url ; sh:minCount 1 ; sh:pattern "^https://" ] ]
+        [
+            sh:property [
+                sh:path fg:serviceStatus ; sh:minCount 1 ; sh:maxCount 1 ;
+                sh:node [ sh:property [ sh:path schema:termCode ; sh:minCount 1 ; sh:in ( "planned" "in-development" ) ] ]
+            ] ;
+            sh:property [
+                sh:path schema:sameAs ;
+                sh:qualifiedValueShape [ sh:pattern "^https://repo[.]cz/objects/.+" ] ;
+                sh:qualifiedMinCount 1
+            ]
+        ]
+    ) ;
+    sh:message "A repository needs an HTTPS address, or planned/development status with an NKR record" ;
     sh:property [
         sh:name "Repository link" ;
         sh:path schema:url ;
-        sh:minCount 1 ;
         sh:pattern "^https://" ;
         sh:message "A repository MUST have an HTTPS link" ;
     ] ;
