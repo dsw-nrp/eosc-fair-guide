@@ -1488,6 +1488,15 @@ sections.push(["self-check", async () => {
   if (!(await page.locator("#origin-gate-13").textContent()).includes("Hlavní kontakt: uveden")) fail("gate check: contact presence lacks its readable Czech label");
   await go("#/en/SR/check/gate/answers");
   if (!(await page.locator("#origin-gate-13").textContent()).includes("Main contact: present")) fail("gate check: contact presence lacks its readable English label");
+  for (const [lang, value] of [["cs", "uveden"], ["en", "present"]]) {
+    await go(`#/${lang}/SR/check/gate/answers`);
+    const details = page.locator("#item-gate-13 .question-details");
+    if (!(await details.evaluate((node) => node.open))) await details.locator(":scope > summary").click();
+    const evidenceDetails = details.locator(".evidence-details");
+    if (!(await evidenceDetails.evaluate((node) => node.open))) await evidenceDetails.locator(":scope > summary").click();
+    const contactValue = details.locator('.evidence-field').filter({ has: page.locator('code', { hasText: /^mainContact$/ }) }).locator(".evidence-value");
+    if (!(await contactValue.isVisible()) || (await contactValue.textContent()).trim() !== value) fail(`gate check: expanded mainContact evidence is not localized in ${lang}`);
+  }
   // Localizing the contact marker must preserve the same word when it is a source's actual title.
   await page.evaluate(() => {
     const entry = window.FairGuide.state.answers.gate.items["gate.13"];

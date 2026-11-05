@@ -79,6 +79,13 @@ NKR that the schema does not define SHALL be named in the refresh report and not
 - **GIVEN** an NKR record with a main contact
 - **WHEN** a repository administrator fills the gate check from that record
 - **THEN** the administrator-role item is answered from NKR and no contact address appears in the snapshot, the page or the export
+- **AND** its expanded evidence body shows the contact's localized presence value in Czech and English
+
+#### Scenario: A relationship is absent from the reviewed schema
+
+- **GIVEN** a Repository schema without `relatedRegistry` and a response carrying that extra field
+- **WHEN** the record is refreshed and built
+- **THEN** the field is omitted from the snapshot and contributes no NKR re3data join or retirement key
 
 ### Requirement: NKR refresh rejects unrepresentable values before writing
 
@@ -115,6 +122,18 @@ that snapshot exists.
 - **GIVEN** an NKR snapshot and a curated repository or resource repository naming a handle absent from it
 - **WHEN** the content check runs
 - **THEN** it fails naming the entry and the unknown handle
+
+### Requirement: Source diagnostics are bounded literal text
+
+Refresh diagnostics SHALL strip terminal/control characters and Unicode line separators, collapse whitespace
+and bound source-controlled labels. The publisher SHALL independently sanitize and escape reasons in Markdown
+summaries and pull-request bodies. Source text SHALL NOT create active markup or extra output rows.
+
+#### Scenario: A rejected record contains hostile diagnostic text
+
+- **GIVEN** source names or IDs containing control characters, markup and excessive text
+- **WHEN** refresh rejects the record and the publisher renders the reason
+- **THEN** the label remains bounded and literal, no terminal sequence or active markup is emitted, and the previous snapshot stays unchanged
 
 ### Requirement: The duplicate check covers NKR records
 

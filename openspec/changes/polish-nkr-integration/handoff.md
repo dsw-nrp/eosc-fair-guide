@@ -153,3 +153,32 @@ Final native acceptance passes 36/36 checks in 172.9 seconds, including 738 unit
 validation passes all six items. The verification report now records both warnings as resolved and covers
 29 tracked tasks, 12 requirements and 32 scenarios. Existing staged content was preserved; no commit, push,
 archive, source-refresh dispatch or hosted operation was performed.
+
+## Second PR review repairs, 2026-11-05
+
+The review at `f898fde` confirmed the nine original threads were repaired and raised five new Low findings.
+All five are addressed by tasks 11.1-11.5:
+
+- NKR rows bypass re3data annotation overlays and use their original names and addresses. The reviewed schema
+  has no `relatedRegistry`, so the dormant incoming re3data parser, match key and synthetic retirement branch
+  were removed. Refresh omission and supported handle/address build/duplicate paths have explicit tests.
+- The browser check opens both disclosure levels for gate.13 and checks the visible contact value in both
+  languages. A planted removal of the field context from generated `inspection.js` failed the Czech assertion;
+  restoring the file passed. Expanded views were inspected at desktop and 320 px in both languages.
+- Source-controlled diagnostic labels are flattened, stripped of terminal/control characters and Unicode
+  separators, bounded and escaped. The publisher repeats protection for summary tables and PR bodies.
+  Adversarial Python/Node cases preserve the old snapshot and cannot create active markup or extra rows.
+- Deposit availability has one producer after status overrides. `NON_DEPOSIT_STATUSES` owns the Guide rule,
+  and NKR's pilot refusal stays source data until then. Curated repository/resource cases cover all five
+  statuses; removing `planned` from the shared set makes the new curated-status regression fail.
+
+The focused NKR module passes 29 tests. The full initial run passed 35/36 checks with one formatting failure;
+after formatting, final native acceptance passes 36/36 checks in 170.5 seconds, including 742 unit tests.
+Strict OpenSpec validation passes all six items. Diagnostic protection has a curated security changelog note.
+The verification report now covers 34 tasks, 13 requirements and 35 scenarios, with all five new findings
+resolved. The two older non-verdict observations remain advisory, as reported by the reviewer.
+
+The negative-control logs and positive localization log are under `.cache/nkr-round2-*`; expanded-evidence
+screenshots and manifest are under `.cache/screenshots-nkr-round2/`. No implementation source was left with
+a planted regression. Changes remain local and uncommitted; no push, thread resolution, archive or hosted
+operation was performed.

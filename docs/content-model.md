@@ -644,6 +644,8 @@ similar names or hosts never join records. An address-free record joins only thr
 Keys reaching two entries, or two NKR records reaching one entry, reject the build and are reported by the
 duplicate check. Curated `nkr` handles on repositories and resource repositories are checked against the NKR
 snapshot when one exists; before the first snapshot, there is no harvested record to compare them with.
+The reviewed NKR Repository schema has no `relatedRegistry`: incoming NKR records join by handle or address,
+and receive no re3data annotation overlay. Extra response relationships absent from that schema are omitted.
 
 NKR statuses map at build time: `intended` to planned; `development` and `test` to in development;
 both pilot states to pilot; `production` to operational. Their `statusAsOf` is the snapshot's `retrieved` date,
@@ -660,7 +662,9 @@ Research-data repository records from re3data default to `deposit-data`. A regis
 unless its stated functions include depositing.
 The derived `acceptsDeposits = false` marks planned, in-development or prospective entries and NKR pilots not
 accepting data. It removes the data-deposit facet value while retaining the entry's functions on its card.
-Availability otherwise stays unknown; the absence of the property does not certify acceptance. A repository
+Availability otherwise stays unknown; the absence of the property does not certify acceptance.
+The final entity loop owns this derivation after status overrides, using `NON_DEPOSIT_STATUSES` and the raw NKR
+pilot refusal. No earlier source converter writes the property. A repository
 without an HTTPS address is valid only while planned or in development with an NKR record in `sameAs`;
 its card states that it has no public address yet, and the API and profile enforce the same exception.
 
@@ -708,6 +712,8 @@ The reservation also covers retired IDs in the central `content/identifiers.toml
   Kept identity values also match the Guide's consumed shapes in that module: alternative names are arrays of
   objects with string names/language labels, and keyword arrays contain strings. A changed upstream type cannot
   admit a value that the build cannot consume; rejection preserves the previous snapshot.
+  Diagnostic labels are bounded and stripped of terminal/control characters and line separators, with whitespace
+  collapsed and markup escaped. The publisher repeats sanitization at its Markdown summary and PR-body sinks.
   A record without `mainUrl` is accepted when intended, in development, in test, decommissioned, or joined through
   a reviewed handle to a curated repository or resource with an address; every other such record rejects the
   replacement with its name and handle, preserving the

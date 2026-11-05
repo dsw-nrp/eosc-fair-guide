@@ -68,7 +68,7 @@ qualification.
 ### Requirement: NKR records are shown as found
 
 The scheduled source workflow SHALL bring NKR's repository records into a snapshot. Each record SHALL join the
-catalogue entry that shares its re3data record, its NKR handle or its exact normalised address, or become an entry of
+catalogue entry that shares its reviewed NKR handle or its exact normalised address, or become an entry of
 its own when none matches; a similar name or host alone SHALL NOT join it. A record with no address SHALL join only an
 entry that names its NKR handle. For a repository NKR lists, the names, kind, status, keywords and address NKR states
 SHALL take precedence over other sources; a value NKR leaves empty SHALL NOT remove another source's value. When NKR
@@ -93,6 +93,12 @@ simulated records.
 - **GIVEN** a curated entry with a working address, joined through its reviewed NKR handle to an NKR record whose address is empty
 - **WHEN** the catalogue is built
 - **THEN** the entry keeps the curated address and still links to its NKR record
+
+#### Scenario: NKR matches an address with a reviewed annotation
+
+- **GIVEN** an NKR record at a raw source address whose re3data entry has a reviewed name and address override
+- **WHEN** the catalogue is built and duplicate-checked
+- **THEN** the NKR record joins once using its own address and supplies its own non-empty name and address without receiving the annotation's facts
 
 #### Scenario: A record without an address and without a reviewed handle
 

@@ -44,6 +44,7 @@ source was rejected or failed. Uses only the Python standard library; it never c
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import os
 import re
@@ -526,6 +527,14 @@ def nkr_pages(fetch: Fetcher) -> list[dict[str, Any]]:
     return results
 
 
+def diagnostic_label(value: Any, limit: int = 160) -> str:
+    """Bound source text and keep it literal in logs, JSON reports and Markdown diagnostics."""
+    value = re.sub(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\))", "", str(value))
+    value = re.sub(r"[\x00-\x1f\x7f-\x9f\u2028\u2029]", " ", value)
+    value = re.sub(r"\s+", " ", value).strip()[:limit]
+    return re.sub(r"([\\`*_{}\[\]()!|#])", r"\\\1", html.escape(value, quote=False))
+
+
 def nkr_value(value: Any, schema: dict[str, Any], where: str) -> None:
     """Validate the schema's kept value shapes and enums without copying personal values into errors."""
     if not isinstance(schema, dict):
@@ -601,7 +610,7 @@ def nkr(fetch: Fetcher, today: str, root: Path | None = None) -> Snapshot:
         content = record.get("content") if isinstance(record, dict) else None
         if not isinstance(content, dict) or not record.get("id") or not content.get("repositoryName"):
             raise RejectedError("an NKR result has no ID or repository name")
-        where = f"NKR record {record['id']} ({content['repositoryName']})"
+        where = f"NKR record {diagnostic_label(record['id'])} ({diagnostic_label(content['repositoryName'])})"
         for name in fields:
             if name in content and name not in NKR_PERSONAL:
                 nkr_value(content[name], schema["properties"][name], f"{where}.{name}")
@@ -610,7 +619,7 @@ def nkr(fetch: Fetcher, today: str, root: Path | None = None) -> Snapshot:
         try:
             status = nkr_status(content.get("status"))
         except ValueError as error:
-            raise RejectedError(f"{where}.status: {error}") from error
+            raise RejectedError(f"{where}.status: {diagnostic_label(error)}") from error
         address = content.get("mainUrl", "")
         if address:
             try:

@@ -59,6 +59,14 @@
 - [x] 10.2 Reuse the build's repository identity lookup for retirement reporting, including raw and annotated addresses and reviewed keys; reproduce the AMCR omission and verify every reached entry is named without changing its status or listing the retired record.
 - [x] 10.3 Run strict OpenSpec validation and complete native acceptance; update the verification report, hand-off and rolling usage record with both warning dispositions.
 
+## 11. Second PR review repairs
+
+- [x] 11.1 Protect NKR's original facts from re3data annotation overlays; remove the unsupported incoming re3data relationship path, reconcile its claims and synthetic-only coverage, and verify supported handle/address joins through refresh, build and duplicate checks.
+- [x] 11.2 Open contact evidence details and assert its localized value in both languages; demonstrate that removing the field context in inspection.js fails the page check, then restore it and pass.
+- [x] 11.3 Sanitize and bound source-controlled diagnostic labels and escape source reasons at the publisher's Markdown sinks; verify control characters, markup, long labels and unchanged snapshots with adversarial tests.
+- [x] 11.4 Derive deposit availability once after all status overrides, using the shared Guide status set and the retained NKR-only fact; cover curated and NKR statuses and demonstrate a planted status-set regression is caught.
+- [x] 11.5 Run strict OpenSpec and complete native acceptance, inspect expanded evidence at desktop/phone widths, and update the verification report, hand-off and usage record for all five new findings.
+
 ## Workflow follow-up
 
 - A maintainer closes [dsw-nrp/eosc-fair-guide#168](https://github.com/dsw-nrp/eosc-fair-guide/pull/168) unmerged after this change merges, and dispatches the `nkr` source refresh.

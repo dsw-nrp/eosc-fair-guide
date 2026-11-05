@@ -31,6 +31,14 @@ const branchOf = (source) => PREFIX + source;
 const markerOf = (source, hash) => `${MARKER}source=${source} sha256=${hash} -->`;
 const hashOf = (files) => createHash("sha256").update(files.map(([path, text]) => path + "\0" + text + "\0").join("")).digest("hex");
 
+/** Source-controlled reasons are literal, bounded text at every Markdown sink, including table cells. */
+function safeReason(value) {
+  return String(value || "").replace(/\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\))/g, "")
+    .replace(/[\x00-\x1f\x7f-\x9f\u2028\u2029]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/([\\`*_{}\[\]()!|#])/g, "\\$1");
+}
+
 /** A refresh command is exactly "/refresh <source key>"; anything else, including extra words, is not one. */
 function parseCommand(body) {
   const match = /^\/refresh ([a-z0-9-]{1,40})$/.exec(String(body || "").trim());
@@ -165,7 +173,7 @@ async function publish({ github, context, core }, read = readFileSync, exists = 
     }
     const body = [`Validated refresh of the **${source}** snapshot from the default branch at \`${current.sha}\`.`, "",
       "The response passed the shape, completeness, size and removal checks of `scripts/refresh_snapshots.py`.", "",
-      ...(outcome.reason ? [String(outcome.reason).replace(/[\r\n]+/g, " "), ""] : []),
+      ...(outcome.reason ? [safeReason(outcome.reason), ""] : []),
       handoff({ next: "a maintainer reviews the snapshot change as content and merges it through the queue; nothing merges automatically.",
         blocked: "close this pull request if the change is wrong; identical content is not proposed again.",
         done: "this pull request is merged or closed." }), "", marker].join("\n");
@@ -260,7 +268,7 @@ async function summarize({ core }, { results = "", publication = "", report = { 
   const published = publication === "success";
   const rows = Object.entries(statuses).filter(([source]) => Object.hasOwn(SOURCES, source)).map(([source, status]) => {
     const role = ACT.has(status) || (!published && status === "changed") ? "act" : RETRY.has(status) ? "retry" : "none";
-    const reason = String(refreshed[source]?.reason || "").replace(/[|\r\n]+/g, " ").slice(0, 300);
+    const reason = safeReason(refreshed[source]?.reason);
     const text = status === "changed" && !published ? "changed, but publication did not complete" : OUTCOMES[status] || status;
     return { source, role, line: `| \`${source}\` | ${text} | ${role === "act" ? "**Act**" : role === "retry" ? "Retry" : "—"} | ${reason} |` };
   });

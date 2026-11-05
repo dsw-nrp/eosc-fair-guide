@@ -4,7 +4,7 @@
 
 See `proposal.md` for the harvest that exposed these defects. The behaviour this change requires is in `specs/fair-guide/guide-experience/spec.md` and `specs/fair-guide/guide-knowledge-base/spec.md`.
 
-The current state is as follows:
+Before this change:
 
 - **One merge key.** `build_repositories` (`scripts/build_crate.py`) merges each repository record under a single key from `repository_key`: `re3data:<id>` when the record names one, otherwise `url:<address>`. Curated entries come first, and the first non-empty value of each property wins. A curated entry's `nkr` handle becomes a `sameAs` link but is not a merge key.
 - **NKR records as repositories.** `nkr_repositories` turns NKR snapshot records into repository records and looks for a re3data ID in `relatedRegistry`, which the `Repository` record no longer carries.
@@ -43,6 +43,11 @@ records. FIP and curated entries do not join by address alone; an NKR record rea
 The address lookup indexes both the source record's address and its reviewed annotation address. The duplicate
 check uses the same addresses. Two NKR records reaching one component are ambiguous too; neither record may
 supply a mixture of identity and authoritative facts.
+
+The reviewed Repository schema carries no `relatedRegistry`, so NKR records join only by their reviewed handle
+or exact address. The dormant incoming re3data relationship parser is removed; existing curated/re3data joins
+provide catalogue identity. An NKR row never receives another source's `[[record]]` annotation overlay,
+and its original name and `mainUrl` supply its precedence values and match keys.
 
 **Alternatives considered.**
 
@@ -84,6 +89,10 @@ all reached entries without merging the retired record or changing an entry's fa
 **Decision.** The build marks a repository entity as not accepting data in two cases: its five-level status is planned, in development or prospective, or its NKR status is `pilot - not accepting data`. This is a Guide vocabulary property, `acceptsDeposits` set to false, which is omitted when unknown.
 
 The data-deposit facet value is not indexed for such an entity, so the data-repository chooser, which is that facet, leaves it out. The card still shows the entry's functions.
+
+Only the final entity loop derives `acceptsDeposits`, after applying NKR's status overrides. One shared set
+owns the Guide statuses that prohibit deposit; the NKR pilot refusal remains source record data until that
+final derivation. Curated and NKR status cases both exercise this rule.
 
 **Alternatives considered.**
 
@@ -128,6 +137,10 @@ The refresh rejects the replacement, leaving the existing snapshot, in these cas
   handle, and its status maps to neither planned nor in development.
 
 Schema retrieval failures retain the retryable `failed` outcome; malformed schema content is `rejected`.
+
+Record names and IDs are bounded, flattened and stripped of terminal/control characters before entering
+diagnostics. Source text is escaped for Markdown/HTML, and the publisher independently applies that treatment
+to reasons in summaries and pull-request bodies. Snapshot source values are not rewritten by this formatting.
 
 **Alternatives considered.**
 

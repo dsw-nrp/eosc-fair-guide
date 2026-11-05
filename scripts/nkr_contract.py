@@ -18,17 +18,17 @@ NKR_FIELD_SHAPES = {
     "keywordEn": {"type": "array", "items": {"type": "string"}},
 }
 
+NKR_PILOT_NOT_ACCEPTING = "pilot - not accepting data"
 NKR_STATUS = {
     "intended": "planned",
     "development": "in-development",
     "test": "in-development",
-    "pilot - not accepting data": "pilot",
+    NKR_PILOT_NOT_ACCEPTING: "pilot",
     "pilot - accepting data": "pilot",
     "production": "operational",
     # This spelling is published by NKR's Repository schema.
     "decomissioned": None,
 }
-NKR_NO_DEPOSITS = frozenset({"intended", "development", "test", "pilot - not accepting data"})
 
 
 def nkr_status(value: str) -> str | None:

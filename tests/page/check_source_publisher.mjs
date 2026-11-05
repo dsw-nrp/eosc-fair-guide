@@ -89,6 +89,13 @@ assert(pull.body.includes(marker));
 ({ github, writes } = fakeGithub());
 await publish({ github, context, core }, read(changed.map((outcome) => ({ ...outcome, reason: "Repository schema does not carry pre-fill fields: pidType" }))), exists, bot);
 assert(writes.find(([kind]) => kind === "createPull")[1].body.includes("pre-fill fields: pidType"), "the PR body carries unavailable schema fields");
+({ github, writes } = fakeGithub());
+await publish({ github, context, core }, read(changed.map((outcome) => ({ ...outcome,
+  reason: "source\n\x1b[31m<img src=x> [link](https://bad.example)\u2028" + "x".repeat(1000) }))), exists, bot);
+const diagnosticBody = writes.find(([kind]) => kind === "createPull")[1].body;
+assert.doesNotMatch(diagnosticBody, /[\x00-\x09\x0b-\x1f\x7f-\x9f\u2028\u2029]/);
+assert(!diagnosticBody.includes("<img") && !diagnosticBody.includes("[link]("), "PR diagnostic text is literal too");
+assert(!diagnosticBody.includes("x".repeat(500)), "PR diagnostic text is bounded");
 assert(!writes.some(([, value]) => String(value?.name || value?.ref || "").includes("main")), "the default branch is never written");
 assert.deepEqual(writes.find(([kind]) => kind === "labels")[1], { ...repo, issue_number: 7, labels: ["source-refresh"] }, "a new refresh PR is labelled");
 
@@ -251,6 +258,13 @@ for (const invalid of ["null", "[]", "true"]) {
   assert.match(rejected.failed, /needs a maintainer/);
   assert.match(rejected.text, /\*\*Act\*\* \| 3 terms lack an identifier \|/);
   assert.match(rejected.text, /\*\*Done when:\*\* a rerun marks no source \*\*Act\*\*/);
+  const hostileReason = "row\n\x1b[31m<img src=x> [link](https://bad.example) | injected\u0085\u2028\u2029 " + "x".repeat(1000);
+  const hostile = await run({ publication: "success",
+    report: { outcomes: [{ source: "nkr", status: "rejected", reason: hostileReason }] } });
+  const hostileRow = hostile.text.split("\n").find((line) => line.startsWith("| `nkr` |"));
+  assert.doesNotMatch(hostileRow, /[\x00-\x1f\x7f-\x9f\u2028\u2029]/, "diagnostics strip terminal and line controls");
+  assert(!hostileRow.includes("<img") && !hostileRow.includes("[link]("), "source text cannot become HTML or Markdown");
+  assert(hostileRow.length < 1500, "operator-facing reasons are bounded");
   const unpublished = await run({ results: "", publication: "failure", report: { outcomes: [{ source: "re3data", status: "changed" }] } });
   assert.match(unpublished.failed, /needs a maintainer/);
   assert.match(unpublished.text, /Publication did not complete/);

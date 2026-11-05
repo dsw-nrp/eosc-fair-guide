@@ -459,9 +459,7 @@ def integrity(
             build_crate.build_crate(content, graph)
         for row in retired:
             handle = build_crate.alternate_id(row, "nkr")
-            record_keys = build_crate.nkr_match_keys(
-                {"nkr": handle, "url": row.get("mainUrl"), "re3data": build_crate.nkr_re3data(row)}
-            )
+            record_keys = build_crate.nkr_match_keys({"nkr": handle, "url": row.get("mainUrl")})
             reached = sorted({entity_id for key in record_keys for entity_id in graph.repository_keys.get(key, set())})
             add(
                 "NKR maintainer findings",

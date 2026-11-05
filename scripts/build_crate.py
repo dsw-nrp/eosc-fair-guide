@@ -48,7 +48,7 @@ from catalogue_identity import (
     validate_identity,
 )
 from corrections import apply as apply_corrections
-from nkr_contract import NKR_NO_DEPOSITS, nkr_status
+from nkr_contract import NKR_PILOT_NOT_ACCEPTING, nkr_status
 from publication_location import base_url as publication_base
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -124,6 +124,7 @@ FTR_TEST = "https://w3id.org/ftr#Test"
 FIP_TERMS = "https://w3id.org/fair/fip/terms/"
 FIP_DASHBOARD = "https://fip-dashboard.dmp.eosc.cz/resources/"
 NKR_OBJECTS = "https://repo.cz/objects/"
+NON_DEPOSIT_STATUSES = frozenset({"planned", "in-development", "prospective"})
 RE3DATA_RECORD = re.compile(r"re3data\.org/repository/(r3d\d+)")
 FTR = "https://w3id.org/ftr#"
 PROV = "http://www.w3.org/ns/prov#"
@@ -1379,7 +1380,6 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
         "url": repository.get("url"),
         "repositoryKind": ref(f"#rkind-{repository['kind']}") if repository.get("kind") else None,
         "repositoryFunction": refs([f"#rfunction-{value}" for value in repository.get("functions", ["deposit-data"])]),
-        "acceptsDeposits": repository.get("acceptsDeposits"),
         "keywords": text(repository.get("subjects"))
         or [{"@value": subject, "@language": "en"} for subject in repository.get("subjectsEn", [])],
         "identifier": repository["id"],
@@ -1406,27 +1406,17 @@ def snapshot_id(snapshot: dict[str, Any]) -> str:
     return f"#snapshot-{slug(snapshot['snapshot']['source'])}"
 
 
-def nkr_re3data(record: dict[str, Any]) -> str | None:
-    """The re3data record an NKR record explicitly names, when carried by its schema."""
-    for item in as_list(record.get("relatedRegistry")):
-        if isinstance(item, dict) and (found := RE3DATA_RECORD.search(str(item.get("relatedRegistryUrl", "")))):
-            return found.group(1)
-    return None
-
-
 def nkr_match_keys(repository: dict[str, Any]) -> set[str]:
-    """NKR joins by reviewed handle, plus exact address and re3data only when it has an address."""
+    """The reviewed Repository schema supports an NKR handle and its exact address as join keys."""
     keys = {"nkr:" + repository["nkr"]} if repository.get("nkr") else set()
     if address := bare_url(repository.get("url")):
         keys.add("url:" + address)
-        if repository.get("re3data"):
-            keys.add("re3data:" + repository["re3data"])
     return keys
 
 
 def nkr_repositories(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     """The repositories of an NKR snapshot as repository records: NKR's name, address, kind and keywords, its record
-    ID and the re3data record it names. Nothing else of the record is read here."""
+    ID and source status. Nothing else of the record is read here."""
     if snapshot.get("snapshot", {}).get("source") != "NKR":
         return []
     repositories = []
@@ -1450,11 +1440,10 @@ def nkr_repositories(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
                 },
                 "url": record.get("mainUrl"),
                 "nkr": alternate_id(record, "nkr"),
-                "re3data": nkr_re3data(record),
                 "kind": NKR_KIND.get(str(record.get("type", ""))),
                 "status": status,
                 "asOf": snapshot["snapshot"]["retrieved"],
-                "acceptsDeposits": False if record["status"] in NKR_NO_DEPOSITS else None,
+                "nkrStatus": record["status"],
                 "subjects": {
                     "cs": ", ".join(map(str, as_list(record.get("keywordCz")))),
                     "en": ", ".join(map(str, as_list(record.get("keywordEn")))),
@@ -1565,6 +1554,7 @@ def build_repositories(
     addresses: dict[str, set[str]] = {}
     order: list[str] = []
     nkr_owners: dict[str, str] = {}
+    nkr_statuses: dict[str, str] = {}
 
     def merge_into(existing: dict[str, Any], entity: dict[str, Any]) -> None:
         for prop, value in entity.items():
@@ -1590,12 +1580,12 @@ def build_repositories(
     def merge_source(based_on: str, repositories: list[dict[str, Any]]) -> None:
         nonlocal keys, addresses
         for source_record in repositories:
-            repository = source_record | annotations.get(source_record.get("re3data"), {})
+            is_nkr = based_on == "#snapshot-nkr"
+            repository = source_record if is_nkr else source_record | annotations.get(source_record.get("re3data"), {})
             record_keys = {repository_key(repository)}
             if repository.get("nkr"):
                 record_keys.add("nkr:" + repository["nkr"])
             address = bare_url(repository.get("url"))
-            is_nkr = based_on == "#snapshot-nkr"
             if is_nkr:
                 record_keys = nkr_match_keys(repository)
             matching = {keys[key] for key in record_keys if key in keys}
@@ -1612,6 +1602,7 @@ def build_repositories(
                         f"{merged[key]['_content_id']}"
                     )
                 nkr_owners[key] = repository["nkr"]
+                nkr_statuses[key] = repository["nkrStatus"]
             # A non-NKR record may connect existing keys; preserve the earliest component's facts.
             for other in [value for value in order if value in matching and value != key]:
                 merge_into(merged[key], merged.pop(other))
@@ -1683,9 +1674,8 @@ def build_repositories(
         merge_source(snapshot_id(snapshot), nkr_repositories(snapshot))
 
     component_ids = {key: entity["@id"] for key, entity in merged.items()}
-    graph.repository_keys = {
-        name: {component_ids[key]} for name, key in keys.items() if name.startswith(("nkr:", "re3data:"))
-    }
+    native_statuses = {component_ids[key]: status for key, status in nkr_statuses.items()}
+    graph.repository_keys = {name: {component_ids[key]} for name, key in keys.items() if name.startswith("nkr:")}
     graph.repository_keys.update(
         {"url:" + address: {component_ids[key] for key in components} for address, components in addresses.items()}
     )
@@ -1702,8 +1692,6 @@ def build_repositories(
             # The resource's entity takes the repository facts it does not state itself.
             resource = graph.entities[entity["@id"]]
             resource.update(overrides)
-            if entity.get("acceptsDeposits") is False:
-                resource["acceptsDeposits"] = False
             for prop in ("repositoryKind", "repositoryFunction", "keywords", "isBasedOn", "dataciteRepository"):
                 if entity.get(prop) and not resource.get(prop):
                     resource[prop] = entity[prop]
@@ -1735,10 +1723,13 @@ def build_repositories(
     repository_ids.extend(dashboard_ids)
     for entity_id in repository_ids:
         entity = graph.entities[entity_id]
-        if entity.get("serviceStatus") in [
-            ref("#status-" + value) for value in ("planned", "in-development", "prospective")
-        ]:
+        if (
+            entity.get("serviceStatus") in [ref("#status-" + value) for value in NON_DEPOSIT_STATUSES]
+            or native_statuses.get(entity_id) == NKR_PILOT_NOT_ACCEPTING
+        ):
             entity["acceptsDeposits"] = False
+        else:
+            entity.pop("acceptsDeposits", None)
         for record in as_list(entity.get("sameAs")):
             url = record.get("@id", "") if isinstance(record, dict) else str(record)
             if url.startswith(FIP_DASHBOARD):

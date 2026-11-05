@@ -244,8 +244,90 @@ class NkrRefreshTests(unittest.TestCase):
         self.assertIn(row["content"]["repositoryName"], outcome.reason)
         self.assertEqual(path.read_bytes(), previous)
 
+    def test_refresh_omits_relationships_absent_from_the_reviewed_schema(self):
+        page = self.inputs / "nkr-0.json"
+        data = json.loads(page.read_text(encoding="utf-8"))
+        for row in data["results"]:
+            row["content"]["relatedRegistry"] = [
+                {"relatedRegistryUrl": "https://www.re3data.org/repository/r3d100013576"}
+            ]
+        page.write_text(json.dumps(data), encoding="utf-8")
+        outcome = self.refresh()
+        self.assertEqual(outcome.status, "changed", outcome.reason)
+        snapshot = tomllib.loads((self.root / outcome.path).read_text(encoding="utf-8"))
+        self.assertNotIn("relatedRegistry", snapshot["snapshot"]["fields"])
+        self.assertTrue(all("relatedRegistry" not in row for row in snapshot["record"]))
+        self.assertTrue(all("re3data" not in row for row in build_crate.nkr_repositories(snapshot)))
+
+    def test_rejected_record_diagnostics_are_bounded_and_literal(self):
+        self.assertEqual(self.refresh().status, "changed")
+        path = self.root / "content/snapshots/nkr.toml"
+        previous = path.read_bytes()
+        page = self.inputs / "nkr-0.json"
+        data = json.loads(page.read_text(encoding="utf-8"))
+        hostile = "\n\x1b[31m<img src=x> [link](https://bad.example)\u0085\u2028\u2029"
+        row = data["results"][0]
+        row["id"] = hostile + "i" * 500
+        row["content"].update(repositoryName=hostile + "n" * 500, mainUrl="http://bad.example/")
+        page.write_text(json.dumps(data), encoding="utf-8")
+        outcome = self.refresh()
+        self.assertEqual(outcome.status, "rejected")
+        self.assertNotRegex(outcome.reason, r"[\x00-\x1f\x7f-\x9f\u2028\u2029]")
+        self.assertNotIn("<img", outcome.reason)
+        self.assertNotIn("[link](", outcome.reason)
+        self.assertLess(len(outcome.reason), 900)
+        self.assertEqual(path.read_bytes(), previous)
+
 
 class NkrCatalogueTests(unittest.TestCase):
+    def test_nkr_facts_bypass_annotations_and_join_through_the_original_address(self):
+        for address, expected_id in (
+            ("https://digiarchiv.aiscr.cz/", "#repository-amcr"),
+            ("https://mbdb-data.org/", "#repository-mbdb"),
+        ):
+            with self.subTest(address=address):
+                content = reference_content()
+                snapshot = content["snapshots"][-1]
+                snapshot["record"] = [row for row in snapshot["record"] if "mbdb" not in row.get("mainUrl", "")]
+                record = copy.deepcopy(snapshot["record"][0])
+                record.update(
+                    id="original-nkr-facts",
+                    repositoryName="Original NKR name",
+                    additionalNames=[],
+                    mainUrl=address,
+                    alternateIds=[{"scheme": "nkr", "value": "20.500.14818/original-facts"}],
+                    relatedRegistry=[{"relatedRegistryUrl": "https://www.re3data.org/repository/r3d100013576"}],
+                )
+                snapshot["record"].append(record)
+                graph = build_crate.Graph()
+                build_crate.build_crate(content, graph)
+                entity = graph.entities[expected_id]
+                self.assertEqual(
+                    entity["name"], build_crate.text({"cs": "Original NKR name", "en": "Original NKR name"})
+                )
+                self.assertEqual(entity["url"], address)
+                self.assertIn(
+                    build_crate.ref(build_crate.NKR_OBJECTS + "20.500.14818/original-facts"),
+                    build_crate.as_list(entity["sameAs"]),
+                )
+                self.assertEqual(
+                    check_duplicates.check(content, check_duplicates._accepted(build_crate.ROOT)).errors, []
+                )
+
+    def test_curated_repository_and_resource_statuses_control_deposits(self):
+        for status in ("planned", "in-development", "prospective", "pilot", "operational"):
+            with self.subTest(status=status):
+                content = build_crate.load_content()
+                repository = next(row for row in content["repositories"] if row["id"] == "czech-bioimaging")
+                resource = next(row for row in content["resources"] if row["id"] == "datarepo")
+                for entry in (repository, resource):
+                    entry.update(status=status, asOf="2026-11-05")
+                graph = build_crate.Graph()
+                build_crate.build_crate(content, graph)
+                for entity_id in ("#repository-czech-bioimaging", "#resource-datarepo"):
+                    expected = False if status in ("planned", "in-development", "prospective") else None
+                    self.assertIs(graph.entities[entity_id].get("acceptsDeposits"), expected)
+
     def test_raw_and_annotated_addresses_join_the_same_repository(self):
         for address in ("https://digiarchiv.aiscr.cz/", "https://amcr-info.aiscr.cz/"):
             with self.subTest(address=address):
@@ -358,7 +440,8 @@ class NkrCatalogueTests(unittest.TestCase):
                     self.assertEqual(
                         bird.get("acceptsDeposits"),
                         False
-                        if expected in ("planned", "in-development") or native == "pilot - not accepting data"
+                        if expected in build_crate.NON_DEPOSIT_STATUSES
+                        or native == nkr_contract.NKR_PILOT_NOT_ACCEPTING
                         else None,
                     )
                 else:
@@ -418,43 +501,33 @@ class NkrCatalogueTests(unittest.TestCase):
                 )
                 self.assertIn("#repository-amcr", " ".join(finding["notes"]))
 
-    def test_retirement_reports_every_address_match_and_reviewed_re3data_keys(self):
-        for mode in ("shared-address", "re3data"):
-            with self.subTest(mode=mode):
-                content = reference_content()
-                record = copy.deepcopy(content["snapshots"][-1]["record"][0])
-                record.update(
-                    id="retired-keys",
-                    repositoryName="Retired keys",
-                    status="decomissioned",
-                    additionalNames=[],
-                    alternateIds=[{"scheme": "nkr", "value": "20.500.14818/retired-keys"}],
-                )
-                if mode == "shared-address":
-                    record["mainUrl"] = "https://digiarchiv.aiscr.cz/"
-                    content["repositories"].append(
-                        {"id": "other-amcr", "name": "Other AMCR", "url": record["mainUrl"], "re3data": "r3d999999999"}
-                    )
-                    expected = ["#repository-amcr", "#repository-other-amcr"]
-                else:
-                    record["mainUrl"] = "https://other-address.example.org/"
-                    record["relatedRegistry"] = [
-                        {"relatedRegistryUrl": "https://www.re3data.org/repository/r3d100013576"}
-                    ]
-                    expected = ["#repository-amcr"]
-                content["snapshots"][-1]["record"].append(record)
-                graph = build_crate.Graph()
-                build_crate.build_crate(content, graph)
-                groups = check_health.integrity(content, build_crate.ROOT, date(2026, 11, 5), graph)
-                finding = next(
-                    item
-                    for group in groups
-                    if group["type"] == "NKR maintainer findings"
-                    for item in group["items"]
-                    if item["id"] == "20.500.14818/retired-keys"
-                )
-                for entity_id in expected:
-                    self.assertIn(entity_id, " ".join(finding["notes"]))
+    def test_retirement_reports_every_address_match(self):
+        content = reference_content()
+        record = copy.deepcopy(content["snapshots"][-1]["record"][0])
+        record.update(
+            id="retired-keys",
+            repositoryName="Retired keys",
+            status="decomissioned",
+            additionalNames=[],
+            mainUrl="https://digiarchiv.aiscr.cz/",
+            alternateIds=[{"scheme": "nkr", "value": "20.500.14818/retired-keys"}],
+        )
+        content["repositories"].append(
+            {"id": "other-amcr", "name": "Other AMCR", "url": record["mainUrl"], "re3data": "r3d999999999"}
+        )
+        content["snapshots"][-1]["record"].append(record)
+        graph = build_crate.Graph()
+        build_crate.build_crate(content, graph)
+        groups = check_health.integrity(content, build_crate.ROOT, date(2026, 11, 5), graph)
+        finding = next(
+            item
+            for group in groups
+            if group["type"] == "NKR maintainer findings"
+            for item in group["items"]
+            if item["id"] == "20.500.14818/retired-keys"
+        )
+        for entity_id in ("#repository-amcr", "#repository-other-amcr"):
+            self.assertIn(entity_id, " ".join(finding["notes"]))
 
     def test_profile_accepts_only_not_yet_public_nkr_repositories_without_addresses(self):
         content = reference_content()

@@ -76,9 +76,23 @@
   Final native acceptance passes 36/36 checks in 172.9 seconds, including
   738 unit tests; strict OpenSpec validation passes 6/6. The verification report
   records both warnings as resolved. Existing staged content was preserved.
-- **Close-out:** All 29 tasks are complete and local acceptance is green on
-  `agents/codex/polish-nkr-integration`; no verification findings or skipped
-  checks remain after the authorized repairs.
+- **Verification (second PR review repairs, 2026-11-05):** The user requested
+  repair of the new review at `f898fde`. All five new Low findings are addressed
+  by tasks 11.1-11.5: NKR annotation isolation, removal of its unsupported
+  incoming re3data path and claims, expanded contact-evidence assertions,
+  literal diagnostics at both producers/sinks, and one final availability
+  derivation. Four new NKR tests and publisher/browser adversarial cases pass;
+  the NKR module has 29 tests. Planted localization and availability regressions
+  were detected and removed. Expanded evidence screenshots were inspected in
+  both languages at 1366 and 320 px. The first aggregate had one formatting
+  failure; after correction, final native acceptance passes 36/36 checks in
+  170.5 seconds, including 742 unit tests. Strict OpenSpec passes 6/6. The
+  security fix has a changelog note. Evidence and dispositions are in the
+  change's verification report and hand-off. The review's two older non-verdict
+  observations remain advisory. No subagents were used; GitHub was read only.
+- **Close-out:** All 34 tasks are complete and local acceptance is green on
+  `agents/codex/polish-nkr-integration`; all five new findings are repaired.
+  The user explicitly requested a local commit of the second-review repairs.
   The isolated baseline at
   `774b241890fdfb31be6ec111c0db9e415b998c5c` reproduced the eight NKR profile
   failures and identified one unrelated checkout-name assumption. The user
