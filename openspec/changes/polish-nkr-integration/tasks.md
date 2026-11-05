@@ -9,7 +9,7 @@
 
 - [x] 2.1 Move the NKR type mapping into `scripts/catalogue_identity.py`, add NKR's host to the registry hosts `identity_seed` skips, and route new NKR records by type in `preserve_snapshot`; verify with a unit test that the fixture yields `herbarium` under `repo/dom` and that no NKR ID equals its handle suffix
 - [x] 2.2 Make `refresh_snapshots.nkr` read the Repository schema, keep the identity fields plus the `prefill.nkr` paths the schema defines, report the others in the outcome, and keep `status` and `additionalNames`; verify with unit tests that `pidType` is reported and absent from `fields`, and that a missing schema rejects the refresh without writing
-- [x] 2.3 Reject a refresh with a record that is not decommissioned, has no address, and is not planned or in development; verify with a unit test naming the record in the rejection reason and leaving the previous snapshot unchanged
+- [x] 2.3 Reject a refresh with a record that is not decommissioned, has no address or reviewed handle joining an addressed entry, and is not planned or in development; verify with a unit test naming the record in the rejection reason and leaving the previous snapshot unchanged
 - [x] 2.4 Update `docs/content-model.md` (NKR snapshot fields, schema-derived field list, contact presence) and `docs/runbooks/refresh-a-source.md` if its NKR step changes; verify with `python scripts/check_docs.py`
 
 ## 3. Catalogue identity and precedence (D1, D2, D3)
@@ -44,6 +44,20 @@
 - [x] 8.1 Build with the fixture snapshot in a temporary content copy and run the API, profile, unit and page checks against it; verify all pass, and that the five records produce exactly one new repository entry
 - [x] 8.2 Run `npm run openspec:validate` and `python scripts/check_all.py` on the branch and record both results in the usage-log entry
 - [x] 8.3 Do the visual pass of the repository catalogue, a joined NKR entry, the fixture entry in development and the gate check pre-filled from NKR, in Czech and English at desktop and phone widths; record screenshots in the pull-request review artifacts and fix what the pass finds
+
+## 9. Review repairs
+
+- [x] 9.1 Align raw and annotated address keys in build and duplicate checks, and reject two NKR records reaching one component; reproduce both failures and verify regression tests.
+- [x] 9.2 Share the reviewed status mapping, validate every kept NKR field against the fetched schema before writing, and keep schema transport failures retryable; verify rejection and snapshot preservation with malformed records and schema drift.
+- [x] 9.3 Keep address-free records that join an addressed curated repository or resource through a reviewed handle, and validate curated handles against an available snapshot; verify valid and mistyped handles in both placements.
+- [x] 9.4 Restore abbreviation suppression anywhere a complete token occurs, retaining the MBDB suffix case; demonstrate the regression in browser checks and inspect affected cards in both languages at phone and desktop widths.
+- [x] 9.5 Correct rollback order, reconcile contract documentation, and run OpenSpec validation plus the complete local check suite; record evidence in the hand-off and rolling usage entry.
+
+## 10. Verification warning repairs
+
+- [x] 10.1 Validate kept NKR identity values against the Guide's consumed shapes as well as the fetched schema; reproduce schema changes to alternative names and keywords and verify rejection without replacing the previous snapshot.
+- [x] 10.2 Reuse the build's repository identity lookup for retirement reporting, including raw and annotated addresses and reviewed keys; reproduce the AMCR omission and verify every reached entry is named without changing its status or listing the retired record.
+- [x] 10.3 Run strict OpenSpec validation and complete native acceptance; update the verification report, hand-off and rolling usage record with both warning dispositions.
 
 ## Workflow follow-up
 

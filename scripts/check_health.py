@@ -451,26 +451,18 @@ def integrity(
         for snapshot in content["snapshots"]
         if snapshot.get("snapshot", {}).get("source") == "NKR"
         for row in snapshot.get("record", [])
-        if row.get("status") == "decomissioned"
+        if build_crate.nkr_status(row.get("status")) is None
     ]
     if retired:
         if graph is None:
             graph = build_crate.Graph()
             build_crate.build_crate(content, graph)
-        repositories = [
-            graph.entities[link["@id"]] for link in build_crate.as_list(graph.entities["#repositories"].get("hasPart"))
-        ]
         for row in retired:
             handle = build_crate.alternate_id(row, "nkr")
-            reached = [
-                entity["@id"]
-                for entity in repositories
-                if (
-                    row.get("mainUrl")
-                    and build_crate.bare_url(entity.get("url")) == build_crate.bare_url(row["mainUrl"])
-                )
-                or build_crate.ref(build_crate.NKR_OBJECTS + handle) in build_crate.as_list(entity.get("sameAs"))
-            ]
+            record_keys = build_crate.nkr_match_keys(
+                {"nkr": handle, "url": row.get("mainUrl"), "re3data": build_crate.nkr_re3data(row)}
+            )
+            reached = sorted({entity_id for key in record_keys for entity_id in graph.repository_keys.get(key, set())})
             add(
                 "NKR maintainer findings",
                 {"id": handle, "name": row["repositoryName"]},

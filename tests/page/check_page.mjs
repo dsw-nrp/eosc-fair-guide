@@ -2912,6 +2912,24 @@ sections.push(["NKR integration", async () => {
   });
   if (names[0] !== "Molecular Biophysics Database - MBDB" || names[1] !== "Český sociálněvědní datový archiv (ČSDA)") fail("NKR: abbreviation composition repeats or loses the abbreviation");
   await axe(page, "NKR repository without address");
+  const abbreviationCases = [
+    ["COMPASS – Tokamak for Thermonuclear Fusion Research", "COMPASS", "COMPASS – Tokamak for Thermonuclear Fusion Research"],
+    ["CzechNanoLab Research Infrastructure", "CzechNanoLab", "CzechNanoLab Research Infrastructure"],
+    ["The COMPASS facility", "COMPASS", "The COMPASS facility"],
+    ["Data (A+B) service", "A+B", "Data (A+B) service"],
+    ["ARCHIVE", "ARCH", "ARCHIVE (ARCH)"],
+    ["ŽČSDA", "ČSDA", "ŽČSDA (ČSDA)"],
+  ];
+  for (const [name, abbreviation, expected] of abbreviationCases) {
+    const actual = await page.evaluate(({ name, abbreviation }) => window.FairGuide.abbreviatedName({ name, abbreviation }, "en"), { name, abbreviation });
+    if (actual !== expected) fail(`NKR: abbreviation composition for ${name}: ${actual}`);
+  }
+  for (const lang of ["cs", "en"]) {
+    await visit(`#/${lang}/K/catalogue/ri/energy/compass`);
+    const title = await page.locator('[id="item-energy/compass"] .entry-title').textContent();
+    if ((title.match(/COMPASS/g) || []).length !== 1) fail(`NKR: rendered COMPASS title repeats its abbreviation in ${lang}: ${title}`);
+  }
+  await axe(page, "Catalogue abbreviation display");
   for (const problem of problems) fail("NKR: " + problem);
   await context.close();
 }]);

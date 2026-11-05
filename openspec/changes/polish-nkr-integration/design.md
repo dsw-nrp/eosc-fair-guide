@@ -40,6 +40,10 @@ FIP Dashboard-only repositories enter that lookup as separate components before 
 retains the existing FIP entity's local identity, functions and verification evidence, and credits both source
 records. FIP and curated entries do not join by address alone; an NKR record reaching both is ambiguous.
 
+The address lookup indexes both the source record's address and its reviewed annotation address. The duplicate
+check uses the same addresses. Two NKR records reaching one component are ambiguous too; neither record may
+supply a mixture of identity and authoritative facts.
+
 **Alternatives considered.**
 
 - *Key every source by address.* Rejected: it would change re3data and FIP Dashboard joins that review currently governs. The spec limits the automatic address join to NKR (decision 1 of the exploration).
@@ -51,7 +55,9 @@ records. FIP and curated entries do not join by address alone; an NKR record rea
 
 The NKR name replaces the curated or registry name on the catalogue entity, including a resource's entity such as `datarepo`. Authored sentences keep their own link phrases. The curated abbreviation still applies.
 
-The page does not append an abbreviation the name already ends with. The test is a case-sensitive suffix match after a space, a hyphen or a dash. This rule lives in the one place that composes the displayed name.
+The page does not append an abbreviation already present as a complete token anywhere in the name, including
+a suffix after a space, hyphen or dash. The match is case-sensitive and respects Unicode letters and numbers.
+This rule lives in the one place that composes the displayed name.
 
 **Alternatives considered.**
 
@@ -63,6 +69,10 @@ The page does not append an abbreviation the name already ends with. The test is
 **Decision.** The snapshot keeps NKR's own `status` string, so the snapshot remains the source's text. The build maps it to the five-level vocabulary as the spec gives. Its as-of date is the snapshot's `retrieved` date, because that is when the status was observed. NKR's `releaseDate` is ignored: every record carries the placeholder `2028-01-01`.
 
 A decommissioned record contributes no entity and does not join one. The build reports it, together with any entry its keys reach, in the health inventory's maintainer findings.
+
+The graph retains the build's repository key-to-entity lookup as runtime metadata, including raw and annotated
+addresses. Retirement reporting uses that lookup and the same NKR match-key derivation as the build; it reports
+all reached entries without merging the retired record or changing an entry's facts. The lookup is not published.
 
 **Alternatives considered.**
 
@@ -100,10 +110,24 @@ The catalogue card shows a bilingual line stating that the repository has no pub
 
 `mainContact` is kept only as `mainContactPresent`. `nkr_config` turns that into a present value for the `mainContact` path, so the self-check answers gate.13 from it and shows "present" with no address.
 
+The refresh checks the shape and enum values of every kept field against the fetched schema, including nested
+array elements. A non-empty `mainUrl` must be an absolute HTTPS address. Every status must occur in the schema's
+enum and in the shared reviewed status mapping used by refresh, build, duplicate and health checks. A curated
+`nkr` handle is checked against the snapshot when one exists, on both repositories and resource repositories.
+
+Kept identity values also satisfy the Guide's consumed shapes: alternative names are objects in an array,
+their names and language labels are strings, and keywords are arrays of strings. These expectations live with
+the reviewed NKR contract; upstream schema changes cannot make an incompatible value safe to write. Field
+selection remains the schema-defined intersection, with dynamic pre-fill roots unchanged.
+
 The refresh rejects the replacement, leaving the existing snapshot, in these cases:
 
-- the schema cannot be read or lacks `properties`;
-- a record is not decommissioned, has an empty `mainUrl`, and its status maps to neither planned nor in development.
+- the schema is malformed or lacks `properties` or its status enum;
+- a kept value has an invalid shape, status, or address;
+- a record is not decommissioned, has an empty `mainUrl`, joins no addressed entry through a reviewed `nkr`
+  handle, and its status maps to neither planned nor in development.
+
+Schema retrieval failures retain the retryable `failed` outcome; malformed schema content is `rejected`.
 
 **Alternatives considered.**
 
@@ -141,7 +165,9 @@ Existing IDs are unaffected: no NKR snapshot has merged.
 1. Implement and merge this change through a reviewed pull request. No NKR snapshot exists on `main`, so the build is unchanged until one does.
 2. Close [dsw-nrp/eosc-fair-guide#168](https://github.com/dsw-nrp/eosc-fair-guide/pull/168) unmerged, with a comment pointing to this change.
 3. A maintainer dispatches `source-refresh.yml` for `nkr`, or waits for the schedule. The new pull request carries readable, kind-routed IDs; the maintainer registers them (`scripts/register_ids.py`) and reviews the joins in the preview before merging.
-4. Rollback: revert the change. Without a merged snapshot, nothing else needs undoing; after one, revert the snapshot pull request too.
+4. Rollback: without a merged NKR snapshot, revert this change. If a snapshot has merged, revert or remove the
+   NKR snapshot first, then revert this change, or revert both together in one pull request. Validate the proposed
+   revert against a tree containing the merged snapshot so no intermediate tree fails the repository link checks.
 
 ## Open Questions
 

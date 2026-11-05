@@ -100,3 +100,56 @@ retained verification evidence and exclusion from data deposit when NKR says
 it is not accepting data, in Czech and English at 1366 and 320 px. The viewport
 screenshots and manifest are local artifacts under `.cache/screenshots-nkr-fip/`.
 The rolling usage entry records the final default aggregate result.
+
+## Review repairs, 2026-11-05
+
+All nine findings from [dsw-nrp/eosc-fair-guide#170](https://github.com/dsw-nrp/eosc-fair-guide/pull/170)
+are repaired locally:
+
+| Finding | Repair and regression evidence |
+| --- | --- |
+| Raw snapshot and annotation addresses disagree | Build and duplicate checks index both. NKR records at either AMCR address join the existing AMCR entity and retain NKR address precedence. |
+| Status vocabulary can drift silently | `scripts/nkr_contract.py` owns the reviewed mapping. Every refreshed status must match the fetched schema enum and the mapping. Retirement filters in the build, pre-fill, duplicate check and health inventory use the mapped result; a synthetic corrected spelling exercises all four. |
+| Address-free reviewed joins are rejected | Refresh reads reviewed handles from repositories and resource repositories. A pilot without an address is accepted when its reviewed entry supplies an address; the unjoined pilot still rejects. |
+| Curated NKR handles are unchecked | Content validation reports the entry and unknown handle in either placement when an NKR snapshot exists. Before the first snapshot there is no harvested record to compare. |
+| Prefix and internal abbreviations repeat | Unicode token boundaries suppress existing abbreviations anywhere in a name, with literal regex escaping. Browser checks cover COMPASS, CzechNanoLab, an internal token, symbolic abbreviations, and substrings that still need an abbreviation. MBDB and ČSDA retain their intended display. |
+| Invalid kept values are written | Schema types, enums and nested required fields are checked before writing; non-empty addresses require absolute HTTPS URLs. Invalid addresses, alternative names and keyword arrays leave the old snapshot byte-identical and name the record and field. Contact content remains reduced to presence only. |
+| Two NKR records mix facts in one component | Build and duplicate checks reject the ambiguity with both handles, for a new component and an existing repository. |
+| Schema transport failures require maintainer action | Retrieval errors retain the retryable `failed` outcome; malformed schemas remain `rejected`. Both preserve the snapshot. |
+| Rollback order blocks its own checks | The migration plan removes the NKR snapshot first or reverts both changes together, and explicitly validates against a tree containing the merged snapshot. |
+
+The initial Python regressions and the focused browser check reproduced the failures before the repairs.
+The NKR module now has 22 tests. The complete default acceptance run passes 36/36 checks in 189.7 seconds,
+including all 735 unit tests; strict OpenSpec validation passes all six items. Reports are in `.cache/health/`.
+The focused NKR browser section also passes after retaining the address-free card's accessibility audit
+alongside the new abbreviation assertions.
+
+A refreshed five-record fixture still adds exactly one repository, passes API validation (1,736 files) and
+all 60 required Guide profile checks. Viewport screenshots cover COMPASS, CzechNanoLab, MBDB and ČSDA in
+Czech and English at 1366 and 320 px, with desktop print views. The baseline and populated-fixture artifacts
+are local under `.cache/screenshots-nkr-review/` and `.cache/screenshots-nkr-review-fixture/`.
+
+A sandboxed unit rerun encountered Windows temporary-directory permissions; the native acceptance run
+passed, and its seven empty scratch directories were removed. No authored snapshot, commit, push, review
+thread resolution, archive or hosted operation is part of this repair.
+
+## Authorized verification warning repairs, 2026-11-05
+
+The subsequent OpenSpec verification found two additional edge cases. After the explicit "fix both" request,
+tasks 10.1-10.3 repair both within this change:
+
+- Kept identity values satisfy the fetched schema and the Guide's consumed shapes in `scripts/nkr_contract.py`.
+  Five schema/value drift cases now reject before replacement and preserve the previous snapshot exactly.
+- The graph retains the build's repository identity lookup as runtime metadata. Retirement reporting uses the
+  same NKR match keys and names all entries reached through raw/annotated addresses or reviewed keys, without
+  changing their facts or listing the retired record. The lookup is not serialized into the crate or API.
+
+The new regression cases failed before the repair. All 25 NKR tests now pass, and both original verification
+probes confirm the fixes: incompatible alternative names return `rejected` without changing the snapshot,
+and the retired raw-address AMCR probe names `#repository-amcr`. Before/after evidence is retained locally
+under `.cache/nkr-verification-probes-before-repair.json` and `.cache/nkr-verification-probes.json`.
+
+Final native acceptance passes 36/36 checks in 172.9 seconds, including 738 unit tests. Strict OpenSpec
+validation passes all six items. The verification report now records both warnings as resolved and covers
+29 tracked tasks, 12 requirements and 32 scenarios. Existing staged content was preserved; no commit, push,
+archive, source-refresh dispatch or hosted operation was performed.

@@ -634,18 +634,22 @@ serves Czech readers.
 For an NKR-listed repository, NKR's non-empty `repositoryName` supplies the Czech name and its English
 `additionalNames` value supplies the English name, falling back to `repositoryName`. NKR also takes precedence
 for kind, keywords and address; an empty value keeps the existing fact. Guide-owned functions, abbreviations,
-operators and recommendation remain. A name already ending with its abbreviation after a space, hyphen or dash
-does not receive the abbreviation again.
+operators and recommendation remain. A name already containing its abbreviation as a complete token, including
+after a space, hyphen or dash, does not receive the abbreviation again.
 
 Catalogue joins retain each source's existing re3data key, otherwise address key, and add an NKR handle wherever
-one is named. NKR records additionally look up their exact normalized `mainUrl` among all entry addresses;
+one is named. NKR records additionally look up their exact normalized `mainUrl` among all entry addresses,
+including both a source address and its reviewed annotation override;
 similar names or hosts never join records. An address-free record joins only through a reviewed `nkr` handle.
-Keys reaching two entries reject the build and are reported by the duplicate check.
+Keys reaching two entries, or two NKR records reaching one entry, reject the build and are reported by the
+duplicate check. Curated `nkr` handles on repositories and resource repositories are checked against the NKR
+snapshot when one exists; before the first snapshot, there is no harvested record to compare them with.
 
 NKR statuses map at build time: `intended` to planned; `development` and `test` to in development;
 both pilot states to pilot; `production` to operational. Their `statusAsOf` is the snapshot's `retrieved` date,
 never NKR's placeholder release date. A `decomissioned` record contributes no catalogue entry or override;
-the health inventory names it and any entry it reaches for maintainer review. Contact presence supplies the
+the health inventory names it and every entry reached through the build's source and annotation addresses or
+reviewed keys for maintainer review. The lookup remains build-only metadata. Contact presence supplies the
 `mainContact` pre-fill path as a boolean and is shown as present, with no contact address in evidence or exports.
 
 `functions` on a repository or registry resource lists values of `[[repositoryFunction]]` in `guide.toml`:
@@ -697,9 +701,16 @@ The reservation also covers retired IDs in the central `content/identifiers.toml
   `additionalNames`, `mainUrl`, `type`, `status`, `keywordCz`, `keywordEn`) and top-level `prefill.nkr` fields
   that its `properties` defines. The snapshot's `fields` records that selection. Unavailable pre-fill fields
   appear in the outcome and refresh PR, rather than being expected from Repository. `mainContact` is stored
-  only as `mainContactPresent`; no contact address or repository description is copied. An unreadable schema
-  rejects the refresh. A record without `mainUrl` is accepted only when intended, in development, in test or
-  decommissioned; every other such record rejects the replacement with its name and handle, preserving the
+  only as `mainContactPresent`; no contact address or repository description is copied. Malformed schema content
+  rejects the refresh; schema retrieval failures remain retryable. Kept values are checked against schema types
+  and enums, including nested array items. Non-empty `mainUrl` values must be absolute HTTPS addresses; statuses
+  must occur in both the fetched schema enum and the shared reviewed mapping in `scripts/nkr_contract.py`.
+  Kept identity values also match the Guide's consumed shapes in that module: alternative names are arrays of
+  objects with string names/language labels, and keyword arrays contain strings. A changed upstream type cannot
+  admit a value that the build cannot consume; rejection preserves the previous snapshot.
+  A record without `mainUrl` is accepted when intended, in development, in test, decommissioned, or joined through
+  a reviewed handle to a curated repository or resource with an address; every other such record rejects the
+  replacement with its name and handle, preserving the
   previous snapshot. New IDs use the repository's address or name, with routes by its NKR type;
 - `snapshots/knav-tools.toml`, the KNAV Data Management Tools Catalogue at its last commit (`datasetVersion`,
   `datasetUpdated`), lists `[[tool]]` entries with `id`, `name`, `url` (or `httpUrl` for an address served only over

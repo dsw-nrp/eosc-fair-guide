@@ -1545,7 +1545,7 @@ class SnapshotRefreshTests(FixtureCase):
             '[[record]]\nalternateIds = [{ scheme = "nkr", value = "21.T15999/abc" }]\n'
             'id = "national-repository"\nurl = "https://repo.cz/objects/21.T15999/abc"\n'
             'repositoryName = "National repository"\nmainUrl = "https://national.example.org/"\n'
-            'type = "institutional"\n',
+            'type = "institutional"\nstatus = "production"\n',
             encoding="utf-8",
         )
         content = build_crate.load_content(self.root / "content")
@@ -1789,7 +1789,8 @@ class SnapshotRefreshTests(FixtureCase):
                 "id": f"nkr/{i}",
                 "content": {
                     "repositoryName": f"Repository {i}",
-                    "mainUrl": "https://r.example.org/",
+                    "mainUrl": f"https://{i}.example.org/",
+                    "status": "production",
                     "pidType": ["DOI"],
                     "mainContact": {"email": "person@example.org"},
                     "unreviewed": "left out",

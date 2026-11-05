@@ -56,6 +56,12 @@ production as operational. A decommissioned record SHALL NOT be listed, and NKR'
 - **WHEN** the catalogue is built
 - **THEN** no entry is added for the record, the curated entry keeps its own status, and the health report names the record for maintainer review
 
+#### Scenario: A retired record names the source address behind an annotation
+
+- **GIVEN** a decommissioned NKR record whose address matches a raw source address overridden by a reviewed annotation
+- **WHEN** the health inventory is built
+- **THEN** it names every entry reached through the build's identity keys, including that raw address, without changing those entries or listing the retired record
+
 ### Requirement: The NKR snapshot keeps only fields its record can carry
 
 The NKR snapshot SHALL keep the reviewed fields that NKR's published Repository schema defines, including status and
@@ -74,10 +80,48 @@ NKR that the schema does not define SHALL be named in the refresh report and not
 - **WHEN** a repository administrator fills the gate check from that record
 - **THEN** the administrator-role item is answered from NKR and no contact address appears in the snapshot, the page or the export
 
+### Requirement: NKR refresh rejects unrepresentable values before writing
+
+Kept values SHALL match the fetched schema and the Guide's consumed shapes, including nested array items. Non-empty repository
+addresses SHALL be absolute HTTPS addresses. Every status SHALL have a reviewed Guide mapping. Invalid or unmapped
+values SHALL reject the replacement before writing. Schema retrieval failures SHALL remain retryable; malformed
+schema content SHALL require maintainer action.
+
+#### Scenario: A changed status vocabulary or malformed value
+
+- **GIVEN** an address-bearing NKR record with an unknown status, an insecure address or a malformed alternative name
+- **WHEN** the snapshot is refreshed
+- **THEN** the replacement is rejected naming the record and field, and the previous snapshot stays unchanged
+
+#### Scenario: The schema request times out
+
+- **GIVEN** a transient retrieval error fetching the Repository schema
+- **WHEN** the snapshot is refreshed
+- **THEN** the outcome is retryable and the previous snapshot stays unchanged
+
+#### Scenario: An upstream schema changes a consumed field's type
+
+- **GIVEN** a fetched schema and matching records that make alternative names strings or keywords non-string arrays
+- **WHEN** the snapshot is refreshed
+- **THEN** the incompatible Guide representation is rejected naming the record and field, and the previous snapshot stays unchanged
+
+### Requirement: Curated NKR handles resolve to snapshot records
+
+Curated `nkr` handles on repositories and resource repositories SHALL name a record in the NKR snapshot when
+that snapshot exists.
+
+#### Scenario: A curated handle is mistyped
+
+- **GIVEN** an NKR snapshot and a curated repository or resource repository naming a handle absent from it
+- **WHEN** the content check runs
+- **THEN** it fails naming the entry and the unknown handle
+
 ### Requirement: The duplicate check covers NKR records
 
 The duplicate check SHALL read NKR snapshot records and treat an NKR handle and an NKR record's exact normalised
 address as keys that join it to one entry. An NKR record whose keys name two different entries SHALL be reported.
+Source and reviewed annotation addresses SHALL both identify the same component. Two NKR records reaching one
+component SHALL be rejected as ambiguous by both build and duplicate checks.
 
 #### Scenario: A harvest that repeats curated repositories
 

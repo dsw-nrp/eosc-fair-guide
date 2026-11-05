@@ -1,6 +1,6 @@
 # Polish NKR integration
 
-- **When:** 2026-11-02 (+01:00)
+- **When:** 2026-11-02 through 2026-11-05 (+01:00)
 - **Agent / runtime:** Codex
 - **Model / backend:** GPT-6; exact backend model id not exposed by the runtime
 - **Subagents used:** none
@@ -8,7 +8,8 @@
 - **Workflow context used:** `openspec-apply-change polish-nkr-integration`,
   `openspec-verify-change polish-nkr-integration`, `fair-guide-editor`, delivered
   planning, execution, usage and model rules.
-- **What:** Implement and verify the approved OpenSpec change `polish-nkr-integration`.
+- **What:** Implement and verify the approved OpenSpec change `polish-nkr-integration`,
+  including the nine review repairs requested for dsw-nrp/eosc-fair-guide#170.
 - **Impacted:** NKR fixtures, snapshot refresh, catalogue identity and rendering,
   duplicate checks, API/profile contracts, content provenance and maintainer documentation.
 - **Verification:** `npm run openspec:validate` passed all six items. The first
@@ -46,9 +47,41 @@
   `.cache/screenshots-nkr-fip/`. Strict OpenSpec validation passes all six items.
   The final default aggregate after the repair passed 36/36 checks in 186.8
   seconds, including 727 unit tests; its reports and logs are in `.cache/health/`.
-- **Close-out:** All 21 tasks are complete and the NKR/FIP join warning is repaired;
-  final local acceptance is green on `agents/codex/polish-nkr-integration`.
+- **Verification (review repairs, 2026-11-05):** All nine findings are repaired with
+  regression coverage, reconciled OpenSpec artifacts and corrected rollback order.
+  The NKR module passes 22 tests. The full native default aggregate passes 36/36
+  checks in 189.7 seconds, including 735 unit tests; strict OpenSpec validation
+  passes 6/6 items. The five-record fixture adds one repository and passes API
+  validation (1,736 files), all 60 required Guide profile checks and the focused
+  NKR browser section. Czech/English desktop, 320 px and print screenshots are
+  local under `.cache/screenshots-nkr-review/` and
+  `.cache/screenshots-nkr-review-fixture/`. A sandboxed unit rerun hit temporary
+  directory permissions; the native run passed and its empty scratch was removed.
+- **Verification (OpenSpec after review repairs, 2026-11-05):** The explicitly
+  requested `openspec-verify-change` pass examined 26/26 tracked tasks, 12 delta
+  requirements, 30 scenarios and nine design decisions. Fresh native acceptance
+  passed 36/36 checks in 206.2 seconds, including 735 unit tests and strict
+  OpenSpec validation 6/6. Isolated probes found two warnings: a changed schema
+  may admit an `additionalNames` type the build cannot consume after replacing
+  the snapshot, and retirement reporting misses AMCR when reached through its
+  raw snapshot address. The report and recommendations are in
+  `openspec/changes/polish-nkr-integration/verification.md`; probe evidence is in
+  `.cache/nkr-verification-probes.json`. No implementation or task state changed.
+- **Verification (authorized warning repairs, 2026-11-05):** The explicit "fix
+  both" request authorized tasks 10.1-10.3. Identity values now satisfy the
+  Guide's consumed shapes as well as the upstream schema before writing, and
+  retirement reporting uses the build's identity lookup for raw/annotated
+  addresses and reviewed keys. Three new NKR tests reproduce and cover the
+  failures; all 25 NKR tests pass. Both original isolated probes now pass.
+  Final native acceptance passes 36/36 checks in 172.9 seconds, including
+  738 unit tests; strict OpenSpec validation passes 6/6. The verification report
+  records both warnings as resolved. Existing staged content was preserved.
+- **Close-out:** All 29 tasks are complete and local acceptance is green on
+  `agents/codex/polish-nkr-integration`; no verification findings or skipped
+  checks remain after the authorized repairs.
   The isolated baseline at
   `774b241890fdfb31be6ec111c0db9e415b998c5c` reproduced the eight NKR profile
-  failures and identified one unrelated checkout-name assumption. No commit,
-  push, PR creation, archive, source-refresh dispatch or hosted publication was performed.
+  failures and identified one unrelated checkout-name assumption. The user
+  explicitly requested a local commit of the review and verification repairs.
+  No push, PR creation, archive, source-refresh dispatch or hosted publication
+  was performed.

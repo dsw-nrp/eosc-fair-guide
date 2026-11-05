@@ -36,6 +36,7 @@ import check_content  # noqa: E402
 import duplicate_repairs  # noqa: E402
 from build_crate import ROOT, ContentError, load_content  # noqa: E402
 from catalogue_identity import alternate_id, bare_url  # noqa: E402
+from nkr_contract import nkr_status  # noqa: E402
 
 ACCEPTED_FILE = "duplicates.toml"
 # Exact reviewed placements, keyed by curated entry kind and registry link field.
@@ -128,6 +129,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
     out: list[Entry] = []
     # A record annotation joins the records it names across registries: each of them carries the others' IDs.
     joined: dict[str, dict[str, Any]] = {}
+    annotations = {item["re3data"]: item for item in content.get("repository_records", []) if item.get("re3data")}
     for item in content.get("repository_records", []):
         ids = {"r3d": item.get("re3data"), "fd": item.get("fipDashboard"), "knav": item.get("knav")}
         for kind, value in ids.items():
@@ -183,7 +185,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
     for snapshot in content["snapshots"]:
         if snapshot.get("snapshot", {}).get("source") == "NKR":
             for record in snapshot.get("record", []):
-                if record.get("status") == "decomissioned":
+                if nkr_status(record.get("status")) is None:
                     continue
                 handle = alternate_id(record, "nkr")
                 out.append(
@@ -215,7 +217,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                     f"re3data:{record['re3data']}",
                     False,
                     record=record,
-                    url=bare_url(record.get("url")),
+                    url=[bare_url(record.get("url")), bare_url(annotations.get(record["re3data"], {}).get("url"))],
                     r3d=record["re3data"],
                     fd=joined.get(f"r3d:{record['re3data']}", {}).get("fd"),
                     knav=joined.get(f"r3d:{record['re3data']}", {}).get("knav"),
@@ -459,6 +461,13 @@ def check(content: dict[str, Any], accepted: list[dict[str, Any]]) -> DuplicateR
             report.error(entry.name, "keys reach different entries: " + ", ".join(names))
         elif reached:
             components.join(entry.name, next(iter(reached)))
+    nkr_components: dict[str, list[str]] = {}
+    for entry in found:
+        if entry_kind(entry) == "nkr":
+            nkr_components.setdefault(components.find(entry.name), []).append(entry.name)
+    for records in nkr_components.values():
+        if len(records) > 1:
+            report.error(records[0], "NKR records reach the same entry: " + ", ".join(sorted(records)))
     # Any key that two things share is a duplicate, unless it is accepted.
     groups: dict[frozenset[str], set[str]] = {}
     for (_group, key), holding in holders.items():

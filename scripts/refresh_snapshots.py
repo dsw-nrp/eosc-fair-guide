@@ -61,6 +61,7 @@ from pathlib import Path
 from typing import Any
 
 from catalogue_identity import bare_url, preserve_snapshot
+from nkr_contract import NKR_FIELD_SHAPES, nkr_status
 from registry_identifiers import DATACITE_REPOSITORY, FAIRSHARING_DOI, canonical_fairsharing_doi
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -91,7 +92,7 @@ NKR_PAGE_SIZE = 100
 MAX_REMOVED_SHARE = 0.25
 # The NKR fields a snapshot keeps: what identifies a repository and what the guide's checks read (the `nkr` prefill
 # paths in content/checks). Personal contact data are never copied; a contact is recorded only as present.
-NKR_IDENTITY = ("repositoryName", "additionalNames", "mainUrl", "type", "status", "keywordCz", "keywordEn")
+NKR_IDENTITY = tuple(NKR_FIELD_SHAPES)
 NKR_PERSONAL = ("mainContact",)
 KNAV_REPOSITORY = "Open-Science-Department-KNAV/Data-Management-Tools-Catalogue"
 KNAV_TOOLS = f"https://raw.githubusercontent.com/{KNAV_REPOSITORY}/main/dmtools.json"
@@ -525,31 +526,105 @@ def nkr_pages(fetch: Fetcher) -> list[dict[str, Any]]:
     return results
 
 
+def nkr_value(value: Any, schema: dict[str, Any], where: str) -> None:
+    """Validate the schema's kept value shapes and enums without copying personal values into errors."""
+    if not isinstance(schema, dict):
+        raise RejectedError(f"{where}: malformed Repository schema field")
+    expected = schema.get("type")
+    types = {
+        "string": str,
+        "array": list,
+        "object": dict,
+        "boolean": bool,
+        "integer": int,
+        "number": (int, float),
+        "null": type(None),
+    }
+    if (
+        not isinstance(expected, str)
+        or expected not in types
+        or not isinstance(value, types[expected])
+        or (expected in ("integer", "number") and isinstance(value, bool))
+    ):
+        raise RejectedError(f"{where}: expected schema type {expected!r}")
+    if "enum" in schema and value not in schema["enum"]:
+        raise RejectedError(f"{where}: value is not in the Repository schema enum")
+    if expected == "array":
+        for index, item in enumerate(value):
+            nkr_value(item, schema.get("items", {}), f"{where}[{index}]")
+    elif expected == "object":
+        for name in schema.get("required", []):
+            if name not in value:
+                raise RejectedError(f"{where}.{name}: required by the Repository schema")
+        for name, definition in schema.get("properties", {}).items():
+            if name in value:
+                nkr_value(value[name], definition, f"{where}.{name}")
+
+
+def nkr_addressed_handles(root: Path) -> set[str]:
+    """Reviewed handles whose curated repository or resource supplies the missing public address."""
+    handles = set()
+    for filename, table in (("repositories.toml", "repository"), ("resources.toml", "resource")):
+        path = root / "content" / filename
+        if not path.is_file():
+            continue
+        for entry in tomllib.loads(path.read_text(encoding="utf-8")).get(table, []):
+            repository = entry if table == "repository" else entry.get("repository", {})
+            address = repository.get("url") or entry.get("url")
+            if repository.get("nkr") and isinstance(address, str) and address.startswith("https://"):
+                handles.add(repository["nkr"])
+    return handles
+
+
 def nkr(fetch: Fetcher, today: str, root: Path | None = None) -> Snapshot:
     try:
         schema = fetch.json(NKR + "/schemas/Repository", "nkr-schema.json")
-    except (OSError, ValueError, RejectedError) as error:
+    except (ValueError, RejectedError) as error:
         raise RejectedError(f"NKR Repository schema cannot be read: {error}") from error
     if not isinstance(schema, dict) or not isinstance(schema.get("properties"), dict) or not schema["properties"]:
         raise RejectedError("NKR Repository schema has no properties")
+    for name in ("repositoryName", "mainUrl", "status"):
+        definition = schema["properties"].get(name)
+        if not isinstance(definition, dict) or definition.get("type") != "string":
+            raise RejectedError(f"NKR Repository schema.{name}: expected a string field")
+    statuses = schema["properties"]["status"].get("enum")
+    if not isinstance(statuses, list) or not statuses or not all(isinstance(value, str) for value in statuses):
+        raise RejectedError("NKR Repository schema has no status enum")
+    addressed_handles = nkr_addressed_handles(root or ROOT)
     requested = nkr_fields(root or ROOT)
     fields = tuple(name for name in requested if name in schema["properties"])
     unavailable = [name for name in requested if name not in schema["properties"]]
     notes = "Repository schema does not carry pre-fill fields: " + ", ".join(unavailable) if unavailable else ""
     blocks = [f'[snapshot]\nsource = "NKR"\nurl = "{NKR}/"\nretrieved = {today}\nfields = {q(list(fields))}']
-    records = sorted(nkr_pages(fetch), key=lambda record: str(record.get("id", "")))
+    records = sorted(nkr_pages(fetch), key=lambda record: str(record.get("id", "")) if isinstance(record, dict) else "")
     for record in records:
         content = record.get("content") if isinstance(record, dict) else None
         if not isinstance(content, dict) or not record.get("id") or not content.get("repositoryName"):
             raise RejectedError("an NKR result has no ID or repository name")
-        if not str(content.get("mainUrl") or "").strip() and content.get("status") not in (
-            "intended",
-            "development",
-            "test",
-            "decomissioned",
-        ):
+        where = f"NKR record {record['id']} ({content['repositoryName']})"
+        for name in fields:
+            if name in content and name not in NKR_PERSONAL:
+                nkr_value(content[name], schema["properties"][name], f"{where}.{name}")
+                if name in NKR_FIELD_SHAPES:
+                    nkr_value(content[name], NKR_FIELD_SHAPES[name], f"{where}.{name} (Guide representation)")
+        try:
+            status = nkr_status(content.get("status"))
+        except ValueError as error:
+            raise RejectedError(f"{where}.status: {error}") from error
+        address = content.get("mainUrl", "")
+        if address:
+            try:
+                parsed = urllib.parse.urlsplit(address)
+                valid = (
+                    address.startswith("https://") and bool(parsed.hostname) and not any(c.isspace() for c in address)
+                )
+            except ValueError:
+                valid = False
+            if not valid:
+                raise RejectedError(f"{where}.mainUrl: expected an absolute HTTPS address")
+        if not address and status not in (None, "planned", "in-development") and record["id"] not in addressed_handles:
             raise RejectedError(
-                f"NKR record {record['id']} ({content['repositoryName']}) has no address "
+                f"{where} has no address or reviewed handle joining an addressed entry "
                 "and is neither planned, in development nor decommissioned"
             )
         record_url = f"{NKR}/objects/{record['id']}"
