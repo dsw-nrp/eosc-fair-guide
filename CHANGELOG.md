@@ -13,11 +13,17 @@ All notable changes to this guide are recorded here. The format follows
   `guideRoute` values follow, and the catalogue's groups are `glossary`, `lifecycles` and `models`.
 - Breaking: every record's `@id` is its IRI under the namespace `https://w3id.org/eosc-cz/fair-guide/`
   (`…/id/stations/licence`), not a crate fragment; the crate drops `catalogueAddress`.
-- Breaking: a registry's record of a thing is a `dcat:CatalogRecord` under it (`#knav`, `#fip-dashboard`, `#nkr`)
-  naming the thing by `foaf:primaryTopic`; a thing only a registry knows keeps its identity, name, address and filter
-  facts, and its description stays on the record.
-- Breaking: references in text are `[[<kind>/<id>|phrase]]` only; `term:`, `page:`, `station:`, `clause:`,
-  `infrastructure:`, bare IDs and code addresses are refused.
+- Breaking: a registry's record of a thing is a `dcat:CatalogRecord` under it (`#re3data`, `#fip-dashboard`,
+  `#knav`, `#nkr`, `#fairsharing`, `#datacite`) naming the thing by `foaf:primaryTopic`; the thing rests on each of
+  its records, and on the Guide's selection where the Guide describes it, instead of on their snapshots; a snapshot
+  lists its records, and the crate's `#knav-tools` and `#fers` lists are gone. A thing only registries know keeps its
+  identity, name, address and filter facts, and its description stays on the record. A registry is a resource and
+  is no longer in `#repositories`.
+- Breaking: references in text are `[[<kind>/<id>|phrase]]`, with a part as `<address>#<fragment>` and a kind word
+  for its list; the Guide's profile is `[[pages/machines#tasks|…]]`, and anything else is refused.
+- Breaking: provenance `objects`, model association `target` and the worked example's `steps` name records by
+  address; a result `*` records the Guide as an action's result; `content/identifiers.toml` lists each identifier
+  under the kind of its record, as the address without the kind (`vocabularies = ["lenses/V", …]`).
 - Security: render source-controlled refresh diagnostics as bounded literal text in logs, reports and workflow summaries.
 
 ## [1.0.0-alpha.5] - 2026-11-01

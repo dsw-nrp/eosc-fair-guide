@@ -122,7 +122,7 @@ its head in CI.
 - [x] 2.22 Remove every citation of this change from code, tests, content and durable documents (the design's
   decisions, its tasks and its migration), and add a check that fails on one (design.md, *Context*). Verify: the check
   fails on a planted citation and passes on the tree.
-- [ ] 2.23 Update `docs/content-model.md`, `docs/design.md`, the native content rule (regenerated) and
+- [x] 2.23 Update `docs/content-model.md`, `docs/design.md`, the native content rule (regenerated) and
   `CHANGELOG.md` for tasks 2.13 to 2.22. Verify: `python scripts/check_all.py --only docs agent-generation
   agent-ownership changelog` passes.
 - [ ] 2.24 Inspect the catalogue, a record of each kind and the identifier input in Czech and English, at phone width

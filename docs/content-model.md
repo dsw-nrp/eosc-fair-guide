@@ -92,10 +92,14 @@ An identifier becomes issued in the first official release. Before then it may c
 retirement entry or compatibility alias. An issued identifier names the same entry for good and is never reused.
 Current classifications and source metadata may change without changing that identity.
 
-`content/identifiers.toml` registers every identifier the guide has issued, by kind: lenses, stations, checks, check modes
-and profiles (`<check>.<id>`, as share links carry them), pages, callouts and their items, advice, questions, local
-tests, requirements, sources, resources, repositories, provenance actions, and the model's and life-cycle
-models' entries (`issued_ids` in `scripts/check_content.py` is the complete list). The content checks report
+`content/identifiers.toml` registers every identifier the guide has issued under the kind of its record, as the
+record's address without the kind: `vocabularies` holds the lenses and each check's modes and profiles
+(`lenses/V`, `modes-dataset/before`, `profiles-gate/core-system`), `callouts` a callout and its items
+(`sensitive-data#steward`), `stations` the stations and the model's role-specific contexts (`plan#context-V`),
+`tests` the local tests with their scope (`guide/guide-dataset-01`), and sources and resources share one ID space
+under the kind their records are issued as. The other kinds are advice, checks, questions, pages, clauses,
+repositories, actions, models, layers, seams, model examples, life cycles and crosswalks (`issued_ids` in
+`scripts/check_content.py` derives the list from the published addresses). The content checks report
 an entry whose identifier is not registered, a registered identifier no entry has (an entry renamed or removed
 without retiring it) and a retired identifier in use again. `python scripts/register_ids.py` registers the
 identifiers of new entries and never removes one; retiring is a deliberate edit of the register's `[retired]` table.
@@ -128,7 +132,8 @@ An identifier says where an entry belongs, not what it says:
   (`https://w3id.org/eosc-cz/fair-guide/id/stations/licence`), the same in the crate, the API and the page. A part
   of a record takes a fragment of its own: an advice step (`advice/plan.05#step-1`), a registry's record about the
   thing (`repositories/zenodo#knav`). The crate's own lists, files and snapshots keep their names (`#repositories`,
-  `#snapshot-datacite`).
+  `#snapshot-datacite`); a snapshot lists the records it supplied in `schema:hasPart` and is `schema:about` its
+  catalogue's own entry (`resources/re3data`).
 - **Stable identity through refresh.** `guideRoute` stores the frozen kind, with its scope where it has one
   (`resources`, `lifecycles/rdmkit`). Refresh joins
   through the typed source identifier or an unambiguous authoritative URL, retains `id` and `guideRoute`, and
@@ -243,16 +248,21 @@ or fail content integrity checks. Do not add broad noun stems to force matches.
 
 A text that names a record marks the name as a reference: `[[<address>|phrase]]`, with the scope inside the
 address where there is one (`[[glossary/open-licence|otevřená licence]]`, `[[pages/machines|Data pro stroje]]`,
-`[[clauses/CTS.R06|R06]]`). Two targets that are not records keep their names: `[[infrastructures|…]]` for the
-catalogue's large research infrastructures and `[[profile|…]]` for the Guide's profile. `phrase` is the words that
+`[[clauses/CTS.R06|R06]]`). A part of a record is named by the record's address and its fragment
+(`[[pages/machines#tasks|profilu Průvodce]]`, the section that presents the Guide's profile), and a kind word alone
+names that kind's list (`[[infrastructures|…]]`). `phrase` is the words that
 name it in that language, inflected as the sentence needs (`v [[resources/nma|Národním metadatovém adresáři]]`).
 Mark the first
 time a text names the entry; a button label is already a link and carries no reference. The Czech and the English
 text of one item refer to the same entries. The generator writes the text without the markup and records each
 entry as mentioned by the item; the page links the phrase quietly to the entry in the catalogue, or to the page. The content
-checks refuse a reference that is not well formed, one to an unknown record, a retired form (`term:`, `page:`,
-`station:`, `clause:`, `infrastructure:`, a bare ID or a code address such as `res/tool/github`), naming the address
-to use, and texts whose languages refer to different entries.
+checks refuse a reference that is not well formed and one that names neither a record nor a kind, naming the
+record whose identifier is the reference's last segment where there is one (`[[licence|…]]` gives
+`[[stations/licence|…]]`), and texts whose languages refer to different entries.
+
+A field that can name records of several kinds names each by its address too: a provenance action's
+`objects` and `results`, a model association's `target` and the worked example's `steps`. A field whose name
+fixes the kind, such as `fixAt`, `stations` or `sources`, keeps the bare ID.
 
 ### Advisory wording
 
@@ -277,11 +287,11 @@ renaming original requirements, replacing their published sources or implying th
 | Table | Fields |
 | --- | --- |
 | `[model]` | `id = "layers-seams"`, manuscript `source`, bilingual `name`, `description`, `introduction`, `ordering`, `feedback` |
-| `[model.workedExample]` | Bilingual `name`, `description`, ordered `steps` of existing content IDs; recorded revisions use `action:<id>` |
+| `[model.workedExample]` | Bilingual `name`, `description`, ordered `steps` naming existing records by address (`clauses/A.F1.R1`, `questions/dataset.01`, a local test, `actions/<id>`) |
 | `[[layer]]` | Stable `id`, bilingual `name`, `description`; the six IDs are `policy`, `community`, `infrastructure`, `planning`, `support`, `evaluation` |
 | `[[seam]]` | Stable `id`, bilingual `name`, `description`, `transfer`, `sender`, `recipient`, `carrier`, `maintainers`; `layers` references layer IDs |
 | `[[example]]` | Stable `id`, `seam`, bilingual `name`, `description`, `scope`, `status`, `asOf`, and `evidence` source IDs |
-| `[[association]]` | One existing content `target` and reviewed `layers` and/or `seams` IDs; tests use `test:<id>` |
+| `[[association]]` | One `target` naming an existing record by address (`resources/ccmm`, `questions/gate.08`, `tests/guide/<id>`) and reviewed `layers` and/or `seams` IDs |
 | `[[context]]` | Existing `station` and `lens`, bilingual `text`, and relevant `seams`; one explanation per station and lens |
 
 Definitions are `schema:DefinedTerm` records in `#implementation-model` (`schema:DefinedTermSet`, identifier
@@ -292,8 +302,9 @@ to its seam through `schema:isPartOf`; the seam lists examples in `schema:hasPar
 The optional worked example uses `#model-worked-example`, linked by the model's `schema:workExample` and its
 inverse `schema:exampleOfWork`. Its ordered parts resolve existing requirements, questions, test definitions
 and revision actions after those actions exist; it creates no fabricated live test run.
-The ID register and provenance use `model:layers-seams`, `layer.<id>`, `seam.<id>`, `example.<id>`
-and `context:<station>:<lens>`. New definitions, examples, contexts and association changes require paradata.
+The ID register and provenance name them by address: `models/layers-seams`, `layers/<id>`, `seams/<id>`,
+`model-examples/<id>` and `stations/<station>#context-<lens>`. New definitions, examples, contexts and
+association changes require paradata.
 
 The crate's `implementationLayers` and `implementationSeams` properties decorate only explicitly
 reviewed targets. Selecting a seam reuses its endpoint layers as layer associations. No association is
@@ -838,9 +849,13 @@ provenance item, `tests/<provider>/<metric>`, together with its mappings and the
 ### `provenance.toml`
 
 `[[action]]`: `id`, `type` (`create`, `update`), `name`, `description`, `agent` (person ID), `instruments`
-(instrument IDs), `objects` (clause and source IDs consulted), `results` (the addresses of the items created or
-changed, such as `advice/plan.05`, or `guide`; a trailing `*` matches every address with that prefix, such as
-`tests/f-uji/*`, and `*` alone every item), `endTime` (date-time with offset).
+(instrument IDs: the tools that made the change, never a migration script), `objects` (the clauses and sources
+consulted, by address: `clauses/A.F1.R1`, `resources/re3data`), `results` (the addresses of the items created or
+changed, such as `advice/plan.05`, or `guide` for the Guide's metadata; a trailing `*` matches the records with
+that prefix, such as `tests/f-uji/*`, and parts only where the pattern names one, such as
+`callouts/sensitive-data#*`; `*` alone is a change of the Guide as a whole, such as a structural migration: the
+crate records the Guide as its result and the freshness check reads it as covering every item), `endTime`
+(date-time with offset).
 
 ### `icons.toml`
 
@@ -960,10 +975,10 @@ of a record, and a `#…` name is one of the crate's own nodes.
 | Resource | Schema.org class selected by resource type | `id/resources/<id>`, or `id/repositories/<id>` for a repository | `schema:name`, `schema:description`, `schema:url`, `schema:audience`, `schema:additionalType` (FIP class IRIs), `guide:resourceType`, `guide:serviceStatus`, `guide:statusAsOf`, `schema:inLanguage`, `schema:sameAs` |
 | Infrastructure | `schema:Organization` | `id/infrastructures/<id>` | `schema:name`, `schema:alternateName` (the acronym), `dcterms:publisher`, `guide:researchField`, `guide:infrastructurePhase`, `guide:infrastructureCharacter`, `guide:roadmapSince`, `guide:esfriStatus`, `guide:nationalNodeOf`, `schema:memberOf` (ERICs, with `guide:czechMembershipSince`), `guide:operates`, `schema:subjectOf` (its community's FIP), `dcterms:references`, `schema:isBasedOn` |
 | EOSC CZ Node | `schema:Organization` | `id/organizations/eosc-cz-node` | `schema:name`, `schema:url`, `guide:nodeState`, `guide:nodeStateSince`, `guide:operatedBy`, `schema:member` (`schema:OrganizationRole` entities with `schema:roleName`, `guide:nodeMilestone`, `guide:statusAsOf`, `schema:citation`, `schema:description`), `schema:isBasedOn`; a member entry carries `guide:nodeMembership` |
-| Repository | `schema:DataCatalog` | `id/repositories/<id>` | `schema:name`, `schema:alternateName`, `schema:url`, `guide:repositoryKind`, `schema:identifier`, `schema:sameAs`, `schema:isBasedOn` (snapshot) |
+| Repository | `schema:DataCatalog` | `id/repositories/<id>` | `schema:name`, `schema:alternateName`, `schema:url`, `guide:repositoryKind`, `schema:identifier`, `schema:sameAs`, `schema:isBasedOn` (the Guide's selection where the Guide describes it, and each registry record about it) |
 | Glossary term | `schema:DefinedTerm` | `id/glossary/<id>` | `schema:identifier`, `schema:name`, `schema:url`, `schema:termCode` (Heslář's number), `schema:license`, `schema:inDefinedTermSet` |
 | Callout | `schema:CreativeWork` | `id/callouts/<id>` | `schema:headline`, `schema:text`, `schema:hasPart`, `guide:lensOrder` |
-| Registry record | `dcat:CatalogRecord`, beside the registry's own type | `<thing>#<scheme>`: `#knav`, `#fip-dashboard` or `#nkr` under the thing it describes | `foaf:primaryTopic` (the thing), the registry's own `schema:name`, `schema:description`, `schema:license` and identifier, `schema:isBasedOn` (its snapshot); a thing only a registry knows is founded by its record: the thing keeps its identity, name, address and filter facts and rests on the record (`schema:isBasedOn`), and where another registry's facts win, as NKR's name, kind, dated status, keywords and address do, the thing carries the winning values |
+| Registry record | `dcat:CatalogRecord`, beside the registry's own type | `<thing>#<scheme>`: `#re3data`, `#fip-dashboard`, `#knav`, `#nkr`, `#fairsharing` or `#datacite` under the thing it describes | `foaf:primaryTopic` (the thing), the registry's own `schema:name`, `schema:description`, `schema:license` and identifier (a FAIRsharing record its DOI, a DataCite record its repository ID), `schema:isPartOf` and `schema:isBasedOn` (its snapshot). Every thing rests on each of its records (`schema:isBasedOn`), beside the Guide's selection where the Guide describes it. A thing that rests on nothing but registry records is one only registries know: the first of its records, in the order re3data, FIP Dashboard, KNAV, NKR, founds it, and the thing keeps its identity, name, address and filter facts. The thing carries the winning values: what the curated entry states, then NKR's name, kind, dated status, keywords and address, then the first registry that states a fact, in that order and then FAIRsharing and DataCite |
 | FER (FIP Dashboard snapshot) | `schema:CreativeWork` with a FIP class as `schema:additionalType` | `<thing>#fip-dashboard` under the thing it describes, or `id/resources/<id>` for one only the dashboard knows | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `guide:catalogueType`, `schema:about`, `schema:provider`, `schema:review` (verifications as `schema:Review`), `schema:sameAs`, `schema:isBasedOn` |
 | FIP (FIP Dashboard snapshot) | `schema:CreativeWork` with `schema:additionalType` `fip:FAIR-Implementation-Profile` | `id/fips/<id>`; a declaration `<fip>#<declaration>` | `schema:name`, `schema:abstract`, `schema:version`, `schema:dateModified`, `schema:creativeWorkStatus`, `schema:author`, `schema:review`, `schema:hasPart` (declarations), `schema:isBasedOn` |
 | Local criterion | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `id/tests/guide/<id>` | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `sio:SIO_000233`, `schema:about`, `schema:citation`, `schema:hasPart`, `schema:subjectOf`, `schema:additionalProperty` |

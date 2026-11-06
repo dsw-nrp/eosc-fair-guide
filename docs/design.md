@@ -199,8 +199,12 @@ Genuine source identifiers live in typed `alternateIds`; obsolete Guide IDs are 
 projection gives every record one address, `<kind>/<id>` in a plain-word kind vocabulary, and one IRI under the
 Guide's namespace; the crate, the API, the page's routes and references all use it, and there is no parallel
 full-address register. A part of a record takes a fragment under it, as a registry's record about the thing it
-describes does. Chips display the record ID, and the record's own chip its IRI as the Guide's identifier. Published source labels and authoritative IRIs remain metadata with their
-actual roles. Before the first official release, IDs may change in place without compatibility routes or duplicate
+describes does. Every registry's row is such a record, and the thing rests on each of its records and, where the
+Guide describes it, on the Guide's selection, so a consumer reads from the graph which catalogues supplied a thing,
+and the page credits them from the same statements. A thing that rests on nothing but its records is one only
+registries know. Chips display the record ID, and an entry's identifiers start with its own IRI; no identifier
+chip carries a label, because an identifier says what issued it. Published source labels and authoritative IRIs
+remain metadata with their actual roles. Before the first official release, IDs may change in place without compatibility routes or duplicate
 API documents. After issue, names/classification may change while the address remains fixed. Reviewed joins
 identify one described thing; ambiguous changes require review. Duplicate checks retain their current reasons.
 
@@ -250,7 +254,7 @@ uses Dashboard profiles first and published nanopublications as fallback, preser
 use/planning/replacement status. No declaration leaves a question open, not a proven gap.
 
 Repository discovery combines curated entries with NKR, re3data, FAIRsharing and DataCite snapshots,
-deduplicated through reviewed links. NKR additionally joins by exact normalized repository address, while a
+deduplicated through reviewed links; a registry is a resource, listed with the resources. NKR additionally joins by exact normalized repository address, while a
 record without an address needs a reviewed NKR handle to join an existing entry. Ambiguous joins fail for review.
 NKR's non-empty published names, kind, status, keywords and address take precedence; Guide-owned functions and
 operator facts remain, and empty NKR values remove nothing. Status dates record the harvest observation, while
