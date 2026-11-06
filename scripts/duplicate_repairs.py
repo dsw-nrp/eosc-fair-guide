@@ -98,7 +98,7 @@ def local_action_id(suggestions: list[Suggestion]) -> str:
 
 
 def action_block(identifier: str, person: str, suggestions: list[Suggestion], content: dict[str, Any]) -> str:
-    # Provenance names each linked entry by its address (`resources/service`).
+    # Provenance names each linked entry and each cited source by its address (`resources/service`).
     addresses = content_addresses(content)
     linked = sorted({suggestion.entry.split(":", 1)[1] for suggestion in suggestions})
     results = [addresses.get(entry, entry) for entry in linked]
@@ -118,7 +118,7 @@ def action_block(identifier: str, person: str, suggestions: list[Suggestion], co
         f"instruments = {json.dumps([INSTRUMENT])}",
     ]
     if sources:
-        rows.append(f"objects = {json.dumps(sources)}")
+        rows.append(f"objects = {json.dumps([addresses[source] for source in sources])}")
     rows += [
         f"results = {json.dumps(results)}",
         f"endTime = {datetime.now(UTC).replace(microsecond=0).isoformat()}",

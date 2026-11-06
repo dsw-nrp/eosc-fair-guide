@@ -347,6 +347,15 @@ RETIRED_WORD_FORMS = {
 }
 
 
+def addresses_ending_in(entry: str, known: set[str]) -> list[str]:
+    """The known addresses whose identifier is the last segment of a value that names no record, such as a bare ID
+    (`licence` for `stations/licence`): what such a value most likely meant."""
+    identifier = entry.rsplit("/", 1)[-1]
+    return sorted(
+        target for target in known if "/" in target and target.rsplit("/", 1)[1] == identifier and target != entry
+    )
+
+
 def address_hint(entry: str, known: set[str]) -> str:
     """For a reference target no record has, such as a retired word form, code address or bare ID, the address form
     to write: the published address with the same identifier, or the form itself when none or several match."""
@@ -354,8 +363,7 @@ def address_hint(entry: str, known: set[str]) -> str:
     if colon and prefix in RETIRED_WORD_FORMS:
         candidates = [f"{RETIRED_WORD_FORMS[prefix]}/{rest}"]
     else:
-        identifier = entry.rsplit("/", 1)[-1]
-        candidates = sorted(target for target in known if "/" in target and target.rsplit("/", 1)[1] == identifier)
+        candidates = addresses_ending_in(entry, known)
     candidates = [target for target in candidates if target in known and target != entry]
     if len(candidates) == 1:
         return f"; references name a record by its address: write [[{candidates[0]}|...]]"

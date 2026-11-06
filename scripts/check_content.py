@@ -45,7 +45,7 @@ from build_crate import (  # noqa: E402
     reference_targets,
     vocabulary_errors,
 )
-from catalogue_identity import address_hint, alternate_id, parse_route
+from catalogue_identity import address_hint, addresses_ending_in, alternate_id, parse_route
 from corrections import validate_fields
 from registry_identifiers import DATACITE_REPOSITORY, FAIRSHARING_DOI, canonical_fairsharing_doi
 
@@ -587,8 +587,10 @@ def check_model(report: Report, content: dict[str, Any], vocab: dict[str, Any], 
         worked = model["workedExample"]
         for field in ("name", "description"):
             require_text(report, "model:worked-example", worked.get(field), field)
-        if not worked.get("steps") or set(worked["steps"]) - set(content_index(content)):
-            report.error("model:worked-example", "worked example must link existing content identities in order")
+        if not worked.get("steps"):
+            report.error("model:worked-example", "worked example must link existing records in order")
+        for step in worked.get("steps", []):
+            named_record(report, "model:worked-example", "step", step, record_addresses(content))
     for kind in ("layer", "seam", "example"):
         unique(report, f"model:{kind}", [item.get("id", "") for item in data.get(kind, [])], kind)
         for item in data.get(kind, []):
@@ -627,13 +629,12 @@ def check_model(report: Report, content: dict[str, Any], vocab: dict[str, Any], 
             report.error(where, "example needs an actual YYYY-MM or ISO date observation, not in the future")
         if not item.get("evidence") or set(item["evidence"]) - cited_ids(content):
             report.error(where, "example must cite identifiable evidence for its scope, status and date")
-    targets = content_index(content)
+    targets = record_addresses(content)
     seen = set()
     for item in data.get("association", []):
         where = f"model:association.{item.get('target')}"
         target = item.get("target")
-        if target not in targets:
-            report.error(where, "association names an unknown content target")
+        named_record(report, where, "target", target, targets)
         if target in seen:
             report.error(where, "one explicit association per content target; merge its layer and seam references")
         seen.add(target)
@@ -1416,57 +1417,6 @@ def check_providers(
                 report.error(here, "note needs Czech and English text stating what the criterion covers")
 
 
-def content_index(content: dict[str, Any]) -> dict[str, str]:
-    """Map content IDs that provenance actions can name to their kind."""
-    index: dict[str, str] = {"guide": "guide"}
-    for clause in content["ledger"]:
-        index[clause["id"]] = "clause"
-    for source in content["sources"]:
-        index.setdefault(source["id"], "source")
-    for data in content["stations"]:
-        index.setdefault(data["station"]["id"], "station")
-        for advice in data.get("advice", []):
-            index[advice["id"]] = "advice"
-    for data in content["checks"]:
-        for item in data.get("item", []):
-            index[item["id"]] = "item"
-    for page in content["pages"]:
-        index[f"page:{page['id']}"] = "page"
-    for callout in content["callouts"]:
-        index[f"callout:{callout['id']}"] = "callout"
-        for item in callout.get("item", []):
-            index[f"callout.{callout['id']}.{item['id']}"] = "callout item"
-    for term in content["glossary"].get("term", []):
-        index[f"term:{term['id']}"] = "term"
-    for test in content["live"].get("test", []) + content["live"].get("champion", {}).get("test", []):
-        index[f"test:{test['id']}"] = "test"
-    for key in provider_criteria(content):
-        index[key] = "criterion"
-    for resource in content["resources"]:
-        index.setdefault(resource["id"], "resource")
-    for repository in content["repositories"]:
-        index.setdefault(repository["id"], "repository")
-    for organization in content["guide"].get("organization", []):
-        index.setdefault("organization:" + organization["id"], "organization")
-    for action in content["provenance"]:
-        index.setdefault(f"action:{action['id']}", "action")
-    for record in content.get("repository_records", []):
-        for key, prefix in (("re3data", "re3data"), ("fipDashboard", "fip-dashboard")):
-            if record.get(key):
-                index.setdefault(f"{prefix}.{record[key]}", "repository record")
-    index |= {key: "model" for key in model_items(content)}
-    index |= {key: "lifecycle" for key in lifecycle_items(content)}
-    index |= {
-        f"infrastructure:{item['id']}": "infrastructure"
-        for item in (content.get("infrastructures") or {}).get("infrastructure", [])
-    }
-    if (content.get("node") or {}).get("node"):
-        index["node:eosc-cz-node"] = "node"
-    for snapshot in content["snapshots"]:
-        index |= {f"knav.{tool['id']}": "catalogue tool" for tool in snapshot.get("tool", [])}
-    return index
-
-
 def covered(pattern: str, item_id: str) -> bool:
     return item_id.startswith(pattern[:-1]) if pattern.endswith("*") else item_id == pattern
 
@@ -1614,11 +1564,33 @@ def check_identifiers(report: Report, content: dict[str, Any]) -> None:
             report.error(where, f"'{value}' is retired but was never registered")
 
 
+def named_record(report: Report, where: str, field: str, value: Any, known: set[str]) -> bool:
+    """Whether a field that can name records of several kinds names one by its address (`clauses/A.F1.R1`,
+    `tests/guide/guide-dataset-01`). A value that names no record is refused with the address it most likely meant."""
+    if value in known:
+        return True
+    candidates = addresses_ending_in(str(value), known)
+    form = (
+        f"write '{candidates[0]}'"
+        if len(candidates) == 1
+        else "one of " + ", ".join(f"'{item}'" for item in candidates)
+        if candidates
+        else "'<kind>/<id>'"
+    )
+    report.error(where, f"{field} '{value}' names no record; name a record by its address, {form}")
+    return False
+
+
+def record_addresses(content: dict[str, Any]) -> set[str]:
+    """The addresses of the records and parts the Guide's content describes, as the build issues them."""
+    return set(content_addresses(content).values()) - {"guide"}
+
+
 def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, set[str]]) -> None:
     actions = content["provenance"]
     unique(report, "provenance", [action.get("id", "") for action in actions], "action")
-    index = content_index(content)
     addresses = content_addresses(content)
+    known = record_addresses(content)
     cited = cited_ids(content)
     for action in actions:
         where = f"action:{action.get('id')}"
@@ -1632,7 +1604,9 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
             if instrument not in vocab["instruments"]:
                 report.error(where, f"unknown instrument '{instrument}'")
         for obj in action.get("objects", []):
-            if index.get(obj) != "clause" and obj not in cited:
+            if not named_record(report, where, "object", obj, known):
+                continue
+            if not obj.startswith("clauses/") and obj.rsplit("/", 1)[-1] not in cited:
                 report.error(where, f"object '{obj}' is not a clause or source")
         for pattern in action.get("results", []):
             if not any(covered(pattern, address) for address in addresses.values()):
@@ -1697,7 +1671,7 @@ def check_coherence(report: Report, content: dict[str, Any], graph: Graph, build
     cited |= {
         source for example in content.get("model", {}).get("example", []) for source in example.get("evidence", [])
     }
-    cited |= {obj for action in content["provenance"] for obj in action.get("objects", [])}
+    cited |= {obj.rsplit("/", 1)[-1] for action in content["provenance"] for obj in action.get("objects", [])}
     cited |= {
         source
         for item in [data["lifecycle"] for data in content.get("lifecycles", [])] + content.get("crosswalk", [])
@@ -2219,15 +2193,17 @@ def provenance_items(content: dict[str, Any]) -> dict[str, tuple[str, Any]]:
         items[f"infrastructure:{item['id']}"] = ("infrastructure", item)
     if (content.get("node") or {}).get("node"):
         items["node:eosc-cz-node"] = ("node", content["node"])
-    # Association changes alter the meaning of the mapped item and need that item's fresh paradata too.
+    addresses = content_addresses(content)
+    by_address = {addresses.get(key, key): value for key, value in items.items()}
+    sources = {addresses[source["id"]]: source for source in content["sources"]}
+    # Association changes alter the meaning of the mapped item and need that item's fresh paradata too. A target
+    # names its item by address; the content a freshness check compares with may name it by its content ID.
     for association in content.get("model", {}).get("association", []):
         target = association["target"]
-        kind, base = items.get(target, (None, None))
-        if base is None:
-            kind, base = "source", next((item for item in content["sources"] if item["id"] == target), None)
-        items[target] = (kind, {"item": base, "modelAssociation": association})
-    addresses = content_addresses(content)
-    return {addresses.get(key, key): value for key, value in items.items()}
+        address = target if target in by_address or target in sources else addresses.get(target, target)
+        kind, base = by_address.get(address) or ("source", sources.get(address))
+        by_address[address] = (kind, {"item": base, "modelAssociation": association})
+    return by_address
 
 
 def item_fingerprints(content: dict[str, Any]) -> dict[str, str]:

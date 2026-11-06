@@ -2539,7 +2539,8 @@ def build_actions(graph: Graph, actions: list[dict[str, Any]], people: dict[str,
                 "description": action.get("description"),
                 "agent": ref(people.get(action["agent"], f"#person-{action['agent']}")),
                 "instrument": refs([f"#instrument-{instrument}" for instrument in action.get("instruments", [])]),
-                "object": refs(graph.resolve(action.get("objects", []))),
+                # A clause or a cited work, by its address, which becomes its IRI once identities are published.
+                "object": refs(action.get("objects", [])),
                 "endTime": iso(action["endTime"]),
                 "actionStatus": ref("http://schema.org/CompletedActionStatus"),
             },
@@ -2787,26 +2788,23 @@ def build_model(graph: Graph, data: dict[str, Any]) -> list[str]:
         },
         f"model:{model['id']}",
     )
-    for association in data.get("association", []):
-        target = association["target"]
-        entity_ids = graph.index.get(target)
-        if not entity_ids:
-            raise ContentError(f"model association names an unknown content ID '{target}'")
-        for entity_id in entity_ids:
-            for field, prefix, output in (
-                ("layers", "layer", "implementationLayers"),
-                ("seams", "seam", "implementationSeams"),
-            ):
-                keys = association.get(field, [])
-                if field == "layers":
-                    keys = list(
-                        dict.fromkeys(
-                            keys + [layer for seam in association.get("seams", []) for layer in seam_layers[seam]]
-                        )
-                    )
-                for key in keys:
-                    append_ref(graph.entities[entity_id], output, f"#{prefix}-{key}")
     return [model_id]
+
+
+def attach_associations(graph: Graph, data: dict[str, Any], base: str) -> None:
+    """Each explicitly authored association, on the record its target names by address once identities are
+    published: the layers it names and those of the seams it names, and the seams."""
+    seam_layers = {item["id"]: item["layers"] for item in data.get("seam", [])}
+    for association in data.get("association", []):
+        entity = graph.entities.get(base + association["target"])
+        if entity is None:
+            raise ContentError(f"model association names no record: '{association['target']}'")
+        seams = association.get("seams", [])
+        layers = dict.fromkeys(association.get("layers", []) + [layer for seam in seams for layer in seam_layers[seam]])
+        for key in layers:
+            append_ref(entity, "implementationLayers", graph.published[f"#layer-{key}"])
+        for key in seams:
+            append_ref(entity, "implementationSeams", graph.published[f"#seam-{key}"])
 
 
 # The life-cycle model whose stages the path follows (D-162): a station's `lifecycleStage` names one of its stages.
@@ -3015,7 +3013,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     action_ids = build_actions(graph, content["provenance"], people)
     if content.get("model", {}).get("model", {}).get("workedExample"):
         worked = content["model"]["model"]["workedExample"]
-        graph.entities["#model-worked-example"]["hasPart"] = refs(graph.resolve(worked["steps"]))
+        graph.entities["#model-worked-example"]["hasPart"] = refs(worked["steps"])
 
     licenses = []
     for spdx in ("CC-BY-4.0", "MIT"):
@@ -3187,6 +3185,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     placements = identity_projection(graph, content)
     link_texts(graph, reference_targets(content, graph, placements))
     publish_identities(graph, placements, guide["recordBase"])
+    attach_associations(graph, content.get("model", {}), guide["recordBase"])
     attach_records(graph, guide["recordBase"])
     attach_results(graph, guide["recordBase"])
 

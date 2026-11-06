@@ -8,7 +8,7 @@ name = "Move record identity to the kind vocabulary"
 description = "A structural migration of every record's identity: frozen routes name a plural kind word without a classification segment, and prose references, provenance results and the identifier register's kinds name records by their address and kind. The texts, sources and classifications are unchanged, and reviewed link decisions follow their fields. The KNAV record of the CESNET ownCloud service is joined to the curated entry for that service. The migration adds no content author."
 agent = "david-novak"
 instruments = ["identity-migration", "claude-code", "claude-opus-5-5"]
-objects = ["knav-dm-tools-catalogue"]
+objects = ["resources/knav-dm-tools-catalogue"]
 results = ["*"]
 endTime = 2026-11-06T16:58:35+01:00
 
@@ -19,7 +19,7 @@ name = "Join the first NKR records to the repository catalogue"
 description = "Reviewed the NKR Repository schema and CzBIRD record at https://repo.cz/objects/20.500.14818/srhtp4ek. Added the reviewed NKR handle to the Czech-BioImaging entry and bilingual interface text for repository address availability and contact presence; the contact address is never copied. Implemented schema-derived harvesting, repository joins and NKR fact precedence with regression fixtures."
 agent = "david-novak"
 instruments = ["openai-codex", "openai-gpt-6-runtime"]
-objects = ["nkr-schema"]
+objects = ["resources/nkr-schema"]
 results = ["repositories/czech-bioimaging"]
 endTime = 2026-11-02T01:20:26+01:00
 
@@ -41,149 +41,149 @@ instruments = [
   "openai-codex",
 ]
 objects = [
-  "A.I1.X1",
-  "A.I2.X1",
-  "A.K2.3.1",
-  "A.K5.2.2",
-  "A.R1.1.R1",
-  "A.R1.1.X2",
-  "A.R1.1.X3",
-  "CERIT-AIAAS.01",
-  "DSW-NRP.01",
-  "NRP.M3",
-  "NRP.M7",
-  "NRP.M8",
-  "RDMKIT.analyse.01",
-  "RDMKIT.analyse.02",
-  "RDMKIT.collect.01",
-  "RDMKIT.collect.02",
-  "RDMKIT.process.01",
-  "RDMKIT.process.02",
-  "RDMKIT.reuse.01",
-  "RDMKIT.reuse.02",
-  "aai-nrp",
-  "analyza-fair-1.2",
-  "cambridge-notebooks",
-  "ccmm-releases",
-  "cdif",
-  "cdif-codelist-1.1.1",
-  "cdif-conceptscheme-1.1.1",
-  "cdif-core-1.1.1",
-  "cdif-datadescription-1.1.1",
-  "cdif-datastructure-1.1.1",
-  "cdif-discovery-1.1.1",
-  "cdif-manifest-1.1.1",
-  "cdsc-eln",
-  "cdsc-readme",
-  "cerit-ai-api",
-  "cerit-ai-coding",
-  "cerit-ai-privacy",
-  "cerit-aiaas",
-  "cerit-chat-ai",
-  "cessda-dmeg",
-  "code-principles",
-  "conda-environments",
-  "container-images",
-  "copyright-licences",
-  "coretrustseal",
-  "crossref-rest-api",
-  "csl-iso690-cs",
-  "cts-2026",
-  "datacite-data-file-use-policy",
-  "datacite-rest-api",
-  "datacite-schema",
-  "datarepo",
-  "deposit-licence",
-  "doi-citation-service",
-  "ds-handbook",
-  "dsw-nrp",
-  "ec-genai-guidelines",
-  "einfra-docs",
-  "elabftw",
-  "eosc-cz-node-announcement",
-  "eosc-cz-node-charter",
-  "eosc-cz-node-page",
-  "eosc-cz-vision",
-  "eosc-data-stewards",
-  "eosc-federation-production",
-  "eosc-federation-second-wave-mou",
-  "eosc-mrm-ssh-open-marketplace",
-  "eosc-notebooks",
-  "eosc-training",
-  "eosc-working-groups",
-  "ercim-community",
-  "ethical-seven",
-  "fair-champion",
-  "fair-checker-check-view",
-  "fair-checker-metrics",
-  "fair-principles-2016",
-  "fair-signposting",
-  "fair4rs",
-  "fairsharing",
-  "fdo-overview",
-  "fdo-specification",
-  "fip-dashboard",
-  "fip-ontology",
-  "force11-citation",
-  "frsm",
-  "frsm-report-1.1",
-  "ftr",
-  "fuji-metrics-v0-8",
-  "fuji-simpleclient",
-  "ggp-cz-project",
-  "heslar",
-  "iap-cas-readme",
-  "infra-finder-paper",
-  "isvavai-infrastructures",
-  "kadi4mat",
-  "knav-dm-tools-catalogue",
-  "knav-life-cycle",
-  "knav-type-t",
-  "law-328-2025",
-  "layers-seams-manuscript",
-  "london-charter",
-  "lri-roadmap-2023",
-  "maldreth",
-  "mbdb-2026",
-  "minizamer-catalogue",
-  "ncdoi-2023",
-  "ndi-architecture",
-  "nkr-schema",
-  "nma-export-docs",
-  "nma-riv-docs",
-  "nrp-aai-integration",
-  "nrp-conditions",
-  "nrp-docs-nma-access",
-  "nrp-docs-nma-introduction",
-  "nrp-roadmap-2025",
-  "nrp-support",
-  "opendoar-inclusion-criteria",
-  "openssf-best-practices",
-  "openssf-criteria-2024",
-  "orcid-identifier-pattern",
-  "os2-kb1",
-  "os3",
-  "os3-faq",
-  "os3-rules",
-  "osii-study",
-  "ostrails-cz-pilot",
-  "pid-centre",
-  "policy-manual",
-  "process-run-crate",
-  "rdmkit",
-  "re3data",
-  "re3data-schema-3.1",
-  "ri-portal",
-  "ro-crate",
-  "ror-identifier-pattern",
-  "sherpa-object-retrieval-api",
-  "software-heritage",
-  "software-heritage-guide",
-  "survey-2025",
-  "survey-2025-data",
-  "tf-semantic",
-  "workflow-ro-crate",
-  "zenodo-software-guide",
+  "clauses/A.I1.X1",
+  "clauses/A.I2.X1",
+  "clauses/A.K2.3.1",
+  "clauses/A.K5.2.2",
+  "clauses/A.R1.1.R1",
+  "clauses/A.R1.1.X2",
+  "clauses/A.R1.1.X3",
+  "clauses/CERIT-AIAAS.01",
+  "clauses/DSW-NRP.01",
+  "clauses/NRP.M3",
+  "clauses/NRP.M7",
+  "clauses/NRP.M8",
+  "clauses/RDMKIT.analyse.01",
+  "clauses/RDMKIT.analyse.02",
+  "clauses/RDMKIT.collect.01",
+  "clauses/RDMKIT.collect.02",
+  "clauses/RDMKIT.process.01",
+  "clauses/RDMKIT.process.02",
+  "clauses/RDMKIT.reuse.01",
+  "clauses/RDMKIT.reuse.02",
+  "resources/aai-nrp",
+  "resources/analyza-fair-1.2",
+  "resources/cambridge-notebooks",
+  "resources/ccmm-releases",
+  "resources/cdif",
+  "resources/cdif-codelist-1.1.1",
+  "resources/cdif-conceptscheme-1.1.1",
+  "resources/cdif-core-1.1.1",
+  "resources/cdif-datadescription-1.1.1",
+  "resources/cdif-datastructure-1.1.1",
+  "resources/cdif-discovery-1.1.1",
+  "resources/cdif-manifest-1.1.1",
+  "resources/cdsc-eln",
+  "resources/cdsc-readme",
+  "resources/cerit-ai-api",
+  "resources/cerit-ai-coding",
+  "resources/cerit-ai-privacy",
+  "resources/cerit-aiaas",
+  "resources/cerit-chat-ai",
+  "resources/cessda-dmeg",
+  "resources/code-principles",
+  "resources/conda-environments",
+  "resources/container-images",
+  "resources/copyright-licences",
+  "resources/coretrustseal",
+  "resources/crossref-rest-api",
+  "resources/csl-iso690-cs",
+  "resources/cts-2026",
+  "resources/datacite-data-file-use-policy",
+  "resources/datacite-rest-api",
+  "resources/datacite-schema",
+  "repositories/datarepo",
+  "resources/deposit-licence",
+  "resources/doi-citation-service",
+  "resources/ds-handbook",
+  "resources/dsw-nrp",
+  "resources/ec-genai-guidelines",
+  "resources/einfra-docs",
+  "resources/elabftw",
+  "resources/eosc-cz-node-announcement",
+  "resources/eosc-cz-node-charter",
+  "resources/eosc-cz-node-page",
+  "resources/eosc-cz-vision",
+  "resources/eosc-data-stewards",
+  "resources/eosc-federation-production",
+  "resources/eosc-federation-second-wave-mou",
+  "resources/eosc-mrm-ssh-open-marketplace",
+  "resources/eosc-notebooks",
+  "resources/eosc-training",
+  "resources/eosc-working-groups",
+  "resources/ercim-community",
+  "resources/ethical-seven",
+  "resources/fair-champion",
+  "resources/fair-checker-check-view",
+  "resources/fair-checker-metrics",
+  "resources/fair-principles-2016",
+  "resources/fair-signposting",
+  "resources/fair4rs",
+  "resources/fairsharing",
+  "resources/fdo-overview",
+  "resources/fdo-specification",
+  "resources/fip-dashboard",
+  "resources/fip-ontology",
+  "resources/force11-citation",
+  "resources/frsm",
+  "resources/frsm-report-1.1",
+  "resources/ftr",
+  "resources/fuji-metrics-v0-8",
+  "resources/fuji-simpleclient",
+  "resources/ggp-cz-project",
+  "resources/heslar",
+  "resources/iap-cas-readme",
+  "resources/infra-finder-paper",
+  "resources/isvavai-infrastructures",
+  "resources/kadi4mat",
+  "resources/knav-dm-tools-catalogue",
+  "resources/knav-life-cycle",
+  "resources/knav-type-t",
+  "resources/law-328-2025",
+  "resources/layers-seams-manuscript",
+  "resources/london-charter",
+  "resources/lri-roadmap-2023",
+  "resources/maldreth",
+  "resources/mbdb-2026",
+  "resources/minizamer-catalogue",
+  "resources/ncdoi-2023",
+  "resources/ndi-architecture",
+  "resources/nkr-schema",
+  "resources/nma-export-docs",
+  "resources/nma-riv-docs",
+  "resources/nrp-aai-integration",
+  "resources/nrp-conditions",
+  "resources/nrp-docs-nma-access",
+  "resources/nrp-docs-nma-introduction",
+  "resources/nrp-roadmap-2025",
+  "resources/nrp-support",
+  "resources/opendoar-inclusion-criteria",
+  "resources/openssf-best-practices",
+  "resources/openssf-criteria-2024",
+  "resources/orcid-identifier-pattern",
+  "resources/os2-kb1",
+  "resources/os3",
+  "resources/os3-faq",
+  "resources/os3-rules",
+  "resources/osii-study",
+  "resources/ostrails-cz-pilot",
+  "resources/pid-centre",
+  "resources/policy-manual",
+  "resources/process-run-crate",
+  "resources/rdmkit",
+  "resources/re3data",
+  "resources/re3data-schema-3.1",
+  "resources/ri-portal",
+  "resources/ro-crate",
+  "resources/ror-identifier-pattern",
+  "resources/sherpa-object-retrieval-api",
+  "resources/software-heritage",
+  "resources/software-heritage-guide",
+  "resources/survey-2025",
+  "resources/survey-2025-data",
+  "resources/tf-semantic",
+  "resources/workflow-ro-crate",
+  "resources/zenodo-software-guide",
 ]
 results = [
   "clauses/A.A1.1.F1",
@@ -1592,7 +1592,7 @@ name = "Link the NRP Data Catch-all Repository to re3data"
 description = "Reviewed the dated re3data snapshot proposed in PR 82 and linked the existing curated datarepo resource to r3d100014970, preserving one repository entity. Implemented and verified explicit safe duplicate repairs and their CI diagnostics. After integrating the default branch, re-verified the same link against the dated snapshot, hardened refresh publication against a moving branch and made the local runner read a partial result as a failure."
 agent = "david-novak"
 instruments = ["openai-codex", "openai-sol-6-1", "kilo-code", "einfra-deepseek-4-1-ft", "duplicate-fix"]
-objects = ["re3data", "datarepo"]
+objects = ["resources/re3data", "repositories/datarepo"]
 results = ["repositories/datarepo"]
 endTime = 2026-10-21T01:22:22+02:00
 
@@ -1636,7 +1636,7 @@ name = "Correct two reader links reported by the maintenance digest"
 description = "Acted on the maintenance digest under the maintainer's direction. The RO-Crate resource now links the readable RO-Crate 1.2 specification at https://www.researchobject.org/ro-crate/specification/1.2/ instead of the profile identifier https://w3id.org/ro/crate/1.2, which the crate keeps as its conformsTo value. The Sherpa Object Retrieval API page at https://v2.sherpa.ac.uk/api/object-retrieval.html refuses people and the watch alike (HTTP 403, confirmed by the maintainer in a browser); Jisc combined the Sherpa services into Open policy finder (https://www.jisc.ac.uk/news/all/sherpa-services-combined-into-new-user-friendly-platform-open-policy-finder), so the source record keeps its identifier and now names that service's Object Retrieval API page, its title and its address. The edits await the ordinary human review gate."
 agent = "david-novak"
 instruments = ["claude-code", "claude-opus-5-5"]
-objects = ["ro-crate", "sherpa-object-retrieval-api"]
+objects = ["resources/ro-crate", "resources/sherpa-object-retrieval-api"]
 results = ["resources/ro-crate", "resources/sherpa-object-retrieval-api"]
 endTime = 2026-10-28T22:25:00+01:00
 
@@ -1652,31 +1652,31 @@ instruments = [
   "gemini-3-8-flash",
 ]
 objects = [
-  "A.F1.X2",
-  "A.F2.N2",
-  "A.MIN3",
-  "A.R1.1.R1",
-  "A.R1.2.X1",
-  "CDSC-README.01",
-  "CERIT-AIAAS.01",
-  "CESSDA-DMEG.01",
-  "CONDAENV.01",
-  "CONTAINER.01",
-  "COPYRIGHT-LICENCES.01",
-  "COPYRIGHT-LICENCES.02",
-  "COPYRIGHT-LICENCES.03",
-  "COPYRIGHT-LICENCES.04",
-  "COPYRIGHT-LICENCES.05",
-  "DEPOSIT-LICENCE.01",
-  "DSW-NRP.01",
-  "EC-GENAI-GUIDELINES.01",
-  "EC-GENAI-GUIDELINES.02",
-  "FORCE11-CITATION.01",
-  "RDMKIT.analyse.01",
-  "RDMKIT.analyse.02",
-  "RDMKIT.reuse.02",
-  "RDMKIT.tasks.01",
-  "WFCRATE.01",
+  "clauses/A.F1.X2",
+  "clauses/A.F2.N2",
+  "clauses/A.MIN3",
+  "clauses/A.R1.1.R1",
+  "clauses/A.R1.2.X1",
+  "clauses/CDSC-README.01",
+  "clauses/CERIT-AIAAS.01",
+  "clauses/CESSDA-DMEG.01",
+  "clauses/CONDAENV.01",
+  "clauses/CONTAINER.01",
+  "clauses/COPYRIGHT-LICENCES.01",
+  "clauses/COPYRIGHT-LICENCES.02",
+  "clauses/COPYRIGHT-LICENCES.03",
+  "clauses/COPYRIGHT-LICENCES.04",
+  "clauses/COPYRIGHT-LICENCES.05",
+  "clauses/DEPOSIT-LICENCE.01",
+  "clauses/DSW-NRP.01",
+  "clauses/EC-GENAI-GUIDELINES.01",
+  "clauses/EC-GENAI-GUIDELINES.02",
+  "clauses/FORCE11-CITATION.01",
+  "clauses/RDMKIT.analyse.01",
+  "clauses/RDMKIT.analyse.02",
+  "clauses/RDMKIT.reuse.02",
+  "clauses/RDMKIT.tasks.01",
+  "clauses/WFCRATE.01",
 ]
 results = [
   "advice/analyse.01",
@@ -1707,7 +1707,7 @@ name = "Restore the NRP licence requirement in the merged repository advice"
 description = "Reviewed the merged repository-lens licence advice against its cited clauses. Restored the NRP condition that every dataset carry a licence in its metadata, at least as a URI (A.R1.1.X1 guidance, A.R1.1.R1, A.MIN3), naming the condition as the tone rule requires, and the two deposit points the merge had dropped from the retired licence.30: make the deposit conditions available before deposit and record their acceptance, and rights in the repository's database do not confer rights in every deposited work."
 agent = "david-novak"
 instruments = ["claude-code", "claude-opus-5-5"]
-objects = ["A.R1.1.R1", "A.R1.1.X1", "A.MIN3", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "DEPOSIT-LICENCE.01"]
+objects = ["clauses/A.R1.1.R1", "clauses/A.R1.1.X1", "clauses/A.MIN3", "clauses/COPYRIGHT-LICENCES.02", "clauses/COPYRIGHT-LICENCES.03", "clauses/COPYRIGHT-LICENCES.04", "clauses/DEPOSIT-LICENCE.01"]
 results = ["advice/licence.14"]
 endTime = 2026-10-28T23:46:50+01:00
 
@@ -1718,7 +1718,7 @@ name = "Record that the official works the Guide quotes are outside copyright"
 description = "Act No. 328/2025 Coll. and the Open Science III call rules are official works, which § 3(a) of the Copyright Act excludes from copyright; the maintainer confirmed the call rules as an administrative document. Their sources now record the Public Domain Mark instead of no licence, so the right-of-quotation bound for sources without a licence does not apply to their passages. Act No. 527/1990 Coll., which #161 added for the novelty of an invention, is a law too and records the same mark."
 agent = "david-novak"
 instruments = ["claude-code", "claude-opus-5-5", "kilo-code"]
-objects = ["law-328-2025", "os3-rules", "law-527-1990"]
+objects = ["resources/law-328-2025", "resources/os3-rules", "resources/law-527-1990"]
 results = ["resources/law-328-2025", "resources/os3-rules", "resources/law-527-1990"]
 endTime = 2026-10-31T11:10:27+01:00
 
@@ -1729,7 +1729,7 @@ name = "Give seven cited works one complete citation and licence"
 description = "Four resources carried a second, nested citation that neither the page, the crate nor the checks read. Each now has one citation. The CESSDA guide and the FORCE11 declaration gain their authors and CC BY-SA 4.0; the CESSDA values are those recorded on 11 October 2026, as its guide was offline for migration on 29 October. The OSTrails CZ pilot cites its deposited version, with that version's DOI, publication date and CC BY 4.0, as Zenodo records them. CoreTrustSeal cites the About page that its resource links and its clause quotes. The DataCite Metadata Schema, whose citation recorded no licence, cites its version 4.7 documentation with the title, DOI, authors and CC BY 4.0 that DataCite records. The 2025 survey of research data management and the institutional data policy manual recorded CC BY without a version; they record CC BY 4.0, which the survey's PDF links and DataCite records for the manual's DOI."
 agent = "david-novak"
 instruments = ["claude-code", "claude-opus-5-5", "kilo-code"]
-objects = ["cessda-dmeg", "coretrustseal", "datacite-schema", "force11-citation", "ostrails-cz-pilot", "policy-manual", "survey-2025"]
+objects = ["resources/cessda-dmeg", "resources/coretrustseal", "resources/datacite-schema", "resources/force11-citation", "resources/ostrails-cz-pilot", "resources/policy-manual", "resources/survey-2025"]
 results = ["resources/cessda-dmeg", "resources/coretrustseal", "resources/datacite-schema", "resources/force11-citation", "resources/ostrails-cz-pilot", "clauses/CORETRUSTSEAL.01", "resources/policy-manual", "resources/survey-2025"]
 endTime = 2026-10-30T22:41:36+01:00
 
@@ -1755,15 +1755,15 @@ instruments = [
   "gemini-3-8-flash",
 ]
 objects = [
-  "CESSDA-DMEG.01",
-  "EINFRA-DOCS.01",
-  "ETHICAL-SEVEN.01",
-  "LAW-328-2025.83",
-  "POLICY-MANUAL.02",
-  "POLICY-MANUAL.04",
-  "POLICY-MANUAL.06",
-  "RDMKIT.collect.02",
-  "SURVEY-2025.01",
+  "clauses/CESSDA-DMEG.01",
+  "clauses/EINFRA-DOCS.01",
+  "clauses/ETHICAL-SEVEN.01",
+  "clauses/LAW-328-2025.83",
+  "clauses/POLICY-MANUAL.02",
+  "clauses/POLICY-MANUAL.04",
+  "clauses/POLICY-MANUAL.06",
+  "clauses/RDMKIT.collect.02",
+  "clauses/SURVEY-2025.01",
 ]
 results = [
   "advice/collect.22",
@@ -1780,7 +1780,7 @@ name = "Source and qualify the team continuity and data appraisal advice"
 description = "Reviewed the new advice in Stations 1 and 2 against its cited clauses. plan.32 keeps its point that recomputable intermediate files need not be archived only where institutional or funder policy does not require them, because none of its clauses grants that permission and POLICY-MANUAL.04 leaves the choice to the institution. The handover advice in collect.22 and collect.23 now rests on the original published source, the research data management offboarding checklist of Harvard's Longwood Medical Area working group (HARVARD-OFFBOARDING.01 and HARVARD-OFFBOARDING.02): record where the data sit and who maintains them next, give each dataset a README with basic metadata, transfer access permissions, and introduce the checklist when people join. The README and data dictionary in both items rest on the UK Data Service's guidance on data-level documentation (UKDS-DATA-LEVEL.01), which RDMkit links for the concept: documentation that others can understand without the original team, reviewed for completeness. collect.22 no longer repeats the storage recommendation of collect.03."
 agent = "david-novak"
 instruments = ["claude-code", "claude-opus-5-5"]
-objects = ["CESSDA-DMEG.01", "EINFRA-DOCS.01", "HARVARD-OFFBOARDING.01", "HARVARD-OFFBOARDING.02", "LAW-328-2025.83", "POLICY-MANUAL.02", "POLICY-MANUAL.04", "POLICY-MANUAL.06", "UKDS-DATA-LEVEL.01"]
+objects = ["clauses/CESSDA-DMEG.01", "clauses/EINFRA-DOCS.01", "clauses/HARVARD-OFFBOARDING.01", "clauses/HARVARD-OFFBOARDING.02", "clauses/LAW-328-2025.83", "clauses/POLICY-MANUAL.02", "clauses/POLICY-MANUAL.04", "clauses/POLICY-MANUAL.06", "clauses/UKDS-DATA-LEVEL.01"]
 results = ["clauses/HARVARD-OFFBOARDING.01", "clauses/HARVARD-OFFBOARDING.02", "clauses/UKDS-DATA-LEVEL.01", "advice/collect.22", "advice/collect.23", "resources/harvard-offboarding", "advice/plan.32", "resources/ukds-data-level"]
 endTime = 2026-10-29T10:33:14+01:00
 
@@ -1796,16 +1796,16 @@ instruments = [
   "gemini-3-8-flash",
 ]
 objects = [
-  "A.A1.2.R2",
-  "A.F3.N2",
-  "A.I1.X1",
-  "CDIF.Manifest",
-  "CDIF.REC5",
-  "CDSC-README.01",
-  "CESSDA-DMEG.01",
-  "LAW-328-2025.83.3",
-  "MBDB-2026.01",
-  "RDMKIT.process.02",
+  "clauses/A.A1.2.R2",
+  "clauses/A.F3.N2",
+  "clauses/A.I1.X1",
+  "clauses/CDIF.Manifest",
+  "clauses/CDIF.REC5",
+  "clauses/CDSC-README.01",
+  "clauses/CESSDA-DMEG.01",
+  "clauses/LAW-328-2025.83.3",
+  "clauses/MBDB-2026.01",
+  "clauses/RDMKIT.process.02",
 ]
 results = [
   "advice/collect.04",
@@ -1822,7 +1822,7 @@ name = "Point to the Library of Congress format descriptions where the Guide adv
 description = "Added the Library of Congress site Sustainability of Digital Formats as a catalogue resource with a clause quoting its seven sustainability factors, at the maintainer's request. Advice on choosing formats when planning, on open formats for sharing, on a repository's list of supported formats and on a community's recommended formats, and the question on open formats, now link to it and cite the clause."
 agent = "david-novak"
 instruments = ["claude-code", "claude-opus-5-5"]
-objects = ["LOC-DIGITAL-FORMATS.01"]
+objects = ["clauses/LOC-DIGITAL-FORMATS.01"]
 results = ["resources/loc-digital-formats", "clauses/LOC-DIGITAL-FORMATS.01", "advice/plan.05", "advice/process.03", "advice/process.08", "advice/process.09", "questions/dataset.11"]
 endTime = 2026-10-30T01:25:53+01:00
 
@@ -1833,7 +1833,7 @@ name = "Source and qualify the format, synthetic sample and packaging advice"
 description = "Reviewed the advice rebuilt for #37 against its cited clauses. publication.30 now starts from the repository's own instructions on accepted formats and uploading, and gives packing thousands of small files into one archive described by the README only as an example of thinking of those who download the data; it cites RDMkit on preparing data for a repository and on transferring data, and checks checksums before and after upload. process.04 asks for a synthetic sample published beside controlled-access data as a separate open dataset, as the Swedish National Data Service's guide on synthetic research data advises, and both languages now say the same; an aggregated sample, which no source states, is dropped. process.03 asks for open or widely used formats, preferably ones that do not require proprietary software, and gives merged cells and colour that carries meaning as an example of what software cannot read correctly, as the Data Carpentry lesson on spreadsheets states; formulas, which no source names, are dropped."
 agent = "david-novak"
 instruments = ["kilo-code", "claude-opus-5-5"]
-objects = ["A.I1.X1", "A.A1.2.R2", "A.F3.N2", "CDIF.Manifest", "CDIF.REC5", "CDSC-README.01", "MBDB-2026.01", "RDMKIT.process.02", "RDMKIT.publication.01", "RDMKIT.transfer.01", "SND-SYNTHETIC.01", "DC-SPREADSHEETS.01"]
+objects = ["clauses/A.I1.X1", "clauses/A.A1.2.R2", "clauses/A.F3.N2", "clauses/CDIF.Manifest", "clauses/CDIF.REC5", "clauses/CDSC-README.01", "clauses/MBDB-2026.01", "clauses/RDMKIT.process.02", "clauses/RDMKIT.publication.01", "clauses/RDMKIT.transfer.01", "clauses/SND-SYNTHETIC.01", "clauses/DC-SPREADSHEETS.01"]
 results = ["advice/process.03", "advice/process.04", "advice/publication.30", "clauses/RDMKIT.publication.01", "clauses/RDMKIT.transfer.01", "clauses/SND-SYNTHETIC.01", "clauses/DC-SPREADSHEETS.01", "resources/snd-synthetic-data", "resources/datacarpentry-spreadsheets"]
 endTime = 2026-10-30T23:19:26+01:00
 
@@ -1849,19 +1849,19 @@ instruments = [
   "gemini-3-8-flash",
 ]
 objects = [
-  "A.A2.R2",
-  "A.I3.R3",
-  "A.I3.R5",
-  "A.R1.2.N3",
-  "A.R1.R3",
-  "CDIF.REC6",
-  "COPYRIGHT-LICENCES.04",
-  "DDRAPP.01",
-  "LAW-328-2025.83.5",
-  "NRP.M1",
-  "NRP.M3",
-  "POLICY-MANUAL.05",
-  "RDMKIT.collect.02",
+  "clauses/A.A2.R2",
+  "clauses/A.I3.R3",
+  "clauses/A.I3.R5",
+  "clauses/A.R1.2.N3",
+  "clauses/A.R1.R3",
+  "clauses/CDIF.REC6",
+  "clauses/COPYRIGHT-LICENCES.04",
+  "clauses/DDRAPP.01",
+  "clauses/LAW-328-2025.83.5",
+  "clauses/NRP.M1",
+  "clauses/NRP.M3",
+  "clauses/POLICY-MANUAL.05",
+  "clauses/RDMKIT.collect.02",
 ]
 results = [
   "advice/licence.31",
@@ -1877,7 +1877,7 @@ name = "Source and qualify the sample identifier, patent and post-publication er
 description = "Reviewed the advice rebuilt for #38 against its cited clauses. metadata.05 asks for persistent identifiers where possible and names the funder with the project or grant number, as CDIF recommends, instead of a RIV linkage no clause states; IGSN now links its glossary entry, the provenance of samples and instruments rests on RDMkit, and DDRapp, which supports no statement in the text, is no longer cited. licence.31 cites the research act's exception with its effective date and Act No. 527/1990 Coll. for why data that disclose an invention wait until the patent application is filed; RDMkit's Data publication page supports asking the technology transfer office or legal team, the embargo, restricted access and publishing the metadata of data that cannot be published. The English now says Coll. publication.05 says why published files are not overwritten, leaves metadata fixes to the repository's change policy, offers a separately identified patch bundle only as the NRP conditions do, and withdraws data only when a new version cannot remedy the error, citing RDMkit on updating and withdrawing published entries."
 agent = "david-novak"
 instruments = ["kilo-code", "claude-opus-5-5"]
-objects = ["A.I3.R3", "A.I3.R5", "A.R1.2.N3", "CDIF.REC6", "RDMKIT.collect.02", "DDRAPP.01", "LAW-328-2025.83.5", "POLICY-MANUAL.05", "COPYRIGHT-LICENCES.04", "A.A1.2.R2", "NRP.M1", "NRP.M3", "A.R1.R3", "A.A2.R2", "RDMKIT.publication.02", "RDMKIT.publication.03", "LAW-527-1990.5"]
+objects = ["clauses/A.I3.R3", "clauses/A.I3.R5", "clauses/A.R1.2.N3", "clauses/CDIF.REC6", "clauses/RDMKIT.collect.02", "clauses/DDRAPP.01", "clauses/LAW-328-2025.83.5", "clauses/POLICY-MANUAL.05", "clauses/COPYRIGHT-LICENCES.04", "clauses/A.A1.2.R2", "clauses/NRP.M1", "clauses/NRP.M3", "clauses/A.R1.R3", "clauses/A.A2.R2", "clauses/RDMKIT.publication.02", "clauses/RDMKIT.publication.03", "clauses/LAW-527-1990.5"]
 results = ["advice/metadata.05", "advice/licence.31", "advice/publication.05", "clauses/RDMKIT.publication.02", "clauses/RDMKIT.publication.03", "clauses/LAW-527-1990.5", "resources/law-527-1990"]
 endTime = 2026-10-31T02:41:21+01:00
 

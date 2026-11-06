@@ -24,7 +24,10 @@ Rewrites the authored TOML files under content/; the generated snapshots are ren
   (lenses, modes, profiles, callout items, sources) are named sets of their own and keep their names;
 - provenance results: each content ID or prefix pattern (``test:x``, ``provider:*``, ``plan.*``) becomes the addresses
   that name the same published records and parts (``tests/guide/x``, ``tests/f-uji/*``, ``advice/plan.*``), read from
-  the build of the migrated copy; ``guide`` and ``*`` stay.
+  the build of the migrated copy; ``guide`` and ``*`` stay;
+- fields that can name records of several kinds: provenance ``objects``, model association ``target`` and the worked
+  example's ``steps`` name each record by its address (``A.F1.R1`` becomes ``clauses/A.F1.R1``,
+  ``test:guide-dataset-01`` ``tests/guide/guide-dataset-01``), through the content check's own map of content IDs.
 
 The steps run on a temporary copy of the content, so the whole result is checked before anything is written.
 Idempotent: a second run changes nothing. ``--dry-run`` prints the unified diff and writes nothing. Uses only the
@@ -50,7 +53,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_crate import Graph, build_crate, load_content, result_covers  # noqa: E402
 from catalogue_identity import KINDS, parse_route, translate_routes  # noqa: E402
-from check_content import walk  # noqa: E402
+from check_content import content_addresses, walk  # noqa: E402
 
 TABLES = tomllib.loads((HERE / "routes.toml").read_text(encoding="utf-8"))
 ROUTES: dict[str, str] = TABLES["routes"]
@@ -329,6 +332,49 @@ def migrate_results(work: Path) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
+OBJECTS = re.compile(r"(?ms)^objects = \[(?P<body>[^\]]*)\]$")
+STEPS = re.compile(r"(?m)^steps = \[(?P<body>[^\]\n]*)\]$")
+TARGET = re.compile(r'(?m)^target = (?P<value>"[^"\n]*")$')
+
+
+def migrate_named_records(work: Path) -> None:
+    """Name the records of the fields that can name several kinds by address; an address stays as it is."""
+    content = load_content(work / "content")
+    addresses = content_addresses(content)
+
+    def address(value: str) -> str:
+        if is_address(value):
+            return value
+        if value not in addresses:
+            raise ValueError(f"'{value}' names no record")
+        return addresses[value]
+
+    def array(match: re.Match[str], key: str) -> str:
+        values = [address(value) for value in json.loads("[" + match["body"].strip().rstrip(",") + "]")]
+        if "\n" not in match["body"]:
+            return f"{key} = {json.dumps(values, ensure_ascii=False)}"
+        return f"{key} = [\n" + "".join(f"  {json.dumps(value, ensure_ascii=False)},\n" for value in values) + "]"
+
+    for name, rewrites in (
+        ("provenance.toml", ((OBJECTS, lambda match: array(match, "objects")),)),
+        (
+            "model.toml",
+            (
+                (STEPS, lambda match: array(match, "steps")),
+                (TARGET, lambda match: f"target = {json.dumps(address(json.loads(match['value'])))}"),
+            ),
+        ),
+    ):
+        path = work / "content" / name
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for pattern, replace in rewrites:
+            text = pattern.sub(replace, text)
+        tomllib.loads(text)
+        path.write_text(text, encoding="utf-8", newline="\n")
+
+
 def run(work: Path) -> None:
     """Apply every step to the content copy under `work`."""
     if reassign(work):
@@ -348,6 +394,8 @@ def run(work: Path) -> None:
     register = work / "content" / "identifiers.toml"
     if register.exists():
         register.write_text(rename_register_kinds(register.read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
+    # Names first: the build that the results step reads resolves those fields by address.
+    migrate_named_records(work)
     migrate_results(work)
 
 

@@ -95,7 +95,7 @@ its head in CI.
   and 5). Verify: unit tests find no two described things of one exact name outside an accepted group, "Charles
   University" resolving to `organizations/cuni`, the publisher "Zenodo" resolving to `repositories/zenodo`, and a
   name-only organisation record listed for review.
-- [ ] 2.16 Name records by address in the fields that can name several kinds: provenance `objects`, model association
+- [x] 2.16 Name records by address in the fields that can name several kinds: provenance `objects`, model association
   targets and the worked example's steps, through `migrate.py` (decision 16). Verify: a second migration run changes
   nothing, and the content check rejects a bare ID in each field with the address form named.
 - [ ] 2.17 Key the identifier register by record kind, with each value the address without the kind (vocabularies,

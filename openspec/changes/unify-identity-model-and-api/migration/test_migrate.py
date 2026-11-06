@@ -50,14 +50,15 @@ class MigrationTests(unittest.TestCase):
         provenance = self.root / "content" / "provenance.toml"
         text = provenance.read_text(encoding="utf-8")
         current = next(line for line in text.splitlines() if line.startswith("results = ["))
-        provenance.write_text(text.replace(current, OLD_RESULTS), encoding="utf-8")
+        text = text.replace(current, OLD_RESULTS).replace('objects = ["resources/report"]', 'objects = ["report"]')
+        provenance.write_text(text, encoding="utf-8")
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
 
-    def results(self) -> list[str]:
+    def results(self, field: str = "results") -> list[str]:
         data = tomllib.loads((self.root / "content" / "provenance.toml").read_text(encoding="utf-8"))
-        return data["action"][0]["results"]
+        return data["action"][0][field]
 
     def test_a_dry_run_prints_the_diff_and_writes_nothing(self) -> None:
         diff = migrate.migrate(self.root, dry_run=True)
@@ -67,6 +68,7 @@ class MigrationTests(unittest.TestCase):
     def test_results_name_the_same_items_by_address_and_a_second_run_changes_nothing(self) -> None:
         migrate.migrate(self.root, dry_run=False)
         self.assertEqual(self.results(), NEW_RESULTS)
+        self.assertEqual(self.results("objects"), ["resources/report"])
         self.assertEqual(migrate.migrate(self.root, dry_run=False), [])
 
     def test_a_result_that_names_nothing_stops_the_migration(self) -> None:
@@ -100,6 +102,25 @@ class MigrationTests(unittest.TestCase):
         )
         self.assertEqual(migrate.compress("x.*", {"advice/x.01"}, universe), ["advice/x.*"])
         self.assertEqual(migrate.compress("guide-x", {"tests/guide/one"}, universe), ["tests/guide/one"])
+
+    def test_fields_that_can_name_several_kinds_name_records_by_address(self) -> None:
+        model = self.root / "content" / "model.toml"
+        model.write_text(
+            '[model]\nid = "m"\n\n[model.workedExample]\nsteps = ["A.F1.R1", "test:test_one", "questions/gate.01"]\n\n'
+            '[[association]]\ntarget = "gate.01"\nseams = ["x"]\n',
+            encoding="utf-8",
+        )
+        migrate.migrate_named_records(self.root)
+        data = tomllib.loads(model.read_text(encoding="utf-8"))
+        self.assertEqual(
+            data["model"]["workedExample"]["steps"],
+            ["clauses/A.F1.R1", "tests/fair-champion/test_one", "questions/gate.01"],
+        )
+        self.assertEqual(data["association"][0]["target"], "questions/gate.01")
+        self.assertEqual(self.results("objects"), ["resources/report"])
+        model.write_text('[[association]]\ntarget = "nothing"\nseams = ["x"]\n', encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "'nothing' names no record"):
+            migrate.migrate_named_records(self.root)
 
     def test_references_name_records_by_address(self) -> None:
         bare = {"service": "resources"}

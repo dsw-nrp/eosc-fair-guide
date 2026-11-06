@@ -1009,12 +1009,12 @@ class ContentCheckTests(FixtureCase):
     def test_provenance_can_name_glossary_terms(self) -> None:
         content = build_crate.load_content(self.root / "content")
         content["glossary"] = {"term": [{"id": "87"}]}
-        self.assertEqual(check_content.content_index(content)["term:87"], "term")
-        self.assertTrue(check_content.covered("term:*", "term:87"))
+        self.assertIn("glossary/87", check_content.record_addresses(content))
+        self.assertTrue(check_content.covered("glossary/*", "glossary/87"))
 
     def test_champion_selection_has_fresh_provenance(self) -> None:
         content = build_crate.load_content(self.root / "content")
-        self.assertEqual(check_content.content_index(content)["test:test_one"], "test")
+        self.assertIn("tests/fair-champion/test_one", check_content.record_addresses(content))
         self.assertIn("tests/fair-champion/test_one", check_content.item_fingerprints(content))
         self.edit("provenance.toml", ', "tests/fair-champion/test_one"', "")
         self.assertError("tests/fair-champion/test_one: no provenance action covers this item")

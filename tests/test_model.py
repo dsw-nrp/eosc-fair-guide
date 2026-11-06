@@ -70,7 +70,7 @@ class ModelTests(unittest.TestCase):
                     "evidence": ["layers-seams-manuscript"],
                 }
             ],
-            "association": [{"target": "service", "layers": ["infrastructure"], "seams": ["repository-nma"]}],
+            "association": [{"target": "resources/service", "layers": ["infrastructure"], "seams": ["repository-nma"]}],
             "context": [
                 {
                     "station": "one",
@@ -102,9 +102,9 @@ class ModelTests(unittest.TestCase):
         self.assertNotIn("implementationSeams", graph[iri("questions/gate.01")])
 
     def test_unknown_association_target_or_model_term_is_rejected(self) -> None:
-        self.content["model"]["association"][0]["target"] = "missing"
+        self.content["model"]["association"][0]["target"] = "resources/missing"
         self.content["model"]["association"][0]["seams"] = ["made-up"]
-        self.assertTrue(any("unknown content target" in error for error in self.errors()))
+        self.assertTrue(any("target 'resources/missing' names no record" in error for error in self.errors()))
         self.assertTrue(any("unknown layer or seam" in error for error in self.errors()))
         with self.assertRaises(build_crate.ContentError):
             build_crate.build_crate(self.content)
@@ -174,6 +174,29 @@ class ModelTests(unittest.TestCase):
         self.assertIn("stations/one#context-V", after)
         self.assertIn("seam.repository-nma", check_content.issued_ids(self.content)["models"])
 
+    def test_fields_that_can_name_several_kinds_refuse_a_bare_id(self) -> None:
+        self.content["model"]["association"][0]["target"] = "service"
+        self.content["model"]["model"]["workedExample"] = {
+            "name": bilingual("A revision"),
+            "description": bilingual("Links content"),
+            "steps": ["gate.01"],
+        }
+        self.content["provenance"][0]["objects"] = ["report"]
+        errors = self.errors()
+        report = check_content.Report()
+        check_content.check_provenance(report, self.content, check_content.vocabularies(self.content))
+        for fragment in (
+            "target 'service' names no record; name a record by its address, write 'resources/service'",
+            "step 'gate.01' names no record; name a record by its address, write 'questions/gate.01'",
+        ):
+            self.assertTrue(any(fragment in error for error in errors), errors)
+        self.assertTrue(
+            any(
+                "object 'report' names no record" in error and "'resources/report'" in error for error in report.errors
+            ),
+            report.errors,
+        )
+
     def test_unknown_publisher_produces_a_clear_content_error(self) -> None:
         self.content["guide"]["guide"]["publisher"] = "missing-publisher"
         with self.assertRaisesRegex(build_crate.ContentError, "unknown publisher organisation 'missing-publisher'"):
@@ -184,7 +207,7 @@ class ModelTests(unittest.TestCase):
         self.content["model"]["model"]["workedExample"] = {
             "name": bilingual("An inspectable revision"),
             "description": bilingual("Links actual content without claiming a live result"),
-            "steps": ["A.F1.R1", "gate.01", f"action:{action}"],
+            "steps": ["clauses/A.F1.R1", "questions/gate.01", f"actions/{action}"],
         }
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(self.content)

@@ -4,6 +4,6 @@ type = "create"
 name = "Create the test content"
 agent = "tester"
 instruments = ["model"]
-objects = ["report"]
+objects = ["resources/report"]
 results = ["guide", "organizations/org", "advice/one.*", "questions/gate.01", "resources/service", "clauses/A.*", "clauses/CTS.*", "resources/report", "resources/cts-test", "callouts/note", "callouts/note#*", "tests/fair-champion/test_one"]
 endTime = 2026-01-01T12:00:00+01:00
