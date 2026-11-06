@@ -23,7 +23,7 @@ def bare_url(value: Any) -> str:
     return re.sub(r"^www\.", "", address).rstrip("/")
 
 
-# The kinds of Guide record: one plain English word, plural where the word has one (design decision 2). A
+# The kinds of Guide record: one plain English word, plural where the word has one. A
 # classification, such as a resource type, a repository kind or a research domain, is a property of the record and
 # never a segment of its address, so reclassifying a record cannot move it.
 KINDS = frozenset(

@@ -250,7 +250,7 @@ SCHEMA = "http://schema.org/"
 DCTERMS = "http://purl.org/dc/terms/"
 DCAT = "http://www.w3.org/ns/dcat#"
 FOAF = "http://xmlns.com/foaf/0.1/"
-# A registry's record about one thing (design.md, decision 4).
+# A registry's record about one thing.
 CATALOG_RECORD = "dcat:CatalogRecord"
 ADMS = "http://www.w3.org/ns/adms#"
 SKOS = "http://www.w3.org/2004/02/skos/core#"
@@ -1750,7 +1750,7 @@ def build_repositories(
 
     component_ids = {key: entity["@id"] for key, entity in merged.items()}
     native_statuses = {component_ids[key]: status for key, status in nkr_statuses.items()}
-    # NKR's own values, which its record keeps while the thing takes the winning ones (design.md, decision 4).
+    # NKR's own values, which its record keeps while the thing takes the winning ones.
     nkr_values = {component_ids[key]: dict(merged[key].get("_nkr", {})) for key in nkr_owners}
     graph.repository_keys = {name: {component_ids[key]} for name, key in keys.items() if name.startswith("nkr:")}
     graph.repository_keys.update(
@@ -1768,7 +1768,7 @@ def build_repositories(
                 continue
             # The resource's entity takes the repository facts it does not state itself. A repository only the FIP
             # Dashboard knows takes them, NKR's precedence among them, on the thing its record founds
-            # (attach_records), so the dashboard's record keeps its own values (design.md, decision 4).
+            # (attach_records), so the dashboard's record keeps its own values.
             resource = graph.entities[entity["@id"]]
             target = resource.setdefault(PRECEDENCE, {}) if is_dashboard else resource
             target.update(overrides)
@@ -3569,7 +3569,7 @@ def catalogue_addresses(entities: dict[str, dict[str, Any]], content: dict[str, 
 
 
 # ---------------------------------------------------------------------------
-# One identity projection (design decision 3)
+# One identity projection
 
 # Nodes that organise the crate itself keep their crate-local identifiers: the lists the catalogue groups, the
 # source snapshots, the Guide's own software, and the instruments, people without an ORCID iD and help routes its

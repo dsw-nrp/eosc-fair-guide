@@ -443,9 +443,50 @@ def publication_flow(text: str) -> list[str]:
     return found
 
 
+# A citation of a change's reasons: a decision of a change's design document, or of one of its capability deltas.
+CHANGE_CITATION = re.compile(r"\bdesign(?:\.md,?)? decisions? \d+|\b[a-z][a-z-]+, decisions? \d+\)")
+# The files that outlive a change: code, tests, content, the page's scripts and the human documents. Recorded
+# external data under tests/fixtures/ is quoted as it was received.
+DURABLE = (
+    "scripts/**/*.py",
+    "tests/**/*.py",
+    "tests/**/*.mjs",
+    "assets/js/**/*.js",
+    "content/**/*.toml",
+    "docs/**/*.md",
+    "README.md",
+    "README_en.md",
+    "CONTRIBUTING.md",
+    ".agents/guide/**/*.md",
+)
+
+
+def change_citations(root: Path = ROOT) -> list[str]:
+    """Durable files explain a rule in their own words and cite no part of an OpenSpec change: neither a decision of
+    its design nor an active change by name. A change's reasons stay with the change, which is archived when it is
+    done; a citation of it would lead nowhere."""
+    changes = root / "openspec/changes"
+    names = (
+        sorted(path.name for path in changes.iterdir() if path.is_dir() and path.name != "archive")
+        if changes.is_dir()
+        else []
+    )
+    named = re.compile(r"\b(?:" + "|".join(map(re.escape, names)) + r")\b") if names else None
+    found = []
+    for pattern in DURABLE:
+        for path in sorted(root.glob(pattern)):
+            relative = path.relative_to(root).as_posix()
+            if relative.startswith("tests/fixtures/") or "__pycache__" in relative or not path.is_file():
+                continue
+            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                if CHANGE_CITATION.search(line) or (named and named.search(line)):
+                    found.append(f"{relative}:{number}: explain the rule in its own words; cite no change's design")
+    return found
+
+
 def problems(root: Path = ROOT) -> list[str]:
     npm = scripts(root)
-    found = []
+    found = change_citations(root)
     readme = (root / "README.md").read_text("utf-8") if (root / "README.md").is_file() else ""
     has_concept_doi = bool(re.search(r"https://doi\.org/10\.5281/zenodo\.\d+", readme))
     for name in documents(root):

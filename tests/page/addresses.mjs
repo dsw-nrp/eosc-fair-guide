@@ -1,4 +1,4 @@
-// The one place the page and API tests name the Guide's records (design.md, decision 3), as tests/addresses.py does
+// The one place the page and API tests name the Guide's records, as tests/addresses.py does
 // for the Python tests. A record is named by its address, `<kind>/<id>` or `<kind>/<scope>/<id>`, and a part of it by
 // the address and a fragment (`advice/plan.05#step-1`). The crate publishes each at its IRI under the namespace; the
 // page's data names it by the address itself. Tests name records only through these helpers, never by the build's

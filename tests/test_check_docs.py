@@ -131,6 +131,21 @@ class DocsTests(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertTrue(durable_prose("docs/example.md", text, has_concept_doi=True))
 
+    def test_a_durable_file_that_cites_a_change_is_named(self) -> None:
+        # The citations are put together here, so this file is no citation itself.
+        decision = "design" + ".md, decision 4"
+        self.write("openspec/changes/" + "add-a-thing/proposal.md", "# Proposal\n")
+        self.write("scripts/tool.py", f"# A registry's record about one thing ({decision}).\n")
+        self.write("tests/test_tool.py", '"""Kinds are plural words (design ' + 'decision 2)."""\n')
+        self.write("assets/js/view.js", "// Routes keep the lens (guide-experience, " + "decision 15).\n")
+        self.write("content/guide.toml", "# Moved by add-a-" + "thing.\n")
+        self.write("docs/notes.md", "<!-- type: reference -->\n# Notes\n\nSee docs/design.md for the reasons.\n")
+        found = [problem.split(":", 2)[0] for problem in problems(self.root)]
+        self.assertEqual(
+            sorted(found), ["assets/js/view.js", "content/guide.toml", "scripts/tool.py", "tests/test_tool.py"]
+        )
+        self.assertEqual(problems(ROOT), [])
+
     def test_a_renderable_false_publication_arrow_is_rejected(self) -> None:
         text = (ROOT / "docs/design.md").read_text("utf-8")
         self.assertEqual(publication_flow(text), [])

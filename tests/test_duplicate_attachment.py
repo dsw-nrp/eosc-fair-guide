@@ -1,4 +1,4 @@
-"""The duplicate check attaches every record to exactly one thing (design.md, decision 5). Shared keys still report a
+"""The duplicate check attaches every record to exactly one thing. Shared keys still report a
 duplicate, the authoritative ones with their safe link as the fix; a similar host or name only asks a person to look,
 and accepted groups keep their reasons."""
 

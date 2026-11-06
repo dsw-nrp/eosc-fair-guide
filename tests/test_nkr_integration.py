@@ -597,7 +597,7 @@ class NkrCatalogueTests(unittest.TestCase):
         before = build_crate.Graph()
         build_crate.build_crate(content, before)
         original = copy.deepcopy(before.entities[iri("repositories/cesnet-invenio")])
-        # The FIP Dashboard's own record of the repository it founds (design.md, decision 4).
+        # The FIP Dashboard's own record of the repository it founds.
         dashboard = copy.deepcopy(before.entities[iri("repositories/cesnet-invenio#fip-dashboard")])
         record = copy.deepcopy(content["snapshots"][-1]["record"][0])
         record.update(

@@ -1,4 +1,4 @@
-"""Registry records are records about one thing (design.md, decision 4): a `dcat:CatalogRecord` under the thing it
+"""Registry records are records about one thing: a `dcat:CatalogRecord` under the thing it
 describes, with `foaf:primaryTopic` naming it, the registry's own values kept on the record and the winning values on
 the thing; a thing only a registry knows is founded by its record."""
 

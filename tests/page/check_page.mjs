@@ -628,7 +628,7 @@ sections.push(["page", async () => {
       for (const id of ["fip-dashboard.nusl", "fip-dashboard.nrp-invenio", "re3data.r3d100014032", "re3data.r3d100010386"]) {
         if ((await view.locator(`[id="item-${entryAnchor(id)}"]`).count()) !== 1) fail(`catalogue: ${id} is not listed once among repositories and registries (${lang})`);
       }
-      // A registry is a resource (design.md, decision 2), listed once among the resources.
+      // A registry is a resource, listed once among the resources.
       await gotoView(view, pageUrl + `#/${lang}/V/catalogue/k!resources`);
       await view.waitForSelector(".catalogue-results");
       for (const id of ["nma", "fairsharing"]) {
@@ -2826,7 +2826,7 @@ sections.push(["Infrastructure marks", async () => {
 
 // A record's entry route, `#/id/<address>`, opens its catalogue entry in the reader's saved language and lens and
 // becomes the full route; a station's entry leads to the station on the path, and an address no record has says so.
-// A shared catalogue link opens with the lens it names, whatever the reader saved (guide-experience, decision 15).
+// A shared catalogue link opens with the lens it names, whatever the reader saved.
 sections.push(["entry routes", async () => {
   for (const lang of ["cs", "en"]) {
     const { context, page, problems } = await openPage();

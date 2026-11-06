@@ -1,4 +1,4 @@
-"""The one place the Python tests name the Guide's records (design.md, decision 3).
+"""The one place the Python tests name the Guide's records.
 
 A record is named by its address, `<kind>/<id>` or `<kind>/<scope>/<id>`, and a part of it by the address and a
 fragment. The helpers turn an address into what the build publishes for it: the record's IRI in the crate, its API

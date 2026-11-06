@@ -1,4 +1,4 @@
-"""The page names records by their addresses and reads a kind from the address (design.md, decision 15). No page
+"""The page names records by their addresses and reads a kind from the address. No page
 script may still test an entity by one of the build's former fragment prefixes (`"#station-"`), which name no
 published record any more. The crate's own nodes (`#repositories`, `#snapshot-datacite`) keep their names, and a part
 is its record's address with its own fragment (`#fip-dashboard`, `#step-1`)."""

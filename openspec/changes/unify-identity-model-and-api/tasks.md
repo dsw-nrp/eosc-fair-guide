@@ -119,7 +119,7 @@ its head in CI.
 - [x] 2.21 Replace `[[profile|...]]` with a reference to the machines page's section that presents the profile, so
   only records and kinds remain as targets (decision 16). Verify: the content check refuses a target that is neither
   a record nor a kind.
-- [ ] 2.22 Remove every citation of this change from code, tests, content and durable documents (the design's
+- [x] 2.22 Remove every citation of this change from code, tests, content and durable documents (the design's
   decisions, its tasks and its migration), and add a check that fails on one (design.md, *Context*). Verify: the check
   fails on a planted citation and passes on the tree.
 - [ ] 2.23 Update `docs/content-model.md`, `docs/design.md`, the native content rule (regenerated) and

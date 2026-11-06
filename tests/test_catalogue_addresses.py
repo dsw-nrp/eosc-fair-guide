@@ -1,5 +1,5 @@
 """One identity projection: every Guide record has one address and one IRI, which the API, the page and the crate
-share (design.md, decision 3)."""
+share."""
 
 import copy
 import json

@@ -376,8 +376,8 @@ def distinctive_words(entry: Entry, skipped: set[str]) -> set[str]:
 
 
 def review_pairs(found: list[Entry], same: Any, accepted: list[frozenset[str]]) -> list[str]:
-    """Each registry record and curated thing that may describe one thing without any key joining them (design.md,
-    decision 5): the same registrable domain with a distinctive name word in common, or the same name and provider.
+    """Each registry record and curated thing that may describe one thing without any key joining them: the same
+    registrable domain with a distinctive name word in common, or the same name and provider.
     A person decides; nothing joins or links on these grounds."""
     things = [entry for entry in found if entry.curated and entry.group in ("things", "organisations")]
     records = [entry for entry in found if not entry.curated and entry.group in ("things", "organisations")]

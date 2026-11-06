@@ -1428,7 +1428,7 @@ MODEL_FAMILIES = {"layer": "layers", "seam": "seams", "example": "model-examples
 
 
 def content_addresses(content: dict[str, Any]) -> dict[str, str]:
-    """The address the build publishes for each content ID provenance can name (design.md, decision 17): a record's
+    """The address the build publishes for each content ID provenance can name: a record's
     `<kind>/<id>` or `<kind>/<scope>/<id>`, a part's `<record>#<fragment>`, and `guide` for the Guide itself.
     Provenance results and the freshness check name items by these addresses."""
     found: dict[str, str] = {"guide": "guide"}
