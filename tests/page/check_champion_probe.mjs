@@ -65,7 +65,7 @@ try {
     // The retention test covers only part of the tombstone question, so its pass suggests Partly, never Yes (D-168).
     assert.deepEqual(await page.locator("#item-maturity-11 input:checked").evaluateAll((inputs) => inputs.map((input) => input.value)), ["partly"], "a narrower persistence test suggests only Partly");
     const evidence = await page.evaluate(() => {
-      const SC = FairGuide.selfcheck, check = FairGuide.get("#check-maturity");
+      const SC = FairGuide.selfcheck, check = FairGuide.get("checks/maturity");
       const loaded = SC.readPortable(SC.portableState(check, FairGuide.state.answers.maturity));
       return loaded.state.items["maturity.11"];
     });

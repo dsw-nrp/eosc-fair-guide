@@ -123,7 +123,7 @@ if ((await answer("maturity-18")) !== "yes") fail("FAIRsharing: maturity.18 is n
 
 // DataCite in the finder and the maturity check: ČSDA is found by its re3data record's DOI, and a sample of its
 // top-level datasets is drawn with titles.
-await open("#/cs/K/catalogue/repo/dom/csda");
+await open("#/cs/K/catalogue/repositories/csda");
 await page.locator(".datacite-read button").click();
 await page.waitForSelector("section.datacite-read", { timeout: 60000 });
 const reported = await page.locator("section.datacite-read").innerText();

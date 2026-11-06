@@ -38,10 +38,10 @@ test("source lookup indexes a real graph once and invalidates misses, ambiguity 
   const duplicate = { ...entity, "@id": "#fixture-two" };
   FG.graph.push(duplicate); FG.byId.set(duplicate["@id"], duplicate); FG.invalidateData();
   assert.equal(FG.sourceEntity("fixture", "new"), null);
-  assert.equal(FG.sourceEntity("fixture", "new", "#fixture-one"), entity);
+  assert.equal(FG.sourceEntity("fixture", "new", (candidate) => candidate["@id"] === "#fixture-one"), entity);
   alternate.value = "changed"; FG.invalidateData();
   assert.equal(FG.sourceEntity("fixture", "new"), null);
-  assert.equal(FG.sourceEntity("fixture", "changed", "#fixture-one"), entity);
+  assert.equal(FG.sourceEntity("fixture", "changed", (candidate) => candidate["@id"] === "#fixture-one"), entity);
   window.FairGuideData.kb = { "@graph": [] }; FG.load();
   assert.equal(FG.sourceEntity("fixture", "changed"), null);
   const fixture = JSON.parse(readFileSync(resolve(root, "tests/fixtures/normalization.json"), "utf8"));

@@ -3,7 +3,7 @@
    assessment record keeps each accepted assessment: target, inspected subject and representation, dates, supplied
    versions, and every native result with its own identifier, wording, verdict, score, maturity, subtests and
    diagnostics. Questions refer to that record. Each result is read as its provider presents it (`P.reading`), and a
-   reviewed mapping (crate `#criterion-*`) for a reviewed version turns that reading into a suggestion: whole coverage
+   reviewed mapping (a part of the criterion) for a reviewed version turns that reading into a suggestion: whole coverage
    answers as the reading, partial coverage answers Partly or No (D-168). Provider text is untrusted and is only ever
    shown as text. */
 (function () {
@@ -26,7 +26,7 @@
   P.settings = () => FG.config.providers || { list: [] };
   P.provider = (id) => FG.list(P.settings().list).find((entry) => entry.id === id) || null;
   /** An evaluator's badge: the favicon of its entry among the resources, or its monogram. */
-  const evaluatorBadge = (provider, id) => FG.serviceBadge(id || provider.id, (FG.get("#resource-" + (id || provider.id)) || {}).url);
+  const evaluatorBadge = (provider, id) => FG.serviceBadge(id || provider.id, (FG.get(FG.address("resources", id || provider.id)) || {}).url);
   P.criterion = (provider, metric) => FG.sourceEntity(provider, metric);
   P.isAssessmentId = (value) => typeof value === "string" && ASSESSMENT_ID.test(value);
 
@@ -36,7 +36,7 @@
     return FG.list(provider.metrics).flatMap((metric) => {
       const criterion = P.criterion(provider.id, metric);
       return criterion
-        ? FG.refs(criterion, "hasPart").map((entity) => ({ metric, question: String(FG.id(entity.about) || "").replace(/^#item-/, ""), coverage: entity.mappingCoverage, entity }))
+        ? FG.refs(criterion, "hasPart").map((entity) => ({ metric, question: FG.localId(entity.about), coverage: entity.mappingCoverage, entity }))
         : [];
     });
   };
@@ -292,7 +292,7 @@
   /** The mapping note behind a `providerMapping` note, in the current language. */
   P.mappingNote = function (params) {
     const criterion = params && P.criterion(params.provider, params.metric);
-    const mapping = criterion && FG.refs(criterion, "hasPart").find((entity) => FG.id(entity.about) === "#item-" + params.question);
+    const mapping = criterion && FG.refs(criterion, "hasPart").find((entity) => FG.id(entity.about) === FG.address("questions", params.question));
     const provider = P.provider(params && params.provider);
     const head = (provider ? provider.name : "") + " " + (params ? params.metric : "") + " (" + FG.t("selfcheck.providers.coverage." + ((mapping && mapping.mappingCoverage) || "partial")) + ")";
     return head.trim() + (mapping && mapping.description ? ": " + FG.text(mapping.description) : "");
@@ -916,7 +916,7 @@
         const provider = P.provider(assessment.provider) || { name: assessment.provider };
         for (const result of assessment.results) {
           const criterion = P.criterion(assessment.provider, result.id);
-          const testId = (criterion && criterion.url) || provider.form || ("#criterion-" + assessment.provider + "-" + result.id);
+          const testId = (criterion && criterion.url) || provider.form || (criterion ? FG.iri(criterion) : "#provider-" + index + "-test-" + result.id);
           members.push({
             "@id": "#provider-" + index + "-" + result.id,
             "@type": ["CreativeWork", "TestResult"],

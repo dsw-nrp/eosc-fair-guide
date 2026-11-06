@@ -156,7 +156,7 @@ try {
   // scores is that metric's No. Numbers are written as the page's language writes them.
   const guard = await page.evaluate(() => {
     const P = window.FairGuide.providers, FG = window.FairGuide;
-    const item = FG.get("#item-dataset.01");
+    const item = FG.get("questions/dataset.01");
     const rows = [{ metric: "F1A", coverage: "partial" }];
     const service = P.provider("fair-checker");
     const assessment = (scores) => ({ provider: "fair-checker", reviewed: true, target: "https://doi.org/10.1234/example",
@@ -342,7 +342,7 @@ try {
     await part("report");
     await page.waitForSelector("#provider-overview-2");
     const saved = await page.evaluate(() => {
-      const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("#check-dataset"), st = FG.state.answers.dataset;
+      const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("checks/dataset"), st = FG.state.answers.dataset;
       const portable = SC.portableState(check, st);
       return { v: portable.v, assessments: portable.assessments.length, logs: portable.assessments.some((entry) => entry.results.some((result) => result.log)),
         restored: SC.readPortable(portable).state.assessments.length, members: SC.ftrCrate(check, st)["@graph"].filter((entity) => String(entity["@id"]).startsWith("#provider-") && [].concat(entity["@type"]).includes("TestResult")).length };
@@ -436,7 +436,7 @@ try {
   /* A crafted file claiming a real report's identity stays an unverified claim and does not block the real report. */
   const digest = await page.evaluate(async (text) => window.FairGuide.providers.digest(text), fuji350);
   const crafted = await page.evaluate(([hash, fake]) => {
-    const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("#check-dataset");
+    const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("checks/dataset");
     const st = { mode: "after", items: {}, target: "https://doi.org/10.1234/example", assessments: [{ id: "f-uji:" + hash, provider: "f-uji", target: "https://doi.org/10.1234/example", versions: { metric: "0.8", specification: "https://doi.org/10.5281/zenodo.15045911" }, results: [{ id: "FsF-A1-01M", verdict: "pass" }], source: { kind: "import", digest: hash } }] };
     const crate = SC.ftrCrate(check, st);
     crate["@graph"].find((entity) => entity["@id"] === "./").guideSources = JSON.stringify({ [hash]: fake });
@@ -573,7 +573,7 @@ try {
   await page.evaluate(() => {
     const FG = window.FairGuide, st = FG.state.answers.dataset;
     st.items = {}; st.extended = false;
-    const items = FG.refs(FG.get("#check-dataset"), "hasPart").filter((entry) => ["#tier-minimum", "#tier-required"].includes(FG.id(entry.tier)) && FG.refIds(entry, "appliesTo").includes("#mode-after"));
+    const items = FG.refs(FG.get("checks/dataset"), "hasPart").filter((entry) => ["vocabularies/tiers/minimum", "vocabularies/tiers/required"].includes(FG.id(entry.tier)) && FG.refIds(entry, "appliesTo").includes("vocabularies/modes-dataset/after"));
     items.forEach((entry, index) => { st.items[entry.identifier] = { value: index ? "yes" : "unknown", origin: "user" }; });
     FG.saveState(); FG.rerender();
   });
@@ -597,15 +597,15 @@ try {
   for (const lang of ["cs", "en"]) {
     await page.goto(base + `#/${lang}/DS/selfcheck`);
     await page.waitForSelector(".check-cards");
-    const href = await page.evaluate(() => window.FairGuide.entryHref(window.FairGuide.get("#criterion-f-uji-FsF-F1-02MD")));
+    const href = await page.evaluate(() => window.FairGuide.entryHref(window.FairGuide.get("tests/f-uji/FsF-F1-02MD")));
     await page.goto(base + href);
     const card = page.locator('[id="item-f-uji/FsF-F1-02MD"]');
     await card.waitFor();
     const text = await card.textContent();
     assert(text.includes("FsF-F1-02MD") && text.includes("Metadata and data are assigned a persistent identifier.") && text.includes("dataset.01"), "a criterion keeps its native identity and wording: " + text);
     assert(text.includes("zenodo.6461229") && text.includes("zenodo.15045911"), "the reviewed versions are named");
-    await page.goto(base + await page.evaluate(() => window.FairGuide.entryHref(window.FairGuide.get("#criterion-fair-checker-F1A"))));
-    const unmapped = page.locator('[id="item-fcx/F1A"]');
+    await page.goto(base + await page.evaluate(() => window.FairGuide.entryHref(window.FairGuide.get("tests/fair-checker/F1A"))));
+    const unmapped = page.locator('[id="item-fair-checker/F1A"]');
     await unmapped.waitFor();
     assert((await unmapped.textContent()).includes(lang === "cs" ? "není mapováno" : "not mapped"), "an unmapped criterion stays listed as evidence only");
     await checkAccess(`${lang} catalogue criterion`);

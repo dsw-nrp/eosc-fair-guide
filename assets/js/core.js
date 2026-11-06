@@ -31,7 +31,8 @@
   /** A genuine upstream identifier, kept separate from the Guide-owned primary. */
   FG.sourceIdentifier = (entity, scheme) => FG.refs(entity, "alternateIdentifier")
     .find((item) => item && item.propertyID === scheme)?.value || null;
-  FG.sourceEntity = (scheme, value, prefix = "") => {
+  /** The one record a source system knows by this identifier, optionally only of a kind or passing a test. */
+  FG.sourceEntity = (scheme, value, accept = null) => {
     if (!sourceIndex || sourceIndex.graph !== FG.graph || sourceIndex.size !== FG.graph.length) {
       const schemes = new Map();
       for (const entity of FG.graph) {
@@ -49,7 +50,7 @@
     }
     const candidates = value === null ? FG.graph.filter((entity) => FG.sourceIdentifier(entity, scheme) === null)
       : sourceIndex.schemes.get(scheme)?.get(value) || [];
-    const matches = candidates.filter((entity) => entity["@id"].startsWith(prefix));
+    const matches = candidates.filter((entity) => !accept || (typeof accept === "function" ? accept(entity) : FG.isRecord(entity, accept)));
     return matches.length === 1 ? matches[0] : null;
   };
 
@@ -172,8 +173,46 @@
   FG.ofType = (type) => FG.graph.filter((entity) => FG.list(entity["@type"]).includes(type));
   FG.byPosition = (a, b) => (a.position || 0) - (b.position || 0);
 
+  /* ---------------------------------------------------------------- record identity */
+
+  /* The page names a record by its address, `<kind>/<id>` or `<kind>/<scope>/<id>`, and a part of one by the address
+     and a fragment (`advice/plan.05#step-1`), as the build publishes them relative to the Guide's namespace. The
+     crate's own lists and files keep their names (`#repositories`). A kind is read from the address, never from the
+     form of an identifier. */
+  FG.address = (kind, id, scope) => [kind, scope, id].filter((part) => part != null && part !== "").join("/");
+  FG.term = (set, code) => "vocabularies/" + set + "/" + code;
+  FG.kind = function (value) {
+    const id = String(FG.id(value) || "");
+    const kind = id.split("/")[0];
+    return id.includes("/") && FG.list(FG.config && FG.config.kinds).includes(kind) ? kind : null;
+  };
+  /** The record a part belongs to, or the record itself. */
+  FG.recordOf = (value) => String(FG.id(value) || "").split("#")[0];
+  /** A part's fragment under its record (`step-1`), or "" for a record. */
+  FG.fragment = (value) => String(FG.id(value) || "").split("#")[1] || "";
+  /** The identifier within its kind: the address without its kind (`rdmkit/plan` for a scoped stage). */
+  FG.localId = (value) => FG.recordOf(value).split("/").slice(1).join("/");
+  /** The Guide's persistent IRI of a record or part, for chips and exports. */
+  FG.iri = (value) => (FG.kind(value) ? (FG.config.namespace || "") + "id/" + FG.id(value) : FG.id(value));
+  /** Whether something is a record of a kind itself, not a part of one. */
+  FG.isRecord = (value, kind) => FG.kind(value) === kind && !FG.fragment(value);
+  /** A vocabulary term's code, the last segment of its address (`vocabularies/statuses/operational`). */
+  FG.termKey = (value) => String(FG.id(value) || "").split("/").pop();
+  /** Whether a link target is a place in the Guide: a record's address or one of the crate's own lists. */
+  FG.inPage = (target) => String(target || "").startsWith("#") || Boolean(FG.kind(target));
+  /** An external evaluator's criterion: a test scoped by a reviewed provider, apart from FAIR Champion's tests and
+      the Guide's own. */
+  FG.isCriterion = (value) => FG.isRecord(value, "tests")
+    && FG.list(FG.config.providers && FG.config.providers.list).some((provider) => FG.localId(value).startsWith(provider.id + "/"));
+  /** The Guide's own test of a question (`guide-dataset-01`), and a FAIR Champion test, by their IDs. */
+  FG.localTest = (id) => FG.get(FG.address("tests", id, "guide"));
+  FG.championTest = (id) => FG.get(FG.address("tests", id, "fair-champion"));
+  /** A snapshot of a source, one of the crate's own nodes. */
+  FG.isSnapshot = (value) => String(FG.id(value) || "").startsWith("#snapshot-");
+
   /** The implementation model is an independent organising vocabulary, with explicit editorial associations. */
-  FG.modelTerms = (kind) => FG.refs(FG.get("#implementation-model"), "hasDefinedTerm").filter((term) => !kind || term.modelKind === kind).sort(FG.byPosition);
+  FG.model = () => FG.graph.find((entity) => FG.kind(entity) === "models" && !FG.fragment(entity));
+  FG.modelTerms = (kind) => FG.refs(FG.model(), "hasDefinedTerm").filter((term) => !kind || term.modelKind === kind).sort(FG.byPosition);
   FG.modelLink = (term) => FG.h("a", { class: "model-tag", href: FG.entryHref(term) }, FG.span(term.name));
   FG.modelRows = function (entity) {
     return ["implementationLayers", "implementationSeams"].flatMap((property) => {
@@ -224,7 +263,7 @@
     const icon = ((FG.config && FG.config.icons && FG.config.icons.kind) || {})[kind];
     return FG.h("span", { class: "service-badge service-placeholder kind-" + kind, "data-service": key ? String(key) : null, "aria-hidden": "true" }, FG.icon(icon));
   };
-  FG.modelContexts = (station, lens) => FG.graph.filter((entity) => String(entity["@id"]).startsWith("#model-context-") && FG.hasRef(entity, "isPartOf", station["@id"]) && FG.hasRef(entity, "audience", "#lens-" + lens));
+  FG.modelContexts = (station, lens) => FG.graph.filter((entity) => FG.fragment(entity).startsWith("context-") && FG.hasRef(entity, "isPartOf", station["@id"]) && FG.hasRef(entity, "audience", FG.term("lenses", lens)));
 
   /** Pick the value in the requested language; fall back to another language and report it. */
   FG.textOf = function (value, lang) {
@@ -395,16 +434,14 @@
   /** Where a reference in text leads: its catalogue entry, page or lifecycle station. */
   FG.referenceHref = function (id) {
     if (id === "#infrastructures") return FG.catalogueHref("infrastructures");
-    if (String(id).startsWith("#page-")) return FG.href("page", String(id).slice(6));
-    const address = FG.config.api?.records[id];
-    if (address) {
-      const [kind, ...parts] = address.split("/");
-      if (FG.catalogueKind(kind) === "stations") return FG.href("path", parts.join("/"));
-      if (kind === "check") return FG.href("check", parts.join("/"));
-      return FG.catalogueHref(kind, parts.join("/"));
-    }
-    const base = FG.config.pageUrl || "";
-    return base && String(id).startsWith(base) ? String(id).slice(base.length).replace(/\/?$/, "/") : null;
+    const kind = FG.kind(id);
+    if (kind === "pages") return FG.href("page", FG.localId(id));
+    if (kind === "stations") return FG.href("path", FG.localId(id));
+    if (kind === "checks") return FG.href("check", FG.localId(id));
+    if (FG.config.api?.records[id]) return FG.catalogueHref(id);
+    // The Guide's own documents under its namespace, such as its profile, are served beside the page.
+    const namespace = FG.config.namespace || "";
+    return namespace && String(id).startsWith(namespace) ? String(id).slice(namespace.length).replace(/\/?$/, "/") : null;
   };
 
   /** A text as nodes, with the first occurrence of each phrase its entity names by reference linked; a link already
@@ -789,17 +826,22 @@
 
   const VIEWS = ["path", "check", "explorer", "catalogue", "tools", "page", "selfcheck"];
 
-  /** In-page targets that name crate entities, as used by advice actions. */
+  /** The route that opens a record: a station on the path, a check, a page, or any other record's catalogue entry. */
+  FG.recordRoute = function (address) {
+    const kind = FG.kind(address);
+    const id = FG.localId(address);
+    if (!kind || !id) return null;
+    if (kind === "stations") return { view: "path", arg: id };
+    if (kind === "checks") return { view: "check", arg: id };
+    if (kind === "pages") return { view: "page", arg: id };
+    return { view: "catalogue", arg: kind, extra: id };
+  };
+
+  /** In-page targets, as advice actions use them: a record by its address, or a crate list (with a topic). */
   FG.entityRoute = function (hash) {
+    if (FG.kind(hash)) return FG.recordRoute(hash);
     const id = hash.replace(/^#/, "");
     let match;
-    if ((match = id.match(/^station-(.+)$/))) return { view: "path", arg: match[1] };
-    if ((match = id.match(/^check-(.+)$/))) return { view: "check", arg: match[1] };
-    if ((match = id.match(/^page-(.+)$/))) return { view: "page", arg: match[1] };
-    if ((match = id.match(/^resource-(.+)$/))) {
-      const address = FG.config.api.records["#resource-" + match[1]];
-      return address ? { view: "catalogue", arg: address.split("/")[0], extra: address.split("/").slice(1).join("/") } : null;
-    }
     /* A topic (`#resources?type=standard,vocabulary`) opens the kind narrowed to it, for the reader's lens. */
     if ((match = id.match(/^(resources|repositories)\?(.+)$/)) && FG.catalogueTopic) return { view: "catalogue", arg: FG.catalogueTopic(match[1], match[2]) };
     if (id === "repositories") return FG.repositoryFinderHref ? FG.parseHash(FG.repositoryFinderHref()) : { view: "catalogue", arg: "repositories" };
@@ -824,6 +866,13 @@
     if (!hash.startsWith("#/")) {
       const target = FG.entityRoute(hash);
       return target ? Object.assign(route, target) : route;
+    }
+    // The one route without the reader's state: `#/id/<address>` names the catalogue entry of the record a persistent
+    // IRI names, stations and checks included, in the saved language and lens; FG.render replaces it with the full
+    // route. An address no record has reaches the catalogue, which says so.
+    if (hash.startsWith("#/id/")) {
+      const address = hash.slice(5).split("#")[0].split("/").map((part) => { try { return decodeURIComponent(part); } catch { return ""; } }).filter(Boolean).join("/");
+      return Object.assign(route, { view: "catalogue", arg: address.split("/")[0] || null, extra: address.split("/").slice(1).join("/") || null, entry: address });
     }
     const parts = hash
       .slice(2)
@@ -881,7 +930,7 @@
 
   /** Turn an advice action target into a link: in-page entity targets become routes, keeping the entry they name. */
   FG.actionHref = function (target) {
-    if (target.startsWith("#")) {
+    if (FG.inPage(target)) {
       const route = FG.entityRoute(target);
       return route ? FG.routeHref(route) : "#";
     }
@@ -890,7 +939,7 @@
 
   /* ---------------------------------------------------------------- shared lookups */
 
-  FG.lenses = () => FG.ofType("Audience").filter((entity) => entity["@id"].startsWith("#lens-"));
+  FG.lenses = () => FG.ofType("Audience").filter((entity) => String(entity["@id"]).startsWith("vocabularies/lenses/"));
   FG.stations = () => FG.refs(FG.get("#path"), "step").sort(FG.byPosition);
   /** FAIR principles in a fixed order: F, A, I, R, then by number (A1 before A1.1 before A2). */
   FG.principleOrder = function (a, b) {

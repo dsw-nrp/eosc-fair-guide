@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
 import { installGuards } from "./guards.mjs";
+import { addressOf, crateIndex, isRecord, siteNamespace } from "./addresses.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const site = resolve(root, process.env.FAIR_GUIDE_SITE || "_site");
@@ -58,12 +59,11 @@ const problems = await page.evaluate(() => {
     }
   }
   /* Every addressed record is a list entry, or the catalogue says where else it shows. */
-  const kindOf = (code) => FG.catalogueKind(code);
-  for (const entity of FG.graph.filter((item) => item.catalogueAddress && !listed.has(item["@id"]))) {
-    const code = entity.catalogueAddress.split("/")[0];
+  for (const entity of FG.graph.filter((item) => FG.config.api.records[item["@id"]] && !listed.has(item["@id"]))) {
+    const kind = FG.kind(entity);
     const types = [].concat(entity["@type"]);
-    if (outside[code] || types.some((type) => (within[kindOf(code)] || {})[type])) continue;
-    note(kindOf(code), "(record)", "has an address but is neither listed nor shown inside another entry", entity["@id"]);
+    if (outside[kind] || types.some((type) => (within[FG.catalogueGroup(kind)] || {})[type])) continue;
+    note(FG.catalogueGroup(kind), "(record)", "has an address but is neither listed nor shown inside another entry", entity["@id"]);
   }
   return [...found.entries()].map(([key, ids]) => key + " (" + ids.length + ": " + ids.slice(0, 3).join(", ") + (ids.length > 3 ? ", …" : "") + ")").sort();
 });
@@ -71,7 +71,9 @@ const problems = await page.evaluate(() => {
 // The entries design D8 names, read as a reader sees them: the facts each kind gains, both ends of each relation, and
 // a folded list that opens by keyboard and is built only then.
 const graph = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"))["@graph"];
-const byId = new Map(graph.map((entity) => [entity["@id"], entity]));
+const namespace = siteNamespace(site);
+const nodes = crateIndex(graph, namespace);
+const byId = nodes.byId;
 const list = (value) => [].concat(value ?? []);
 const fail = (message) => problems.push(message);
 /* Shows one entry and waits for its own card, not the card the previous view left. */
@@ -81,7 +83,8 @@ const show = async (hash) => {
   await page.waitForSelector(`.catalogue-results [id="item-${anchor}"]`);
   return page.locator(`.catalogue-results [id="item-${anchor}"]`).first();
 };
-const open = (id, lang = "cs") => show(`#/${lang}/V/catalogue/${byId.get(id).catalogueAddress}`);
+/** Shows the catalogue entry of a record, named by its address or its IRI. */
+const open = (id, lang = "cs") => show(`#/${lang}/V/catalogue/${addressOf(id, namespace)}`);
 const row = async (card, label) => {
   const term = card.locator(".relations dt", { hasText: label });
   return (await term.count()) ? term.first().evaluate((node) => node.nextElementSibling.textContent) : "";
@@ -93,8 +96,8 @@ const unfold = (card) => card.evaluate(async (node) => {
 });
 const items = (card, field) => card.locator(`dd[data-field="${field}"] li`).count();
 
-for (const [id, consulted, changed] of [["#action-2026-10-16-initial-state", 143, 1374], ["#action-2026-10-18-station-dedup", 25, 18]]) {
-  const action = byId.get(id);
+for (const [id, consulted, changed] of [["actions/2026-10-16-initial-state", 143, 1374], ["actions/2026-10-18-station-dedup", 25, 18]]) {
+  const action = nodes.get(id);
   const card = await open(id);
   const person = byId.get(action.agent["@id"]).name;
   if (!(await card.locator(".entry-byline").textContent()).includes(person)) fail(`catalogue: ${id} does not name ${person} in its byline`);
@@ -117,27 +120,27 @@ for (const [id, consulted, changed] of [["#action-2026-10-16-initial-state", 143
   });
   if (unresolved.length) fail(`catalogue: ${id} links records the catalogue does not have: ${unresolved.slice(0, 3).join(", ")}`);
 }
-if (!(await row(await open("#action-2026-10-16-initial-state", "en"), "Tools")).includes("AI model")) fail("catalogue: the English change does not name an AI model as a tool");
+if (!(await row(await open("actions/2026-10-16-initial-state", "en"), "Tools")).includes("AI model")) fail("catalogue: the English change does not name an AI model as a tool");
 {
   // A page of the Guide that a change altered leads to that page, named by its heading rather than its ID. The Guide
   // record links to the About page too, so the heading is looked for among every such link, in whatever group order.
-  const card = await open("#action-2026-10-26-workflow-follow-up", "en");
+  const card = await open("actions/2026-10-26-workflow-follow-up", "en");
   await unfold(card);
   const about = await card.locator('dd[data-field="result"] a[href$="/page/about"]').allTextContents();
   if (!about.map((text) => text.trim()).includes("About the Guide")) fail("catalogue: a change does not link the About page by its heading: " + about.join(", "));
 }
 {
   // A context question says what it is in the self-check's words, not by an interface key.
-  const context = await (await open("#item-fdo.09", "en")).locator('[data-field="assessmentContext"]').textContent();
+  const context = await (await open("questions/fdo.09", "en")).locator('[data-field="assessmentContext"]').textContent();
   if (!context.startsWith("Original source context.") || context.includes("catalogue.")) fail("catalogue: fdo.09 does not say it is source context: " + context);
 }
 
 {
-  const card = await open("#item-dataset.01");
+  const card = await open("questions/dataset.01");
   if (!(await row(card, "Kdo to napraví")).includes("správce repozitáře")) fail("catalogue: dataset.01 does not say who puts it right");
   if (!/po zveřejnění.*netýká se/.test(await row(card, "Kdy se ptá"))) fail("catalogue: dataset.01 does not say when it applies and whether “not applicable” is offered");
   const prefill = await row(card, "Předvyplňuje se z");
-  const localTest = list(byId.get("#test-guide-dataset-01").name).find((value) => value["@language"] === "cs")?.["@value"];
+  const localTest = list(nodes.get("tests/guide/guide-dataset-01").name).find((value) => value["@language"] === "cs")?.["@value"];
   if (!["DataCite", "FAIR Champion", localTest, "jen z podkladů FAIR Champion"].every((text) => prefill.includes(text))) fail("catalogue: dataset.01 does not list its pre-fill sources with their limits: " + prefill);
   // An entry's changes stay in the catalogue's list of changes: the entry's corner counts them and leads there.
   const changes = card.locator(".entry-links .changes-link");
@@ -150,14 +153,14 @@ if (!(await row(await open("#action-2026-10-16-initial-state", "en"), "Tools")).
     if (!listed.includes("Initial public Guide state") || !chip.includes("dataset.01") || (await page.locator('[data-facet="actions-record"]').count())) fail("catalogue: dataset.01's changes are not the catalogue's changes narrowed to it, with a filter that can be removed");
   }
   // The catalogue is not read in a role: it names the self-check's "you" by its role, the researcher.
-  const fixer = await row(await open("#item-dataset.15"), "Kdo to napraví");
+  const fixer = await row(await open("questions/dataset.15"), "Kdo to napraví");
   if (!fixer.includes("výzkumník") || /(?<!\p{L})vy(?!\p{L})/u.test(fixer)) fail("catalogue: a question addresses the reader in its Who puts it right row: " + fixer);
-  const cdif = await open("#item-cdif.01");
+  const cdif = await open("questions/cdif.01");
   if (!(await row(cdif, "Skupina")).trim()) fail("catalogue: cdif.01 does not show its group");
 }
 
 {
-  const card = await open("#fip-csda");
+  const card = await open("fips/csda");
   const summary = await card.locator('dd[data-field="hasPart"] summary').textContent();
   if (!summary.includes("18 deklarací: 17 se používá, 1 plánovaná")) fail("catalogue: the ČSDA profile does not summarise its declarations by status: " + summary);
   if (await card.locator(".declarations-table").count()) fail("catalogue: the declarations table is built before it is opened");
@@ -174,30 +177,30 @@ if (!(await row(await open("#action-2026-10-16-initial-state", "en"), "Tools")).
 }
 
 {
-  const source = graph.find((entity) => String(entity["@id"]).startsWith("#source-") && String(entity.license || "").includes("creativecommons.org/licenses/by/4.0"));
+  const source = graph.find((entity) => isRecord(entity, "resources", namespace) && !entity.resourceType && String(entity.license || "").includes("creativecommons.org/licenses/by/4.0"));
   if (!(await row(await open(source["@id"]), "Licence")).includes("CC BY 4.0")) fail(`catalogue: ${source["@id"]} does not show its licence as a row named from the data`);
-  const term = graph.find((entity) => String(entity["@id"]).startsWith("#term-"));
+  const term = graph.find((entity) => isRecord(entity, "glossary", namespace));
   if (!(await (await open(term["@id"])).locator(".quote-licence").textContent()).includes("CC BY 4.0")) fail("catalogue: a term does not name its definition's licence beside it");
-  const infrastructure = await open("#infrastructure-elixir-cz");
+  const infrastructure = await open("infrastructures/elixir-cz");
   if (!(await row(infrastructure, "Provozovatel")).trim()) fail("catalogue: an infrastructure does not show its host as Operated by");
   const healthy = graph.find((entity) => entity.healthStatus && entity.statusAsOf);
   const badge = (await open(healthy["@id"])).locator("[data-health]");
   if (!(await badge.locator('[aria-hidden="true"]').count()) || !/ověřeno/.test(await badge.textContent())) fail("catalogue: a test's health is not one badge with icon, text and as-of date");
-  const criterion = graph.find((entity) => String(entity["@id"]).startsWith("#criterion-") && list(entity.hasPart).length);
+  const criterion = graph.find((entity) => isRecord(entity, "tests", namespace) && list(entity.hasPart).some((part) => byId.get(part["@id"])?.mappingCoverage));
   const criterionCard = await open(criterion["@id"]);
   await unfold(criterionCard);
   if ((await items(criterionCard, "hasPart")) !== list(criterion.hasPart).length) fail("catalogue: a criterion's mappings are not its Covers row");
-  if (!(await (await open("#lifecycle-rdmkit.plan")).locator(".relations dt", { hasText: "Odpovídá" }).count())) fail("catalogue: a life-cycle stage does not show what it corresponds to as a row");
+  if (!(await (await open("lifecycles/rdmkit/plan")).locator(".relations dt", { hasText: "Odpovídá" }).count())) fail("catalogue: a life-cycle stage does not show what it corresponds to as a row");
 }
 
 {
-  if (!(await row(await open("#test-guide-dataset-01"), "Předvyplňuje")).includes("dataset.01")) fail("catalogue: a local test does not list the question it pre-fills");
-  if (!(await row(await open("#clause-A.R1.1.N2"), "Nahrazeno")).includes("DSW-NRP.01")) fail("catalogue: a superseded requirement does not name what replaced it");
-  const replaces = await row(await open("#clause-DSW-NRP.01"), "Nahrazuje");
+  if (!(await row(await open("tests/guide/guide-dataset-01"), "Předvyplňuje")).includes("dataset.01")) fail("catalogue: a local test does not list the question it pre-fills");
+  if (!(await row(await open("clauses/A.R1.1.N2"), "Nahrazeno")).includes("DSW-NRP.01")) fail("catalogue: a superseded requirement does not name what replaced it");
+  const replaces = await row(await open("clauses/DSW-NRP.01"), "Nahrazuje");
   if (!replaces.includes("A.R1.1.N2") || !replaces.includes("A.K2.2.2")) fail("catalogue: a requirement does not list the requirements it replaces");
 }
 
-for (const id of ["#action-2026-10-18-station-dedup", "#fip-csda"]) {
+for (const id of ["actions/2026-10-18-station-dedup", "fips/csda"]) {
   await unfold(await open(id));
   state.axeRunning = true;
   const result = await audit(page);

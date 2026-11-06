@@ -157,8 +157,11 @@ keep the same meaning across stations, requirements, questions and catalogue ent
 The landing leads with local search, the RDMkit life-cycle journey, role-specific task shortcuts and
 resume. Local results appear while typing; nothing is sent externally. Identifiers route by what they
 denote: repositories to maturity, FIPs to their check, institutions to the institution check, ORCID to
-verification. A generic DOI or Handle offers an explicit lookup that names its object and source;
-other suitable helpers remain available. The catalogue is the complete search-results view. Source
+verification, a Guide IRI or address to its catalogue entry. A generic DOI or Handle offers an explicit lookup
+that names its object and source; other suitable helpers remain available. The catalogue is the complete
+search-results view. Every route names the reader's language and lens (`#/<lang>/<lens>/catalogue/<kind>/<id>`),
+so a shared link opens as its sender saw it; the one route without them, `#/id/<address>`, is how a record's
+landing page links into the Guide, and it becomes the full route in the reader's saved language and lens. Source
 and privacy information remain visible without dominating entry.
 
 The journey draws seven life-cycle stages as a cycle, reuse returning to planning, with a numbered
@@ -193,8 +196,10 @@ FAIR links relate topics without renaming FAIR4RS or FDO requirements as FAIR-da
 **One entry per thing, locally owned identities.** Records declare short Guide IDs. Imported rows retain
 one primary `id` and the issued `guideRoute` across refresh independently of source IDs, names and URLs.
 Genuine source identifiers live in typed `alternateIds`; obsolete Guide IDs are discarded before release. One build
-projection emits compact catalogue/API addresses for all consumers; there is no parallel full-address register.
-Chips display the compact record ID. Published source labels and authoritative IRIs remain metadata with their
+projection gives every record one address, `<kind>/<id>` in a plain-word kind vocabulary, and one IRI under the
+Guide's namespace; the crate, the API, the page's routes and references all use it, and there is no parallel
+full-address register. A part of a record takes a fragment under it, as a registry's record about the thing it
+describes does. Chips display the record ID, and the record's own chip its IRI as the Guide's identifier. Published source labels and authoritative IRIs remain metadata with their
 actual roles. Before the first official release, IDs may change in place without compatibility routes or duplicate
 API documents. After issue, names/classification may change while the address remains fixed. Reviewed joins
 identify one described thing; ambiguous changes require review. Duplicate checks retain their current reasons.

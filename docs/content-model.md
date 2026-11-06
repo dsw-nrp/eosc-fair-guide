@@ -120,9 +120,17 @@ An identifier says where an entry belongs, not what it says:
   come directly from that source's identifier field. An obsolete Guide slug never becomes an alternate.
   The build rejects missing, untyped, empty or competing source identifiers. Published records carry every
   identifier as one `schema:identifier` value: the Guide primary as its own value and each genuine source
-  identifier as a `PropertyValue` typed by its issuing scheme (a DataCite repository ID included). The compact
-  catalogue address is a separate Guide-issued `dcterms:identifier`.
-- **Stable identity through refresh.** `guideRoute` stores the frozen compact kind/type prefix. Refresh joins
+  identifier as a `PropertyValue` typed by its issuing scheme (a DataCite repository ID included).
+- **One address and one IRI.** A record's address is its kind and its ID, with the scope between them where the
+  kind has one: `stations/licence`, `resources/github`, `questions/dataset.04`,
+  `lifecycles/rdmkit/plan`, `vocabularies/lenses/V`. The kinds are plural English words, owned by
+  `scripts/catalogue_identity.py`. The record's IRI is the address under the `namespace` of `guide.toml`
+  (`https://w3id.org/eosc-cz/fair-guide/id/stations/licence`), the same in the crate, the API and the page. A part
+  of a record takes a fragment of its own: an advice step (`advice/plan.05#step-1`), a registry's record about the
+  thing (`repositories/zenodo#knav`). The crate's own lists, files and snapshots keep their names (`#repositories`,
+  `#snapshot-datacite`).
+- **Stable identity through refresh.** `guideRoute` stores the frozen kind, with its scope where it has one
+  (`resources`, `lifecycles/rdmkit`). Refresh joins
   through the typed source identifier or an unambiguous authoritative URL, retains `id` and `guideRoute`, and
   updates source metadata. Names alone never merge records; ambiguous joins and splits require review.
   New records take a short local ID once. Removed IDs stay reserved across subsequent refreshes, without routes
@@ -212,21 +220,19 @@ falls back to the other language. No markup yet marks a phrase in another langua
 
 ### References in text
 
-Catalogue addresses belong to the Guide: `<kind-code>/<type-code>/<id>`, omitting type where unneeded.
-`scripts/catalogue_identity.py` owns the compact vocabulary; `catalogue_addresses()` in `scripts/build_crate.py`
-projects the stored record identity once. Examples: `res/tool/github`, `repo/gen/zenodo`, `q/software.04`.
+Record addresses belong to the Guide: `<kind>/<id>`, or `<kind>/<scope>/<id>` where the kind has a scope.
+`scripts/catalogue_identity.py` owns the kind vocabulary; `identity_projection()` in `scripts/build_crate.py`
+places every record once. Examples: `resources/github`, `repositories/zenodo`, `questions/software.04`.
 Slugs contain no articles, prepositions or conjunctions. Prefer a recorded official abbreviation, then specific
 words from the source URL; skip generic registry/resolver and interface paths. Where neither is useful, choose
 short meaningful name words without particles or cut-off words. These are one-time local assignments; later
 title, abbreviation or URL changes do not rename a record. Symbolic parts of official abbreviations remain intact.
-The API, routes, references and exports consume the emitted address; chips display its compact last segment.
-There is no `[catalogue]` full-address register, old-route alias table or duplicate API compatibility document.
-The complete address remains available through the chip link/title. `guideRoute` is frozen for issued records,
+The API, routes, references and exports use the address; a chip shows its last segment, and its title the whole
+address. A record's own chip, labelled as the Guide's identifier, shows its IRI. There is no full-address register,
+old-route alias table or compatibility document. `guideRoute` is frozen for issued records,
 so a classification edit does not move a published address.
 
-A canonical prose reference is `[[res/tool/github|GitHub]]`: any allowed published catalogue entry can be named by
-its compact address. Current short forms for authored resources/sources, pages, stations, clauses and the model
-are convenient content references, not compatibility routes. New imported records receive their own primary `id`
+A prose reference names a record by its address, `[[resources/github|GitHub]]`. New imported records receive their own primary `id`
 during snapshot refresh; source changes never regenerate existing Guide IDs from names or external identifiers.
 
 Optional `linkNames = { cs = ["reviewed inflected phrase"], en = ["specific alternate name"] }` adds reviewed
@@ -235,17 +241,18 @@ learns forms from authored references, suppresses generic/self/already-linked me
 and marks unresolved ambiguity for review. Its proposed markup and excerpt are hints; they never rewrite prose
 or fail content integrity checks. Do not add broad noun stems to force matches.
 
-A text that names a resource, a source or a glossary term marks the name as a reference: `[[id|phrase]]`, where
-`id` is the resource's or source's ID, the emitted `term/<Guide ID>` for a glossary term, `page:<id>` for a page of the guide,
-`infrastructure:<id>` for a large research infrastructure (`infrastructures` for their catalogue),
-`clause:<id>` for a ledger clause (such as a CoreTrustSeal requirement) or `profile` for the guide's profile, and
-`phrase` is the words that name it
-in that language, inflected as the sentence needs (`v [[nma|Národním metadatovém adresáři]]`). Mark the first
+A text that names a record marks the name as a reference: `[[<address>|phrase]]`, with the scope inside the
+address where there is one (`[[glossary/open-licence|otevřená licence]]`, `[[pages/machines|Data pro stroje]]`,
+`[[clauses/CTS.R06|R06]]`). Two targets that are not records keep their names: `[[infrastructures|…]]` for the
+catalogue's large research infrastructures and `[[profile|…]]` for the Guide's profile. `phrase` is the words that
+name it in that language, inflected as the sentence needs (`v [[resources/nma|Národním metadatovém adresáři]]`).
+Mark the first
 time a text names the entry; a button label is already a link and carries no reference. The Czech and the English
 text of one item refer to the same entries. The generator writes the text without the markup and records each
 entry as mentioned by the item; the page links the phrase quietly to the entry in the catalogue, or to the page. The content
-checks refuse a reference that is not well formed, one to an unknown entry, and texts whose languages refer to
-different entries.
+checks refuse a reference that is not well formed, one to an unknown record, a retired form (`term:`, `page:`,
+`station:`, `clause:`, `infrastructure:`, a bare ID or a code address such as `res/tool/github`), naming the address
+to use, and texts whose languages refer to different entries.
 
 ### Advisory wording
 
@@ -301,8 +308,8 @@ not relax the full-date requirements for existing resource and service statuses.
 to cited sources. Statuses describe the named scope; a catalogue component and reuse of it in planning
 are separate observations even when they concern the same seam.
 
-The static API exposes the model at `_site/api/model/layers-seams.json` and its layers, seams and examples at
-`api/model/layer/<id>.json`, `api/model/seam/<id>.json` and `api/model/ex/<id>.json`, with language maps and
+The static API exposes the model at `_site/api/models/layers-seams.json` and its layers, seams and examples at
+`api/layers/<id>.json`, `api/seams/<id>.json` and `api/model-examples/<id>.json`, with language maps and
 links to source evidence. Contexts are embedded in the station records. The deferred
 `model` data part contains definitions and observations plus association patches for core entities;
 questions and standards retain their reviewed associations with their own deferred entities. Loading
@@ -334,7 +341,7 @@ IDs and source links live in `content/ledger.toml`, with their issued identifier
 | --- | --- |
 | `[lifecycle]` | `id`, `position`, `source` (source ID), optional `czechSource` (the source of Czech names and definitions), bilingual `name`, optional `url` (the page that publishes the model; the landing links the path's model there) |
 | `[[stage]]` | `id`, bilingual `name`, `translated` (languages in which the name is the Guide's translation), `definition` (a string quoted from `source`, in its language), `translation` (for a stage of the path's model only: the Guide's Czech translation of `definition`, sentence for sentence), `czechDefinition` (a string quoted from `czechSource` with its stage label, "Plánování: …", for every stage of a model that has one), `locator`, optional `note` (quoted from `source`) |
-| `[[correspondence]]` in `crosswalk.toml` | Guide-owned `id`, frozen `guideRoute` (`life/xw`), `stages` (two `<model>.<stage>`: one of the path's model, one of another), `basis` (`published`, `reviewed`, `unconfirmed`), `source` and `locator` for a published or unconfirmed one, bilingual `note` saying why for a reviewed or unconfirmed one |
+| `[[correspondence]]` in `crosswalk.toml` | Guide-owned `id`, frozen `guideRoute` (`crosswalks/lifecycle-stages`), `stages` (two `<model>.<stage>`: one of the path's model, one of another), `basis` (`published`, `reviewed`, `unconfirmed`), `source` and `locator` for a published or unconfirmed one, bilingual `note` saying why for a reviewed or unconfirmed one |
 
 A definition is quoted in its source's language. So that both languages state the same definition, a stage of the
 path's model also carries the Guide's Czech translation, which the page marks as a translation; the Czech source's
@@ -343,16 +350,16 @@ source's language. A file quoting a source under another licence keeps that lice
 catalogue's steps keep GPL-3.0. The content checks require every stage of the path's model to correspond to a stage
 of each other model.
 
-A stage is a `schema:DefinedTerm` `#lifecycle-<model>.<stage>` in its model's `schema:DefinedTermSet` `#lifecycle-<model>`, with
+A stage is a `schema:DefinedTerm` `id/lifecycles/<model>/<stage>` in its model's `schema:DefinedTermSet` `id/lifecycles/<model>`, with
 `schema:description` (its definition, language-tagged), `guide:descriptionTranslation` (the languages in which the description is
 the Guide's translation), `guide:quotedDefinition` (the Czech source's wording), `schema:citation`, `schema:license` (its sources'
-licences) and `guide:nameTranslation`. A correspondence is a `schema:CreativeWork` `#crosswalk-<id>` in `#lifecycle-crosswalk`,
+licences) and `guide:nameTranslation`. A correspondence is a `schema:CreativeWork` `id/crosswalks/lifecycle-stages/<id>` in the crosswalk `id/crosswalks/lifecycle-stages`,
 with `schema:about` (both stages), `guide:mappingBasis`, `schema:citation` and `schema:description` (the note). `#path` names the path's model
 in `schema:isBasedOn`. The names of the path's stages stay in `_site/assets/data/kb.js`, because the rail groups the steps under them and the
 landing's journey lists them; their definitions, the other models and the crosswalk load with `_site/assets/data/kb-model.js`. The
 stage a reader is in is derived from the step and never stored. The API lists every model, stage and
-correspondence in `_site/api/lifecycle.json`, each at its catalogue address (`_site/api/life/rdmkit.json`,
-`_site/api/life/rdm/plan.json`, `_site/api/life/xw/rdm-plan-mld-plan.json`); the register and provenance use `lifecycle:<model>`,
+correspondence in `_site/api/lifecycle.json`, each at its address (`_site/api/lifecycles/rdmkit.json`,
+`_site/api/lifecycles/rdmkit/plan.json`, `_site/api/crosswalks/lifecycle-stages/rdm-plan-mld-plan.json`); the register and provenance use `lifecycle:<model>`,
 `<model>.<stage>` and `crosswalk:<id>`. The correspondence ID is stored, not recomputed from its stages.
 
 ### Paradata
@@ -482,7 +489,7 @@ publisher named like a curated organisation.
 | `[[resourceType]]` | `id`, `name`, `fipDashboard`, `citation` | | Resource types, one vocabulary for the catalogue: `fipDashboard` lists the FIP Dashboard types and `citation` the citation forms (`type` of a `[[source]]` or a citation) that the type covers; each of them belongs to exactly one type, and a cited source or FIP Dashboard record carries it as `guideType` |
 | `[[repositoryKind]]` | `id`, `name` | | Repository kinds: domain, institutional, general-purpose |
 | `[[help]]` | `id`, `name`, `url`, `lenses` | | Routes to human help shown on every station; `url` may be `mailto:` |
-| `[[task]]` | `lens`, `label`, `href`, `icon` | | A shortcut on the landing view for one lens; `href` is an in-page target (`#station-<id>`, `#check-<id>`, `#page-<id>`, `#repositories`, `#resources`) or an HTTPS link. Tasks are listed in path order |
+| `[[task]]` | `lens`, `label`, `href`, `icon` | | A shortcut on the landing view for one lens; `href` is an in-page target, a record's address (`stations/<id>`, `checks/<id>`, `pages/<id>`) or one of the catalogue's lists (`repositories`, `resources`), or an HTTPS link. Tasks are listed in path order |
 
 ### `principles.toml`
 
@@ -556,7 +563,7 @@ and on the rail), `principles`, `minutes`, `glossary` (term IDs).
 | `position` | integer | Order within the station, lens and level |
 | `text` | text | The advice |
 | `steps` | list of text | Sub-steps shown as a list under the item |
-| `action` | table or list | L0 only and required there: one action, or a list of at most two (the next step and one related tool). Each has `label` (text) and `href`: an HTTPS URL, or an in-page target naming a crate entity (`#repositories`, `#ledger`, `#resources`, `#check-<id>`, `#station-<id>`, `#page-<id>`, `#resource-<id>`) |
+| `action` | table or list | L0 only and required there: one action, or a list of at most two (the next step and one related tool). Each has `label` (text) and `href`: an HTTPS URL, or an in-page target: a record's address (`stations/<id>`, `checks/<id>`, `pages/<id>`, `resources/<id>`) or one of the crate's lists (`repositories`, `ledger`, `resources`, `tests`), a list with a topic such as `resources?station=assessment` |
 | `kind` | string | `ai` for the AI-in-FAIRification overlay; `key` for the station's key point, its one core idea shown at the top of the how-to (an L1 item without steps, exactly one per station and lens); omitted otherwise |
 | `check` | text | AI items only, required: what to check after following the tip |
 | `prompt` | text | AI items only, required: a short prompt to copy; parts the reader fills in are written `[…]` |
@@ -930,36 +937,39 @@ rename stored keys:
 | `descriptionTranslation` | `guide:descriptionTranslation` |
 <!-- semantic-aliases:end -->
 
+In the `@id` column, `id/…` is an IRI under the namespace (`<namespace>id/stations/plan`), a `<record>#…` is a part
+of a record, and a `#…` name is one of the crate's own nodes.
+
 | Content | `@type` | `@id` | Main properties |
 | --- | --- | --- | --- |
 | Guide | `schema:Dataset` (root) | `./` | `schema:name`, `schema:description`, `schema:version`, `schema:datePublished`, `schema:license`, `schema:editor` (the Guide's editors), `dcterms:publisher`, `schema:funder`, `schema:isBasedOn`, `schema:mainEntity`, `schema:about`, `schema:mentions`, `dcterms:conformsTo` |
 | Path | `schema:HowTo` | `#path` | `schema:step`, `schema:isBasedOn` (the life-cycle model it follows) |
-| Station | `schema:HowToSection` | `#station-<id>` | `schema:name`, `schema:headline`, `schema:position`, `schema:about`, `schema:timeRequired`, `schema:itemListElement`, `schema:hasPart` (callouts), `schema:mentions` (resources, terms), `guide:lifecycleStage` |
-| Advice item | `schema:HowToDirection` (other L0 and L1 items), `schema:HowToTip` (L2, the AI overlay and each key point) | `#advice-<id>` | `schema:text`, `schema:position`, `schema:audience`, `guide:disclosureLevel`, `schema:citation`, `schema:isPartOf`, `schema:potentialAction`, `guide:adviceKind`, `guide:checkAfter`, `guide:promptSample` |
-| Lens | `schema:Audience` | `#lens-<id>` | `schema:name`, `schema:audienceType` |
-| Level, tier, status, actor, profile, mode | `schema:DefinedTerm` | `#<set>-<id>` | `schema:name`, `schema:termCode`, `schema:inDefinedTermSet` |
-| Principle | `schema:DefinedTerm` | `#principle-<id>` (its published FAIR IRI is `schema:sameAs`) | `schema:termCode`, `schema:name`, `schema:description` |
-| Source | `schema:ScholarlyArticle`, `schema:Report`, `schema:WebPage`, `schema:DigitalDocument`, `schema:PresentationDigitalDocument` or `schema:CreativeWork`; a cited dataset or software is a `schema:CreativeWork` whose `schema:additionalType` is `schema:Dataset` or `schema:SoftwareSourceCode` | DOI URL, or `#source-<id>` | `schema:name`, `schema:url`, `dcterms:publisher`, `schema:datePublished`, `schema:license` |
-| Clause | `schema:CreativeWork` | `#clause-<id>` | `schema:identifier`, `schema:name` (title), `schema:text`, `guide:guidance`, `schema:about`, `schema:audience`, `schema:isPartOf`, `guide:clauseKind`, `schema:creativeWorkStatus`, `guide:note`, `schema:citation` (note sources), `dcterms:isReplacedBy` |
-| Check | `schema:Quiz` | `#check-<id>` | `schema:name`, `schema:description`, `schema:audience`, `schema:hasPart` |
-| Check item | `schema:Question` | `#item-<id>` | `schema:text`, `schema:description`, `schema:about`, `schema:citation`, `guide:tier`, `guide:fixAt`, `guide:fixedBy`, `guide:appliesTo`, `guide:providedByNrpFor`, `guide:allowsNotApplicable`, `schema:additionalProperty` (pre-fill) |
-| Resource | Schema.org class selected by resource type | `#resource-<id>` | `schema:name`, `schema:description`, `schema:url`, `schema:audience`, `schema:additionalType` (FIP class IRIs), `guide:resourceType`, `guide:serviceStatus`, `guide:statusAsOf`, `schema:inLanguage`, `schema:sameAs` |
-| Infrastructure | `schema:Organization` | `#infrastructure-<id>` | `schema:name`, `schema:alternateName` (the acronym), `dcterms:publisher`, `guide:researchField`, `guide:infrastructurePhase`, `guide:infrastructureCharacter`, `guide:roadmapSince`, `guide:esfriStatus`, `guide:nationalNodeOf`, `schema:memberOf` (ERICs, with `guide:czechMembershipSince`), `guide:operates`, `schema:subjectOf` (its community's FIP), `dcterms:references`, `schema:isBasedOn` |
-| EOSC CZ Node | `schema:Organization` | `#eosc-cz-node` | `schema:name`, `schema:url`, `guide:nodeState`, `guide:nodeStateSince`, `guide:operatedBy`, `schema:member` (`schema:OrganizationRole` entities with `schema:roleName`, `guide:nodeMilestone`, `guide:statusAsOf`, `schema:citation`, `schema:description`), `schema:isBasedOn`; a member entry carries `guide:nodeMembership` |
-| Repository | `schema:DataCatalog` | `#repository-<id>` | `schema:name`, `schema:alternateName`, `schema:url`, `guide:repositoryKind`, `schema:identifier`, `schema:sameAs`, `schema:isBasedOn` (snapshot) |
-| Glossary term | `schema:DefinedTerm` | `#term-<id>` (Guide-owned) | `schema:identifier`, `schema:name`, `schema:url`, `schema:termCode` (Heslář's number), `schema:license`, `schema:inDefinedTermSet` |
-| Callout | `schema:CreativeWork` | `#callout-<id>` | `schema:headline`, `schema:text`, `schema:hasPart`, `guide:lensOrder` |
-| FER (FIP Dashboard snapshot) | `schema:CreativeWork` with a FIP class as `schema:additionalType` | `#fer-<id>` | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `guide:catalogueType`, `schema:about`, `schema:provider`, `schema:review` (verifications as `schema:Review`), `schema:sameAs`, `schema:isBasedOn` |
-| FIP (FIP Dashboard snapshot) | `schema:CreativeWork` with `schema:additionalType` `fip:FAIR-Implementation-Profile` | `#fip-<id>` | `schema:name`, `schema:abstract`, `schema:version`, `schema:dateModified`, `schema:creativeWorkStatus`, `schema:author`, `schema:review`, `schema:hasPart` (declarations), `schema:isBasedOn` |
-| Local criterion | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `#test-<id>` | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `sio:SIO_000233`, `schema:about`, `schema:citation`, `schema:hasPart`, `schema:subjectOf`, `schema:additionalProperty` |
-| FAIR Champion test | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `#test-<id>` | `schema:identifier`, `schema:url`, `schema:about`, `guide:healthStatus`, `guide:statusAsOf` |
-| External evaluator criterion | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `#criterion-<provider>-<metric>`; API `test/<provider code>/<metric>` | `schema:identifier`, `schema:name` (the provider's wording, `en`), `schema:alternateName` (the guide's label), `schema:about`, `schema:isPartOf` (the provider's resource), `schema:url` (invocation or form), `schema:subjectOf`, `guide:reviewedVersion`, `schema:hasPart` (mappings) |
-| Criterion mapping | `schema:CreativeWork` | `#mapping-<provider>-<metric>-<question>` | `schema:about` (the question), `schema:isBasedOn` (the criterion), `guide:mappingCoverage`, `guide:reviewedVersion`, `schema:description` |
-| Provenance action | `schema:CreateAction`, `schema:UpdateAction` | `#action-<id>` | `schema:name`, `schema:description`, `schema:agent`, `schema:instrument`, `schema:object`, `schema:result`, `schema:endTime`, `schema:actionStatus` |
+| Station | `schema:HowToSection` | `id/stations/<id>` | `schema:name`, `schema:headline`, `schema:position`, `schema:about`, `schema:timeRequired`, `schema:itemListElement`, `schema:hasPart` (callouts), `schema:mentions` (resources, terms), `guide:lifecycleStage` |
+| Advice item | `schema:HowToDirection` (other L0 and L1 items), `schema:HowToTip` (L2, the AI overlay and each key point) | `id/advice/<id>`; its steps `<advice>#step-<n>`, its action `<advice>#action` | `schema:text`, `schema:position`, `schema:audience`, `guide:disclosureLevel`, `schema:citation`, `schema:isPartOf`, `schema:potentialAction`, `guide:adviceKind`, `guide:checkAfter`, `guide:promptSample` |
+| Lens | `schema:Audience` | `id/vocabularies/lenses/<id>` | `schema:name`, `schema:audienceType` |
+| Level, tier, status, actor, profile, mode | `schema:DefinedTerm` | `id/vocabularies/<set>/<id>` | `schema:name`, `schema:termCode`, `schema:inDefinedTermSet` |
+| Principle | `schema:DefinedTerm` | `id/principles/<id>` (its published FAIR IRI is `schema:sameAs`) | `schema:termCode`, `schema:name`, `schema:description` |
+| Source | `schema:ScholarlyArticle`, `schema:Report`, `schema:WebPage`, `schema:DigitalDocument`, `schema:PresentationDigitalDocument` or `schema:CreativeWork`; a cited dataset or software is a `schema:CreativeWork` whose `schema:additionalType` is `schema:Dataset` or `schema:SoftwareSourceCode` | `id/resources/<id>` (its DOI is `schema:sameAs`) | `schema:name`, `schema:url`, `dcterms:publisher`, `schema:datePublished`, `schema:license` |
+| Clause | `schema:CreativeWork` | `id/clauses/<id>` | `schema:identifier`, `schema:name` (title), `schema:text`, `guide:guidance`, `schema:about`, `schema:audience`, `schema:isPartOf`, `guide:clauseKind`, `schema:creativeWorkStatus`, `guide:note`, `schema:citation` (note sources), `dcterms:isReplacedBy` |
+| Check | `schema:Quiz` | `id/checks/<id>` | `schema:name`, `schema:description`, `schema:audience`, `schema:hasPart` |
+| Check item | `schema:Question` | `id/questions/<id>` | `schema:text`, `schema:description`, `schema:about`, `schema:citation`, `guide:tier`, `guide:fixAt`, `guide:fixedBy`, `guide:appliesTo`, `guide:providedByNrpFor`, `guide:allowsNotApplicable`, `schema:additionalProperty` (pre-fill) |
+| Resource | Schema.org class selected by resource type | `id/resources/<id>`, or `id/repositories/<id>` for a repository | `schema:name`, `schema:description`, `schema:url`, `schema:audience`, `schema:additionalType` (FIP class IRIs), `guide:resourceType`, `guide:serviceStatus`, `guide:statusAsOf`, `schema:inLanguage`, `schema:sameAs` |
+| Infrastructure | `schema:Organization` | `id/infrastructures/<id>` | `schema:name`, `schema:alternateName` (the acronym), `dcterms:publisher`, `guide:researchField`, `guide:infrastructurePhase`, `guide:infrastructureCharacter`, `guide:roadmapSince`, `guide:esfriStatus`, `guide:nationalNodeOf`, `schema:memberOf` (ERICs, with `guide:czechMembershipSince`), `guide:operates`, `schema:subjectOf` (its community's FIP), `dcterms:references`, `schema:isBasedOn` |
+| EOSC CZ Node | `schema:Organization` | `id/organizations/eosc-cz-node` | `schema:name`, `schema:url`, `guide:nodeState`, `guide:nodeStateSince`, `guide:operatedBy`, `schema:member` (`schema:OrganizationRole` entities with `schema:roleName`, `guide:nodeMilestone`, `guide:statusAsOf`, `schema:citation`, `schema:description`), `schema:isBasedOn`; a member entry carries `guide:nodeMembership` |
+| Repository | `schema:DataCatalog` | `id/repositories/<id>` | `schema:name`, `schema:alternateName`, `schema:url`, `guide:repositoryKind`, `schema:identifier`, `schema:sameAs`, `schema:isBasedOn` (snapshot) |
+| Glossary term | `schema:DefinedTerm` | `id/glossary/<id>` | `schema:identifier`, `schema:name`, `schema:url`, `schema:termCode` (Heslář's number), `schema:license`, `schema:inDefinedTermSet` |
+| Callout | `schema:CreativeWork` | `id/callouts/<id>` | `schema:headline`, `schema:text`, `schema:hasPart`, `guide:lensOrder` |
+| FER (FIP Dashboard snapshot) | `schema:CreativeWork` with a FIP class as `schema:additionalType` | `<thing>#fip-dashboard` under the thing it describes, or `id/resources/<id>` for one only the dashboard knows | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `guide:catalogueType`, `schema:about`, `schema:provider`, `schema:review` (verifications as `schema:Review`), `schema:sameAs`, `schema:isBasedOn` |
+| FIP (FIP Dashboard snapshot) | `schema:CreativeWork` with `schema:additionalType` `fip:FAIR-Implementation-Profile` | `id/fips/<id>`; a declaration `<fip>#<declaration>` | `schema:name`, `schema:abstract`, `schema:version`, `schema:dateModified`, `schema:creativeWorkStatus`, `schema:author`, `schema:review`, `schema:hasPart` (declarations), `schema:isBasedOn` |
+| Local criterion | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `id/tests/guide/<id>` | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `sio:SIO_000233`, `schema:about`, `schema:citation`, `schema:hasPart`, `schema:subjectOf`, `schema:additionalProperty` |
+| FAIR Champion test | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `id/tests/fair-champion/<id>` | `schema:identifier`, `schema:url`, `schema:about`, `guide:healthStatus`, `guide:statusAsOf` |
+| External evaluator criterion | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `id/tests/<provider>/<metric>` | `schema:identifier`, `schema:name` (the provider's wording, `en`), `schema:alternateName` (the guide's label), `schema:about`, `schema:isPartOf` (the provider's resource), `schema:url` (invocation or form), `schema:subjectOf`, `guide:reviewedVersion`, `schema:hasPart` (mappings) |
+| Criterion mapping | `schema:CreativeWork` | `<criterion>#mapping-<question>` | `schema:about` (the question), `schema:isBasedOn` (the criterion), `guide:mappingCoverage`, `guide:reviewedVersion`, `schema:description` |
+| Provenance action | `schema:CreateAction`, `schema:UpdateAction` | `id/actions/<id>` | `schema:name`, `schema:description`, `schema:agent`, `schema:instrument`, `schema:object`, `schema:result`, `schema:endTime`, `schema:actionStatus` |
 | Instrument | `schema:SoftwareApplication` | `#instrument-<id>` | `schema:name`, `schema:version`, `schema:url`, `schema:applicationCategory` |
-| Life-cycle model | `schema:DefinedTermSet` | `#lifecycle-<model>` | `schema:identifier`, `schema:name`, `schema:position`, `schema:citation`, `schema:hasDefinedTerm` |
-| Life-cycle stage | `schema:DefinedTerm` | `#lifecycle-<model>.<stage>` | `schema:identifier`, `schema:termCode`, `schema:name`, `schema:description`, `guide:descriptionTranslation`, `guide:quotedDefinition`, `guide:nameTranslation`, `guide:note`, `schema:position`, `schema:inDefinedTermSet`, `schema:citation`, `schema:license` |
-| Correspondence | `schema:CreativeWork` | `#crosswalk-<id>` | `schema:identifier`, `schema:name`, `schema:about`, `guide:mappingBasis`, `schema:citation`, `schema:description`, `schema:isPartOf` |
+| Life-cycle model | `schema:DefinedTermSet` | `id/lifecycles/<model>` | `schema:identifier`, `schema:name`, `schema:position`, `schema:citation`, `schema:hasDefinedTerm` |
+| Life-cycle stage | `schema:DefinedTerm` | `id/lifecycles/<model>/<stage>` | `schema:identifier`, `schema:termCode`, `schema:name`, `schema:description`, `guide:descriptionTranslation`, `guide:quotedDefinition`, `guide:nameTranslation`, `guide:note`, `schema:position`, `schema:inDefinedTermSet`, `schema:citation`, `schema:license` |
+| Correspondence | `schema:CreativeWork` | `id/crosswalks/<crosswalk>/<id>` | `schema:identifier`, `schema:name`, `schema:about`, `guide:mappingBasis`, `schema:citation`, `schema:description`, `schema:isPartOf` |
 
 Language-dependent values are JSON-LD value objects with `@language`. A property with one value holds it
 directly; with several, a list. The page reads the graph directly; it does not need a JSON-LD processor.
@@ -984,34 +994,33 @@ names the API's files; the page reads both from `_site/assets/data/ui.js` for it
 
 | Collection | Records | Example record address under `_site/api/` |
 | --- | --- | --- |
-| `principles` | FAIR principles | `pr/F1` |
-| `stations` | stations, with their advice and its steps | `step/plan` |
-| `checks` | checks as FTR benchmarks (`Benchmark`, `hasAssociatedMetric`) | `check/cdif` |
-| `metrics` | check questions as FTR metrics (`Metric`, `inDimension`, `hasBenchmark`, `hasImplementation`) | `q/cdif.01` |
-| `tests` | each question's manual test (`ftr:Test`, serialized `isImplementationOf` = `sio:SIO_000233`, `dcat:landingPage`), the local tests, the curated FAIR Champion tests and the external evaluators' criteria | `tests/<question-id>`, `test/guide/guide-cdif-01`, `test/fc/fc-metadata-pid`, `test/fcx/F1A` |
-| `resources` | curated resources, the FIP Dashboard resources no curated resource stands for, and the KNAV tools no curated resource stands for | `res/srv/dmp-eosc` |
-| `sources` | cited works that are not also resources | `res/pub/layers-seams-manuscript` |
-| `repositories` | the guide's repositories | `repo/gen/zenodo` |
-| `clauses` | requirements and findings | `cl/A.F1.N1` |
-| `terms` | glossary terms | `term/free-libre-open-source` |
-| `organizations` | curated organisations and the EOSC CZ Node | `org/eosc-cz` |
-| `fips` | FIP profiles from the dashboard snapshot, with their declarations | `fip/csda` |
-| `changes` | provenance actions | `act/2026-10-16-initial-state` |
-| `model` | the implementation model, its layers, seams and examples | `model/layer/policy` |
-| `lifecycle` | life-cycle models, their stages and the crosswalk's correspondences | `life/rdmkit`, `life/rdm/plan`, `life/xw/rdm-plan-mld-plan` |
-| `infrastructures` | reviewed research infrastructures | `ri/phys/auger-cz` |
+| `principles` | FAIR principles | `principles/F1` |
+| `stations` | stations, with their advice and its steps | `stations/plan` |
+| `checks` | checks as FTR benchmarks (`Benchmark`, `hasAssociatedMetric`) | `checks/cdif` |
+| `metrics` | check questions as FTR metrics (`Metric`, `inDimension`, `hasBenchmark`, `hasImplementation`) | `questions/cdif.01` |
+| `tests` | each question's manual test (`ftr:Test`, serialized `isImplementationOf` = `sio:SIO_000233`, `dcat:landingPage`), the local tests, the curated FAIR Champion tests and the external evaluators' criteria | `tests/<question-id>`, `tests/guide/<test-id>`, `tests/fair-champion/<test-id>`, `tests/<provider>/<metric>` |
+| `resources` | curated resources, the FIP Dashboard resources no curated resource stands for, and the KNAV tools no curated resource stands for | `resources/dmp-eosc` |
+| `sources` | cited works that are not also resources | `resources/layers-seams-manuscript` |
+| `repositories` | the guide's repositories | `repositories/zenodo` |
+| `clauses` | requirements and findings | `clauses/A.F1.N1` |
+| `terms` | glossary terms | `glossary/free-libre-open-source` |
+| `organizations` | curated organisations and the EOSC CZ Node | `organizations/eosc-cz` |
+| `fips` | FIP profiles from the dashboard snapshot, with their declarations | `fips/csda` |
+| `changes` | provenance actions | `actions/2026-10-16-initial-state` |
+| `model` | the implementation model, its layers, seams and examples | `layers/policy` |
+| `lifecycle` | life-cycle models, their stages and the crosswalk's correspondences | `lifecycles/rdmkit`, `lifecycles/rdmkit/plan`, `crosswalks/lifecycle-stages/rdm-plan-mld-plan` |
+| `infrastructures` | reviewed research infrastructures | `infrastructures/auger-cz` |
 
 A record is its crate entity with language maps (`{"cs": …, "en": …}`) in place of value lists. Links to other
 records are paths relative to the record. A part without a record of its own (advice and its steps, callouts, FIP
 declarations) is given in full in the record of its whole, under its fragment (`plan.json#advice-plan.01`). Small
 terms (tiers, lenses, levels, actors, modes, profiles, organisations named in citations) are given in full; anything
-else of the guide is named by its place in the crate, relative to the record (`../../ro-crate-metadata.json#tiers`),
-and `sameAs` names the entity's own identifier the same way. No file of the API names the site's address, so the
-site can move; only the context's vocabulary terms are absolute, as JSON-LD requires. A principle's record also lists
+else of the Guide is named by its IRI, and `sameAs` names the record's own IRI. No file of the API names the site's
+address, so the site can move; only the context's vocabulary terms are absolute, as JSON-LD requires. A principle's record also lists
 what is about it: `clauses`, the `advice` that cites them, `stations` and `metrics`, reverse properties in the
 context. Paths end in `.json` because the site is static. The OpenAPI description gives each record its concrete
-catalogue address; only collections whose records sit directly under the collection's name have a parameterised
-path, currently `/api/tests/{test_id}.json` and `/api/model/{model_id}.json`. An exported self-check result names
+address; a collection whose records all sit directly under one kind has a parameterised path, such as
+`/api/stations/{station_id}.json` and `/api/tests/{test_id}.json`. An exported self-check result names
 each answer's test by the question's manual test record, at the address the page is served from. The `[api]` strings
 in `ui.toml` title and describe the API, its collections and the manual tests: the OpenAPI description reads the
 English, the machines page lists every collection in the reader's language.

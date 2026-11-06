@@ -3639,12 +3639,12 @@ section.datacite-read p {
 .kind-repositories { --kind: var(--kind-repositories); }
 .kind-clauses { --kind: var(--kind-clauses); }
 .kind-questions { --kind: var(--kind-questions); }
-.kind-terms { --kind: var(--kind-terms); }
+.kind-glossary { --kind: var(--kind-glossary); }
 .kind-fips { --kind: var(--kind-fips); }
 .kind-tests { --kind: var(--kind-tests); }
-.kind-lifecycle { --kind: var(--kind-lifecycle); }
+.kind-lifecycles { --kind: var(--kind-lifecycles); }
 .kind-infrastructures { --kind: var(--kind-infrastructures); }
-.kind-model { --kind: var(--kind-model); }
+.kind-models { --kind: var(--kind-models); }
 .kind-actions { --kind: var(--kind-actions); }
 
 .entry-card[data-kind] {

@@ -8,16 +8,17 @@
   const h = (...args) => FG.h(...args);
   /* ---------------------------------------------------------------- shared helpers */
 
-  /** Compact route codes are emitted from the build vocabulary; UI category names remain readable. */
-  FG.catalogueKind = (code) => FG.config.catalogueKinds[code] || code;
-  FG.catalogueCode = (kind) => Object.keys(FG.config.catalogueKinds).find((code) => FG.config.catalogueKinds[code] === kind) || kind;
-  FG.catalogueHref = (kind, item) => FG.href("catalogue") + "/" + [FG.catalogueCode(kind), ...(item ? item.split("/") : [])].map(encodeURIComponent).join("/");
+  /* The catalogue lists a few kinds together: the crosswalks with the life cycles they relate, and the layers, seams
+     and examples with the model. A route names the record's own kind; the group is only where it is listed. */
+  const GROUPS = { crosswalks: "lifecycles", layers: "models", seams: "models", "model-examples": "models" };
+  FG.catalogueGroup = (kind) => GROUPS[kind] || kind;
+  /** A catalogue route: a kind, or a kind and an ID (`resources`, `lifecycles`, `rdmkit/plan`), or an address. */
+  FG.catalogueHref = (kind, item) => FG.href("catalogue") + "/" + [...String(kind).split("/"), ...(item ? item.split("/") : [])].map(encodeURIComponent).join("/");
+  /** A record's catalogue entry, by its address; null for what has none. */
   FG.entryHref = (entity) => {
     const address = FG.config.api.records[FG.id(entity)];
-    return address ? FG.href("catalogue") + "/" + address.split("/").map(encodeURIComponent).join("/") : null;
+    return address ? FG.catalogueHref(address) : null;
   };
-  FG.termAnchor = (term) => FG.config.api.records[FG.id(term)]?.split("/").slice(1).join("/");
-  FG.repositoryAnchor = (repository) => FG.config.api.records[FG.id(repository)]?.split("/").slice(1).join("/");
 
   /** The catalogue searched for a query within one kind, as the landing's search links to it. */
   FG.catalogueSearchHref = (query, kind) => writeState({ kinds: [kind || "resources"], stations: [], principles: [], q: query, order: "", f: {} });
@@ -32,10 +33,10 @@
   };
 
   /** A source's short name: a cited resource's own name, or a source's short name when it has one. */
-  FG.shortName = (source) => FG.span(String(source["@id"]).startsWith("#resource-") ? source.name : source.alternateName || source.name);
+  FG.shortName = (source) => FG.span(source.resourceType ? source.name : source.alternateName || source.name);
 
   /** A source's short name as plain text, for lists and filters. */
-  FG.shortText = (source) => FG.text(String(source["@id"]).startsWith("#resource-") ? source.name : source.alternateName || source.name);
+  FG.shortText = (source) => FG.text(source.resourceType ? source.name : source.alternateName || source.name);
 
   /** A category's name as the catalogue lists categories: in lower case, unless it starts with an acronym. */
   FG.category = (name) => {
@@ -49,7 +50,7 @@
   /** What the EOSC CZ Node is, as the About page states it: the node's own state since its date, with the source
       that states it (D-172). */
   FG.nodeNote = function () {
-    const node = FG.get("#eosc-cz-node");
+    const node = FG.get("organizations/eosc-cz-node");
     if (!node || !node.nodeStateSince) return null;
     const sources = FG.refs(node, "isBasedOn");
     const source = sources[1] || sources[0];
@@ -82,7 +83,7 @@
   FG.clauseEntry = function (clause) {
     const source = FG.get(clause.isPartOf);
     const status = clause.creativeWorkStatus;
-    const isClause = String(clause["@id"]).startsWith("#clause-");
+    const isClause = FG.kind(clause) === "clauses";
     const title = FG.clauseTitle(clause);
     return h(
       "li",
@@ -229,15 +230,15 @@
     if (reverseCache && reverseCache.revision === FG.dataRevision && reverseCache.graph === FG.graph && reverseCache.size === FG.graph.length) return reverseCache;
     const add = (map, key, value) => map.set(key, (map.get(key) || []).concat(value));
     const changes = new Map();
-    for (const action of FG.graph.filter((entity) => String(entity["@id"]).startsWith("#action-")).sort((a, b) => String(b.endTime || "").localeCompare(String(a.endTime || "")))) {
+    for (const action of FG.graph.filter((entity) => FG.kind(entity) === "actions").sort((a, b) => String(b.endTime || "").localeCompare(String(a.endTime || "")))) {
       for (const id of FG.refIds(action, "result")) add(changes, id, action);
     }
     /* The Guide's own tests and the external evaluators' criteria, read from the question's end. */
     const prefilledBy = new Map();
-    for (const test of FG.graph.filter((entity) => String(entity["@id"]).startsWith("#test-") && entity.isImplementationOf)) {
+    for (const test of FG.graph.filter((entity) => FG.isRecord(entity, "tests") && entity.isImplementationOf)) {
       add(prefilledBy, FG.id(test.isImplementationOf), { entity: test });
     }
-    for (const criterion of FG.graph.filter((entity) => String(entity["@id"]).startsWith("#criterion-") && entity.hasPart)) {
+    for (const criterion of FG.graph.filter((entity) => FG.isCriterion(entity) && entity.hasPart)) {
       for (const mapping of FG.refs(criterion, "hasPart")) {
         if (!FG.get(mapping.about)) continue;
         add(prefilledBy, FG.id(mapping.about), { entity: criterion, coverage: mapping.mappingCoverage });
@@ -266,11 +267,11 @@
       let parent = FG.get(FG.id(entity.isPartOf));
       for (let depth = 0; parent && depth < 4; depth += 1) {
         const id = String(parent["@id"]);
-        if (id.startsWith("#station-")) {
+        if (FG.isRecord(id, "stations")) {
           places.set(entity["@id"], { view: "path", arg: parent.identifier, entity: parent });
           break;
         }
-        if (id.startsWith("#page-") && !FG.id(parent.isPartOf)) {
+        if (FG.isRecord(id, "pages")) {
           places.set(entity["@id"], { view: "page", arg: parent.identifier, entity: parent });
           break;
         }
@@ -292,11 +293,11 @@
     const standing = FG.reverseRelations().standsFor.get(entity["@id"]);
     if (!FG.entryHref(entity) && standing) return FG.recordLink(standing);
     const href = FG.entryHref(entity);
-    const isRequirement = String(entity["@id"]).startsWith("#clause-") || String(entity["@id"]).startsWith("#item-");
+    const isRequirement = FG.isRecord(entity, "clauses") || FG.isRecord(entity, "questions");
     const label = isRequirement || !entity.name ? entity.identifier || FG.text(entity.name) || String(entity["@id"]) : FG.nameText(entity);
     if (href) return h("a", { href }, label);
     if (entity["@id"] === "./") return h("a", { href: FG.href("page", "about") }, FG.text(entity.name));
-    if (String(entity["@id"]).startsWith("#page-") && entity.identifier && entity.headline && !FG.id(entity.isPartOf)) return h("a", { href: FG.href("page", entity.identifier) }, FG.span(entity.headline));
+    if (FG.isRecord(entity, "pages") && entity.identifier && entity.headline) return h("a", { href: FG.href("page", entity.identifier) }, FG.span(entity.headline));
     const place = FG.reverseRelations().places.get(entity["@id"]);
     if (place) return h("span", null, entity.identifier || FG.text(entity.name), " · ", h("a", { href: FG.href(place.view, place.arg) }, FG.span(place.entity.name || place.entity.headline)));
     return h("span", null, entity.identifier || FG.text(entity.name) || String(entity["@id"]));
@@ -306,15 +307,15 @@
       it belongs to. */
   FG.recordGroup = function (entity) {
     const address = FG.config.api.records[FG.id(entity)];
-    if (address) return FG.catalogueKind(address.split("/")[0]);
-    const id = String(entity["@id"]);
-    if (id === "./") return "guide";
-    return ["advice", "callout", "page", "model-context"].find((prefix) => id.startsWith("#" + prefix + "-")) || "other";
+    if (address) return FG.catalogueGroup(FG.kind(address));
+    if (FG.id(entity) === "./") return "guide";
+    if (FG.kind(entity) === "stations" && FG.fragment(entity).startsWith("context-")) return "model-context";
+    return { advice: "advice", callouts: "callout", pages: "page" }[FG.kind(entity)] || "other";
   };
 
   /** A list of records grouped as FG.recordGroup groups them, in the catalogue's order of kinds. */
   FG.recordGroups = function (records) {
-    const order = Object.values(FG.config.catalogueKinds).concat(["advice", "callout", "model-context", "page", "guide", "other"]);
+    const order = FG.list(FG.config.kinds).map(FG.catalogueGroup).concat(["advice", "callout", "model-context", "page", "guide", "other"]);
     const groups = new Map();
     for (const record of records.filter(Boolean)) groups.set(FG.recordGroup(record), (groups.get(FG.recordGroup(record)) || []).concat(record));
     return [...groups.entries()]
@@ -401,7 +402,7 @@
     });
   };
   /* The resource types that are tools or services, whose entries carry a service badge. */
-  const SERVICE_TYPES = ["#rtype-service", "#rtype-tool", "#rtype-registry"];
+  const SERVICE_TYPES = ["service", "tool", "registry"].map((code) => FG.term("resource-types", code));
 
   /** A service's badge, when the entity is a tool or a service. */
   const serviceOf = (entity) => (SERVICE_TYPES.includes(typeOf(entity)) ? entity : null);
@@ -411,7 +412,7 @@
       in a fixed order, each drawn one way everywhere. */
   function entryCard(spec) {
     const address = FG.config.api.records[FG.id(spec.entity)];
-    if (address) spec = { ...spec, kind: FG.catalogueKind(address.split("/")[0]), id: address.split("/").slice(1).join("/") };
+    if (address) spec = { ...spec, kind: FG.catalogueGroup(FG.kind(address)), id: FG.localId(address) };
     const kind = spec.kind || null;
     const what = FG.list(spec.what).filter(Boolean);
     const details = FG.list(spec.details).filter(Boolean);
@@ -451,10 +452,7 @@
       under its identifier. */
   const entryLink = (entity) => {
     if (!entity) return null;
-    const id = String(entity["@id"]);
     const name = entity.abbreviation ? FG.abbreviatedName(entity, FG.state.lang) : FG.text(entity.name);
-    if (id.startsWith("#infrastructure-")) return h("a", { href: FG.entryHref(entity) }, name);
-    if (entity["@type"] === "DataCatalog" || id.startsWith("#repository-")) return h("a", { href: FG.entryHref(entity) }, name);
     return h("a", { href: FG.entryHref(entity) }, name);
   };
 
@@ -504,7 +502,7 @@
 
   /** What an entry rests on: the snapshots its facts come from, and the RDMkit and training records that list it. */
   const basedOnRow = (entity) => [
-    FG.refs(entity, "isBasedOn").filter((source) => String(source["@id"]).startsWith("#snapshot-")).map(snapshotItem),
+    FG.refs(entity, "isBasedOn").filter(FG.isSnapshot).map(snapshotItem),
     entity.rdmkitRecord ? FG.external(entity.rdmkitRecord, "RDMkit") : null,
     entity.trainingSearch ? FG.external(entity.trainingSearch, FG.t("catalogue.trainingSearch")) : null,
   ];
@@ -521,7 +519,8 @@
       id: resource.identifier,
       entity: resource,
       service: serviceOf(resource),
-      what: [field("resourceType", FG.termName(FG.id(resource.resourceType)))].concat(uses(used)),
+      /* A registry filed among the resources keeps the functions its source records, as a repository's entry shows them. */
+      what: [field("resourceType", FG.termName(FG.id(resource.resourceType))), field("repositoryFunction", FG.refIds(resource, "repositoryFunction").map(FG.termName).join(" · ") || null)].concat(uses(used)),
       title: FG.external(resource.url, FG.nameNodes(resource)),
       titleFields: "name url",
       byline: resource.creditText || null,
@@ -567,13 +566,13 @@
 
   /** The catalogue showing one kind narrowed to some stations, such as the changes to a station. */
   FG.catalogueFilterHref = (kind, stations) => writeState({ kinds: [kind], stations, principles: [], q: "", order: "", f: {} });
-  FG.repositoryFinderHref = () => writeState({ kinds: ["repositories"], stations: [], principles: [], q: "", order: "", f: { rfunction: ["#rfunction-deposit-data"] } });
+  FG.repositoryFinderHref = () => writeState({ kinds: ["repositories"], stations: [], principles: [], q: "", order: "", f: { rfunction: [FG.term("repository-functions", "deposit-data")] } });
   FG.modelFilterHref = (kind, term) => writeState({ kinds: [kind], stations: [], principles: [], layers: term.modelKind === "layer" ? [term["@id"]] : [], seams: term.modelKind === "seam" ? [term["@id"]] : [], q: "", order: "", f: {} });
 
   /* A topic named in content (`#resources?type=standard,vocabulary`, `#resources?station=assessment`): the content's
      facet name and the prefix its values take as entities; `station` narrows the shared station dimension. The
      content check accepts the same facets and values. */
-  const TOPIC_FACETS = { resources: { type: ["type", "#rtype-"] }, repositories: { function: ["rfunction", "#rfunction-"] } };
+  const TOPIC_FACETS = { resources: { type: ["type", "resource-types"] }, repositories: { function: ["rfunction", "repository-functions"] } };
 
   /** The catalogue state for a kind narrowed to a topic, for the reader's lens. */
   FG.catalogueTopic = function (kind, query) {
@@ -584,7 +583,7 @@
       const list = values.split(",").filter(Boolean);
       const facet = (TOPIC_FACETS[kind] || {})[name];
       if (name === "station") stations = list;
-      else if (facet) f[facet[0]] = list.map((value) => facet[1] + value);
+      else if (facet) f[facet[0]] = list.map((value) => FG.term(facet[1], value));
     }
     f.lens = [FG.state.lens];
     return stateArg({ kinds: [kind], stations, principles: [], q: "", order: "", f });

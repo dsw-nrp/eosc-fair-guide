@@ -9,7 +9,9 @@ are in `.agents/guide/rules/fair-guide-surfaces.md` and `docs/agent-tooling.md`.
 Every normalized catalogue record has one Guide-owned primary `id`. Imported source IDs belong in typed
 `alternateIds = [{ scheme = "knav", value = "github" }]`, using the actual source issuer and value. Never put an
 obsolete own ID there. Do not add `guideId`, old-route aliases or another full-address mapping. Source joins use
-explicit alternates; titles, external IDs/IRIs, URLs and classifications cannot silently change the local ID.
+explicit alternates; titles, external IDs/IRIs, URLs and classifications cannot silently change the local ID. A
+record's address is its kind and ID (`resources/github`, `stations/licence`, `lifecycles/rdmkit/plan`) and its IRI
+is that address under the Guide's namespace; the crate, the API, the routes and references all use it.
 
 - Texts and data live in `content/*.toml`. Each authored entry has a locally owned identifier: a station
   `repository`, an advice item `repository.03`, a check `dataset`, a question `dataset.04`, a clause `A.F1.R2`,
@@ -35,8 +37,9 @@ For an **advice item**:
    action; practical steps belong in L1 and their basis in L2. L2 also shows the cited clauses; L3 is generated
    from sources and paradata.
 2. Write both `cs` and `en` text. Czech is the primary language; English says the same, not more. Where the
-   text names a resource, source or glossary term, mark it as `[[id|phrase]]` (`term:<id>` for a term), in both
-   languages with the words each sentence uses; the content checks reject unknown IDs and uneven languages.
+   text names a record, mark it by its address as `[[<kind>/<id>|phrase]]` (`[[glossary/open-licence|…]]`,
+   `[[resources/nma|…]]`), in both languages with the words each sentence uses; only `infrastructures` and
+   `profile` keep their names. The content checks reject unknown records, retired forms and uneven languages.
 3. Cite at least one ledger clause in `sources`. If the fact has no clause yet, add one to the ledger first
    (section 3).
 

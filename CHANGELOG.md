@@ -8,6 +8,13 @@ All notable changes to this guide are recorded here. The format follows
 ## [Unreleased]
 
 - Breaking: repository API records may omit `url` while planned or in development when they link an NKR record.
+- Breaking: every record is addressed `<kind>/<id>` in plain kind words (`resources/github`, `stations/licence`)
+  instead of the code addresses (`res/tool/github`, `step/licence`); API record files, catalogue routes and
+  `guideRoute` values follow, and the catalogue's groups are `glossary`, `lifecycles` and `models`.
+- Breaking: every record's `@id` is its IRI under the namespace `https://w3id.org/eosc-cz/fair-guide/`
+  (`…/id/stations/licence`), not a crate fragment; the crate drops `catalogueAddress`.
+- Breaking: references in text are `[[<kind>/<id>|phrase]]` only; `term:`, `page:`, `station:`, `clause:`,
+  `infrastructure:`, bare IDs and code addresses are refused.
 - Security: render source-controlled refresh diagnostics as bounded literal text in logs, reports and workflow summaries.
 
 ## [1.0.0-alpha.5] - 2026-11-01

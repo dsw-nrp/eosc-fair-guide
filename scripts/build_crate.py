@@ -3932,6 +3932,9 @@ def page_config(
             "datePublished": iso(guide["datePublished"]),
             "freshnessDays": guide.get("freshnessDays", 180),
             "pageUrl": guide.get("pageUrl"),
+            # Records are named by address relative to `<namespace>id/`; the kinds are the address's first segment.
+            "namespace": guide["recordBase"].removesuffix("id/"),
+            "kinds": sorted(KINDS),
             "textLinks": text_links or {},
             "foldedSections": [
                 f"pages/{page['id']}#{section.get('id') or number}"
@@ -4427,7 +4430,6 @@ def outputs(
         for key, found in graph.text_links.items()
     }
     ui = page_config(content, text_links, records, links)
-    ui["config"]["catalogueKinds"] = {kind: kind for kind in sorted(KINDS)}
     ui["config"]["parts"] = dict(PART_SCRIPTS)
     ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
     ui["config"]["partLanguages"] = dict(PART_LANGUAGE_SCRIPTS)

@@ -148,6 +148,8 @@ fairsharing = { cs = "FAIRsharing", en = "FAIRsharing" }
 nkr = { cs = "NKR", en = "NKR" }
 ark = { cs = "ARK", en = "ARK" }
 iri = { cs = "Trvalé IRI", en = "Persistent IRI" }
+# The record's own persistent IRI, apart from the identifiers other registries give it.
+guide = { cs = "Identifikátor Průvodce", en = "Guide identifier" }
 dashboard = { cs = "FIP Dashboard", en = "FIP Dashboard" }
 address = { cs = "Adresa", en = "Address" }
 
@@ -985,21 +987,21 @@ statement = { cs = "zjištění", en = "finding" }
 resources = { cs = "Zdroje", en = "Resources" }
 repositories = { cs = "Repozitáře a registry", en = "Repositories and registries" }
 clauses = { cs = "Požadavky a doporučení", en = "Requirements and recommendations" }
-terms = { cs = "Pojmy", en = "Glossary" }
+glossary = { cs = "Pojmy", en = "Glossary" }
 fips = { cs = "Profily FIP", en = "FIP profiles" }
 tests = { cs = "Testy FAIR", en = "FAIR tests" }
 questions = { cs = "Otázky kontrol", en = "Check questions" }
 actions = { cs = "Změny obsahu", en = "Content changes" }
-lifecycle = { cs = "Životní cyklus dat", en = "Data life cycle" }
-model = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
+lifecycles = { cs = "Životní cyklus dat", en = "Data life cycle" }
+models = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
 infrastructures = { cs = "Velké výzkumné infrastruktury", en = "Large research infrastructures" }
 
 [catalogue.intro]
 infrastructures = { cs = "Velké výzkumné infrastruktury z Cestovní mapy velkých výzkumných infrastruktur ČR na léta 2023–2026: obor, fáze, hostitelská instituce, národní uzly evropských výzkumných infrastruktur a členství v ERIC, jak je mapa uvádí, a repozitáře, které provozují, kde to uvádí zdroj.", en = "The large research infrastructures of the Czech Roadmap of Large Research Infrastructures for 2023–2026: field, phase, hosting institution, national nodes of European research infrastructures and ERIC memberships as the roadmap states them, and the repositories they operate where a source says so." }
-lifecycle = { cs = "Fáze životního cyklu výzkumných dat podle RDMkit, MaLDReTH a katalogu nástrojů KNAV, jak je zdroje publikují, a jak si navzájem odpovídají. Cesta Průvodce sleduje fáze RDMkit.", en = "Stages of the research data life cycle in RDMkit, MaLDReTH and the KNAV tools catalogue, as their sources publish them, and how they correspond. The Guide's path follows the RDMkit stages." }
-model = { cs = "Funkce a předání informací v modelu Layers and Seams. Odkazy propojují model s konkrétními zdroji, požadavky a otázkami Průvodce.", en = "Functions and information hand-offs in the Layers-and-Seams Model. Links connect the model to specific resources, requirements and questions in the Guide." }
+lifecycles = { cs = "Fáze životního cyklu výzkumných dat podle RDMkit, MaLDReTH a katalogu nástrojů KNAV, jak je zdroje publikují, a jak si navzájem odpovídají. Cesta Průvodce sleduje fáze RDMkit.", en = "Stages of the research data life cycle in RDMkit, MaLDReTH and the KNAV tools catalogue, as their sources publish them, and how they correspond. The Guide's path follows the RDMkit stages." }
+models = { cs = "Funkce a předání informací v modelu Layers and Seams. Odkazy propojují model s konkrétními zdroji, požadavky a otázkami Průvodce.", en = "Functions and information hand-offs in the Layers-and-Seams Model. Links connect the model to specific resources, requirements and questions in the Guide." }
 all = { cs = "Vše, z čeho Průvodce vychází a co doporučuje, v jednom katalogu.", en = "Everything the Guide builds on and recommends, in one catalogue." }
-terms = { cs = "Pojmy otevřené vědy, na které Průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the Guide links to, taken from Heslář." }
+glossary = { cs = "Pojmy otevřené vědy, na které Průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the Guide links to, taken from Heslář." }
 fips = { cs = "Profily FAIR implementace (FIP) komunit ze snímku FIP Dashboardu; kontrola úplnosti FIP z nich umí odpovědi předvyplnit.", en = "Communities' FAIR Implementation Profiles (FIPs) from the FIP Dashboard snapshot; the FIP completeness check can fill in its answers from them." }
 tests = { cs = "Automatické testy pro předvyplnění kontrol, s popisy, souvisejícími otázkami a principy, kódem nebo adresou služby a dokumentací.", en = "Automated tests used to prefill the checks, with descriptions, related questions and principles, code or service endpoints, and documentation." }
 clauses = { cs = "Požadavky, doporučení a zjištění z publikovaných podkladů, na kterých stojí rady a otázky Průvodce; hlavním podkladem je Analýza FAIR pro NRP/NDI. Identifikátor jako A.F1.N1 uvádí podklad, princip a pořadí.", en = "The requirements, recommendations and findings from published sources that the Guide's advice and questions rest on; the main source is the FAIR analysis for NRP/NDI. An identifier such as A.F1.N1 gives the source, the principle and the order." }
@@ -1015,13 +1017,13 @@ entry = { cs = "Celý záznam v katalogu", en = "The whole entry in the catalogu
 resources = { cs = "Zdroj", en = "Resource" }
 repositories = { cs = "Repozitář nebo registr", en = "Repository or registry" }
 clauses = { cs = "Požadavek nebo doporučení", en = "Requirement or recommendation" }
-terms = { cs = "Pojem", en = "Glossary term" }
+glossary = { cs = "Pojem", en = "Glossary term" }
 fips = { cs = "Profil FIP", en = "FIP profile" }
 tests = { cs = "Test FAIR", en = "FAIR test" }
 questions = { cs = "Otázka kontroly", en = "Check question" }
 actions = { cs = "Změna obsahu", en = "Content change" }
-lifecycle = { cs = "Životní cyklus dat", en = "Data life cycle" }
-model = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
+lifecycles = { cs = "Životní cyklus dat", en = "Data life cycle" }
+models = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
 infrastructures = { cs = "Velká výzkumná infrastruktura", en = "Large research infrastructure" }
 
 # What DataCite reports about a repository in the finder, read on the reader's request.

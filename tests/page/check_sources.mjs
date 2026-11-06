@@ -5,12 +5,13 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
 import { installGuards } from "./guards.mjs";
+import { isRecord } from "./addresses.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const { chromium } = await import("./browser.mjs");
 const graph = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"))["@graph"];
 const checks = graph.filter((entity) => entity["@type"] === "Quiz");
-const principles = graph.filter((entity) => String(entity["@id"]).startsWith("#principle-") && entity.termCode);
+const principles = graph.filter((entity) => isRecord(entity, "principles") && entity.termCode);
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const page = await context.newPage();
@@ -49,7 +50,7 @@ try {
       const combinations = await page.evaluate((id) => {
         const FG = window.FairGuide;
         const codes = (prefix) => FG.refs(FG.get(prefix + id), "hasDefinedTerm").map((term) => term.termCode);
-        return { modes: codes("#modes-").length ? codes("#modes-") : [null], profiles: codes("#profiles-").length ? codes("#profiles-") : [null] };
+        return { modes: codes("vocabularies/modes-").length ? codes("vocabularies/modes-") : [null], profiles: codes("vocabularies/profiles-").length ? codes("vocabularies/profiles-") : [null] };
       }, id);
       for (const mode of combinations.modes) for (const profile of combinations.profiles) {
         await page.evaluate(({ id, mode, profile }) => {
@@ -64,7 +65,7 @@ try {
           for (const row of document.querySelectorAll(`#main .item[id^="item-${id}-"]`)) {
             const identifier = id + "." + row.id.split("-").pop();
             seen.push(identifier);
-            const clauses = FG.refs(FG.get("#item-" + identifier), "citation").filter((clause) => clause.guidance);
+            const clauses = FG.refs(FG.get("questions/" + identifier), "citation").filter((clause) => clause.guidance);
             const originals = [...row.querySelectorAll(".clause-guidance")];
             if (!clauses.length) missing.push(identifier);
             if (originals.length !== clauses.length) errors.push(identifier + ": original count differs");
@@ -135,7 +136,7 @@ try {
       state.axeRunning = false;
       assert.deepEqual(access.violations, [], "expanded principles remain accessible");
     }
-    await visit(`#/${lang}/V/catalogue/cl/A.F1.N3`);
+    await visit(`#/${lang}/V/catalogue/clauses/A.F1.N3`);
     await page.waitForSelector("#item-A\\.F1\\.N3");
     assert.equal(await page.locator('[data-clause-status="refresh"]').count(), 0);
     assert.equal(await page.locator("#item-A\\.F1\\.N3 .clause-note").count(), 1);

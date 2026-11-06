@@ -52,7 +52,7 @@ complete only when `python scripts/check_all.py` passes in full.
   `python scripts/check_all.py --only content duplicates` passes.
 - [x] 2.7 Enforce one reference syntax in `scripts/check_content.py`, so that a retired form fails with the address
   form named (decision 16). Verify: unit tests cover each retired form and a valid scoped address.
-- [ ] 2.8 Rework the page scripts in `assets/js/`:
+- [x] 2.8 Rework the page scripts in `assets/js/`:
   - key the data by address and add `FG.kind`;
   - remove `catalogueKinds`, `FG.catalogueCode` and `FG.catalogueKind`;
   - route the catalogue by address under the lens, `#/<lang>/<lens>/catalogue/<kind>/<id>`;
@@ -67,14 +67,14 @@ complete only when `python scripts/check_all.py` passes in full.
     opens it with a saved data-steward lens;
   - a shared `DS` catalogue link opens with that lens, and an embedded Guide asked for `#/id/` publishes the full
     route to its host.
-- [ ] 2.9 Move the routes and addresses that Python, page and API tests hard-code into one shared address helper
+- [x] 2.9 Move the routes and addresses that Python, page and API tests hard-code into one shared address helper
   per test language, including `tests/test_nkr_integration.py` and the `catalogue/repo/...` routes in
   `tests/page/check_page.mjs`. Verify: a search for code addresses (`res/`, `step/`, `cl/` and others) in `tests/`
   finds none.
-- [ ] 2.10 Update `docs/content-model.md` (*Identifiers*, *Crate mapping*, references) and `docs/design.md`, and the
+- [x] 2.10 Update `docs/content-model.md` (*Identifiers*, *Crate mapping*, references) and `docs/design.md`, and the
   native rule `.agents/guide/rules/fair-guide-content.md`. Run `python scripts/generate_agent_surfaces.py`. Verify:
   `python scripts/check_all.py --only docs agent-generation agent-ownership` passes.
-- [ ] 2.11 Add the `[Unreleased]` breaking lines to `CHANGELOG.md` for addresses, routes, the reference syntax and
+- [x] 2.11 Add the `[Unreleased]` breaking lines to `CHANGELOG.md` for addresses, routes, the reference syntax and
   the namespace. Verify: `python scripts/check_all.py --only changelog` passes.
 - [ ] 2.12 Inspect the catalogue, a record of each kind and the identifier input in Czech and English, at phone width
   and in print. Then run `python scripts/check_all.py`. Verify: the full run passes, and the M1 pull request is open

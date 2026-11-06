@@ -6,7 +6,7 @@
   const FG = window.FairGuide;
   const h = (...args) => FG.h(...args);
   const STATUS_ICON = { operational: "●", pilot: "◐", "in-development": "◔", planned: "○", prospective: "◌" };
-  const KIND_ORDER = ["#rkind-domain", "#rkind-institutional", "#rkind-general"];
+  const KIND_ORDER = ["domain", "institutional", "general"].map((code) => FG.term("repository-kinds", code));
   FG.views = {};
 
   /* ---------------------------------------------------------------- shared pieces */
@@ -40,15 +40,19 @@
   function statusBadge(entity, asOfKey = "status.asOf") {
     const statusId = FG.id(entity.serviceStatus);
     if (!statusId) return null;
-    const code = statusId.replace("#status-", "");
+    const code = FG.termKey(statusId);
     return FG.stateBadge({ icon: STATUS_ICON[code], text: FG.termName(statusId), asOf: entity.statusAsOf, asOfKey, attrs: { "data-status": code }, field: "serviceStatus statusAsOf" });
   }
 
-  /** The FIP Dashboard record of a resource, if the guide links one, with its verifications. */
+  /** Whether a record is the FIP Dashboard's own record of an enabling resource, taken from its snapshot. */
+  FG.dashboardOwn = (entity) => FG.refIds(entity, "isBasedOn").includes("#snapshot-fip-dashboard") && Boolean(FG.sourceIdentifier(entity, "fip-dashboard"));
+
+  /** The FIP Dashboard record of a resource, if the guide links one, with its verifications: the dashboard's record
+      kept under the resource (`#fip-dashboard`), or the resource itself when it is that record. */
   function dashboardRecord(entity) {
     const url = FG.refIds(entity, "sameAs").find((id) => id.startsWith(FG.DASHBOARD + "resources/"));
     if (!url) return null;
-    const fer = FG.sourceEntity("fip-dashboard", url.split("/").pop(), "#fer-");
+    const fer = FG.get(FG.recordOf(entity) + "#fip-dashboard") || FG.sourceEntity("fip-dashboard", url.split("/").pop(), FG.dashboardOwn);
     return { url, fer };
   }
 
@@ -109,7 +113,9 @@
       follow a persistent identifier scheme. */
   FG.pids = function (entity) {
     const seen = new Set();
-    return [entity["@id"]]
+    /* A record's own persistent IRI comes first, labelled as the Guide's identifier (decision 15). */
+    const own = FG.kind(entity) ? [{ iri: FG.iri(entity), scheme: "guide" }] : [];
+    return own.concat([entity["@id"]]
       .concat(FG.refIds(entity, "sameAs"), [entity.url])
       .filter(Boolean)
       .map(String)
@@ -119,7 +125,7 @@
         if (!scheme || seen.has(iri) || RE3DATA_DOI.test(iri)) return [];
         seen.add(iri);
         return [{ iri, scheme: scheme[1] }];
-      });
+      }));
   };
 
   /* An address that may wrap after each slash, so a narrow screen breaks it between its parts. */
@@ -146,7 +152,7 @@
   FG.nodeBadge = function (entity) {
     const membership = FG.get(FG.id(entity && entity.nodeMembership));
     if (!membership) return null;
-    const role = FG.id(membership.roleName).replace("#noderole-", "");
+    const role = FG.termKey(membership.roleName);
     const source = FG.refs(membership, "citation")[0];
     const what = role === "repository" && membership.nodeMilestone ? FG.t("node.repository", { milestone: membership.nodeMilestone }) : FG.t("node." + role);
     return h(
@@ -161,7 +167,7 @@
   FG.dashboardRecord = dashboardRecord;
 
   function lensOf(entity, lens) {
-    return FG.hasRef(entity, "audience", "#lens-" + lens);
+    return FG.hasRef(entity, "audience", FG.term("lenses", lens));
   }
 
   /* ---------------------------------------------------------------- shell */
@@ -220,9 +226,9 @@
               .map(([id]) =>
                 h(
                   "a",
-                  { class: "button header-page", "aria-label": FG.text((FG.get("#page-" + id) || {}).headline), href: FG.href("page", id), "aria-current": route.view === "page" && route.arg === id ? "page" : null },
+                  { class: "button header-page", "aria-label": FG.text((FG.get(FG.address("pages", id)) || {}).headline), href: FG.href("page", id), "aria-current": route.view === "page" && route.arg === id ? "page" : null },
                   FG.icon(((FG.config.icons && FG.config.icons.page) || {})[id]),
-                  h("span", null, FG.text((FG.get("#page-" + id) || {}).headline))
+                  h("span", null, FG.text((FG.get(FG.address("pages", id)) || {}).headline))
                 )
               ),
             FG.external(FG.root.url, [FG.icon("repository"), h("span", { class: "visually-hidden" }, FG.t("nav.repository"))], { class: "button button-icon header-repository", title: FG.t("nav.repository") })
@@ -705,7 +711,7 @@
 
   /** The journey's introduction, with RDMkit linked to the page that publishes its life cycle. */
   function journeyIntro() {
-    const model = FG.get("#lifecycle-rdmkit");
+    const model = FG.get("lifecycles/rdmkit");
     const [before, after] = FG.t("journey.intro").split("{rdmkit}");
     if (after === undefined) return before;
     return [before, model && model.url ? FG.external(model.url, "RDMkit") : "RDMkit", after];
@@ -780,7 +786,7 @@
     return h(
       "li",
       null,
-      task.href.startsWith("#") ? h("a", { class: "task", href: FG.actionHref(task.href) }, children) : FG.external(task.href, children, { class: "task" })
+      FG.inPage(task.href) ? h("a", { class: "task", href: FG.actionHref(task.href) }, children) : FG.external(task.href, children, { class: "task" })
     );
   }
 
@@ -850,7 +856,7 @@
   }
 
   function whyContent(station, items) {
-    const notes = items.filter((item) => FG.id(item.disclosureLevel) === "#level-L2" && item.adviceKind !== "ai").sort(FG.byPosition);
+    const notes = items.filter((item) => FG.id(item.disclosureLevel) === FG.term("levels", "L2") && item.adviceKind !== "ai").sort(FG.byPosition);
     const clauses = [];
     for (const item of items) {
       for (const clause of FG.refs(item, "citation")) if (!clauses.includes(clause)) clauses.push(clause);
@@ -874,7 +880,7 @@
       apart with its icon, so advice that rests on a pilot or a plan says so where it is read. */
   function whyNote(note) {
     const named = FG.list(((FG.config && FG.config.textLinks) || {})[note["@id"]]).map((link) => FG.get(link.ref)).filter(Boolean);
-    const status = named.some((entity) => FG.id(entity.serviceStatus) && FG.id(entity.serviceStatus) !== "#status-operational");
+    const status = named.some((entity) => FG.id(entity.serviceStatus) && FG.id(entity.serviceStatus) !== FG.term("statuses", "operational"));
     return h("p", { class: status ? "why-note status-note" : "why-note" }, status ? FG.icon("info") : null, FG.linkedSpan(note));
   }
 
@@ -973,7 +979,7 @@
       some readers, and their question says whether it is theirs. */
   function callouts(station, lens) {
     return FG.refs(station, "hasPart")
-      .filter((part) => part["@id"].startsWith("#callout-"))
+      .filter((part) => FG.isRecord(part, "callouts"))
       .map((callout) =>
         h(
           "aside",
@@ -1008,15 +1014,15 @@
   /** A station as Markdown: what it shows for the reader's lens, in their language, with where it came from. */
   function stationMarkdown(entity, route, parts) {
     const { items, now, key, steps, ai, actions, resources, terms, helps, courses } = parts;
-    const levelName = (code) => FG.termName("#level-" + code);
+    const levelName = (code) => FG.termName(FG.term("levels", code));
     const lines = ["# " + mdText(FG.text(entity.headline)), ""];
-    lines.push(mdText(FG.t("export.mdLens", { lens: FG.text((FG.get("#lens-" + route.lens) || {}).name) })), "");
+    lines.push(mdText(FG.t("export.mdLens", { lens: FG.text((FG.get(FG.term("lenses", route.lens)) || {}).name) })), "");
     const principles = FG.principlesOf(entity);
     if (principles.length) lines.push(mdText(FG.t("station.principles")) + ": " + principles.map((principle) => mdText(principle.termCode + " " + FG.text(principle.name))).join(", "), "");
     const section = (title, body) => {
       if (body.length) lines.push("## " + mdText(title), "", ...body, "");
     };
-    const actionUrl = (action) => (FG.id(action.target).startsWith("#") ? guideUrl(FG.actionHref(FG.id(action.target))) : FG.id(action.target));
+    const actionUrl = (action) => (FG.inPage(FG.id(action.target)) ? guideUrl(FG.actionHref(FG.id(action.target))) : FG.id(action.target));
     if (key) lines.push("> **" + mdText(FG.t("station.keyPoint")) + ":** " + mdLine(key.text), "");
     section(levelName("L0"), now ? [mdText(FG.text(now.text))].concat(actions.length ? [""].concat(actions.map((action) => "- " + mdLink(FG.text(action.name), actionUrl(action)))) : []) : []);
     section(FG.t("station.glossary"), terms.map((term) => "- " + mdLink(FG.text(term.name), term.url)));
@@ -1024,7 +1030,7 @@
       levelName("L1"),
       steps.flatMap((item, index) => [index + 1 + ". " + mdLine(item.text)].concat(FG.refs(item, "hasPart").sort(FG.byPosition).map((step) => "   - " + mdLine(step.text))))
     );
-    const notes = items.filter((item) => FG.id(item.disclosureLevel) === "#level-L2" && item.adviceKind !== "ai").sort(FG.byPosition);
+    const notes = items.filter((item) => FG.id(item.disclosureLevel) === FG.term("levels", "L2") && item.adviceKind !== "ai").sort(FG.byPosition);
     const clauses = [...new Set(items.flatMap((item) => FG.refs(item, "citation")))];
     const clauseLine = (clause) => {
       const source = FG.get(clause.isPartOf);
@@ -1040,7 +1046,7 @@
         .concat(item.checkAfter ? ["", "  " + mdText(FG.t("station.aiCheck")) + ": " + mdLine(item.checkAfter)] : [])
         .concat(item.promptSample ? ["", "  ```text", ...FG.text(item.promptSample).split("\n").map((line) => (line ? "  " + line : "")), "  ```"] : []);
     section(FG.t("station.ai"), ai.flatMap((item, index) => (index ? [""] : []).concat(aiLines(item))).concat(ai.length ? ["", mdText(FG.t("station.aiReminder"))] : []));
-    for (const callout of FG.refs(entity, "hasPart").filter((part) => part["@id"].startsWith("#callout-"))) {
+    for (const callout of FG.refs(entity, "hasPart").filter((part) => FG.isRecord(part, "callouts"))) {
       section(
         FG.text(callout.headline),
         (callout.text ? [mdText(FG.text(callout.text)), ""] : []).concat(orderedCalloutItems(callout, route.lens).map((item, index) => index + 1 + ". " + (item.url ? mdLink(FG.text(item.text), item.url) : mdLine(item.text))))
@@ -1061,7 +1067,7 @@
   function actionButton(action, related) {
     const target = FG.id(action.target);
     const classes = "button button-small" + (related ? " button-related" : " button-primary");
-    return target.startsWith("#")
+    return FG.inPage(target)
       ? h("a", { class: classes, href: FG.actionHref(target) }, FG.span(action.name))
       : FG.external(target, [FG.text(action.name), FG.icon("external")], { class: classes });
   }
@@ -1119,25 +1125,25 @@
   }
 
   function station(route) {
-    const entity = FG.get("#station-" + route.arg) || FG.stations()[0];
+    const entity = FG.get(FG.address("stations", route.arg)) || FG.stations()[0];
     const stations = FG.stations();
     const index = stations.indexOf(entity);
     const items = FG.refs(entity, "itemListElement").filter((item) => lensOf(item, route.lens));
-    const level = (code) => items.filter((item) => FG.id(item.disclosureLevel) === "#level-" + code && item.adviceKind !== "ai").sort(FG.byPosition);
+    const level = (code) => items.filter((item) => FG.id(item.disclosureLevel) === FG.term("levels", code) && item.adviceKind !== "ai").sort(FG.byPosition);
     const now = level("L0")[0];
     /* The station's core idea opens its how-to, above the steps. */
     const key = level("L1").find((item) => item.adviceKind === "key");
     const steps = level("L1").filter((item) => item !== key);
     const ai = items.filter((item) => item.adviceKind === "ai").sort(FG.byPosition);
     const mentioned = FG.refs(entity, "mentions").filter((item) => item.resourceType && lensOf(item, route.lens));
-    const courses = mentioned.filter((item) => FG.id(item.resourceType) === "#rtype-course");
+    const courses = mentioned.filter((item) => FG.id(item.resourceType) === FG.term("resource-types", "course"));
     const resources = mentioned.filter((item) => !courses.includes(item));
-    const terms = FG.refs(entity, "mentions").filter((item) => item["@id"].startsWith("#term-"));
+    const terms = FG.refs(entity, "mentions").filter((item) => FG.isRecord(item, "glossary"));
     const helps = FG.graph.filter((item) => item["@id"].startsWith("#help-") && lensOf(item, route.lens));
     /* The next step, and at most one related tool beside it. */
     const actions = now ? FG.refs(now, "potentialAction") : [];
     const minutes = String(entity.timeRequired || "").replace(/\D/g, "");
-    const levelName = (code) => FG.termName("#level-" + code);
+    const levelName = (code) => FG.termName(FG.term("levels", code));
     const levelTitle = (code) => [levelIcon(code), h("span", null, levelName(code))];
     const stationIcon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[entity.identifier];
     const stages = FG.journeyStages();
@@ -1185,7 +1191,7 @@
             "section",
             { class: "station-terms", "aria-labelledby": "station-terms-title" },
             h("h2", { id: "station-terms-title", class: "inline-heading" }, FG.t("station.glossary")),
-            h("ul", { class: "chips" }, terms.map((term) => h("li", null, h("a", { class: "chip", href: FG.catalogueHref("terms", FG.termAnchor(term)) }, FG.text(term.name)))))
+            h("ul", { class: "chips" }, terms.map((term) => h("li", null, h("a", { class: "chip", href: FG.catalogueHref(term["@id"]) }, FG.text(term.name)))))
           )
         : null,
       steps.length ? details([levelTitle("L1"), FG.t("station.stepsCount", { n: steps.length })], "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
@@ -1196,7 +1202,7 @@
             "ai",
             ai.map((item) => aiTip(item)),
             h("p", { class: "small muted" }, FG.t("station.aiReminder")),
-            h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline)))
+            h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("pages/ai").headline)))
           )
         : null,
       callouts(entity, route.lens),
@@ -1250,7 +1256,7 @@
     const clauses = selected
       ? FG.graph.filter((entity) => entity.clauseKind && FG.hasRef(entity, "about", selected["@id"]))
       : [];
-    const actors = ["#actor-nrp", "#actor-repository", "#actor-fip", "#actor-other"];
+    const actors = ["nrp", "repository", "fip", "other"].map((code) => FG.term("actors", code));
     const menu = h(
       "nav",
       { class: "principle-menu", "aria-label": FG.t("explorer.choose") },
@@ -1333,8 +1339,8 @@
 
   function relatedTerms(principle) {
     const related = FG.refs(principle, "relatedTo");
-    const cts = related.filter((entity) => String(entity["@id"]).startsWith("#clause-CTS."));
-    const cdif = related.filter((entity) => String(entity["@id"]).startsWith("#clause-CDIF."));
+    const cts = related.filter((entity) => String(entity["@id"]).startsWith("clauses/CTS."));
+    const cdif = related.filter((entity) => String(entity["@id"]).startsWith("clauses/CDIF."));
     /* A CoreTrustSeal requirement by its number and title, leading to its record in the catalogue. */
     const requirement = (clause) => h("a", { href: FG.entryHref(clause) }, clause.identifier.replace(/^CTS\./, "") + " ", FG.span(clause.name));
     const profile = (clause) => h("a", { href: FG.entryHref(clause) }, FG.span(clause.name));
@@ -1437,7 +1443,7 @@
   }
 
   FG.views.page = function (route) {
-    const page = FG.get("#page-" + route.arg) || FG.get("#page-about");
+    const page = FG.get(FG.address("pages", route.arg)) || FG.get("pages/about");
     const sections = FG.refs(page, "hasPart").sort(FG.byPosition);
     return h(
       "div",
@@ -1491,7 +1497,7 @@
   };
 
   function modelOverview() {
-    const model = FG.get("#implementation-model");
+    const model = FG.model();
     if (!model) return null;
     const layers = FG.modelTerms("layer");
     const seams = FG.modelTerms("seam");
@@ -1517,7 +1523,7 @@
       } }, seams.map((term) => h("option", { value: term.identifier, selected: term === selected }, FG.text(term.name)))),
       selected ? panel(selected) : null,
       modelWorkedExample(),
-      h("p", { class: "small" }, h("a", { href: FG.catalogueHref("model") }, FG.t("model.allRecords")))
+      h("p", { class: "small" }, h("a", { href: FG.catalogueHref("models") }, FG.t("model.allRecords")))
     );
   }
 
@@ -1528,7 +1534,7 @@
   /** Hand-overs as an ordered visual: for each seam, who passes what to whom and by what carrier, from the model's
       seam records, so the same facts read the same at a station and beside the metadata figure. */
   FG.seamFlow = function (seams, title) {
-    const records = seams.map((seam) => (typeof seam === "string" ? FG.get("#seam-" + seam) : seam)).filter((seam) => seam && seam.sender && seam.recipient);
+    const records = seams.map((seam) => (typeof seam === "string" ? FG.get(FG.address("seams", seam)) : seam)).filter((seam) => seam && seam.sender && seam.recipient);
     if (!records.length) return null;
     return h(
       "figure",
@@ -1539,7 +1545,7 @@
         seam.transfer ? h("span", { class: "flow-text" }, FG.span(seam.transfer)) : null,
         seam.carrier ? h("span", { class: "flow-carrier small" }, FG.t("model.field.carrier") + ": ", FG.span(seam.carrier)) : null,
         h("a", { class: "flow-record small", href: FG.entryHref(seam) }, FG.span(seam.name))))),
-      records.some((seam) => seam["@id"] === "#seam-nma-research-register") ? h("p", { class: "flow-note small" }, FG.span(FG.get("#seam-nma-research-register").description)) : null
+      records.some((seam) => seam["@id"] === "seams/nma-research-register") ? h("p", { class: "flow-note small" }, FG.span(FG.get("seams/nma-research-register").description)) : null
     );
   };
   FG.publicationFlow = () => FG.seamFlow(PUBLICATION_CHAIN, FG.t("visual.handover.publication"));
@@ -1554,7 +1560,7 @@
   }
 
   function modelWorkedExample() {
-    const example = FG.get(FG.get("#implementation-model")?.workExample);
+    const example = FG.get(FG.model()?.workExample);
     if (!example) return null;
     return h("section", { class: "model-worked-example" }, h("h2", null, FG.span(example.name)), FG.paragraphs(example.description),
       h("ol", null, FG.refs(example, "hasPart").map((entity) => h("li", null,
@@ -1647,7 +1653,7 @@
   FG.views.tools = function () {
     const pages = Object.entries(FG.config.pageMenu || {})
       .filter(([, menu]) => menu === "tools")
-      .map(([id]) => FG.get("#page-" + id))
+      .map(([id]) => FG.get(FG.address("pages", id)))
       .filter(Boolean);
     const groupOf = (page) => (FG.config.toolGroup || {})[page.identifier];
     /* Interactive helpers first, then guidance, each as its own section of cards. */

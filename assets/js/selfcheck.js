@@ -10,8 +10,8 @@
   const SC = (FG.selfcheck = FG.selfcheck || {});
   const ANSWERS = ["yes", "partly", "no", "unknown", "na"];
   const SHARE_CODE = { yes: "y", partly: "p", no: "n", unknown: "k", na: "x" };
-  const FIRST_TIERS = ["#tier-required", "#tier-standard", "#tier-basic", "#tier-minimum"];
-  const TIER_ORDER = ["#tier-required", "#tier-standard", "#tier-basic", "#tier-minimum", "#tier-recommended", "#tier-advanced"];
+  const FIRST_TIERS = ["required", "standard", "basic", "minimum"].map((code) => FG.term("tiers", code));
+  const TIER_ORDER = ["required", "standard", "basic", "minimum", "recommended", "advanced"].map((code) => FG.term("tiers", code));
   const ANSWER_STATE = { yes: "met", partly: "partly", no: "gap", unknown: "unknown" };
   const STATE_ICON = FG.STATE_ICON;
   const FTR_VALUE = { yes: "pass", partly: "indeterminate", no: "fail", unknown: "indeterminate" };
@@ -35,7 +35,7 @@
   const MAX_FILE = 8 * 1024 * 1024;
   const SOURCES = ["datacite", "resolver", "nkr", "re3data", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared", "landing", "pid-record", "github", "gitlab", "fair-checker", "f-uji"];
   const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved", "lookupFailed", "stewardFound", "stewardMissing", "stewardRole", "stewardOrcid", "partialCoverage", "sourceConflict", "representation", "repositoryScope", "profileDeclaration", "unsupportedPid", "sampleCoverage", "titleMeaning", "rightsCoverage", "classificationScheme", "descriptionCoverage", "creatorIdentifiers", "keywordScheme", "pidProfile", "commitVersion", "copyrightCoverage", "bundledLicences", "testsNotRun", "dependenciesCoverage", "testUnavailable", "providerUnavailable", "providerVersion", "providerFail", "providerUnknown", "providerBlank", "providerMapping", "providerHarvest"];
-  const LENS_ACTOR = { V: "#actor-researcher", DS: "#actor-data-steward", SR: "#actor-repository-admin", K: "#actor-community" };
+  const LENS_ACTOR = { V: FG.term("actors", "researcher"), DS: FG.term("actors", "data-steward"), SR: FG.term("actors", "repository-admin"), K: FG.term("actors", "community") };
   /* The last thing a run reported, and the part it was reported on: the answers part shows only what was reported
      there, so a note left by the evidence does not stay pinned above the questions. */
   const status = { check: null, part: null, text: "", busy: false };
@@ -49,8 +49,14 @@
   const numberOf = (item) => String(item.identifier).split(".").pop();
   const keyOf = (item) => String(item.identifier).replace(/\./g, "-");
 
-  const modesOf = (check) => FG.refs(FG.get("#modes-" + check.identifier), "hasDefinedTerm");
-  const profilesOf = (check) => FG.refs(FG.get("#profiles-" + check.identifier), "hasDefinedTerm");
+  const modesOf = (check) => FG.refs(FG.get("vocabularies/modes-" + check.identifier), "hasDefinedTerm");
+  const profilesOf = (check) => FG.refs(FG.get("vocabularies/profiles-" + check.identifier), "hasDefinedTerm");
+  /* A check's modes and NRP profiles are terms of its own sets (`vocabularies/modes-dataset/before`), so a term's code
+     names the reader's choice. */
+  const inSet = (prefix) => (id) => FG.kind(id) === "vocabularies" && FG.localId(id).startsWith(prefix);
+  const isMode = inSet("modes-");
+  const isProfile = inSet("profiles-");
+  const coded = (ids, code) => ids.find((id) => FG.termKey(id) === code) || null;
   const today = () => new Date().toISOString().slice(0, 10);
   const label = (source) => FG.t("selfcheck.source." + source);
   const prefillOf = (item, source) => FG.refs(item, "additionalProperty").find((entry) => entry.propertyID === "prefill:" + source);
@@ -100,15 +106,15 @@
 
   function applies(item, st) {
     const refs = FG.refIds(item, "appliesTo");
-    const modes = refs.filter((id) => id.startsWith("#mode-"));
-    const profiles = refs.filter((id) => id.startsWith("#profile-"));
-    if (modes.length && !modes.includes("#mode-" + st.mode)) return false;
-    if (profiles.length && !profiles.includes("#profile-" + st.profile)) return false;
+    const modes = refs.filter(isMode);
+    const profiles = refs.filter(isProfile);
+    if (modes.length && !coded(modes, st.mode)) return false;
+    if (profiles.length && !coded(profiles, st.profile)) return false;
     return true;
   }
 
   const ready = (check, st) => (!modesOf(check).length || Boolean(st.mode)) && (!profilesOf(check).length || Boolean(st.profile));
-  const providedByNrp = (item, st) => Boolean(st.profile) && FG.hasRef(item, "providedByNrpFor", "#profile-" + st.profile);
+  const providedByNrp = (item, st) => Boolean(st.profile) && Boolean(coded(FG.refIds(item, "providedByNrpFor"), st.profile));
   const isFirstTier = (item) => FIRST_TIERS.includes(FG.id(item.tier));
   const applicable = (check, st) => (ready(check, st) ? itemsOf(check).filter((item) => applies(item, st)) : []);
   const answerable = (check, st) => applicable(check, st).filter((item) => !providedByNrp(item, st) && !item.assessmentContext);
@@ -157,11 +163,11 @@
   FG.openAt = function (stationId) {
     const counts = { gap: 0, partly: 0, unknown: 0 };
     for (const check of SC.checks()) {
-      if (!FG.hasRef(check, "audience", "#lens-" + FG.state.lens) || !hasState(check)) continue;
+      if (!FG.hasRef(check, "audience", FG.term("lenses", FG.state.lens)) || !hasState(check)) continue;
       const st = stateOf(check);
       for (const item of resultItems(check, st)) {
         const state = ANSWER_STATE[answerOf(st, item)];
-        if (state in counts && FG.id(item.fixAt) === "#station-" + stationId) counts[state] += 1;
+        if (state in counts && FG.id(item.fixAt) === FG.address("stations", stationId)) counts[state] += 1;
       }
     }
     return counts;
@@ -679,7 +685,7 @@
   /** Open a check from the landing's search, prepare its state, and run the lookup the user chose once the check is
       shown. */
   function startAt(checkId, prepare, run) {
-    const check = FG.get("#check-" + checkId);
+    const check = FG.get("checks/" + checkId);
     if (!check) return;
     prepare(stateOf(check), check);
     const hash = FG.href("check", checkId);
@@ -819,8 +825,8 @@
     if (!check.defaultProfile) return true;
     return itemsOf(check).some((item) => {
       const refs = FG.refIds(item, "appliesTo");
-      const modes = refs.filter((id) => id.startsWith("#mode-"));
-      return refs.some((id) => id.startsWith("#profile-")) && (!modes.length || modes.includes("#mode-" + st.mode));
+      const modes = refs.filter(isMode);
+      return refs.some(isProfile) && (!modes.length || Boolean(coded(modes, st.mode)));
     });
   }
 
@@ -1155,7 +1161,7 @@
         { class: "test-head" },
         /* The tests are FAIR Champion's: its badge and name lead the line, as wherever an evaluator's work appears. */
         h("span", { class: "test-label evaluator-name" }, inspection.sourceBadge("champion"),
-          h("span", null, FG.text((FG.get("#resource-fair-champion") || {}).name || "FAIR Champion") + " · " + FG.t("selfcheck.champion.label", { n: tests.length }))),
+          h("span", null, FG.text((FG.get("resources/fair-champion") || {}).name || "FAIR Champion") + " · " + FG.t("selfcheck.champion.label", { n: tests.length }))),
         action
           ? h("button", { type: "button", class: "button-small test-run", id: "test-run-" + keyOf(item), disabled: status.busy || null, onclick: () => runChampion(check, tests, "tests-" + keyOf(item)) }, action)
           : ready
@@ -1361,8 +1367,8 @@
   /** One evidence source as a card: its badge and name, what it sends to which service, how long it takes and how
       many of the shown questions it can suggest an answer to, then its controls. */
   function evidenceCard(check, st, key, prefills, ...content) {
-    const resource = FG.get("#resource-" + SOURCE_RESOURCES[key]);
-    const localQuestions = new Set(FG.graph.filter((test) => String(test["@id"]).startsWith("#test-guide-") &&
+    const resource = FG.get(FG.address("resources", SOURCE_RESOURCES[key]));
+    const localQuestions = new Set(FG.graph.filter((test) => FG.isRecord(test, "tests") && FG.localId(test).startsWith("guide/") &&
       ((key === "software" && test.url === "assets/js/tests/software.js") || (key === "pid" && test.url === "assets/js/tests/object.js")))
       .flatMap((test) => FG.refIds(test, "isImplementationOf")));
     const count = resultItems(check, st).filter((item) => localQuestions.has(FG.id(item)) || prefills.some((source) => prefillOf(item, source))).length;
@@ -1723,10 +1729,10 @@
 
   function whom(item) {
     const own = LENS_ACTOR[FG.state.lens];
-    const actors = FG.refs(item, "fixedBy").filter((actor) => actor["@id"] !== "#actor-researcher" && actor["@id"] !== own);
-    if (FG.state.lens === "V" && !actors.some((actor) => actor["@id"] === "#actor-data-steward")) actors.push(FG.get("#actor-data-steward"));
+    const actors = FG.refs(item, "fixedBy").filter((actor) => actor["@id"] !== FG.term("actors", "researcher") && actor["@id"] !== own);
+    if (FG.state.lens === "V" && !actors.some((actor) => actor["@id"] === FG.term("actors", "data-steward"))) actors.push(FG.get(FG.term("actors", "data-steward")));
     const helps = [];
-    if (actors.some((actor) => actor && actor["@id"] === "#actor-data-steward")) helps.push(FG.get("#help-data-steward"));
+    if (actors.some((actor) => actor && actor["@id"] === FG.term("actors", "data-steward"))) helps.push(FG.get("#help-data-steward"));
     if (!actors.filter(Boolean).length) helps.push(FG.get("#help-nrp-support"));
     return { names: actors.filter(Boolean).map((actor) => FG.text(actor.name)), helps: helps.filter(Boolean) };
   }
@@ -1773,9 +1779,9 @@
 
   /** For a funded output: that the dataset would not meet the picked programme's output requirement. */
   function programmeLine(st, item) {
-    const programmes = FG.refIds(item, "appliesTo").filter((id) => id.startsWith("#profile-"));
-    const picked = st && st.profile ? "#profile-" + st.profile : null;
-    if (!picked || !programmes.includes(picked)) return null;
+    const programmes = FG.refIds(item, "appliesTo").filter(isProfile);
+    const picked = st && st.profile ? coded(programmes, st.profile) : null;
+    if (!picked) return null;
     return h("p", { class: "action-programme small" }, FG.t("selfcheck.result.programmeGap", { programme: FG.text(FG.get(picked).name) }));
   }
 
@@ -1783,7 +1789,7 @@
       sources. */
   function basisLine(item) {
     /* By identifier, so that a gap shown where a standard's requirements have not loaded (a station) still names them. */
-    const ids = FG.refIds(item, "citation").filter((id) => id.startsWith("#clause-"));
+    const ids = FG.refIds(item, "citation").filter((id) => FG.isRecord(id, "clauses"));
     if (!ids.length) return null;
     const clauses = ids.map(FG.get).filter(Boolean);
     const sources = [...new Set(clauses.map((clause) => FG.get(clause.isPartOf)).filter(Boolean))];
@@ -2055,7 +2061,8 @@
   /* The owners a role stands for: the chosen role sees the gaps it puts right first. Every owner is named by its
      role, so a gap reads the same on screen, in a saved report and to whoever reads it; the researcher's group is the
      Researcher lens's own. */
-  const ROLE_OWNERS = { V: ["#actor-researcher"], DS: ["#actor-data-steward"], SR: ["#actor-repository-admin", "#actor-curator"], K: ["#actor-community"] };
+  const ROLE_OWNERS = { V: ["researcher"], DS: ["data-steward"], SR: ["repository-admin", "curator"], K: ["community"] };
+  for (const lens of Object.keys(ROLE_OWNERS)) ROLE_OWNERS[lens] = ROLE_OWNERS[lens].map((code) => FG.term("actors", code));
 
   /** The gaps grouped by who puts them right, as each question states it (its owners in the content); the rule is
       said above the groups, and the chosen role changes only which group comes first. */
@@ -2161,7 +2168,7 @@
                   h("th", { scope: "col" }, FG.t("selfcheck.report.question")),
                   h("th", { scope: "col" }, FG.t("selfcheck.report.yours")),
                   evaluators.map((evaluator) => {
-                    const resource = FG.get("#resource-" + evaluator.resource) || { name: evaluator.id };
+                    const resource = FG.get(FG.address("resources", evaluator.resource)) || { name: evaluator.id };
                     return h("th", { scope: "col" }, h("span", { class: "evaluator-name" }, FG.serviceBadge(evaluator.id, resource.url), h("span", null, FG.text(resource.name))));
                   }),
                   h("th", { scope: "col" }, FG.t("selfcheck.report.agree"))
@@ -2344,8 +2351,8 @@
         "ftr:log": logLine(st, item),
         "prov:used": recordOf(st, item) ? { "@id": recordOf(st, item) } : undefined,
         "prov:wasGeneratedBy": { "@id": "#run" },
-        implementationLayers: FG.refIds(item, "implementationLayers").map((id) => ({ "@id": guideCrate + id })),
-        implementationSeams: FG.refIds(item, "implementationSeams").map((id) => ({ "@id": guideCrate + id })),
+        implementationLayers: FG.refIds(item, "implementationLayers").map((id) => ({ "@id": FG.iri(id) })),
+        implementationSeams: FG.refIds(item, "implementationSeams").map((id) => ({ "@id": FG.iri(id) })),
       });
       tests.push({ "@id": testId, "@type": "CreativeWork", additionalType: { "@id": vocab.ftr + "Test" }, name: item.identifier + ": " + FG.text(item.text) });
     }
@@ -2365,8 +2372,8 @@
         "ftr:assessmentTarget": verdict.target ? { "@id": verdict.target } : target,
         "ftr:log": verdict.log ? String(verdict.log) : undefined,
         "prov:wasGeneratedBy": { "@id": "#run" },
-        implementationLayers: FG.refIds(test, "implementationLayers").map((id) => ({ "@id": guideCrate + id })),
-        implementationSeams: FG.refIds(test, "implementationSeams").map((id) => ({ "@id": guideCrate + id })),
+        implementationLayers: FG.refIds(test, "implementationLayers").map((id) => ({ "@id": FG.iri(id) })),
+        implementationSeams: FG.refIds(test, "implementationSeams").map((id) => ({ "@id": FG.iri(id) })),
       });
       tests.push({ "@id": test.url, "@type": "CreativeWork", additionalType: { "@id": vocab.ftr + "Test" }, name: FG.text(test.name) });
     }
@@ -2385,11 +2392,11 @@
         datePublished: now.slice(0, 10),
         license: { "@id": "#license" },
         isBasedOn: { "@id": guideCrate },
-        about: { "@id": guideCrate + "#check-" + check.identifier },
+        about: { "@id": FG.iri(check) },
         mentions: { "@id": "#result-set" },
         guideState: JSON.stringify(SC.portableState(check, st)),
       },
-      { "@id": guideCrate + "#check-" + check.identifier, "@type": "CreativeWork", name: FG.text(check.name) },
+      { "@id": FG.iri(check), "@type": "CreativeWork", name: FG.text(check.name) },
       { "@id": "#license", "@type": "CreativeWork", name: FG.t("selfcheck.export.licenseName"), description: FG.t("selfcheck.export.licenseText") },
       {
         "@id": guideCrate,
@@ -2529,7 +2536,7 @@
         }).filter(Boolean);
         return { path: field.path, values, more: (Number.isInteger(field.more) && field.more > 0 ? field.more : 0) + raw.length - values.length };
       });
-    const testId = isText(pre.testId, 100) && /^guide-[a-z]+-\d{2}$/.test(pre.testId) && FG.get("#test-" + pre.testId) ? pre.testId : null;
+    const testId = isText(pre.testId, 100) && /^guide-[a-z]+-\d{2}$/.test(pre.testId) && FG.localTest(pre.testId) ? pre.testId : null;
     const assessment = FG.providers && FG.providers.isAssessmentId(pre.assessment) ? pre.assessment : null;
     return { source: pre.source, date: pre.date, value: ANSWERS.includes(pre.value) ? pre.value : null, notes, list, fields, record: webUrl(pre.record), subject: isText(pre.subject, 2000) ? pre.subject : null, representation: isText(pre.representation, 2000) ? pre.representation : null, commit: isText(pre.commit, 100) ? pre.commit : null, coverage: isText(pre.coverage, 300) ? pre.coverage : null, testId, assessment, truncated };
   }
@@ -2559,7 +2566,7 @@
     if (data.format !== undefined && data.format !== FORMAT) return { error: "notGuide" };
     if (Number.isInteger(data.v) && data.v > FORMAT_VERSION) return { error: "newer", params: { version: isText(data.guideVersion, 40) ? data.guideVersion : "?" } };
     if (![1, 2, FORMAT_VERSION].includes(data.v) || !isText(data.check, 50)) return { error: "damaged" };
-    const check = FG.get("#check-" + data.check);
+    const check = FG.get("checks/" + data.check);
     if (!check) return { error: "unknownCheck" };
     if (!data.items || typeof data.items !== "object" || Array.isArray(data.items)) return { error: "damaged" };
     if (data.mode !== null && !modesOf(check).some((term) => term.termCode === data.mode)) return { error: "damaged" };
@@ -2673,7 +2680,7 @@
     const match = String(text).match(/^<!--\s*fair-guide-result(?:\s+v(\d+))?(?:\s+guide=(\S+?))?:\s*([a-z-]+)\s+(a\d+\.[A-Za-z0-9._]+)\s*-->/m);
     if (!match) return { error: "notGuide" };
     if (Number(match[1] || FORMAT_VERSION) > FORMAT_VERSION) return { error: "newer", params: { version: match[2] || "?" } };
-    const check = FG.get("#check-" + match[3]);
+    const check = FG.get("checks/" + match[3]);
     if (!check) return { error: "unknownCheck" };
     const carried = String(text).match(/^<!--\s*fair-guide-state\b([\s\S]*?)^-->/m);
     if (carried) {
@@ -3100,7 +3107,7 @@
   }
 
   function checkView(route) {
-    const check = FG.get("#check-" + route.arg);
+    const check = FG.get("checks/" + route.arg);
     const minutes = String(check.timeRequired || "").replace(/\D/g, "");
     const part = partOf(route);
     const head = [
@@ -3290,7 +3297,7 @@
   function overview(route) {
     FG.offerExport({ id: "data", icon: "code", label: FG.t("export.data"), href: FG.config.api.files.record.replace("{record}", "checks") });
     const checks = SC.checks();
-    const mine = checks.filter((check) => FG.hasRef(check, "audience", "#lens-" + route.lens));
+    const mine = checks.filter((check) => FG.hasRef(check, "audience", FG.term("lenses", route.lens)));
     const others = checks.filter((check) => !mine.includes(check));
     const steps = ["selfcheck.steps.choose", "selfcheck.steps.answer", "selfcheck.steps.result"];
     return h(
@@ -3354,6 +3361,6 @@
       if (!inspectionFailed) loadInspection().then(() => FG.rerender()).catch(() => { inspectionFailed = true; FG.rerender(); });
       return h("div", { class: "wrap", role: "status" }, FG.t(inspectionFailed ? "app.error" : "app.loading"));
     }
-    return route.view === "check" && FG.get("#check-" + route.arg) ? checkView(route) : overview(route);
+    return route.view === "check" && FG.get("checks/" + route.arg) ? checkView(route) : overview(route);
   };
 })();
