@@ -2,6 +2,17 @@
 # Process Run Crate action by default; finer actions are reserved for separately attributable work.
 
 [[action]]
+id = "2026-11-06-identity-migration"
+type = "update"
+name = "Move record identity to the kind vocabulary"
+description = "A structural migration of every record's identity: frozen routes name a plural kind word without a classification segment, and prose references name records by their address. The texts, sources and classifications are unchanged, and reviewed link decisions follow their fields. The KNAV record of the CESNET ownCloud service is joined to the curated entry for that service. The migration adds no content author."
+agent = "david-novak"
+instruments = ["identity-migration", "claude-code", "claude-opus-5-5"]
+objects = ["knav-dm-tools-catalogue"]
+results = ["*"]
+endTime = 2026-11-06T03:27:04+01:00
+
+[[action]]
 id = "2026-11-02-nkr-integration"
 type = "update"
 name = "Join the first NKR records to the repository catalogue"

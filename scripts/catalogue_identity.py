@@ -1,7 +1,9 @@
-"""Guide-owned record identity and compact route vocabulary.
+"""Guide-owned record identity and the kind vocabulary of record addresses.
 
 Every normalized record owns id. Genuine source IDs are typed alternateIds, never a second primary field.
-Only the locally owned ID and optional frozen route prefix are persisted, never a second table of full paths.
+Only the locally owned ID and an optional frozen kind (guideRoute) are persisted, never a second table of full paths.
+A record's address is `<kind>/<id>`, or `<kind>/<scope>/<id>` where the scope is part of its identity; the same
+address names it in its IRI, the API, the page's routes and data, prose references and exports.
 """
 
 from __future__ import annotations
@@ -21,57 +23,41 @@ def bare_url(value: Any) -> str:
     return re.sub(r"^www\.", "", address).rstrip("/")
 
 
-KIND_CODES = {
-    "resources": "res",
-    "repositories": "repo",
-    "infrastructures": "ri",
-    "principles": "pr",
-    "stations": "step",
-    "checks": "check",
-    "questions": "q",
-    "terms": "term",
-    "tests": "test",
-    "fips": "fip",
-    "clauses": "cl",
-    "model": "model",
-    "lifecycle": "life",
-    "actions": "act",
-    "organizations": "org",
-}
-TYPE_CODES = {
-    "service": "srv",
-    "standard": "std",
-    "registry": "reg",
-    "general": "gen",
-    "domain": "dom",
-    "institutional": "inst",
-    "fair-champion": "fc",
-    "fair-checker": "fcx",
-    "provenance-model": "prov",
-    "vocabulary": "vocab",
-    "infrastructure": "infra",
-    "training": "train",
-    "article": "art",
-    "guidance": "guide",
-    "policy": "pol",
-    "social-sciences-humanities": "ssh",
-    "environmental-sciences": "env",
-    "physical-sciences": "phys",
-    "biological-medical-sciences": "bio",
-    "information-sciences": "info",
-    "energy": "energy",
-    "biological-and-medical-sciences": "bio",
-    "physical-sciences-and-engineering": "phys",
-    "social-sciences-and-humanities": "ssh",
-    "e-infrastructures": "einfra",
-    "community": "comm",
-    "document": "doc",
-    "publication": "pub",
-    "project": "proj",
-    "licence": "lic",
-    "course": "course",
-}
-# NKR's published Repository types, shared by refresh routing and catalogue build.
+# The kinds of Guide record: one plain English word, plural where the word has one (design decision 2). A
+# classification, such as a resource type, a repository kind or a research domain, is a property of the record and
+# never a segment of its address, so reclassifying a record cannot move it.
+KINDS = frozenset(
+    {
+        "actions",
+        "advice",
+        "callouts",
+        "checks",
+        "clauses",
+        "crosswalks",
+        "fips",
+        "glossary",
+        "infrastructures",
+        "layers",
+        "lifecycles",
+        "model-examples",
+        "models",
+        "organizations",
+        "pages",
+        "principles",
+        "questions",
+        "repositories",
+        "resources",
+        "seams",
+        "stations",
+        "tests",
+        "vocabularies",
+    }
+)
+# Kinds whose records may carry a scope that is part of their identity: a test its provider or origin, a life-cycle
+# stage its model, a crosswalk mapping its crosswalk and a vocabulary term its set. A test always carries one.
+SCOPED_KINDS = frozenset({"crosswalks", "lifecycles", "tests", "vocabularies"})
+SCOPE_REQUIRED = frozenset({"tests"})
+# NKR's published Repository types as the Guide's repository kinds, shared by the refresh and the catalogue build.
 NKR_KIND = {"disciplinary": "domain", "institutional": "institutional", "generic": "general"}
 SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
 MAX_ID = 32
@@ -126,6 +112,54 @@ PARTICLES = frozenset(
 )
 RECORD_KINDS = {"term", "tool", "resource", "repository", "organization", "fip", "record"}
 IDENTITY_FIELDS = ("url", "mainUrl", "identifier", "doi", "re3data", "ror")
+# The kind a new snapshot row of each record type is issued under, frozen in its guideRoute.
+ROW_KINDS = {
+    "term": "glossary",
+    "tool": "resources",
+    "organization": "organizations",
+    "fip": "fips",
+    "repository": "repositories",
+    "record": "repositories",
+}
+
+
+def route(kind: str, scope: str | None = None) -> str:
+    """A frozen kind and scope as a guideRoute value, checked against the kind vocabulary."""
+    if kind not in KINDS:
+        raise ValueError(f"unknown record kind '{kind}'; the kinds are {', '.join(sorted(KINDS))}")
+    if scope is not None and (kind not in SCOPED_KINDS or not SAFE_ID.fullmatch(scope)):
+        raise ValueError(f"'{kind}' takes no scope '{scope}'")
+    return f"{kind}/{scope}" if scope else kind
+
+
+def parse_route(value: str) -> tuple[str, str | None]:
+    """A stored guideRoute as its kind and optional scope; a classification segment or an unknown kind is refused."""
+    parts = str(value).split("/")
+    if len(parts) > 2:
+        raise ValueError(f"guideRoute '{value}' has more than a kind and a scope")
+    route(parts[0], parts[1] if len(parts) == 2 else None)
+    return parts[0], parts[1] if len(parts) == 2 else None
+
+
+def address(kind: str, identifier: str, scope: str | None = None) -> str:
+    """The one address of a record, `<kind>/<id>` or `<kind>/<scope>/<id>`."""
+    prefix = route(kind, scope)
+    if kind in SCOPE_REQUIRED and not scope:
+        raise ValueError(f"a record of '{kind}' needs a scope: {identifier}")
+    if not isinstance(identifier, str) or not SAFE_ID.fullmatch(identifier):
+        raise ValueError(f"'{identifier}' is not a safe record identifier")
+    return f"{prefix}/{identifier}"
+
+
+def split_address(value: str) -> tuple[str, str | None, str]:
+    """An address as its kind, scope and identifier; refuses anything that is not one."""
+    parts = str(value).split("/")
+    if len(parts) not in (2, 3):
+        raise ValueError(f"'{value}' is not an address `<kind>/<id>` or `<kind>/<scope>/<id>`")
+    kind, scope, identifier = parts[0], parts[1] if len(parts) == 3 else None, parts[-1]
+    if address(kind, identifier, scope) != value:
+        raise ValueError(f"'{value}' is not a canonical address")
+    return kind, scope, identifier
 
 
 def has_particles(identifier: str) -> bool:
@@ -302,10 +336,62 @@ def source_scheme(data: dict[str, Any], kind: str) -> str:
     return {"term": "heslar", "tool": "knav", "repository": "re3data", "record": "nkr"}.get(kind, "fip-dashboard")
 
 
-def preserve_snapshot(
-    new_text: str, old_text: str, reserved: set[str] | None = None, resource_types: dict[str, str] | None = None
-) -> str:
-    """Carry local IDs/prefixes across source refresh, refusing conflicting or ambiguous identity joins.
+# The retired word forms of a prose reference and the kind of record each named, so the checks can name the address
+# form to write instead.
+RETIRED_WORD_FORMS = {
+    "term": "glossary",
+    "page": "pages",
+    "station": "stations",
+    "clause": "clauses",
+    "infrastructure": "infrastructures",
+}
+
+
+def address_hint(entry: str, known: set[str]) -> str:
+    """For a reference target no record has, such as a retired word form, code address or bare ID, the address form
+    to write: the published address with the same identifier, or the form itself when none or several match."""
+    prefix, colon, rest = entry.partition(":")
+    if colon and prefix in RETIRED_WORD_FORMS:
+        candidates = [f"{RETIRED_WORD_FORMS[prefix]}/{rest}"]
+    else:
+        identifier = entry.rsplit("/", 1)[-1]
+        candidates = sorted(target for target in known if "/" in target and target.rsplit("/", 1)[1] == identifier)
+    candidates = [target for target in candidates if target in known and target != entry]
+    if len(candidates) == 1:
+        return f"; references name a record by its address: write [[{candidates[0]}|...]]"
+    if candidates:
+        return "; references name a record by its address, one of " + ", ".join(candidates)
+    return "; references name a record by its address, [[<kind>/<id>|...]]"
+
+
+ROUTE_LINE = re.compile(r'(?m)^guideRoute = ("(?:[^"\\]|\\.)*")$')
+
+
+def translate_routes(text: str, routes: dict[str, str]) -> str:
+    """Rewrite the stored guideRoute values of a TOML text through a reviewed translation, leaving every other byte;
+    every resulting route must be a kind of the vocabulary, with its scope where it has one."""
+
+    def replace(match: re.Match[str]) -> str:
+        value = json.loads(match[1])
+        new = routes.get(value, value)
+        parse_route(new)
+        return f"guideRoute = {json.dumps(new, ensure_ascii=False)}"
+
+    return ROUTE_LINE.sub(replace, text)
+
+
+def renormalise_snapshot(text: str, routes: dict[str, str] | None = None) -> str:
+    """A recorded snapshot in the current identity format, without a new observation: its rows, source passages and
+    retrieval date stay; their identities are revalidated and their stored routes translated and checked."""
+    data = tomllib.loads(text)
+    for kind in RECORD_KINDS:
+        for row in data.get(kind, []):
+            validate_identity(row, source_scheme(data, kind))
+    return translate_routes(text, routes or {})
+
+
+def preserve_snapshot(new_text: str, old_text: str, reserved: set[str] | None = None) -> str:
+    """Carry local IDs and frozen kinds across source refresh, refusing conflicting or ambiguous identity joins.
 
     A changed source ID may join through an exact authoritative URL/identifier. A name alone never merges rows.
     New fields are inserted into the generated TOML without rewriting source passages or their formatting.
@@ -347,19 +433,15 @@ def preserve_snapshot(
             fields["alternateIds"] = [
                 item for item in (previous or {}).get("alternateIds", []) if item.get("scheme") != scheme
             ] + [{"scheme": scheme, "value": str(row["id"])}]
-            if "guideRoute" not in fields:
-                prefix = {"term": "term", "tool": "res/tool", "organization": "org", "fip": "fip"}.get(kind)
-                if kind == "resource":
-                    category = (resource_types or {}).get(str(row.get("type")), "tool")
-                    prefix = "repo" if row.get("type") == "repository" else "res/" + TYPE_CODES.get(category, category)
-                elif kind == "repository":
-                    subtype = TYPE_CODES.get(str(row.get("kind")), str(row.get("kind") or ""))
-                    prefix = "/".join(filter(None, ("repo", subtype)))
-                elif kind == "record" and incoming.get("snapshot", {}).get("source") == "NKR":
-                    subtype = TYPE_CODES.get(NKR_KIND.get(str(row.get("type")), ""), "")
-                    prefix = "/".join(filter(None, ("repo", subtype)))
-                if prefix:
-                    fields["guideRoute"] = prefix
+            if "guideRoute" in fields:
+                parse_route(fields["guideRoute"])
+            else:
+                # The kind is frozen when the row is first issued, so a later reclassification cannot move it.
+                fields["guideRoute"] = (
+                    ("repositories" if row.get("type") == "repository" else "resources")
+                    if kind == "resource"
+                    else ROW_KINDS[kind]
+                )
             claimed.add(identifier)
             retained.add(identifier)
             additions[(kind, str(row.get("id")))] = fields

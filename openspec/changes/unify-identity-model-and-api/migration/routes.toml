@@ -1,0 +1,56 @@
+# The reviewed translation of stored guideRoute values from the code addresses to the kind vocabulary
+# (design.md, decisions 2 and 17). A route freezes a record's kind and scope; a classification segment is dropped,
+# because it becomes a property. Registries were filed under repositories and become resources. Used once by
+# `refresh_snapshots.py --renormalise --routes` for the generated snapshots and by `migrate.py` for authored files.
+
+[routes]
+"fip" = "fips"
+"life/knav" = "lifecycles/knav-tools"
+"life/mld" = "lifecycles/maldreth"
+"life/rdm" = "lifecycles/rdmkit"
+"life/xw" = "crosswalks/lifecycle-stages"
+"model/ex" = "model-examples"
+"model/layer" = "layers"
+"model/seam" = "seams"
+"org" = "organizations"
+"repo" = "repositories"
+"repo/dom" = "repositories"
+"repo/gen" = "repositories"
+"repo/inst" = "repositories"
+"repo/reg" = "resources"
+"res/comm" = "resources"
+"res/course" = "resources"
+"res/data" = "resources"
+"res/doc" = "resources"
+"res/guide" = "resources"
+"res/lic" = "resources"
+"res/pol" = "resources"
+"res/proj" = "resources"
+"res/pub" = "resources"
+"res/reg" = "resources"
+"res/srv" = "resources"
+"res/std" = "resources"
+"res/tool" = "resources"
+"res/vocab" = "resources"
+"ri/bio" = "infrastructures"
+"ri/einfra" = "infrastructures"
+"ri/energy" = "infrastructures"
+"ri/env" = "infrastructures"
+"ri/phys" = "infrastructures"
+"ri/ssh" = "infrastructures"
+"term" = "glossary"
+"test/f-uji" = "tests/f-uji"
+"test/fc" = "tests/fair-champion"
+"test/fcx" = "tests/fair-checker"
+"test/guide" = "tests/guide"
+
+# Code prefixes of published addresses that no stored route carries, for the references and reviewed link
+# decisions that name records by address.
+[prefixes]
+"act" = "actions"
+"check" = "checks"
+"cl" = "clauses"
+"model" = "models"
+"pr" = "principles"
+"q" = "questions"
+"step" = "stations"

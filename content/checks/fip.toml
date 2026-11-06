@@ -6,7 +6,7 @@
 id = "fip"
 name = { cs = "Úplnost FIP", en = "FIP completeness" }
 icon = "people-group"
-description = { cs = "Co už FIP vašeho oboru určuje a co v něm chybí? Odpovědi lze předvyplnit z profilu komunity ve [[repo/reg/fip-dashboard|FIP Dashboardu]] nebo z publikované nanopublikace FIP.", en = "What does your domain's FIP already set, and what is missing? Answers can be pre-filled from the community's profile in the [[repo/reg/fip-dashboard|FIP Dashboard]] or from a published FIP nanopublication." }
+description = { cs = "Co už FIP vašeho oboru určuje a co v něm chybí? Odpovědi lze předvyplnit z profilu komunity ve [[resources/fip-dashboard|FIP Dashboardu]] nebo z publikované nanopublikace FIP.", en = "What does your domain's FIP already set, and what is missing? Answers can be pre-filled from the community's profile in the [[resources/fip-dashboard|FIP Dashboard]] or from a published FIP nanopublication." }
 lenses = ["K"]
 minutes = 10
 
@@ -127,7 +127,7 @@ id = "fip.12"
 tier = "recommended"
 principles = ["R1.3"]
 statement = { cs = "FIP vašeho oboru určuje doporučené metadatové a datové standardy.", en = "Your domain's FIP sets the recommended metadata and data standards." }
-note = { cs = "Ontologie FIP pro R1.3 samostatnou otázku nemá; předvyplní se jen z [[repo/reg/fip-dashboard|FIP Dashboardu]].", en = "The FIP ontology has no separate question for R1.3; this item is pre-filled only from the [[repo/reg/fip-dashboard|FIP Dashboard]]." }
+note = { cs = "Ontologie FIP pro R1.3 samostatnou otázku nemá; předvyplní se jen z [[resources/fip-dashboard|FIP Dashboardu]].", en = "The FIP ontology has no separate question for R1.3; this item is pre-filled only from the [[resources/fip-dashboard|FIP Dashboard]]." }
 sources = ["A.R1.3.F1"]
 fixAt = "metadata"
 owner = ["community"]
@@ -136,7 +136,7 @@ owner = ["community"]
 id = "fip.13"
 tier = "recommended"
 principles = []
-statement = { cs = "FIP je publikován (ve [[fip-dashboard|FIP Dashboardu]] nebo jako nanopublikace) a jeho FER jsou dohledatelné.", en = "The FIP is published (in the [[fip-dashboard|FIP Dashboard]] or as a nanopublication), and its FERs are findable." }
+statement = { cs = "FIP je publikován (ve [[resources/fip-dashboard|FIP Dashboardu]] nebo jako nanopublikace) a jeho FER jsou dohledatelné.", en = "The FIP is published (in the [[resources/fip-dashboard|FIP Dashboard]] or as a nanopublication), and its FERs are findable." }
 sources = ["A.K4.1", "FIP-DASHBOARD.01"]
 fixAt = "plan"
 owner = ["community"]

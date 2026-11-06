@@ -31,7 +31,7 @@ sources = ["RDMKIT.process.01", "MBDB-2026.01"]
 id = "process.03"
 lens = "V"
 level = "L1"
-text = { cs = "Původní soubory z přístrojů uchovejte; pro sdílení přidejte [[term/machine-readable-document-format|otevřené nebo rozšířené formáty]], nejlépe takové, které nevyžadují proprietární software. Každý formát a jeho udržitelnost popisuje [[loc-digital-formats|Library of Congress]]. Například:", en = "Keep the original instrument files; for sharing, add [[term/machine-readable-document-format|open or widely used formats]], preferably ones that do not require proprietary software. The [[loc-digital-formats|Library of Congress]] describes each format and how sustainable it is. For example:" }
+text = { cs = "Původní soubory z přístrojů uchovejte; pro sdílení přidejte [[glossary/machine-readable-document-format|otevřené nebo rozšířené formáty]], nejlépe takové, které nevyžadují proprietární software. Každý formát a jeho udržitelnost popisuje [[resources/loc-digital-formats|Library of Congress]]. Například:", en = "Keep the original instrument files; for sharing, add [[glossary/machine-readable-document-format|open or widely used formats]], preferably ones that do not require proprietary software. The [[resources/loc-digital-formats|Library of Congress]] describes each format and how sustainable it is. For example:" }
 steps = [
   { cs = "tabulková data: CSV (v kódování UTF-8) nebo Parquet vedle sešitů .xlsx; kupříkladu sloučené buňky nebo barvu, která nese význam, software správně nepřečte;", en = "tabular data: CSV (UTF-8) or Parquet alongside .xlsx workbooks; software cannot read correctly, for example, merged cells or colour that carries meaning;" },
   { cs = "texty a dokumentace: prostý text, Markdown nebo PDF/A vedle .docx;", en = "text and documentation: plain text, Markdown or PDF/A alongside .docx;" },
@@ -43,7 +43,7 @@ sources = ["A.I1.X1", "MBDB-2026.01", "LAW-328-2025.83.3", "LOC-DIGITAL-FORMATS.
 id = "process.04"
 lens = "V"
 level = "L1"
-text = { cs = "[[term/sensitive-data|Citlivá data]] co nejdřív pseudonymizujte nebo [[term/anonymisation-research-data|anonymizujte]] a zaznamenejte postup: nestačí odstranit jména a rodná čísla, pozor i na nepřímé identifikátory nebo údaje na fotografiích. Pokud data nelze plně anonymizovat a zůstávají v režimu řízeného přístupu, zveřejněte vedle nich jako samostatnou otevřenou datovou sadu malý syntetický (umělý) vzorek se stejnou strukturou sloupců, z něhož ostatní pochopí data dřív, než požádají o přístup.", en = "Pseudonymise or [[term/anonymisation-research-data|anonymise]] [[term/sensitive-data|sensitive data]] as early as you can and record the procedure: removing names and ID numbers is not enough, watch also for indirect identifiers or details on photographs. If the data cannot be fully anonymised and remain under controlled access, publish beside them, as a separate open dataset, a small synthetic (dummy) sample with the same column structure, so others can understand the data before they apply for access." }
+text = { cs = "[[glossary/sensitive-data|Citlivá data]] co nejdřív pseudonymizujte nebo [[glossary/anonymisation-research-data|anonymizujte]] a zaznamenejte postup: nestačí odstranit jména a rodná čísla, pozor i na nepřímé identifikátory nebo údaje na fotografiích. Pokud data nelze plně anonymizovat a zůstávají v režimu řízeného přístupu, zveřejněte vedle nich jako samostatnou otevřenou datovou sadu malý syntetický (umělý) vzorek se stejnou strukturou sloupců, z něhož ostatní pochopí data dřív, než požádají o přístup.", en = "Pseudonymise or [[glossary/anonymisation-research-data|anonymise]] [[glossary/sensitive-data|sensitive data]] as early as you can and record the procedure: removing names and ID numbers is not enough, watch also for indirect identifiers or details on photographs. If the data cannot be fully anonymised and remain under controlled access, publish beside them, as a separate open dataset, a small synthetic (dummy) sample with the same column structure, so others can understand the data before they apply for access." }
 sources = ["RDMKIT.process.02", "SND-SYNTHETIC.01"]
 
 [[advice]]
@@ -65,14 +65,14 @@ sources = ["RDMKIT.process.01", "EINFRA-DOCS.01"]
 id = "process.07"
 lens = "DS"
 level = "L1"
-text = { cs = "Pro zpracování [[term/sensitive-data|citlivých dat]] doporučte pseudonymizaci před sdílením v týmu a zabezpečené prostředí, například [[sensitive-cloud|Sensitive Cloud]].", en = "For processing [[term/sensitive-data|sensitive data]], recommend pseudonymisation before the data are shared in the team and a secure environment such as [[sensitive-cloud|Sensitive Cloud]]." }
+text = { cs = "Pro zpracování [[glossary/sensitive-data|citlivých dat]] doporučte pseudonymizaci před sdílením v týmu a zabezpečené prostředí, například [[resources/sensitive-cloud|Sensitive Cloud]].", en = "For processing [[glossary/sensitive-data|sensitive data]], recommend pseudonymisation before the data are shared in the team and a secure environment such as [[resources/sensitive-cloud|Sensitive Cloud]]." }
 sources = ["RDMKIT.process.02", "EINFRA-DOCS.01"]
 
 [[advice]]
 id = "process.08"
 lens = "SR"
 level = "L0"
-text = { cs = "Zveřejněte seznam podporovaných formátů, ideálně strojově čitelně. Jak je který formát udržitelný, popisuje [[loc-digital-formats|Library of Congress]].", en = "Publish the list of supported formats, ideally in machine-readable form. The [[loc-digital-formats|Library of Congress]] describes how sustainable each format is." }
+text = { cs = "Zveřejněte seznam podporovaných formátů, ideálně strojově čitelně. Jak je který formát udržitelný, popisuje [[resources/loc-digital-formats|Library of Congress]].", en = "Publish the list of supported formats, ideally in machine-readable form. The [[resources/loc-digital-formats|Library of Congress]] describes how sustainable each format is." }
 action = [{ label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "https://docs.nrp.eosc.cz/en/docs/repo_admins/operating-repositories-in-the-nrp/conditions-for-creating-repositories" }]
 sources = ["A.K2.3.2c", "NRP.CS", "LOC-DIGITAL-FORMATS.01"]
 
@@ -80,7 +80,7 @@ sources = ["A.K2.3.2c", "NRP.CS", "LOC-DIGITAL-FORMATS.01"]
 id = "process.09"
 lens = "K"
 level = "L0"
-text = { cs = "Doporučte komunitě, jak zacházet s formáty: originální formáty z přístrojů uchovat, jejich popis sjednotit a doporučené formáty zapsat do FIP. Při jejich výběru pomohou [[loc-digital-formats|faktory udržitelnosti Library of Congress]].", en = "Advise the community how to handle formats: keep the original instrument formats, harmonise their description and record the recommended formats in the FIP. The [[loc-digital-formats|Library of Congress sustainability factors]] help in choosing them." }
+text = { cs = "Doporučte komunitě, jak zacházet s formáty: originální formáty z přístrojů uchovat, jejich popis sjednotit a doporučené formáty zapsat do FIP. Při jejich výběru pomohou [[resources/loc-digital-formats|faktory udržitelnosti Library of Congress]].", en = "Advise the community how to handle formats: keep the original instrument formats, harmonise their description and record the recommended formats in the FIP. The [[resources/loc-digital-formats|Library of Congress sustainability factors]] help in choosing them." }
 action = [{ label = { cs = "Standardy ve FIP Dashboardu", en = "Standards in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources" }]
 sources = ["MBDB-2026.01", "A.R1.3.F1", "LOC-DIGITAL-FORMATS.01"]
 
@@ -89,7 +89,7 @@ id = "process.10"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "Skripty pro zpracování dat napíšete s [[res/doc/cerit-ai-coding|asistenty pro programování]] nebo v JupyterHubu v [[cerit-aiaas|prostředí CERIT]], kde nepublikovaná data zůstávají v infrastruktuře.", en = "Write data-processing scripts with [[res/doc/cerit-ai-coding|coding assistants]] or in JupyterHub in [[cerit-aiaas|the CERIT environment]], where unpublished data stay within the infrastructure." }
+text = { cs = "Skripty pro zpracování dat napíšete s [[resources/cerit-ai-coding|asistenty pro programování]] nebo v JupyterHubu v [[resources/cerit-aiaas|prostředí CERIT]], kde nepublikovaná data zůstávají v infrastruktuře.", en = "Write data-processing scripts with [[resources/cerit-ai-coding|coding assistants]] or in JupyterHub in [[resources/cerit-aiaas|the CERIT environment]], where unpublished data stay within the infrastructure." }
 check = { cs = "Skript nejdřív spusťte na kopii dat a výsledek porovnejte s očekáváním (počty řádků, součty, rozsahy hodnot). Skript uložte k datům, aby se zpracování dalo zopakovat.", en = "Run the script on a copy of the data first and compare the result with what you expect (row counts, totals, value ranges). Keep the script with the data so the processing can be repeated." }
 prompt = { cs = "Napiš skript v Pythonu, který načte všechny soubory CSV ve složce data/, převede kódování na UTF-8 a oddělovač na čárku, zachová názvy sloupců a pro každý soubor vypíše počet řádků před převodem a po něm. Každý krok okomentuj a nic nemaž.", en = "Write a Python script that reads every CSV file in the data/ folder, converts the encoding to UTF-8 and the separator to a comma, keeps the column names, and prints each file's row count before and after the conversion. Comment every step and delete nothing." }
 sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04"]
@@ -98,5 +98,5 @@ sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04"]
 id = "process.11"
 lens = "*"
 level = "L1"
-text = { cs = "Při čištění postupujte podle [[rdmkit-quality|plánu kontrol kvality]] a zachovejte [[rdmkit-provenance|záznam jednotlivých změn]]. Pro tabulky lze použít [[openrefine|OpenRefine]]; jeho historii úprav uložte vedle původních dat a datového slovníku.", en = "When cleaning data, follow your [[rdmkit-quality|quality-check plan]] and retain [[rdmkit-provenance|a record of changes]]. For tables, [[openrefine|OpenRefine]] is one option; save its transformation history beside the original data and data dictionary." }
+text = { cs = "Při čištění postupujte podle [[resources/rdmkit-quality|plánu kontrol kvality]] a zachovejte [[resources/rdmkit-provenance|záznam jednotlivých změn]]. Pro tabulky lze použít [[resources/openrefine|OpenRefine]]; jeho historii úprav uložte vedle původních dat a datového slovníku.", en = "When cleaning data, follow your [[resources/rdmkit-quality|quality-check plan]] and retain [[resources/rdmkit-provenance|a record of changes]]. For tables, [[resources/openrefine|OpenRefine]] is one option; save its transformation history beside the original data and data dictionary." }
 sources = ["RDMKIT.tasks.01"]

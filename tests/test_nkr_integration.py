@@ -51,7 +51,7 @@ class NkrIdentityTests(unittest.TestCase):
         snapshot = refresh_snapshots.nkr(refresh_snapshots.Fetcher(FIXTURE), "2026-11-01")
         data = tomllib.loads(catalogue_identity.preserve_snapshot(snapshot.text(), ""))
         herbarium = next(row for row in data["record"] if "herbarium" in row.get("mainUrl", ""))
-        self.assertEqual((herbarium["id"], herbarium["guideRoute"]), ("herbarium", "repo/dom"))
+        self.assertEqual((herbarium["id"], herbarium["guideRoute"]), ("herbarium", "repositories"))
         for row in data["record"]:
             handle = catalogue_identity.alternate_id(row, "nkr")
             self.assertNotEqual(row["id"], handle.rsplit("/", 1)[-1])

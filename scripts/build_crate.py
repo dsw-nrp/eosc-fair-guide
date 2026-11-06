@@ -36,17 +36,18 @@ from xml.etree import ElementTree
 
 import build_identity
 from catalogue_identity import (
-    KIND_CODES,
+    KINDS,
     MAX_ID,
     NKR_KIND,
-    SAFE_ID,
-    TYPE_CODES,
+    address_hint,
     alternate_id,
     bare_url,
     has_particles,
+    parse_route,
     source_scheme,
     validate_identity,
 )
+from catalogue_identity import address as issue_address
 from corrections import apply as apply_corrections
 from nkr_contract import NKR_PILOT_NOT_ACCEPTING, nkr_status
 from publication_location import base_url as publication_base
@@ -112,8 +113,9 @@ BASE_URL_ENV = "FAIR_GUIDE_BASE_URL"
 # What the page may download before any user action, gzip-compressed: the page, its scripts and its stylesheets.
 # Above it the build warns, so that loading parts on demand is decided on a measurement.
 PAGE_BUDGET_KB = 300
-# A reference editors mark in a text: [[id|phrase]], where id names a resource or source, or term:<id> a glossary
-# term, and phrase is the words in this language that name it.
+# A reference editors mark in a text: [[<kind>/<id>|phrase]], where the address names a catalogue record (with its
+# scope, `<kind>/<scope>/<id>`, where it has one), and phrase is the words in this language that name it. A kind's
+# list (`[[infrastructures|...]]`) and the Guide's profile (`[[profile|...]]`) are the only targets named otherwise.
 REFERENCE = re.compile(r"\[\[(?P<id>[^\[\]|]+)\|(?P<phrase>[^\[\]|]+)\]\]")
 PAGE_ASSET = re.compile(r'<script src="(?P<script>[^"]+)"|<link rel="stylesheet" href="(?P<style>[^"]+)"')
 
@@ -686,63 +688,44 @@ class Graph:
         return resolved
 
 
-# The catalogue collections whose emitted compact addresses prose may reference. The rest of the catalogue
-# (principles, checks, provenance actions) is reached from the catalogue itself, not from prose.
-REFERENCE_COLLECTIONS = (
-    "resources",
-    "sources",
-    "repositories",
-    "terms",
-    "stations",
-    "checks",
-    "clauses",
-    "tests",
-    "metrics",
-    "organizations",
-    "fips",
-    "model",
-    "lifecycle",
-    "infrastructures",
+# The kinds of record prose may reference. The rest of the catalogue (principles, questions' answers, provenance
+# actions, vocabularies) is reached from the catalogue itself, not from prose.
+REFERENCE_KINDS = frozenset(
+    {
+        "checks",
+        "clauses",
+        "crosswalks",
+        "fips",
+        "glossary",
+        "infrastructures",
+        "layers",
+        "lifecycles",
+        "model-examples",
+        "models",
+        "organizations",
+        "pages",
+        "questions",
+        "repositories",
+        "resources",
+        "seams",
+        "stations",
+        "tests",
+    }
 )
 
 
 def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
-    """Canonical compact catalogue addresses plus current authored short forms for Guide content and pages."""
-    records = api_records(graph.entities, content)
-    allowed = {
-        entity_id
-        for collection, members in records.items()
-        if collection in REFERENCE_COLLECTIONS
-        for _, entity_id in members
-    }
+    """Every target a prose reference may name: a record's address, from the one identity projection, and the two
+    non-record targets, a kind's list and the Guide's profile."""
     targets = {
         address: entity_id
         for entity_id, address in catalogue_addresses(graph.entities, content).items()
-        if entity_id in allowed
+        if address.split("/", 1)[0] in REFERENCE_KINDS
     }
-    targets |= {
-        item["id"]: graph.index[item["id"]][0]
-        for item in content["resources"] + content["sources"]
-        if graph.index.get(item["id"])
-    }
-    targets |= {
-        "term:" + entity_id[len("#term-") :]: entity_id
-        for entity_id in graph.entities
-        if entity_id.startswith("#term-")
-    }
-    targets |= {"page:" + page["id"]: f"#page-{page['id']}" for page in content["pages"]}
-    targets |= {"station:" + data["station"]["id"]: f"#station-{data['station']['id']}" for data in content["stations"]}
-    targets |= {"clause:" + clause["id"]: f"#clause-{clause['id']}" for clause in content["ledger"]}
-    infrastructures = (content.get("infrastructures") or {}).get("infrastructure", [])
-    targets |= {"infrastructure:" + item["id"]: f"#infrastructure-{item['id']}" for item in infrastructures}
-    if infrastructures:
+    targets |= {issue_address("pages", page["id"]): f"#page-{page['id']}" for page in content["pages"]}
+    if (content.get("infrastructures") or {}).get("infrastructure"):
         targets["infrastructures"] = "#infrastructures"
     targets["profile"] = content["guide"]["guide"]["profile"]
-    targets |= {
-        key: entity_ids[0]
-        for key, entity_ids in graph.index.items()
-        if key.startswith(("model:", "layer.", "seam.", "example."))
-    }
     return targets
 
 
@@ -765,7 +748,10 @@ def link_texts(graph: Graph, targets: dict[str, str]) -> None:
             def phrase(match: re.Match[str]) -> str:
                 target = targets.get(match["id"])
                 if target is None:
-                    raise ContentError(f"{owner}: the text refers to an unknown entry '{match['id']}'")
+                    raise ContentError(
+                        f"{owner}: the text refers to an unknown entry '{match['id']}'"
+                        + address_hint(match["id"], set(targets))
+                    )
                 found.setdefault(target, {"ref": target}).setdefault(lang, match["phrase"])
                 return match["phrase"]
 
@@ -3169,34 +3155,60 @@ def catalogue_records(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return result
 
 
+# The crosswalk between the life-cycle models' stages; its mappings are scoped by it.
+CROSSWALK_ID = "lifecycle-stages"
+# The scope of the FAIR Champion tests the Guide curates, beside the external evaluators' own resource IDs.
+CHAMPION_SCOPE = "fair-champion"
+# A published API collection's record kind, where the collection is named by a role rather than by its kind.
+COLLECTION_KINDS = {"sources": "resources", "metrics": "questions", "changes": "actions", "terms": "glossary"}
+
+
+# The kind and scope of the members of the model and life-cycle collections, by the build key's prefix; the rest of
+# those collections are the model itself and the life-cycle models and stages.
+MEMBER_ROUTES = (
+    ("#layer-", "layers", None),
+    ("#seam-", "seams", None),
+    ("#model-example-", "model-examples", None),
+    ("#crosswalk-", "crosswalks", CROSSWALK_ID),
+    ("#lifecycle-crosswalk", "crosswalks", None),
+)
+
+
+def record_route(
+    entity_id: str, entity: dict[str, Any], collection: str, repositories: set[str]
+) -> tuple[str, str | None]:
+    """The kind and scope a published record is issued under, from what it is rather than how it is classified."""
+    if entity_id in repositories:
+        # A registry describes other resources; it is a resource, not a repository, whatever list holds it.
+        return ("resources" if entity.get("resourceType") == ref("#rtype-registry") else "repositories"), None
+    if collection == "tests":
+        if entity_id.startswith("#criterion-"):
+            return "tests", as_list(entity.get("isPartOf"))[0]["@id"].removeprefix("#resource-")
+        return "tests", "guide" if entity_id.startswith("#test-guide-") else CHAMPION_SCOPE
+    if collection in ("model", "lifecycle"):
+        route = next(((kind, scope) for prefix, kind, scope in MEMBER_ROUTES if entity_id.startswith(prefix)), None)
+        if route is None and collection == "lifecycle":
+            model = entity_id.removeprefix("#lifecycle-")
+            route = "lifecycles", model.split(".", 1)[0] if "." in model else None
+        return route or ("models", None)
+    return COLLECTION_KINDS.get(collection, collection), None
+
+
 def catalogue_addresses(entities: dict[str, dict[str, Any]], content: dict[str, Any]) -> dict[str, str]:
-    """Project stored Guide IDs and frozen prefixes once; external identities never issue a published address."""
+    """Project stored Guide IDs and frozen kinds once; external identities never issue a published address."""
     records = catalogue_records(content)
     repositories = {item["@id"] for item in as_list(entities.get("#repositories", {}).get("hasPart"))}
     result: dict[str, str] = {}
     for entity_id, old in api_paths(api_records(entities, content)).items():
         entity = entities[entity_id]
         collection, identifier = old.split("/", 1)
-        kind = {"sources": "resources", "metrics": "questions", "changes": "actions"}.get(collection, collection)
-        subtype = ""
-        if entity_id in repositories:
-            kind = "repositories"
-            subtype = (entity.get("repositoryKind") or {}).get("@id", "").removeprefix("#rkind-")
-            if not subtype and entity.get("resourceType") == ref("#rtype-registry"):
-                subtype = "registry"
-        elif kind == "resources":
-            subtype = (
-                (entity.get("resourceType") or entity.get("guideType") or {})
-                .get("@id", "#rtype-tool")
-                .removeprefix("#rtype-")
-            )
-        elif kind == "infrastructures":
-            subtype = (entity.get("researchField") or {}).get("@id", "").removeprefix("#rifield-")
-        elif kind == "tests":
-            subtype = "guide" if entity_id.startswith("#test-guide-") else "fair-champion"
-            if entity_id.startswith("#criterion-"):
-                subtype = as_list(entity.get("isPartOf"))[0]["@id"].removeprefix("#resource-")
-                identifier = str(entity["identifier"])
+        kind, scope = record_route(entity_id, entity, collection, repositories)
+        if entity_id.startswith("#criterion-"):
+            identifier = str(entity["identifier"])
+        elif kind == "lifecycles" and scope:
+            identifier = identifier.split(".", 1)[1]
+        elif entity_id == "#lifecycle-crosswalk":
+            identifier = CROSSWALK_ID
         row = records.get(entity_id, {})
         if "guideId" in row:
             raise ContentError(f"{entity_id}: obsolete guideId field; id is the one primary value")
@@ -3205,16 +3217,19 @@ def catalogue_addresses(entities: dict[str, dict[str, Any]], content: dict[str, 
             raise ContentError(
                 f"{entity_id}: Guide slug contains a particle; use an official abbreviation or source URL words"
             )
-        prefix = row.get("guideRoute") or "/".join(filter(None, (KIND_CODES[kind], TYPE_CODES.get(subtype, subtype))))
-        if prefix.split("/")[0] not in KIND_CODES.values() or len(prefix.split("/")) > 2:
-            raise ContentError(f"{entity_id}: invalid Guide route prefix {prefix}")
-        address = prefix + "/" + identifier
-        if not all(SAFE_ID.fullmatch(part) for part in address.split("/")) or len(identifier) > MAX_ID:
+        try:
+            if row.get("guideRoute"):
+                kind, scope = parse_route(row["guideRoute"])
+            address = issue_address(kind, identifier, scope)
+        except ValueError as error:
+            raise ContentError(f"{entity_id}: {error}") from error
+        if len(identifier) > MAX_ID:
+            raise ContentError(f"{entity_id}: overlong Guide identifier {identifier}; assign a short primary id")
+        holder = next((other for other, issued in result.items() if issued == address), None)
+        if holder is not None:
             raise ContentError(
-                f"{entity_id}: invalid or overlong Guide identifier {identifier}; assign a short primary id"
+                f"two entries share Guide address {address}: {holder}, {entity_id}; review their identities"
             )
-        if address in result.values():
-            raise ContentError(f"{entity_id}: two entries share Guide address {address}; review their identities")
         result[entity_id] = address
     return result
 
@@ -3969,7 +3984,7 @@ def outputs(
         {key: entity["catalogueAddress"] for key, entity in graph.entities.items() if entity.get("catalogueAddress")},
         links,
     )
-    ui["config"]["catalogueKinds"] = {code: kind for kind, code in KIND_CODES.items()}
+    ui["config"]["catalogueKinds"] = {kind: kind for kind in sorted(KINDS)}
     # The page uses config.api.records; the complete graph field returns with its deferred data part.
     for index, entity in enumerate(core["@graph"]):
         if entity.get("catalogueAddress"):

@@ -51,7 +51,7 @@ LIFECYCLES = {
         'definition = "Funding the work."\nlocator = "p. 2"\n'
     ),
     "lifecycle/crosswalk.toml": (
-        '[[correspondence]]\nid = "rdmkit-plan-other-fund"\nguideRoute = "life/xw"\n'
+        '[[correspondence]]\nid = "rdmkit-plan-other-fund"\nguideRoute = "crosswalks/lifecycle-stages"\n'
         'stages = ["rdmkit.plan", "other.fund"]\nbasis = "published"\nsource = "report"\n'
         'locator = "Figure 1"\n'
     ),
@@ -248,12 +248,12 @@ class GeneratorTests(FixtureCase):
         self.assertError("the node's operator 'elsewhere' is not a listed infrastructure")
 
     def test_station_references_resolve_and_unknown_stations_fail(self) -> None:
-        self.edit("stations/01-one.toml", "Take the first step.", "Read [[station:one|the station]].")
+        self.edit("stations/01-one.toml", "Take the first step.", "Read [[stations/one|the station]].")
         graph = build_crate.Graph()
         build_crate.build_crate(build_crate.load_content(self.root / "content"), graph)
         self.assertTrue(any(link["ref"] == "#station-one" for links in graph.text_links.values() for link in links))
-        self.edit("stations/01-one.toml", "station:one", "station:missing")
-        self.assertError("unknown entry 'station:missing'")
+        self.edit("stations/01-one.toml", "stations/one", "stations/missing")
+        self.assertError("unknown entry 'stations/missing'")
 
     def test_embedded_json_escapes_only_the_unsafe_characters(self) -> None:
         # Markup and the two JavaScript line terminators are escaped; every other character, spaces included, stays.
@@ -461,8 +461,8 @@ class GeneratorTests(FixtureCase):
         self.edit(
             "stations/01-one.toml",
             'text = { cs = "Udělejte první krok.", en = "Take the first step." }',
-            'text = { cs = "Udělejte první krok v [[service|testovací službě]].", '
-            'en = "Take the first step in the [[service|Test service]]." }',
+            'text = { cs = "Udělejte první krok v [[resources/service|testovací službě]].", '
+            'en = "Take the first step in the [[resources/service|Test service]]." }',
         )
         graph = build_crate.Graph()
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"), graph)
@@ -487,28 +487,52 @@ class GeneratorTests(FixtureCase):
         self.edit(
             "stations/01-one.toml",
             'text = { cs = "Krok v [[nowhere|ničem]].", en = "A step in [[nowhere|nothing]]." }',
-            'text = { cs = "Krok v [[service|službě]].", en = "A step in the service." }',
+            'text = { cs = "Krok v [[resources/service|službě]].", en = "A step in the service." }',
         )
-        self.assertError("the Czech and English texts refer to different entries: service")
+        self.assertError("the Czech and English texts refer to different entries: resources/service")
         self.edit(
             "stations/01-one.toml",
             'en = "A step in the service." }',
             'en = "A step in the [[service Test service]]." }',
         )
-        self.assertError("a reference is not well formed; write [[id|phrase]]")
+        self.assertError("a reference is not well formed; write [[<kind>/<id>|phrase]]")
+
+    def test_a_retired_reference_form_names_the_address_to_write(self) -> None:
+        """Only the address form `[[<kind>/<id>|phrase]]` resolves; each retired form fails and names that form."""
+        current = 'text = { cs = "Udělejte první krok.", en = "Take the first step." }'
+        for retired, address in (
+            ("station:one", "stations/one"),
+            ("clause:CTS.R12", "clauses/CTS.R12"),
+            ("service", "resources/service"),
+            ("res/srv/service", "resources/service"),
+            ("step/one", "stations/one"),
+        ):
+            with self.subTest(retired=retired):
+                new = f'text = {{ cs = "Krok [[{retired}|x]].", en = "Step [[{retired}|x]]." }}'
+                self.edit("stations/01-one.toml", current, new)
+                current = new
+                self.assertError(
+                    f"refers to an unknown entry '{retired}'; references name a record by its address: "
+                    f"write [[{address}|...]]"
+                )
+        scoped = "[[tests/fair-champion/test_one|test]]"
+        self.edit("stations/01-one.toml", current, f'text = {{ cs = "Krok {scoped}.", en = "Step {scoped}." }}')
+        self.assertEqual(self.errors(), [])
 
     def test_the_reference_map_comes_from_the_catalogue_identity(self) -> None:
-        """A reference may name any published catalogue entry by `collection:record`, so a repository and a
-        catalogue tool are referenceable as a resource is; the guide's short forms stay."""
+        """A reference names a published catalogue entry by its address, so a repository and a catalogue tool are
+        referenceable as a resource is, and the retired short forms are gone."""
         content = build_crate.load_content()
         graph = build_crate.Graph()
         build_crate.build_crate(content, graph)
         targets = build_crate.reference_targets(content, graph)
-        self.assertIn("repo/gen/zenodo", targets)
-        self.assertIn("res/tool/github", targets)
+        self.assertIn("repositories/zenodo", targets)
+        self.assertIn("resources/github", targets)
         self.assertNotIn("knav.github", targets)
-        self.assertTrue(any(key.startswith("q/") for key in targets), "a question is nameable")
-        self.assertIn("page:software", targets, "the short forms stay")
+        self.assertTrue(any(key.startswith("questions/") for key in targets), "a question is nameable")
+        self.assertIn("pages/software", targets)
+        for retired in ("page:software", "term:data", "station:plan", "res/tool/github", "datacite", "layer.policy"):
+            self.assertNotIn(retired, targets)
 
     def test_a_repository_reference_resolves_and_an_unknown_one_fails(self) -> None:
         self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "zenodo"]')
@@ -520,11 +544,12 @@ class GeneratorTests(FixtureCase):
         self.edit(
             "stations/01-one.toml",
             'text = { cs = "Udělejte první krok.", en = "Take the first step." }',
-            'text = { cs = "Uložte v [[repo/gen/zenodo|Zenodu]].", en = "Deposit in [[repo/gen/zenodo|Zenodo]]." }',
+            'text = { cs = "Uložte v [[repositories/zenodo|Zenodu]].", '
+            'en = "Deposit in [[repositories/zenodo|Zenodo]]." }',
         )
         self.assertEqual(self.errors(), [])
-        self.edit("stations/01-one.toml", "repo/gen/zenodo", "repo/gen/nope")
-        self.assertError("refers to an unknown entry 'repo/gen/nope'")
+        self.edit("stations/01-one.toml", "repositories/zenodo", "repositories/nope")
+        self.assertError("refers to an unknown entry 'repositories/nope'")
 
     def test_missing_marker_is_reported(self) -> None:
         page = self.root / "index.html"
@@ -793,12 +818,12 @@ class ContentCheckTests(FixtureCase):
         self.edit(
             "ledger.toml",
             'text = { cs = "NRP zajišťuje DOI.", en = "NRP provides DOIs." }',
-            'text = { cs = "NRP zajišťuje DOI podle [[clause:CTS.R12|R12]].", '
-            'en = "NRP provides DOIs as [[clause:CTS.R12|R12]] asks." }',
+            'text = { cs = "NRP zajišťuje DOI podle [[clauses/CTS.R12|R12]].", '
+            'en = "NRP provides DOIs as [[clauses/CTS.R12|R12]] asks." }',
         )
         self.assertEqual(self.errors(), [])
-        self.edit("ledger.toml", "[[clause:CTS.R12|R12]].", "[[clause:CTS.R77|R12]].")
-        self.assertError("refers to an unknown entry 'clause:CTS.R77'")
+        self.edit("ledger.toml", "[[clauses/CTS.R12|R12]].", "[[clauses/CTS.R77|R12]].")
+        self.assertError("refers to an unknown entry 'clauses/CTS.R77'")
 
     def test_station_without_next_action(self) -> None:
         self.edit(
@@ -1104,7 +1129,7 @@ class ContentCheckTests(FixtureCase):
             '\n[[source]]\nid = "service"\ntype = "webpage"\ntitle = "Other"\n'
             'url = "https://example.org/other"\ndateAccessed = 2026-01-01\n',
         )
-        self.assertError("id:service: names several entities")
+        self.assertError("two entries share Guide address resources/service: #resource-service, #source-service")
 
     def test_czech_name_needs_an_english_form(self) -> None:
         self.edit("guide.toml", 'name = "Test Organisation"', 'name = "Testovací organizace"')
@@ -1320,7 +1345,7 @@ class SnapshotTests(FixtureCase):
         self.assertEqual(facts["doi"], "10.17616/R3AB12")
         # DataCite finds the repository by the record's DOI, which the crate keeps as the record's other identifier.
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
-        entity = next(item for item in crate["@graph"] if item.get("catalogueAddress") == "repo/dom/old")
+        entity = next(item for item in crate["@graph"] if item.get("catalogueAddress") == "repositories/old")
         self.assertIn({"@id": "https://doi.org/10.17616/R3AB12"}, entity["sameAs"])
         # A DOI that is not re3data's is refused, and the snapshot stays as it was.
         (inputs / "re3data-list.xml").write_text(
@@ -2439,7 +2464,7 @@ class SiteTests(unittest.TestCase):
                 "assets/js/app.js",
                 "profile/fair-guide/profile.ttl",
                 "openapi.json",
-                "api/pr/R1.1.json",
+                "api/principles/R1.1.json",
                 "api/index.html",
                 "api/swagger-ui/swagger-ui-bundle.js",
                 "profile/0.1/index.html",
@@ -2650,7 +2675,9 @@ class GeneratedMarkupTests(FixtureCase):
                 self.assertNotIn(record_path, openapi["paths"])
                 continue
             for _, entity_id in api.records[name]:
-                self.assertIn("/" + api.paths[entity_id], openapi["paths"], name)
+                path = api.paths[entity_id]
+                templated = path == f"api/{name}/{Path(path).stem}.json"
+                self.assertIn(record_path if templated else "/" + path, openapi["paths"], name)
 
     def test_link_elements_escape_hostile_quoted_values(self) -> None:
         hostile = {"rel": 'x" onload="alert(1)', "type": "a&b<c>", "href": 'page"><script>alert(1)</script>'}
@@ -2771,7 +2798,7 @@ class ApiTests(unittest.TestCase):
         return posixpath.normpath(posixpath.join(posixpath.dirname(here), link))
 
     def test_a_principle_carries_what_is_about_it(self) -> None:
-        here = "api/pr/R1.1.json"
+        here = "api/principles/R1.1.json"
         principle = self.docs[here]
         self.assertEqual(principle["@context"], "../context.jsonld")
         self.assertEqual(set(principle["name"]), {"cs", "en"})
@@ -2784,10 +2811,10 @@ class ApiTests(unittest.TestCase):
         }
         self.assertGreater(len(lenses), 1, "advice for more than one lens")
         metric = self.docs[self.target(here, principle["metrics"][0])]
-        self.assertIn("../pr/R1.1.json", build_crate.as_list(metric["inDimension"]))
+        self.assertIn("../principles/R1.1.json", build_crate.as_list(metric["inDimension"]))
 
     def test_checks_are_benchmarks_whose_questions_have_manual_tests(self) -> None:
-        checks = [path for path in self.docs if path.startswith("api/check/")]
+        checks = [path for path in self.docs if path.startswith("api/checks/")]
         self.assertTrue(checks)
         for path in checks:
             self.assertIn("Benchmark", self.docs[path]["@type"])

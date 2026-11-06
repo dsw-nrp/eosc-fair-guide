@@ -28,8 +28,8 @@ class CatalogueAddressTests(unittest.TestCase):
             self.assertEqual(api.paths[entity_id], f"api/{address}.json")
             self.assertEqual(self.entities[entity_id]["catalogueAddress"], address)
             self.assertTrue(all(kb.API_ID.fullmatch(part) for part in address.split("/")))
-        self.assertEqual(addresses["#resource-datacite"], "res/srv/datacite")
-        self.assertEqual(addresses["#repository-zenodo"], "repo/gen/zenodo")
+        self.assertEqual(addresses["#resource-datacite"], "resources/datacite")
+        self.assertEqual(addresses["#repository-zenodo"], "repositories/zenodo")
 
     def test_source_id_changes_do_not_reissue_our_address(self):
         content = copy.deepcopy(self.content)
@@ -39,13 +39,13 @@ class CatalogueAddressTests(unittest.TestCase):
         tool["alternateIds"] = [{"scheme": "knav", "value": "changed-upstream-id"}]
         tool["name"] = "Changed title"
         entities = {entry["@id"]: entry for entry in kb.build_crate(content)["@graph"]}
-        self.assertEqual(entities["#knav-github"]["catalogueAddress"], "res/tool/github")
+        self.assertEqual(entities["#knav-github"]["catalogueAddress"], "resources/github")
 
     def test_reclassification_keeps_the_issued_address(self):
         content = copy.deepcopy(self.content)
         next(row for row in content["resources"] if row["id"] == "datacite")["type"] = "tool"
         entity = next(entry for entry in kb.build_crate(content)["@graph"] if entry["@id"] == "#resource-datacite")
-        self.assertEqual(entity["catalogueAddress"], "res/srv/datacite")
+        self.assertEqual(entity["catalogueAddress"], "resources/datacite")
         self.assertEqual(entity["resourceType"], kb.ref("#rtype-tool"))
 
     def test_authoritative_iri_changes_cannot_change_our_identity(self):
@@ -55,7 +55,7 @@ class CatalogueAddressTests(unittest.TestCase):
         organization = content["guide"]["organization"][0]
         organization["ror"] = "https://ror.org/changed"
         entities = {entry["@id"]: entry for entry in kb.build_crate(content)["@graph"]}
-        self.assertEqual(entities[kb.principle_iri("F1")]["catalogueAddress"], "pr/F1")
+        self.assertEqual(entities[kb.principle_iri("F1")]["catalogueAddress"], "principles/F1")
         self.assertEqual(entities[kb.principle_iri("F1")]["sameAs"], kb.ref(principle["iri"]))
         entity_id = "#org-" + organization["id"]
         self.assertEqual(entities[entity_id]["catalogueAddress"], self.entities[entity_id]["catalogueAddress"])
@@ -98,7 +98,7 @@ class CatalogueAddressTests(unittest.TestCase):
     def test_api_publishes_no_legacy_documents_and_retains_external_iris(self):
         api = build_api.Api(self.crate, self.content)
         files = api.files()
-        self.assertIn("api/res/tool/github.json", files)
+        self.assertIn("api/resources/github.json", files)
         self.assertNotIn("api/resources/knav.github.json", files)
         self.assertNotIn("api/metrics/dataset.01.json", files)
         self.assertNotIn("catalogue", self.content["identifiers"])

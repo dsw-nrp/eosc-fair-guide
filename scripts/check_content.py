@@ -43,7 +43,7 @@ from build_crate import (  # noqa: E402
     reference_targets,
     vocabulary_errors,
 )
-from catalogue_identity import alternate_id
+from catalogue_identity import address_hint, alternate_id
 from corrections import validate_fields
 from registry_identifiers import DATACITE_REPOSITORY, FAIRSHARING_DOI, canonical_fairsharing_doi
 
@@ -1634,13 +1634,17 @@ def check_coherence(report: Report, content: dict[str, Any], graph: Graph, build
 
 
 def referenced(content: dict[str, Any]) -> set[str]:
-    """Every entry a text refers to with [[id|phrase]]."""
-    return {
+    """Every entry a text refers to with [[<kind>/<id>|phrase]]: its address, and a resource's or repository's own ID,
+    which is how resources and sources are cited elsewhere."""
+    found = {
         match["id"]
         for name, data in content.items()
         for _, _, value in walk(data, name)
         if isinstance(value, str)
         for match in REFERENCE.finditer(value)
+    }
+    return found | {
+        target.split("/", 1)[1] for target in found if target.split("/", 1)[0] in ("resources", "repositories")
     }
 
 
@@ -1653,11 +1657,11 @@ def check_references(report: Report, content: dict[str, Any], targets: dict[str,
 
     def entries(where: str, text: str) -> set[str]:
         if "[[" in REFERENCE.sub("", text) or "]]" in REFERENCE.sub("", text):
-            report.error(where, "a reference is not well formed; write [[id|phrase]]")
+            report.error(where, "a reference is not well formed; write [[<kind>/<id>|phrase]]")
         found = {match["id"] for match in REFERENCE.finditer(text)}
         if known is not None:
             for entry in sorted(found - known):
-                report.error(where, f"refers to an unknown entry '{entry}'")
+                report.error(where, f"refers to an unknown entry '{entry}'" + address_hint(entry, known))
         return found
 
     for name, data in content.items():

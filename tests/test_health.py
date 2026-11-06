@@ -43,7 +43,7 @@ class HealthTests(unittest.TestCase):
         self.assertFalse(reviewed["stale"])
         for field, replacement in [
             ("text", row["text"] + " Changed context."),
-            ("address", "res/tool/github"),
+            ("address", "resources/github"),
             ("path", "pages[new].body.en"),
         ]:
             with self.subTest(field=field):
@@ -164,8 +164,8 @@ class HealthTests(unittest.TestCase):
             if "[software]" in item["path"] and "[version]" in item["path"] and item["entry"] == "#knav-github"
         ]
         self.assertEqual({item["language"] for item in matches}, {"cs", "en"})
-        self.assertTrue(all(item["address"] == "res/tool/github" for item in matches))
-        section["body"] = {"cs": "Použijte [[res/tool/github|GitHub]].", "en": "Use [[res/tool/github|GitHub]]."}
+        self.assertTrue(all(item["address"] == "resources/github" for item in matches))
+        section["body"] = {"cs": "Použijte [[resources/github|GitHub]].", "en": "Use [[resources/github|GitHub]]."}
         linked = check_health.missing_links(content)
         self.assertFalse(
             any(
@@ -442,15 +442,15 @@ class HealthTests(unittest.TestCase):
         coverage = linked["original_coverage"]
         self.assertEqual(
             next(item for item in coverage["questions"] if item["id"] == "software.20")["api_record"],
-            "q/software.20.json",
+            "questions/software.20.json",
         )
         self.assertEqual(
             next(item for item in coverage["clauses"] if item["id"] == "OPENSSF.01")["api_record"],
-            "cl/OPENSSF.01.json",
+            "clauses/OPENSSF.01.json",
         )
         self.assertEqual(
             next(item for item in coverage["advice"] if item["id"] == "plan.01")["api_record"],
-            "step/plan.json#advice-plan.01",
+            "stations/plan.json#advice-plan.01",
         )
         self.assertEqual(linked["generated_at"], report["generated_at"])
         self.assertEqual(report, original)

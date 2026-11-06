@@ -6,7 +6,18 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from catalogue_identity import identity_seed, preserve_snapshot, short_id, validate_identity  # noqa: E402
+from catalogue_identity import (  # noqa: E402
+    KINDS,
+    SCOPED_KINDS,
+    address,
+    identity_seed,
+    parse_route,
+    preserve_snapshot,
+    renormalise_snapshot,
+    short_id,
+    split_address,
+    validate_identity,
+)
 
 
 class SnapshotIdentityTests(unittest.TestCase):
@@ -27,7 +38,7 @@ class SnapshotIdentityTests(unittest.TestCase):
 
     OLD = (
         '[[tool]]\nid = "our-tool"\nalternateIds = [{ scheme = "knav", value = "external-1" }]\n'
-        'guideRoute = "res/tool"\n'
+        'guideRoute = "resources"\n'
         'name = "Old title"\nurl = "https://example.org/tool"\n'
     )
 
@@ -35,7 +46,7 @@ class SnapshotIdentityTests(unittest.TestCase):
         new = '[[tool]]\nid = "external-9"\nname = "New title"\nurl = "https://example.org/tool"\n'
         row = tomllib.loads(preserve_snapshot(new, self.OLD))["tool"][0]
         self.assertEqual(row["id"], "our-tool")
-        self.assertEqual(row["guideRoute"], "res/tool")
+        self.assertEqual(row["guideRoute"], "resources")
         self.assertEqual(row["alternateIds"], [{"scheme": "knav", "value": "external-9"}])
         self.assertNotIn("guideId", row)
 
@@ -72,7 +83,7 @@ class SnapshotIdentityTests(unittest.TestCase):
     def test_new_dashboard_repository_uses_the_repository_family(self):
         incoming = '[[resource]]\nid = "external"\nname = "New Repository"\ntype = "repository"\n'
         row = tomllib.loads(preserve_snapshot(incoming, ""))["resource"][0]
-        self.assertEqual(row["guideRoute"], "repo")
+        self.assertEqual(row["guideRoute"], "repositories")
 
     def test_an_old_local_id_cannot_silently_become_a_source_identifier(self):
         malformed = '[[tool]]\nid = "forgotten-local-slug"\nurl = "https://example.org/tool"\n'
@@ -102,6 +113,73 @@ class SnapshotIdentityTests(unittest.TestCase):
         first = short_id("research metadata interoperability", set())
         self.assertEqual(first, "research-metadata")
         self.assertEqual(short_id("research metadata", {first}), "research-metadata-2")
+
+
+class KindVocabularyTests(unittest.TestCase):
+    """An address is `<kind>/<id>` or `<kind>/<scope>/<id>`, with a plural kind word and no classification."""
+
+    def test_every_kind_and_scope_forms_one_address(self):
+        for kind in sorted(KINDS):
+            with self.subTest(kind=kind):
+                if kind == "tests":
+                    self.assertEqual(address(kind, "x", "f-uji"), "tests/f-uji/x")
+                    with self.assertRaisesRegex(ValueError, "needs a scope"):
+                        address(kind, "x")
+                    continue
+                self.assertEqual(address(kind, "x"), f"{kind}/x")
+                self.assertEqual(split_address(f"{kind}/x"), (kind, None, "x"))
+                if kind in SCOPED_KINDS:
+                    self.assertEqual(split_address(address(kind, "plan", "rdmkit")), (kind, "rdmkit", "plan"))
+                else:
+                    with self.assertRaisesRegex(ValueError, "takes no scope"):
+                        address(kind, "x", "scope")
+        self.assertEqual(split_address("lifecycles/rdmkit/plan"), ("lifecycles", "rdmkit", "plan"))
+
+    def test_a_classification_segment_or_an_unknown_kind_is_refused(self):
+        for value in ("res/srv/datacite", "repo/dom/csda", "resources/service/datacite", "term/data", "resource/x"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                split_address(value)
+        for value in ("repo/dom", "res/tool", "resources/service", "term", "resources/a/b"):
+            with self.subTest(route=value), self.assertRaises(ValueError):
+                parse_route(value)
+        self.assertEqual(parse_route("tests/fair-champion"), ("tests", "fair-champion"))
+
+    def test_a_refresh_refuses_a_stored_route_with_a_classification(self):
+        old = SnapshotIdentityTests.OLD.replace('guideRoute = "resources"', 'guideRoute = "res/tool"')
+        with self.assertRaisesRegex(ValueError, "unknown record kind 'res'"):
+            preserve_snapshot('[[tool]]\nid = "external-1"\nname = "Old title"\n', old)
+
+    def test_a_new_disciplinary_nkr_record_is_a_repository(self):
+        incoming = (
+            '[snapshot]\nsource = "NKR"\n\n'
+            '[[record]]\nid = "20.500.14818/jgu5fyqf"\nrepositoryName = "Herbarium"\n'
+            'mainUrl = "https://herbarium.biodiversity.cz"\ntype = "disciplinary"\n'
+        )
+        row = tomllib.loads(preserve_snapshot(incoming, ""))["record"][0]
+        self.assertEqual((row["id"], row["guideRoute"]), ("herbarium", "repositories"))
+
+
+class RenormaliseTests(unittest.TestCase):
+    """A recorded snapshot moves to the current route format without a new observation."""
+
+    SNAPSHOT = (
+        '[snapshot]\nsource = "NKR"\nretrieved = 2026-11-01\n\n'
+        '[[record]]\nid = "herbarium"\nalternateIds = [{ "scheme" = "nkr", "value" = "20.500.14818/jgu5fyqf" }]\n'
+        'guideRoute = "repo/dom"\nrepositoryName = "Herbarium"\nmainUrl = "https://herbarium.biodiversity.cz"\n'
+    )
+
+    def test_an_nkr_route_is_rewritten_once_and_the_retrieval_date_stays(self):
+        first = renormalise_snapshot(self.SNAPSHOT, {"repo/dom": "repositories"})
+        self.assertEqual(tomllib.loads(first)["record"][0]["guideRoute"], "repositories")
+        self.assertEqual(str(tomllib.loads(first)["snapshot"]["retrieved"]), "2026-11-01")
+        self.assertEqual(first.replace('"repositories"', '"repo/dom"'), self.SNAPSHOT)
+        self.assertEqual(renormalise_snapshot(first, {"repo/dom": "repositories"}), first)
+
+    def test_an_untranslated_old_route_or_a_broken_identity_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "unknown record kind 'repo'"):
+            renormalise_snapshot(self.SNAPSHOT)
+        with self.assertRaisesRegex(ValueError, "missing genuine nkr"):
+            renormalise_snapshot(self.SNAPSHOT.replace('"scheme" = "nkr"', '"scheme" = "knav"'))
 
 
 if __name__ == "__main__":

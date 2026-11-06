@@ -68,8 +68,8 @@ profiles = ["core-system", "nrp-infrastructure", "independent"]
 id = "gate.05"
 tier = "required"
 principles = ["F4"]
-statement = { cs = "Repozitář je registrován v [[nkr|NKR]] a záznam je aktuální.", en = "The repository is registered in [[nkr|NKR]] and its record is up to date." }
-help = { cs = "[[repo/reg/nkr|NKR]] je národní katalog repozitářů; záznam v něm hledají výzkumníci i NRP.", en = "NKR is the [[repo/reg/nkr|national repository catalogue]]; researchers and NRP look for repositories there." }
+statement = { cs = "Repozitář je registrován v [[resources/nkr|NKR]] a záznam je aktuální.", en = "The repository is registered in [[resources/nkr|NKR]] and its record is up to date." }
+help = { cs = "[[resources/nkr|NKR]] je národní katalog repozitářů; záznam v něm hledají výzkumníci i NRP.", en = "NKR is the [[resources/nkr|national repository catalogue]]; researchers and NRP look for repositories there." }
 sources = ["NRP.M5", "NRP.EXT"]
 fixAt = "repository"
 owner = ["repository-admin"]
@@ -103,7 +103,7 @@ prefill = { nkr = ["pidType"] }
 id = "gate.08"
 tier = "required"
 principles = ["F4"]
-statement = { cs = "Metadata se sklízejí do [[nma|NMA]] podle [[ccmm|CCMM]].", en = "Metadata are harvested into [[nma|NMA]] according to [[ccmm|CCMM]]." }
+statement = { cs = "Metadata se sklízejí do [[resources/nma|NMA]] podle [[resources/ccmm|CCMM]].", en = "Metadata are harvested into [[resources/nma|NMA]] according to [[resources/ccmm|CCMM]]." }
 sources = ["NRP.M8", "NMA-EXPORT-DOCS.01"]
 fixAt = "findability"
 owner = ["repository-admin"]

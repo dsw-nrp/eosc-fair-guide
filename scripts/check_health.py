@@ -162,7 +162,20 @@ def missing_links(content: dict[str, Any], graph: build_crate.Graph | None = Non
         # A criterion, model layer, stage or profile name often describes the subject of ordinary prose.
         # "NRP" does not by itself name the NRP FIP, nor "rich metadata" the F2 catalogue entry.
         if (
-            addresses[entity_id].split("/")[0] in {"cl", "pr", "model", "life", "check", "fip", "test"}
+            addresses[entity_id].split("/")[0]
+            in {
+                "clauses",
+                "principles",
+                "models",
+                "layers",
+                "seams",
+                "model-examples",
+                "lifecycles",
+                "crosswalks",
+                "checks",
+                "fips",
+                "tests",
+            }
             and len(label.split()) < 3
         ):
             return

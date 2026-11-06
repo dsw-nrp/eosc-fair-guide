@@ -206,6 +206,13 @@ url = "https://github.com/dsw-nrp/eosc-fair-guide/blob/HEAD/.github/workflows/fi
 kind = "software"
 
 [[instrument]]
+id = "identity-migration"
+name = "Identity migration of unify-identity-model-and-api"
+version = "1"
+url = "https://github.com/dsw-nrp/eosc-fair-guide/pull/172"
+kind = "software"
+
+[[instrument]]
 id = "kilo-code"
 name = "Kilo Code"
 version = "not exposed by the runtime"

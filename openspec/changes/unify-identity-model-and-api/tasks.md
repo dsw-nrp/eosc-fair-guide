@@ -14,7 +14,7 @@ complete only when `python scripts/check_all.py` passes in full.
 
 ## 2. Identity projection and kind vocabulary (M1)
 
-- [ ] 2.1 Replace `KIND_CODES` and `TYPE_CODES` in `scripts/catalogue_identity.py` with the kind vocabulary and scope
+- [x] 2.1 Replace `KIND_CODES` and `TYPE_CODES` in `scripts/catalogue_identity.py` with the kind vocabulary and scope
   rule, including the NKR branch of `preserve_snapshot`, which then mints `repositories` and leaves NKR's type to the
   repository kind through `NKR_KIND` (design.md decision 2). Verify: `tests/test_catalogue_identity.py` covers every
   kind and scope, fails on a classification segment and on an unknown kind, and gives a new disciplinary NKR record
@@ -42,7 +42,7 @@ complete only when `python scripts/check_all.py` passes in full.
   review key: same registrable host, or same normalised name and provider (decision 5). Verify: tests report the
   CESNET ownCloud pair for review, keep the safe `--fix` suggestions for authoritative keys, and keep accepted groups
   accepted.
-- [ ] 2.5 Add `--renormalise` to `scripts/refresh_snapshots.py`: it rewrites `guideRoute` to the frozen kind and scope
+- [x] 2.5 Add `--renormalise` to `scripts/refresh_snapshots.py`: it rewrites `guideRoute` to the frozen kind and scope
   from the recorded snapshot, without a new observation, for every snapshot that carries it, NKR's included
   (decision 17). Verify: a unit test rewrites an NKR record's `repo/dom` route, a second run changes nothing, and
   `retrieved` dates are unchanged.
@@ -50,7 +50,7 @@ complete only when `python scripts/check_all.py` passes in full.
   references, register kind names and provenance result IDs, with a dry-run diff and its own unit test. Run it,
   `--renormalise` and one provenance action with `results = ["*"]`. Verify: a second run changes nothing, and
   `python scripts/check_all.py --only content duplicates` passes.
-- [ ] 2.7 Enforce one reference syntax in `scripts/check_content.py`, so that a retired form fails with the address
+- [x] 2.7 Enforce one reference syntax in `scripts/check_content.py`, so that a retired form fails with the address
   form named (decision 16). Verify: unit tests cover each retired form and a valid scoped address.
 - [ ] 2.8 Rework the page scripts in `assets/js/`:
   - key the data by address and add `FG.kind`;

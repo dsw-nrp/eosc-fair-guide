@@ -148,16 +148,16 @@ class ModelTests(unittest.TestCase):
             for collection, members in api.records.items()
             for record, entity_id in members
         }
-        self.assertIn("api/model/repository-nma.json", docs)
-        self.assertEqual(docs["api/model/pilot.json"]["statusAsOf"], "2026-09")
+        self.assertIn("api/seams/repository-nma.json", docs)
+        self.assertEqual(docs["api/model-examples/pilot.json"]["statusAsOf"], "2026-09")
         self.assertEqual(build_api.PARAMETERS["model"], "model_id")
-        record = docs["api/res/srv/service.json"]
-        self.assertEqual(record["implementationSeams"], "../../model/repository-nma.json")
+        record = docs["api/resources/service.json"]
+        self.assertEqual(record["implementationSeams"], "../seams/repository-nma.json")
         health = api.health(check_health.make_report(self.content, today=date(2026, 10, 11)))
         model = next(group for group in health["integrity"] if group["type"] == "implementation model")
         self.assertEqual(model["failed"], 0)
         example = next(item for item in model["items"] if item["id"] == "example.pilot")
-        self.assertEqual(example["api_record"], "model/pilot.json")
+        self.assertEqual(example["api_record"], "model-examples/pilot.json")
         self.content["model"]["example"][0]["evidence"] = ["missing"]
         broken = check_health.integrity(self.content, ROOT, date(2026, 10, 11))
         self.assertGreater(next(group for group in broken if group["type"] == "implementation model")["failed"], 0)

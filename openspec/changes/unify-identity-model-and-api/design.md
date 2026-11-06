@@ -351,6 +351,8 @@ openapi.json                          one list and one record operation per kind
 ### 16. One reference syntax
 
 - **Prose** references are `[[<kind>/<id>|phrase]]` only, with the scope inside the address where there is one.
+  Two targets that are not records keep their names (found in M1): a kind's list, `[[infrastructures|...]]`, and the
+  Guide's profile, `[[profile|...]]`, which lives at `<ns>profile/<version>` rather than under `id/`.
 - **Retired forms:** `term:<id>`, `station:`, `clause:`, `page:`, `infrastructure:` and the code addresses. The
   content check rejects them and names the address form.
 - **Documentation.** The native content rule in `.agents/guide/` and `docs/content-model.md` document the one
