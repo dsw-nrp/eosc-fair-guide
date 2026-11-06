@@ -134,6 +134,25 @@ of an address. Chips SHALL show the record ID. Complete addresses SHALL NOT be d
 - **WHEN** their addresses are built
 - **THEN** they are `lifecycles/rdmkit/plan` and `lifecycles/maldreth/plan`, each scope named by its model's own identifier
 
+### Requirement: Catalogue slugs use meaningful local names
+
+Catalogue ID slugs SHALL omit grammatical particles and prefer official abbreviations or specific source URL words.
+Generic registry/resolver and interface paths SHALL NOT determine a slug. When neither yields a useful name, the Guide
+SHALL assign concise meaningful name words without truncating a word. These are one-time local assignments; refresh
+SHALL preserve them.
+
+#### Scenario: A source URL changes after local assignment
+
+- **WHEN** a record receives a local slug from an abbreviation or source URL
+- **THEN** later source changes preserve the assigned slug and cannot change the Guide identity
+
+#### Scenario: An NKR record page does not name a repository
+
+- **GIVEN** a new NKR record whose record page is `https://repo.cz/objects/20.500.14818/jgu5fyqf` and whose own address is `https://herbarium.biodiversity.cz`
+- **WHEN** the snapshot is refreshed
+- **THEN** the record's slug comes from the repository's own address or name, such as `herbarium`, never from the NKR handle
+- **AND** its address is `repositories/herbarium`, and its NKR type sets its repository kind, never a segment of the address
+
 ### Requirement: Records have one primary identity
 
 Every normalized catalogue record SHALL store one Guide-owned primary `id`; source identifiers SHALL use typed
@@ -209,9 +228,9 @@ artifacts SHALL retain their bytes and original contexts, without invented alias
 ### Requirement: Persistent IRIs resolve through a registered redirect
 
 The namespace SHALL be registered with w3id. Its redirect SHALL send `terms` and `profile/<version>` to the published
-vocabulary and profile, and `id/<address>` to the API record when JSON is requested and otherwise to the page route
-`#/id/<address>`. IRIs SHALL carry no API version. A host move or a new API major version SHALL change only the
-redirect, never an IRI.
+vocabulary and profile, and `id/<address>` to the API record when JSON is requested and otherwise to the record's
+landing page. No redirect target SHALL carry a fragment, so the fragment of a part's IRI survives the redirect. IRIs
+SHALL carry no API version. A host move or a new API major version SHALL change only the redirect, never an IRI.
 
 #### Scenario: A machine dereferences a record IRI
 
@@ -221,7 +240,12 @@ redirect, never an IRI.
 #### Scenario: A person opens a record IRI
 
 - **WHEN** a browser opens the same IRI
-- **THEN** it is redirected to the Guide page, which opens the catalogue entry of DMP.eosc.cz
+- **THEN** it is redirected to the landing page of DMP.eosc.cz, which links to its catalogue entry in the Guide
+
+#### Scenario: A person opens a part's IRI
+
+- **WHEN** a browser opens `https://w3id.org/eosc-cz/fair-guide/id/repositories/zenodo#knav`
+- **THEN** it reaches Zenodo's landing page at the section of its KNAV record
 
 #### Scenario: The Guide moves to another host
 

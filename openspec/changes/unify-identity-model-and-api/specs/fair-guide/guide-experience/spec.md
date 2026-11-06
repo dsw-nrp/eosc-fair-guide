@@ -77,18 +77,76 @@ as the record's identifier, distinct from the identifiers of other registries.
 
 ### Requirement: Catalogue routes follow record addresses
 
-A catalogue entry's route SHALL be its address, `#/<lang>/catalogue/<kind>/<id>`, with the same kind word as the
-address, the API and catalogue filters. The page SHALL keep a permanent route, `#/id/<address>`, that opens the
-catalogue entry an address names, including for stations and checks, in the reader's language. An unknown address
-SHALL say that no entry has it.
+A catalogue entry's route SHALL be its address under the reader's language and lens,
+`#/<lang>/<lens>/catalogue/<kind>/<id>`, with the same kind word as the address, the API and catalogue filters. A
+route SHALL open with the lens it names.
 
-#### Scenario: Opening a record from its IRI
+#### Scenario: A shared catalogue link keeps its lens
 
-- **GIVEN** a reader whose browser was redirected from a station's persistent IRI to `#/id/stations/licence`
-- **WHEN** the page opens
-- **THEN** it shows the catalogue entry of the licence station in the reader's language, with a link to the station on the path
+- **GIVEN** the link `#/en/DS/catalogue/resources/dmp-eosc`, shared by a data steward
+- **WHEN** a reader whose saved lens is the researcher's opens it
+- **THEN** the entry opens with the data-steward lens the link names
+
+### Requirement: One entry route applies the reader's settings
+
+The page SHALL keep one route without reader state, `#/id/<address>`. It SHALL open the catalogue entry an address
+names, stations and checks included, in the reader's saved language and lens, or else in Czech with the researcher
+lens, and SHALL replace itself with the full route. An unknown address SHALL say that no entry has it.
+
+#### Scenario: Opening a record from its landing page
+
+- **GIVEN** a reader whose saved lens is the data steward's, on the landing page of the licence station
+- **WHEN** they follow its link into the Guide, `#/id/stations/licence`
+- **THEN** the page shows the catalogue entry of the licence station in their language with the data-steward lens, with a link to the station on the path
+- **AND** the page's address becomes `#/<lang>/DS/catalogue/stations/licence`
+
+#### Scenario: An embedded Guide opens a record
+
+- **GIVEN** a Guide embedded in a host page and asked to open `#/id/resources/dmp-eosc`
+- **WHEN** it publishes its view to the host page
+- **THEN** the host receives the full route with language and lens, in the form the embedding protocol accepts
 
 #### Scenario: An address no entry has
 
 - **WHEN** a reader opens `#/id/resources/no-such-entry`
 - **THEN** the page says that no catalogue entry has that address and offers the catalogue search
+
+### Requirement: Every record has a landing page
+
+Every address the build issues SHALL have a static landing page, `id/<address>.html`, readable without JavaScript.
+It SHALL present the record in both languages, each marked with its language, with one section per part anchored by
+the part's fragment, and SHALL link into the Guide through `#/id/<address>`. A request for an address no record has
+SHALL be answered as not found, with a bilingual page that offers the catalogue search.
+
+#### Scenario: A reader without scripts
+
+- **GIVEN** a browser with JavaScript turned off
+- **WHEN** it opens the landing page of DMP.eosc.cz
+- **THEN** the reader sees the record's name and text in Czech and English, each marked with its language
+
+#### Scenario: A landing page opened at a part
+
+- **WHEN** a reader opens Zenodo's landing page with the fragment `#knav`
+- **THEN** it shows the section of Zenodo's KNAV record, with KNAV's wording, licence and retrieval date
+
+#### Scenario: A landing page opened from a local copy
+
+- **GIVEN** the built site opened from `file://`
+- **WHEN** a reader opens a landing page and follows its link into the Guide
+- **THEN** the Guide opens that entry, and no external request is made
+
+#### Scenario: An address no record has
+
+- **WHEN** a browser requests the landing page of an address the build has not issued
+- **THEN** the response is not found, and its page says so in both languages and links to the catalogue search
+
+### Requirement: Landing pages signpost their record
+
+A landing page's head SHALL carry FAIR Signposting links for its record: its persistent IRI (`cite-as`), its API
+record (`describedby`), its type (`type`), its licence (`license`) and the Guide as its collection (`collection`).
+
+#### Scenario: A harvester follows a record's typed links
+
+- **GIVEN** a harvester that does not run JavaScript
+- **WHEN** it reads the head of DMP.eosc.cz's landing page
+- **THEN** it finds the record's persistent IRI as `cite-as` and its API record as `describedby`, without fetching the Guide page

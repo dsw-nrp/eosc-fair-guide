@@ -26,6 +26,28 @@ NOT overwrite an earlier site's health result.
 - **WHEN** a consumer reads the API metadata and the OpenAPI tags
 - **THEN** the content kinds and the health endpoint are listed apart, and no content list contains health evidence
 
+### Requirement: Production publishes real crawler discovery files
+
+The build SHALL emit a sitemap of only the Guide root, `api/index.html` and every record's landing page at the
+actual production location, using absolute, fragment-free URLs without invented dates. Crawler policy SHALL respect
+host-root robots scope; a subpath file SHALL NOT be treated as origin control. Preview documents SHALL stay outside
+the sitemap and remain crawlable with `noindex`. Assembly SHALL preserve verified production bytes.
+
+#### Scenario: Production and preview are assembled
+
+- **WHEN** the built production site is combined with a separately built preview
+- **THEN** the sitemap uses the actual production origin/path and lists every record's landing page, production bytes are unchanged, no preview/hash URL is advertised, and preview HTML is crawlable with `noindex`
+
+#### Scenario: The base URL is overridden
+
+- **WHEN** the build receives a different actual publication location before validation and packaging
+- **THEN** absolute discovery URLs follow that location without predicting a future domain or patching a verified artifact
+
+#### Scenario: The Guide is hosted below an origin root
+
+- **WHEN** a project-hosted Guide cannot publish the origin-root `robots.txt`
+- **THEN** documentation and checks report the effective hosting policy and do not claim that its project-subpath robots file controls crawlers
+
 ## ADDED Requirements
 
 ### Requirement: The w3id redirect is maintained and watched

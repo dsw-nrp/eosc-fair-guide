@@ -3,8 +3,11 @@
 ## Context
 
 See proposal.md, *Why*, for the problem. The figures in this design were measured on a build of `1ec02bd`
-(`polish-nkr-integration`, not yet merged) and on the published `1.0.0-alpha.5`. Implementation rebases on `main`
-once that change merges and recounts them. The approach is bound by these constraints:
+(`polish-nkr-integration`) and on the published `1.0.0-alpha.5`. That change merged as `07a1d4a`
+([dsw-nrp/eosc-fair-guide#170](https://github.com/dsw-nrp/eosc-fair-guide/pull/170)) after two more review rounds.
+Content is unchanged between the two commits, `main` holds no NKR snapshot yet, and the page's 213 fragment-prefix
+literals recount the same on `07a1d4a`. Task 1.1 recounts the build figures. The approach is bound by these
+constraints:
 
 - **Static hosting.** GitHub Pages serves files only and ignores query strings. Anything that filters or shapes a
   response has to be a file, or has to run in the consumer's engine. Review facts stay as they are: no database, no
@@ -33,7 +36,8 @@ once that change merges and recounts them. The approach is bound by these constr
 - A query runtime of any kind (B and C in the exploration), SQL or tabular distributions, and an in-browser query
   console.
 - Changing what any advice, question or requirement says, except the 71 statements merged into their clauses.
-- Re-shaping the page beyond addressing, the identifier chip and the `#/id/` route.
+- Re-shaping the page beyond addressing, the identifier chip, the `#/id/` entry route and the record landing pages
+  (decision 19).
 
 ## Decisions
 
@@ -92,6 +96,10 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
 - **Sources stay a role.** The catalogue already shows resources and cited sources as one kind marked by use, and
   addresses already share `res/`. `sources.toml` and `resources.toml` remain two authoring files; both mint
   `resources/<id>`, and one ID space keeps them unique.
+- **NKR types are repository kinds.** `NKR_KIND` in `catalogue_identity.py` maps NKR's type (disciplinary,
+  institutional, generic) to the repository kind only. The refresh mints `repositories/<id>` for a new NKR record
+  instead of today's `repo/<subtype>` (`preserve_snapshot`), so *Catalogue slugs use meaningful local names* loses
+  its `repo/dom` route.
 - **Alternatives rejected:**
   - Short codes: opaque, and several of them already disagree with the model (`step`, `q`, `cl`).
   - Singular words: they would add a third form next to the plural kind names that filter state, lists and
@@ -118,8 +126,21 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
   It sits at the thing's IRI plus `#<scheme>` (for example `.../repositories/zenodo#knav`). It carries the
   registry's own name, description, licence, retrieval date and source identifier, and it is part of its snapshot.
   FOAF joins the established vocabularies in `ESTABLISHED_TERMS`, for this one property.
-- **A thing only a registry knows** is founded by its record. The thing node carries only its identity, its name and
-  its address; the descriptive text stays on the record, with its attribution.
+- **A thing only a registry knows** is founded by its record. The thing node carries its identity, its name, its
+  address and the facts lists filter on: kind, status with its date, functions and `acceptsDeposits`. The
+  descriptive text stays on the record, with its attribution. An NKR repository with no web address is such a
+  thing: it is listed with its status and kept out of the data-repository chooser
+  (*A repository not yet public is listed with its NKR record*).
+- **Precedence is resolved onto the thing.** Where a registry's facts take precedence, as NKR's name, kind, dated
+  status, keywords and web address do (*NKR records are shown as found*), the build writes the winning values on the
+  thing, so the API and the page read one set of facts. The record keeps the registry's own values. This replaces
+  the `_nkr` overrides in `build_repositories`, which write NKR's values into the entity and keep the originals only
+  in the snapshot.
+- **External record pages stay in `sameAs`.** The thing keeps `sameAs` to a registry's own page, such as
+  `https://repo.cz/objects/<handle>` for NKR, as records name their FIP Dashboard counterparts (proposal,
+  *Interoperability by identity*). Chips and the not-yet-public exception read that link. The profile's `Repository`
+  shape and the API's `Repository` schema keep the exception: an HTTPS `url`, or a planned or in-development status
+  with an NKR page in `sameAs`. Only their status test follows decisions 6 and 11.
 - **The page** shows one entry per thing, with each registry's record as an attributed section, as it does today for
   sources.
 - **Alternatives rejected:**
@@ -130,10 +151,14 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
 ### 5. Duplicate check attaches records
 
 - **Its job** changes from "curated versus registry" to "every record attaches to exactly one thing".
-- **Authoritative keys** (address, DOI, registry IDs, ROR) still attach a record automatically, and that link remains
-  the safe `--fix` suggestion.
+- **Build joins** keep the reviewed keys `build_repositories` uses today (archived `polish-nkr-integration`,
+  decision D1). An address alone joins only an NKR record; curated and FIP Dashboard entries never join by address
+  alone. Two NKR records that reach one thing stay rejected, by the build and by the check.
+- **Shared keys** (address, DOI, registry IDs, ROR) still report a duplicate. The authoritative ones
+  (`AUTHORITATIVE_KEYS`) propose the reviewed link as the safe `--fix` suggestion. Neither joins anything on its own.
 - **A new review key** catches the ownCloud case: the same registrable host, or the same normalised name with the
-  same provider, between a record and a thing. It reports for review and never fixes automatically.
+  same provider, between a record and a thing. It reports for review and never fixes or joins automatically, since a
+  similar name or host must not join records (*NKR records are shown as found*).
 - **Accepted groups** in `content/duplicates.toml` keep their reasons.
 
 ### 6. Controlled vocabularies and statuses
@@ -154,6 +179,9 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
   - preparation status.
 
   `creativeWorkStatus` strings go away, so `planned` exists once, in the service-status scheme.
+- **NKR's own status** stays in its snapshot. Its record and its thing carry the service-status term that
+  `scripts/nkr_contract.py` maps it to, dated by the retrieval date. The difference between NKR's two pilot states
+  reaches the graph only as `acceptsDeposits = false`.
 - **Alternatives rejected:**
   - SKOS only: the crate is schema.org-based, and RO-Crate tooling expects `DefinedTerm`.
   - Both on every instance (today): every membership is stated twice.
@@ -223,6 +251,8 @@ openapi.json                          one list and one record operation per kind
 | tests | scope (provider), metric, principles |
 | principles, stations, checks, others | their position and a summary label |
 
+- **`acceptsDeposits`** is `false` or absent. Absence means unknown, never acceptance (*Repository and registry
+  functions*), so no list entry carries `true`, and the schema and the documentation say so.
 - **Records** refer to vocabulary terms by address, with the term set published once, instead of embedding them;
   today `pr/R1.1` repeats one lens description 67 times.
 - **Schemas** are typed, with enums from the term sets. The OpenAPI document describes a scoped kind's `{scope}` as
@@ -280,8 +310,13 @@ openapi.json                          one list and one record operation per kind
 ### 15. Page addressing and display
 
 - **Routes.**
-  - Catalogue routes are `#/<lang>/catalogue/<kind>/<id>`, with `<scope>/` where needed.
-  - `#/id/<address>` opens the catalogue entry, stations and checks included, in the saved language or else Czech.
+  - Catalogue routes are `#/<lang>/<lens>/catalogue/<kind>/<id>`, with `<scope>/` where needed. They keep the lens
+    like every other view: the catalogue filters by it, and embedding protocol v1 accepts only views that name one,
+    so the protocol stays unchanged.
+  - `#/id/<address>` is the one route without reader state. It is the landing page's link into the Guide (decision
+    19), not a redirect target. It opens the catalogue entry, stations and checks included, in the saved language
+    and lens, or else in Czech with the `V` lens. It replaces itself with the full route before the view is shown or
+    published to an embedding page.
   - An unknown address says so and offers search.
 - **Identifier input.** Search and the identifier input accept a Guide IRI or an address.
 - **Chips.** An ID chip still shows the record ID; its title names the full address. `FG.pids` labels the record's
@@ -306,10 +341,12 @@ openapi.json                          one list and one record operation per kind
   - `content/identifiers.toml` kind names (`requirements` becomes `clauses`, and the rest follow the kind table);
   - provenance `results` (`test:`, `provider:`, `infrastructure:` and other prefixes become addresses);
   - the 71 `statementClause` merges.
-- **Snapshots** are generated files, so their `guideRoute` (219 records plus the glossary) is rewritten by a new
-  `refresh_snapshots.py --renormalise` mode. It rereads the recorded snapshot without a new observation and keeps
-  `retrieved`. `guideRoute` keeps its meaning, the frozen kind (and scope), so a later reclassification still cannot
-  move an identity.
+- **Snapshots** are generated files, so their `guideRoute` (219 records plus the glossary when measured) is rewritten
+  by a new `refresh_snapshots.py --renormalise` mode. It covers every snapshot that carries `guideRoute`, including
+  `snapshots/nkr.toml` once its first harvest merges. A harvest made before M1 still mints `repo/<subtype>` and one
+  made after mints `repositories`, so the order of the two does not matter. It rereads the recorded snapshot without
+  a new observation and keeps `retrieved`. `guideRoute` keeps its meaning, the frozen kind (and scope), so a later
+  reclassification still cannot move an identity.
 - **Paradata.** One provenance action, `<date>-unify-identity-model-and-api`, with `results = ["*"]` covers the
   freshness check. Its agent is the responsible maintainer; its instruments are the migration script and the AI model
   used; it is described as a structural migration. Content credit gains no person.
@@ -332,17 +369,48 @@ RewriteRule ^terms/?$ https://dsw-nrp.github.io/eosc-fair-guide/terms/ [R=302,L]
 RewriteRule ^profile/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/profile/$1 [R=302,L]
 RewriteCond %{HTTP_ACCEPT} application/(ld\+)?json
 RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/api/v1/$1.json [R=303,L]
-RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/#/id/$1 [R=303,NE,L]
+RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=303,L]
 ```
 
-- **Coupling.** The rules depend only on three site paths: `terms/`, `profile/` and `api/v1/`, plus the permanent
-  `#/id/` route. A host move ([dsw-nrp/eosc-fair-guide#32](https://github.com/dsw-nrp/eosc-fair-guide/issues/32)) or
-  an API major version needs a registry pull request, and the new runbook `docs/runbooks/update-the-w3id-redirect.md`
-  covers both.
+- **No fragment in a target.** A redirect whose `Location` carries a fragment replaces the one requested (RFC 9110,
+  section 10.2.2). The targets carry none, so a part IRI such as `.../id/repositories/zenodo#knav` reaches the
+  landing page at that part.
+- **Coupling.** The rules depend only on four site paths: `terms/`, `profile/`, `api/v1/` and `id/`. A host move
+  ([dsw-nrp/eosc-fair-guide#32](https://github.com/dsw-nrp/eosc-fair-guide/issues/32)) or an API major version needs
+  a registry pull request, and the new runbook `docs/runbooks/update-the-w3id-redirect.md` covers both.
 - **Testing.** The rules are tested with the registry's own checker (`tools/check/` and `.w3id-check.yaml`) before
   submission, and with the probe after merge.
 - **Watching.** The health watch probes, weekly, `terms` (HTML and Turtle), the current `profile`, and one record IRI
   per kind as JSON and HTML. A failure is reported in the digest under the key `w3id:<iri>`.
+
+### 19. Record landing pages
+
+- **One document per address.** The build writes `id/<address>.html` for every address it issues, in the same loop
+  that writes the API records. It is static and bilingual: Czech first, each language marked with `lang`, as the
+  page's `noscript` text already is. It needs no JavaScript and makes no request beyond its own stylesheet.
+- **Content.** A fixed set of fields taken from the API record it signposts:
+  - name, text and kind, the Guide-identifier chip and external identifiers;
+  - status with its date, where the kind has one;
+  - one section per part, anchored by the part's fragment (`#knav`, `#step-2`, `#action`), with each registry
+    record's attribution and licence;
+  - links to related records' landing pages.
+- **Signposting.** The head carries `cite-as` (the record's IRI), `describedby` (its API record, typed
+  `application/ld+json`), `type`, `license` and `collection` (the Guide). The Guide root keeps its own links.
+- **Into the Guide.** "Otevřít v Průvodci" / "Open in the Guide" links to `<root>index.html#/id/<address>` with an
+  explicit `index.html`, so it works from `file://` too; the route applies the reader's language and lens (decision
+  15).
+- **Unknown addresses.** The build writes a bilingual `404.html` that says no catalogue entry has the address and
+  links to the catalogue search. Pages serves it for any missing path; `docker/nginx.conf` adds
+  `error_page 404 /404.html`.
+- **Discovery.** The production sitemap lists every landing page with an absolute, fragment-free URL. Preview pages
+  under `next/` get `noindex` and the preview notice from assembly, like every preview page, and stay out of it.
+- **Alternatives rejected:**
+  - A hash route as the browser target (as first planned): it drops part fragments, gives crawlers one page, and
+    allows only one HTML head, so no record can carry its own signposting.
+  - Path routes with the History API: GitHub Pages has no rewrites and its `404.html` fallback answers with status
+    404, and `file://` cannot reload a deep path.
+  - Pre-rendering the whole app per record: every record would repeat the application shell, and the app's
+    relative paths assume the site root.
 
 ## Risks / Trade-offs
 
@@ -356,8 +424,13 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/#/id/$1 [R=303,N
 - [Between the registry merge and the release, record IRIs redirect to production paths that only the release
   creates] → Nobody depends on the new IRIs before the release. The probe reports the gap until then, and the release
   closes it.
-- [Hash-route redirects lose the language preference and depend on `NE` handling] → `#/id/` takes the saved language
-  or Czech, and the probe checks the HTML route.
+- [A record is rendered twice, by the landing page and by the app, and the two can drift] → The landing page renders
+  only its fixed field set from the API record it signposts, and a test compares the two.
+- [Pages serves one `404.html` for the whole site, preview included, and production's bytes come from the release]
+  → The page names no channel. It is served at any depth, so it links to the catalogue search by an absolute
+  address from the build's publication location, never relative to itself.
+- [About as many small HTML files as API records enlarge the site] → They are static and short; task 1.1's recount
+  gives the number, and the release size is checked in the M3 pull request.
 - [A third-party SKOS alignment in our vocabulary document could be read as overreach] → It is stated as
   subclass/subproperty axioms in the Guide's own document, never as equivalence, and the document says so.
 - [Dropping `name` where it repeats the identifier removes a label some tools display] → The `identifier` and the
@@ -366,8 +439,8 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/#/id/$1 [R=303,N
   remaining prefix test. The full browser suite runs in both languages, at phone width and in print.
 - [Saved results from alpha releases point at the old host path] → `api/tests/<question>.json` keeps being generated
   at the same relative path, and the loader maps them.
-- [The design's counts come from an unmerged branch] → Recount after rebasing; tasks verify counts against the actual
-  build.
+- [The build figures were measured on `1ec02bd`, before its last review rounds] → Content and the page's prefix
+  literals are unchanged on `07a1d4a`; task 1.1 recounts the build figures and corrects them here.
 
 ## Migration Plan
 
@@ -379,7 +452,7 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/#/id/$1 [R=303,N
                     question text from clauses, profile 0.2
       |
  M3 access          API v1, OpenAPI templates, health under operations, N-Triples, recipes and their CI,
-                    machines page, saved-result revision 4
+                    record landing pages, 404 page and sitemap, machines page, saved-result revision 4
       |
  M4 w3id + release  EOSC CZ consent, approved submission, registry merge, probe and runbook,
                     the release that switches production

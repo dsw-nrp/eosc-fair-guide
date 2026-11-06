@@ -63,8 +63,11 @@ submission.
   - A versioned query contract: the RO-Crate profile and its SHACL shapes, profile `0.2`.
   - Documented SPARQL recipes, each run in CI as a contract test.
 - **Page.**
-  - Catalogue routes use addresses (`#/<lang>/catalogue/resources/dmp-eosc`).
-  - A permanent route, `#/id/<address>`, opens the catalogue entry an IRI names.
+  - Catalogue routes use addresses and keep the reader's lens (`#/<lang>/<lens>/catalogue/resources/dmp-eosc`).
+  - Every record IRI opens a static landing page, `id/<address>.html`, readable without JavaScript and signposted,
+    with a section for each part. Its link into the Guide, `#/id/<address>`, opens the entry in the reader's saved
+    language and lens.
+  - The production sitemap lists the landing pages, so search engines and harvesters reach every record.
   - Every record shows its own persistent IRI as a labelled chip.
   - Prose uses one reference syntax.
 - **Saved results.** Format revision 4 names persistent test IRIs. Revisions 1–3 still load, and their
@@ -88,16 +91,17 @@ None. The changed behaviour belongs to the existing capabilities below.
   - the namespace and the route baseline;
   - new requirements for IRI resolution, registry records, vocabulary and status modelling, the graph distribution
     and recipes, and derived question text.
-- `fair-guide/guide-experience`: the machine-readable page, signposting, identifier routing, identifier chips and
-  catalogue routes.
-- `fair-guide/guide-delivery`: health snapshot publication, namespace alignment between channels, and monitoring and
-  maintaining the w3id redirect.
+- `fair-guide/guide-experience`: the machine-readable page, signposting, identifier routing, identifier chips,
+  catalogue routes and record landing pages.
+- `fair-guide/guide-delivery`: health snapshot publication, the production sitemap, namespace alignment between
+  channels, and monitoring and maintaining the w3id redirect.
 - `fair-guide/guide-self-check`: result format revision 4 and its persistent test references.
 
 ## Impact
 
-- **Build:** `scripts/build_crate.py`, `scripts/catalogue_identity.py` and `scripts/build_api.py`, plus a new RDF
-  writer.
+- **Build:** `scripts/build_crate.py`, `scripts/catalogue_identity.py`, `scripts/build_api.py` and
+  `scripts/nkr_contract.py` (NKR's status mapping), plus a new RDF writer and a writer for the record landing
+  pages and `404.html`. The sitemap in `build_crate.py` lists the landing pages.
 - **Checks:** `scripts/check_content.py`, `scripts/check_duplicates.py`, `scripts/check_health.py` and
   `scripts/refresh_snapshots.py`.
 - **Release:** release assembly and packaging stamps (`scripts/assemble_pages.py`, `scripts/package_site.py`).
@@ -128,4 +132,5 @@ None. The changed behaviour belongs to the existing capabilities below.
   - `npm run openspec:validate` and `python scripts/check_all.py`;
   - the new RDF, recipe and template-coverage checks;
   - the w3id probe once the redirect is live;
-  - inspection of the catalogue, records and machines page in both languages, at phone width and in print.
+  - inspection of the catalogue, records, landing pages and machines page in both languages, at phone width and in
+    print.

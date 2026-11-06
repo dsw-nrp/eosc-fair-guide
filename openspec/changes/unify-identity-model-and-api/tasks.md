@@ -15,8 +15,10 @@ complete only when `python scripts/check_all.py` passes in full.
 ## 2. Identity projection and kind vocabulary (M1)
 
 - [ ] 2.1 Replace `KIND_CODES` and `TYPE_CODES` in `scripts/catalogue_identity.py` with the kind vocabulary and scope
-  rule (design.md decision 2). Verify: `tests/test_catalogue_identity.py` covers every kind and scope, and fails on a
-  classification segment and on an unknown kind.
+  rule, including the NKR branch of `preserve_snapshot`, which then mints `repositories` and leaves NKR's type to the
+  repository kind through `NKR_KIND` (design.md decision 2). Verify: `tests/test_catalogue_identity.py` covers every
+  kind and scope, fails on a classification segment and on an unknown kind, and gives a new disciplinary NKR record
+  `repositories/<id>`.
 - [ ] 2.2 Set `namespace = "https://w3id.org/eosc-cz/fair-guide/"` in `content/guide.toml`, and change
   `scripts/build_crate.py` so that:
   - every Guide thing gets `<ns>id/<address>` as its `@id`;
@@ -27,15 +29,22 @@ complete only when `python scripts/check_all.py` passes in full.
   Verify: a unit test fails on any Guide thing with a fragment `@id`, any `name` equal to its identifier, or any
   identifier ending in a counter; `python scripts/check_all.py --only crate profile` passes.
 - [ ] 2.3 Publish registry records as `dcat:CatalogRecord` with `foaf:primaryTopic` under their thing. Add FOAF to
-  `ESTABLISHED_TERMS`, and let a thing founded by a record carry only its identity, name and address (decision 4).
-  Verify: a unit test finds one Zenodo node with its KNAV and FIP Dashboard records attached, and one KNAV library
-  organisation node.
+  `ESTABLISHED_TERMS`. Resolve NKR's precedence onto the thing in place of the `_nkr` overrides, keep NKR's values on
+  its record, and let a thing founded by a record carry its identity, name, address and filter facts (decision 4).
+  Verify:
+  - a unit test finds one Zenodo node with its KNAV and FIP Dashboard records attached, and one KNAV library
+    organisation node;
+  - with the NKR fixture (`tests/fixtures/nkr/`), one Czech-BioImaging node carries NKR's name and status and its
+    `#nkr` record, and the herbarium repository is founded by its NKR record;
+  - with Czech-BioImaging's curated handle removed, its address-free record founds a thing in development, without
+    a web address and with `acceptsDeposits = false`.
 - [ ] 2.4 Rework `scripts/check_duplicates.py` so that every record attaches to exactly one thing, with the new
   review key: same registrable host, or same normalised name and provider (decision 5). Verify: tests report the
   CESNET ownCloud pair for review, keep the safe `--fix` suggestions for authoritative keys, and keep accepted groups
   accepted.
 - [ ] 2.5 Add `--renormalise` to `scripts/refresh_snapshots.py`: it rewrites `guideRoute` to the frozen kind and scope
-  from the recorded snapshot, without a new observation. Verify: a unit test shows a second run changes nothing and
+  from the recorded snapshot, without a new observation, for every snapshot that carries it, NKR's included
+  (decision 17). Verify: a unit test rewrites an NKR record's `repo/dom` route, a second run changes nothing, and
   `retrieved` dates are unchanged.
 - [ ] 2.6 Write `openspec/changes/unify-identity-model-and-api/migration/migrate.py` (decision 17), covering prose
   references, register kind names and provenance result IDs, with a dry-run diff and its own unit test. Run it,
@@ -46,14 +55,22 @@ complete only when `python scripts/check_all.py` passes in full.
 - [ ] 2.8 Rework the page scripts in `assets/js/`:
   - key the data by address and add `FG.kind`;
   - remove `catalogueKinds`, `FG.catalogueCode` and `FG.catalogueKind`;
-  - route the catalogue by address and add the permanent `#/id/<address>` route;
+  - route the catalogue by address under the lens, `#/<lang>/<lens>/catalogue/<kind>/<id>`;
+  - add the `#/id/<address>` entry route, which applies the saved language and lens, or else Czech with the `V`
+    lens, and replaces itself with the full route;
   - use bare-ID anchors;
   - label the Guide's own IRI chip, with its strings in `content/ui.toml` in both languages (decision 15).
 
-  Verify: a page test fails on any remaining entity fragment-prefix test, and `npm run check:page` covers `#/id/`
-  for a resource, a station and an unknown address in both languages.
+  Verify:
+  - a page test fails on any remaining entity fragment-prefix test;
+  - `npm run check:page` covers `#/id/` for a resource, a station and an unknown address in both languages, and
+    opens it with a saved data-steward lens;
+  - a shared `DS` catalogue link opens with that lens, and an embedded Guide asked for `#/id/` publishes the full
+    route to its host.
 - [ ] 2.9 Move the routes and addresses that Python, page and API tests hard-code into one shared address helper
-  per test language. Verify: a search for code addresses (`res/`, `step/`, `cl/` and others) in `tests/` finds none.
+  per test language, including `tests/test_nkr_integration.py` and the `catalogue/repo/...` routes in
+  `tests/page/check_page.mjs`. Verify: a search for code addresses (`res/`, `step/`, `cl/` and others) in `tests/`
+  finds none.
 - [ ] 2.10 Update `docs/content-model.md` (*Identifiers*, *Crate mapping*, references) and `docs/design.md`, and the
   native rule `.agents/guide/rules/fair-guide-content.md`. Run `python scripts/generate_agent_surfaces.py`. Verify:
   `python scripts/check_all.py --only docs agent-generation agent-ownership` passes.
@@ -88,7 +105,10 @@ complete only when `python scripts/check_all.py` passes in full.
   - `content/checks/` holds no statement identical to a cited clause;
   - the affected questions read the same in both languages.
 - [ ] 3.7 Move the profile to `0.2`, with shapes for every kind's class, catalogue records, term sets, the FTR types
-  and pre-fill mappings. Verify: `python scripts/check_all.py --only crate profile` passes.
+  and pre-fill mappings. Keep the `Repository` shape's not-yet-public exception (an HTTPS address, or planned or in
+  development with an NKR page in `sameAs`), with its status test on the decision-6 term (decision 4). Verify:
+  `python scripts/check_all.py --only crate profile` passes, and the profile accepts an address-free NKR repository
+  in development and rejects an operational one.
 - [ ] 3.8 Update `docs/content-model.md` (*Term classification*, *Statuses*, `checks/<id>.toml`) and `docs/design.md`.
   Verify: `python scripts/check_all.py --only docs` passes.
 - [ ] 3.9 Run `python scripts/check_all.py`. Verify: the full run passes, and the M2 pull request is open for human
@@ -107,9 +127,11 @@ complete only when `python scripts/check_all.py` passes in full.
 
   Verify: unit tests in `tests/test_scripts.py` find every kind's list and records, the filter fields of each list
   entry, and no API file outside `api/v1/`, `api/tests/` and the documentation page.
-- [ ] 4.2 Describe the API with one list and one record operation per kind, typed schemas and term-set enums. Change
-  `tests/api/check_api.mjs` to match every file to exactly one template and to reject per-record operations. Verify:
-  `npm run check:api` passes, and the Swagger page lists one tag per kind.
+- [ ] 4.2 Describe the API with one list and one record operation per kind, typed schemas and term-set enums. Keep the
+  `Repository` schema's not-yet-public exception with a referenced status term, and describe `acceptsDeposits` as
+  `false` or absent (decisions 4 and 11). Change `tests/api/check_api.mjs` to match every file to exactly one template
+  and to reject per-record operations. Verify: `npm run check:api` passes, its NKR probe accepts a repository in
+  development without an address and rejects an operational one, and the Swagger page lists one tag per kind.
 - [ ] 4.3 Move the health snapshot's consumers and `docker/nginx.conf`'s `no-store` rule to `api/v1/health.json`.
   Verify: `python scripts/check_all.py --only health health-api` passes.
 - [ ] 4.4 Write `knowledge-graph.nt` with a standard-library writer and a pinned local RO-Crate 1.2 context
@@ -122,6 +144,7 @@ complete only when `python scripts/check_all.py` passes in full.
   and fails on a copy of the graph with a renamed property.
 - [ ] 4.7 Update the machines page and the API documentation page:
   - the IRI and address patterns;
+  - the record landing pages and what their typed links point to;
   - the RDF distribution;
   - the recipes;
   - API v1;
@@ -134,7 +157,22 @@ complete only when `python scripts/check_all.py` passes in full.
 - [ ] 4.9 Update `docs/content-model.md` (*Static API*), `docs/design.md`, `docs/ci-reference.md` and the README
   endpoint mentions, and add the `[Unreleased]` breaking lines for API v1 and result revision 4. Verify:
   `python scripts/check_all.py --only docs changelog` passes.
-- [ ] 4.10 Run `python scripts/check_all.py`. Verify: the full run passes, and the M3 pull request is open for human
+- [ ] 4.10 Write a landing page, `id/<address>.html`, for every issued address (decision 19): the fixed field set
+  from the API record, both languages with `lang`, an anchored section per part, the typed links and the link into
+  the Guide through `index.html#/id/<address>`. Verify:
+  - a unit test finds one page per address, an anchor for every part fragment, and `cite-as` and `describedby`
+    naming the record's IRI and API record;
+  - a test compares each page's fields with its API record;
+  - `npm run check:page` reads a resource's, a station's and a repository's page without JavaScript in both
+    languages, at phone width and in print, and follows the link into the Guide from `file://`.
+- [ ] 4.11 Write the bilingual `404.html` with an absolute link to the catalogue search, add
+  `error_page 404 /404.html` to `docker/nginx.conf`, and list the landing pages in the production sitemap
+  (`build_crate.py`). Verify:
+  - a unit test finds every landing page in the production sitemap and none in a preview build, and finds the
+    `error_page` rule in `docker/nginx.conf`;
+  - `npm run check:deployment`, whose server answers a missing path as Pages does, gets status 404 and the page for
+    an unknown address.
+- [ ] 4.12 Run `python scripts/check_all.py`. Verify: the full run passes, and the M3 pull request is open for human
   review.
 
 ## 5. w3id registration and release (M4)
@@ -153,8 +191,9 @@ complete only when `python scripts/check_all.py` passes in full.
 - [ ] 5.5 **Hand-off (w3id maintainers):** the registry merges the pull request. Verify: `terms` and `profile/0.2`
   redirect as designed.
 - [ ] 5.6 Add the w3id probe to the health watch, with the digest key `w3id:<iri>`, for `terms` (HTML and Turtle), the
-  current profile and one record IRI per kind as JSON and HTML. Verify: unit tests with recorded responses cover a
-  correct redirect, a wrong target and a 500; a manual `--live` run passes.
+  current profile and one record IRI per kind as JSON and HTML. The HTML probe requires a `Location` without a
+  fragment that reaches the record's landing page. Verify: unit tests with recorded responses cover a correct
+  redirect, a wrong target, a target with a fragment and a 500; a manual `--live` run passes.
 - [ ] 5.7 Write `docs/runbooks/update-the-w3id-redirect.md` for a host move and an API major version. Verify:
   `python scripts/check_all.py --only docs` passes the runbook structure.
 - [ ] 5.8 **Hand-off (maintainer):** prepare and tag the release that switches production to the w3id namespace,
