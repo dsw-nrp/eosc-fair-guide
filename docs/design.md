@@ -629,7 +629,10 @@ written to `duplicates.json` under `CHECK_REPORT_DIR` or `--report`. `--fix` app
 the working tree with the same provenance action and registration as the trusted command, shared through
 `duplicate_repairs.py`. It records a reviewed person from `--person` or the `commitNames`/`github` match of the
 local Git identity, refuses before writing when none is unique, and rejects a repair that adds a content error.
-Neither path edits `content/duplicates.toml` or accepts a lookalike group.
+Neither path edits `content/duplicates.toml` or accepts a lookalike group. Every registry record attaches to
+exactly one thing: a registry record and a curated thing with no key joining them but the same registrable domain
+and a distinctive name word, or the same name and provider, are listed as reviews in the report and the output.
+A review is never an error, a suggestion or a join; a person links the record or accepts the pair.
 Safe ownership is checked across the full catalogue and suggestion set. Exact placement rules are shared by
 Python consumers and checked for parity with the independent Node validator. The local batch validates TOML,
 replaces targets atomically and rechecks duplicates before reporting success. Handled failures restore

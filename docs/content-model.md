@@ -912,6 +912,7 @@ as `rdf:Property` entities with `rdfs:label` and `rdfs:comment`.
 | `skos:` | `http://www.w3.org/2004/02/skos/core#` |
 | `dcat:` | `http://www.w3.org/ns/dcat#` |
 | `adms:` | `http://www.w3.org/ns/adms#` |
+| `foaf:` | `http://xmlns.com/foaf/0.1/` |
 | `xsd:` | `http://www.w3.org/2001/XMLSchema#` |
 | `guide:` | `<namespace>terms#` |
 <!-- namespaces:end -->
@@ -928,6 +929,7 @@ rename stored keys:
 | `attributedTo` | `prov:wasAttributedTo` |
 | `isImplementationOf` | `sio:SIO_000233` |
 | `abbreviation` | `schema:alternateName` |
+| `primaryTopic` | `foaf:primaryTopic` |
 | `supersededBy` | `dcterms:isReplacedBy` |
 | `relatedTo` | `dcterms:relation` |
 | `operatorSource` | `dcterms:source` |
@@ -961,6 +963,7 @@ of a record, and a `#…` name is one of the crate's own nodes.
 | Repository | `schema:DataCatalog` | `id/repositories/<id>` | `schema:name`, `schema:alternateName`, `schema:url`, `guide:repositoryKind`, `schema:identifier`, `schema:sameAs`, `schema:isBasedOn` (snapshot) |
 | Glossary term | `schema:DefinedTerm` | `id/glossary/<id>` | `schema:identifier`, `schema:name`, `schema:url`, `schema:termCode` (Heslář's number), `schema:license`, `schema:inDefinedTermSet` |
 | Callout | `schema:CreativeWork` | `id/callouts/<id>` | `schema:headline`, `schema:text`, `schema:hasPart`, `guide:lensOrder` |
+| Registry record | `dcat:CatalogRecord`, beside the registry's own type | `<thing>#<scheme>`: `#knav`, `#fip-dashboard` or `#nkr` under the thing it describes | `foaf:primaryTopic` (the thing), the registry's own `schema:name`, `schema:description`, `schema:license` and identifier, `schema:isBasedOn` (its snapshot); a thing only a registry knows is founded by its record: the thing keeps its identity, name, address and filter facts and rests on the record (`schema:isBasedOn`), and where another registry's facts win, as NKR's name, kind, dated status, keywords and address do, the thing carries the winning values |
 | FER (FIP Dashboard snapshot) | `schema:CreativeWork` with a FIP class as `schema:additionalType` | `<thing>#fip-dashboard` under the thing it describes, or `id/resources/<id>` for one only the dashboard knows | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `guide:catalogueType`, `schema:about`, `schema:provider`, `schema:review` (verifications as `schema:Review`), `schema:sameAs`, `schema:isBasedOn` |
 | FIP (FIP Dashboard snapshot) | `schema:CreativeWork` with `schema:additionalType` `fip:FAIR-Implementation-Profile` | `id/fips/<id>`; a declaration `<fip>#<declaration>` | `schema:name`, `schema:abstract`, `schema:version`, `schema:dateModified`, `schema:creativeWorkStatus`, `schema:author`, `schema:review`, `schema:hasPart` (declarations), `schema:isBasedOn` |
 | Local criterion | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `id/tests/guide/<id>` | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `sio:SIO_000233`, `schema:about`, `schema:citation`, `schema:hasPart`, `schema:subjectOf`, `schema:additionalProperty` |

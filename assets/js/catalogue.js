@@ -359,7 +359,9 @@
 
   /** The FIP profiles that declare an enabling resource, each with the principles and the status it is declared for. */
   const declaredInRow = (fer) => {
-    const list = (fer && FG.reverseRelations().declaredIn.get(fer["@id"])) || [];
+    /* A declaration names the enabling resource: a record's thing, or a record a curated entry holds. */
+    const declared = FG.reverseRelations().declaredIn;
+    const list = (fer && (declared.get(fer["@id"]) || declared.get(FG.thingOf(fer)))) || [];
     return list.length
       ? FG.relationGroups([{ items: list, render: ({ fip, declaration }) => [
           h("a", { href: FG.entryHref(fip) }, FG.text(fip.alternateName) || FG.text(fip.name)),

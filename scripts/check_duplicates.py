@@ -291,6 +291,8 @@ def entries(content: dict[str, Any]) -> list[Entry]:
 class DuplicateReport:
     errors: list[str] = field(default_factory=list)
     suggestions: list[Suggestion] = field(default_factory=list)
+    # Pairs a person should look at: a record and a thing that may describe one thing. Never an error or a fix.
+    reviews: list[str] = field(default_factory=list)
 
     def error(self, where: str, message: str) -> None:
         self.errors.append(f"{where}: {message}")
@@ -298,6 +300,122 @@ class DuplicateReport:
 
 def entry_kind(entry: Entry) -> str:
     return entry.name.split(":", 1)[0]
+
+
+# Public suffixes of two labels the Guide's sources use; any other domain's registrable part is its last two labels.
+TWO_LABEL_SUFFIXES = {"ac.uk", "co.uk", "gov.uk", "org.uk", "com.au", "edu.au", "ac.jp", "co.jp"}
+# Words that name no particular thing, so a shared one is no reason to look at a pair.
+GENERIC_WORDS = frozenset(
+    [
+        "access",
+        "archive",
+        "catalog",
+        "catalogue",
+        "center",
+        "centre",
+        "czech",
+        "data",
+        "digital",
+        "fair",
+        "guide",
+        "infrastructure",
+        "institute",
+        "library",
+        "management",
+        "metadata",
+        "national",
+        "network",
+        "online",
+        "open",
+        "platform",
+        "plan",
+        "plans",
+        "policy",
+        "portal",
+        "project",
+        "republic",
+        "repositories",
+        "repository",
+        "research",
+        "science",
+        "service",
+        "services",
+        "software",
+        "standard",
+        "system",
+        "tool",
+        "tools",
+        "university",
+        "via",
+        "with",
+    ]
+)
+
+
+def registrable_domains(entry: Entry) -> set[str]:
+    """The registrable domains of an entry's addresses (`cesnet.cz` for `owncloud.cesnet.cz`)."""
+    found = set()
+    for key in entry.keys:
+        if key.startswith("url:"):
+            labels = key.removeprefix("url:").split("/")[0].lower().removeprefix("www.").split(".")
+            size = 3 if ".".join(labels[-2:]) in TWO_LABEL_SUFFIXES else 2
+            if len(labels) >= size:
+                found.add(".".join(labels[-size:]))
+    return found
+
+
+def distinctive_words(entry: Entry, skipped: set[str]) -> set[str]:
+    """The words of an entry's names that could name one thing: not generic, not part of a shared domain."""
+    return {
+        word
+        for key in entry.keys
+        if key.startswith("name:")
+        for word in key.removeprefix("name:").split()
+        if len(word) >= 4 and word not in GENERIC_WORDS and word not in skipped
+    }
+
+
+def review_pairs(found: list[Entry], same: Any, accepted: list[frozenset[str]]) -> list[str]:
+    """Each registry record and curated thing that may describe one thing without any key joining them (design.md,
+    decision 5): the same registrable domain with a distinctive name word in common, or the same name and provider.
+    A person decides; nothing joins or links on these grounds."""
+    things = [entry for entry in found if entry.curated and entry.group in ("things", "organisations")]
+    records = [entry for entry in found if not entry.curated and entry.group in ("things", "organisations")]
+    reviews = []
+    for record in records:
+        for item in things:
+            if record.group != item.group or same(record.name, item.name):
+                continue
+            if any({record.name, item.name} <= group for group in accepted):
+                continue
+            reason = ""
+            domains = registrable_domains(record) & registrable_domains(item)
+            if domains:
+                skipped = {part for domain in domains for label in domain.split(".") for part in label.split("-")}
+                common = distinctive_words(record, skipped) & distinctive_words(item, skipped)
+                if common:
+                    reason = f"the same registrable domain ({', '.join(sorted(domains))}) and the name word(s) "
+                    reason += ", ".join(sorted(common))
+            provider = provider_of(record.record) if record.record else ""
+            if not reason and provider and provider == provider_of(item.record or {}):
+                names = {key for key in record.keys if key.startswith("name:")} & item.keys
+                if names:
+                    reason = f"the same name and provider ({provider})"
+            if reason:
+                reviews.append(f"{record.name} may describe {item.name}: {reason}; link the record or accept the pair")
+    return reviews
+
+
+def provider_of(row: dict[str, Any]) -> str:
+    """The normalised name of who provides an entry, as its row states it: provider, operator or publisher."""
+    for name in ("provider", "operator", "publisher"):
+        value = row.get(name)
+        if isinstance(value, dict):
+            value = value.get("name", "")
+        found = words(value)
+        if found:
+            return found[0]
+    return ""
 
 
 def key_value(entry: Entry, prefix: str) -> str:
@@ -517,6 +635,9 @@ def check(content: dict[str, Any], accepted: list[dict[str, Any]]) -> DuplicateR
     for index, accepted_set in enumerate(accepted_sets):
         if accepted_set and accepted_set not in used:
             report.error(f"duplicates:{index + 1}", "the accepted group no longer occurs; remove it")
+    report.reviews = review_pairs(
+        found, lambda one, other: components.find(one) == components.find(other), accepted_sets
+    )
     return report
 
 
@@ -525,6 +646,7 @@ def report_payload(report: DuplicateReport) -> dict[str, Any]:
         "formatVersion": 1,
         "check": "duplicates",
         "errors": list(report.errors),
+        "reviews": list(report.reviews),
         "suggestions": [
             {
                 "entry": suggestion.entry,
@@ -767,6 +889,8 @@ def main(argv: list[str] | None = None) -> int:
     report = check(content, accepted)
     for error in report.errors:
         print(f"error: {error}")
+    for review in report.reviews:
+        print(f"review: {review}")
     for suggestion in report.suggestions:
         table = f" [{suggestion.table}]" if suggestion.table else ""
         print(

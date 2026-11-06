@@ -1,3 +1,4 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix fg: <https://fair.eosc.cz/terms#> .
 @prefix fair-guide: <https://fair.eosc.cz/profile/fair-guide/> .
 @prefix schema: <http://schema.org/> .
@@ -237,6 +238,8 @@ fair-guide:Repository a sh:NodeShape ;
     sh:description "A repository has an HTTPS address, or is not yet public with planned/development status and an NKR record" ;
     sh:targetSubjectsOf fg:repositoryKind ;
     sh:or (
+        # A registry's record of a repository, such as NKR's, keeps the registry's own values; it is no repository.
+        [ sh:class dcat:CatalogRecord ]
         [ sh:property [ sh:path schema:url ; sh:minCount 1 ; sh:pattern "^https://" ] ]
         [
             sh:property [

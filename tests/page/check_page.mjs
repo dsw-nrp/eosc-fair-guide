@@ -2247,7 +2247,9 @@ sections.push(["stored stage", async () => {
 // catalogue tool is listed once, marked, and opens from the tool's identifier; a plain-HTTP address is not linked.
 sections.push(["knav catalogue", async () => {
   const tools = [].concat(crateNodes.byId.get("#knav-tools")?.hasPart || []).map((ref) => crateNodes.byId.get(ref["@id"])).filter(Boolean);
-  const unlinked = tools.filter((e) => !e.sameAs);
+  // A tool only the catalogue knows is founded by its record: the thing rests on it (design.md, decision 4).
+  const founded = (record) => [].concat(crateNodes.byId.get(record.primaryTopic?.["@id"])?.isBasedOn || []).some((ref) => ref["@id"] === record["@id"]);
+  const unlinked = tools.filter(founded);
   if (!tools.length || tools.length === unlinked.length) fail("knav catalogue: the crate has no tools, or none an entry stands for");
   const { context, page, problems } = await openPage();
   await gotoView(page, pageUrl);

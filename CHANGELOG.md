@@ -13,6 +13,9 @@ All notable changes to this guide are recorded here. The format follows
   `guideRoute` values follow, and the catalogue's groups are `glossary`, `lifecycles` and `models`.
 - Breaking: every record's `@id` is its IRI under the namespace `https://w3id.org/eosc-cz/fair-guide/`
   (`…/id/stations/licence`), not a crate fragment; the crate drops `catalogueAddress`.
+- Breaking: a registry's record of a thing is a `dcat:CatalogRecord` under it (`#knav`, `#fip-dashboard`, `#nkr`)
+  naming the thing by `foaf:primaryTopic`; a thing only a registry knows keeps its identity, name, address and filter
+  facts, and its description stays on the record.
 - Breaking: references in text are `[[<kind>/<id>|phrase]]` only; `term:`, `page:`, `station:`, `clause:`,
   `infrastructure:`, bare IDs and code addresses are refused.
 - Security: render source-controlled refresh diagnostics as bounded literal text in logs, reports and workflow summaries.

@@ -28,7 +28,7 @@ complete only when `python scripts/check_all.py` passes in full.
 
   Verify: a unit test fails on any Guide thing with a fragment `@id`, any `name` equal to its identifier, or any
   identifier ending in a counter; `python scripts/check_all.py --only crate profile` passes.
-- [ ] 2.3 Publish registry records as `dcat:CatalogRecord` with `foaf:primaryTopic` under their thing. Add FOAF to
+- [x] 2.3 Publish registry records as `dcat:CatalogRecord` with `foaf:primaryTopic` under their thing. Add FOAF to
   `ESTABLISHED_TERMS`. Resolve NKR's precedence onto the thing in place of the `_nkr` overrides, keep NKR's values on
   its record, and let a thing founded by a record carry its identity, name, address and filter facts (decision 4).
   Verify:
@@ -38,7 +38,7 @@ complete only when `python scripts/check_all.py` passes in full.
     `#nkr` record, and the herbarium repository is founded by its NKR record;
   - with Czech-BioImaging's curated handle removed, its address-free record founds a thing in development, without
     a web address and with `acceptsDeposits = false`.
-- [ ] 2.4 Rework `scripts/check_duplicates.py` so that every record attaches to exactly one thing, with the new
+- [x] 2.4 Rework `scripts/check_duplicates.py` so that every record attaches to exactly one thing, with the new
   review key: same registrable host, or same normalised name and provider (decision 5). Verify: tests report the
   CESNET ownCloud pair for review, keep the safe `--fix` suggestions for authoritative keys, and keep accepted groups
   accepted.

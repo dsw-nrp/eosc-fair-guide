@@ -90,10 +90,10 @@
   const SHOWN_VALUES = 9;
   const openFacets = new Set();
 
-  /** The KNAV catalogue's tools, and the tool each entry of the guide stands for (its record's `sameAs`). */
+  /** The KNAV catalogue's records of its tools, and the record of each entry of the guide a record is about. */
   function knavIndex() {
     const tools = FG.refs(FG.get("#knav-tools"), "hasPart");
-    const standing = new Map(tools.filter((tool) => tool.sameAs).map((tool) => [FG.id(tool.sameAs), tool]));
+    const standing = new Map(tools.filter((tool) => !FG.foundedBy(tool)).map((tool) => [FG.thingOf(tool), tool]));
     return { tools, standing };
   }
 
@@ -104,21 +104,22 @@
     return FG.stations().filter((station) => pathStages.includes(FG.id(station.lifecycleStage)));
   }
 
-  /** A KNAV catalogue tool no entry of the guide stands for, as the catalogue describes it. */
+  /** A tool only the KNAV catalogue knows, as the catalogue's record describes it. */
   function knavEntry(tool) {
+    const thing = FG.get(FG.thingOf(tool)) || tool;
     const anchor = sourceKey("knav", tool.identifier);
     const holders = knavStations(tool);
     const catalogue = FG.get("#knav-tools");
     const source = FG.get("resources/knav-dm-tools-catalogue");
     const steps = FG.refs(tool, "lifecycleStage");
     return {
-      kind: "resources", entity: tool, name: tool.name,
+      kind: "resources", entity: thing, name: tool.name,
       export: { url: tool.url || "", text: FG.text(tool.description) },
       text: [tool.name, FG.text(tool.description)].join(" "),
       stations: holders.map((station) => station.identifier), principles: [],
       facets: { use: ["knav"], type: [FG.term("resource-types", "tool")], status: [], language: ["en"], lens: [], discipline: FG.list(tool.discipline) },
       render: () => entryCard({ kind: "resources",
-        id: anchor, entity: tool, service: { identifier: anchor, name: tool.name, url: tool.url },
+        id: anchor, entity: thing, service: { identifier: anchor, name: tool.name, url: tool.url },
         what: [FG.termName(FG.term("resource-types", "tool"))].concat(uses(["knav"])),
         /* The guide links only over HTTPS; a tool the catalogue lists by a plain-HTTP address leads to the catalogue. */
         title: tool.url ? FG.external(tool.url, tool.name) : h("span", null, tool.name),
@@ -211,12 +212,14 @@
           }),
       });
     }
-    for (const fer of FG.refs(FG.get("#fers"), "hasPart").filter((entity) => !linkedFers.has(entity["@id"]) && !repositoryIds.has(entity["@id"]))) {
-      const tool = knav.standing.get(fer["@id"]);
+    /* An enabling resource only the FIP Dashboard knows: the thing its record founds, described by that record. */
+    for (const fer of FG.refs(FG.get("#fers"), "hasPart").filter((record) => FG.foundedBy(record) && !linkedFers.has(record["@id"]) && !repositoryIds.has(FG.thingOf(record)))) {
+      const thing = FG.get(FG.thingOf(fer)) || fer;
+      const tool = knav.standing.get(FG.thingOf(fer));
       const used = ["dashboard"].concat(tool ? ["knav"] : []);
       entries.push({
         kind: "resources",
-        entity: fer,
+        entity: thing,
         name: FG.text(fer.name),
         export: { url: fer.url, text: FG.text(fer.description) },
         text: [FG.text(fer.name), FG.bothLanguages(fer.description)].join(" "),
@@ -226,7 +229,7 @@
         render: () =>
           entryCard({ kind: "resources",
             id: sourceKey("fip-dashboard", fer.identifier),
-            entity: fer,
+            entity: thing,
             service: serviceOf(fer) ? { identifier: sourceKey("fip-dashboard", fer.identifier), name: fer.name, url: fer.url } : null,
             what: [field("guideType", FG.termName(typeOf(fer)))].concat(uses(used)),
             title: FG.external(fer.url || FG.refIds(fer, "sameAs")[0], fer.name),
@@ -249,7 +252,7 @@
           }),
       });
     }
-    for (const tool of knav.tools.filter((item) => !item.sameAs)) entries.push(knavEntry(tool));
+    for (const tool of knav.tools.filter((item) => FG.foundedBy(item))) entries.push(knavEntry(tool));
     return entries;
   }
 
@@ -335,7 +338,7 @@
         facets: {
           rfunction: functions.filter((value) => repository.acceptsDeposits !== false || value !== DEPOSIT),
           rkind: FG.id(repository.repositoryKind) ? [FG.id(repository.repositoryKind)] : [],
-          rsource: FG.refIds(repository, "isBasedOn"),
+          rsource: FG.repositorySourceIds(repository),
           use: used,
           status: FG.id(repository.serviceStatus) ? [FG.id(repository.serviceStatus)] : [],
           language: FG.list(repository.inLanguage).map(String),
@@ -346,6 +349,8 @@
           /* A repository the FIP Dashboard lists is described there by its enabling-resource record; one that is such a
              record itself carries those facts on its own entry. */
           const fer = record && record.fer ? record.fer : FG.dashboardOwn(repository) ? repository : null;
+          /* A repository only the FIP Dashboard knows is described by the dashboard's record that founds it. */
+          const about = fer && FG.foundedBy(fer) ? fer : repository;
           const languages = FG.list(repository.inLanguage).map(String);
           return entryCard({ kind: "repositories",
             id: anchor,
@@ -362,11 +367,11 @@
               otherName(repository),
               field("keywords", FG.subjectsOf(repository).join(", ") || null),
               field("inLanguage", languages.length ? FG.t("resource.languages", { languages: languages.join(", ") }) : null),
-              field("catalogueType", FG.id(repository.catalogueType) ? FG.t("catalogue.fairDataType", { type: FG.termName(FG.id(repository.catalogueType)) }) : null),
-              field("spatialCoverage", repository.spatialCoverage ? FG.t("catalogue.spatial." + repository.spatialCoverage) : null),
+              field("catalogueType", FG.id(about.catalogueType) ? FG.t("catalogue.fairDataType", { type: FG.termName(FG.id(about.catalogueType)) }) : null),
+              field("spatialCoverage", about.spatialCoverage ? FG.t("catalogue.spatial." + about.spatialCoverage) : null),
               field("sdDatePublished", repository.sdDatePublished ? FG.t("catalogue.accessed", { date: FG.formatDate(repository.sdDatePublished) }) : null),
             ],
-            body: [repository.url ? null : h("p", { class: "small" }, FG.t("repositories.noPublicAddress")), repository.description ? h("p", { "data-field": "description mentions" }, FG.linkedSpan(repository, "description")) : null, dataciteBlock(repository, anchor)],
+            body: [repository.url ? null : h("p", { class: "small" }, FG.t("repositories.noPublicAddress")), about.description ? h("p", { "data-field": "description mentions" }, FG.linkedSpan(about, "description")) : null, dataciteBlock(repository, anchor)],
             states: [FG.statusBadge(repository), FG.nodeBadge(repository), fer ? FG.verificationBadges(fer) : null],
             fields: { basedOn: "isBasedOn rdmkitRecord trainingSearch" },
             relations: {
@@ -1497,9 +1502,10 @@
       if (entity) return h("div", { class: "catalogue wrap" }, FG.heading(1, null, FG.t("catalogue.title")),
         h("p", { class: "single-entry small" }, FG.t("catalogue.single", { id: address })),
         h("ul", { class: "catalogue-results cards" }, entryCard({ kind: FG.catalogueGroup(route.arg), id: route.extra, entity,
-          title: entity.url ? FG.external(entity.url, FG.span(entity.name || entity.headline || entity.identifier)) : FG.span(entity.name || entity.headline || entity.identifier),
+          /* A record named only by its ID, such as advice, shows its text without repeating the ID its chip shows. */
+          title: !(entity.name || entity.headline) ? null : entity.url ? FG.external(entity.url, FG.span(entity.name || entity.headline)) : FG.span(entity.name || entity.headline),
           body: [FG.paragraphs(entity.description || entity.text), FG.modelDetail(entity)],
-          relations: { basedOn: FG.refs(entity, "citation").map(FG.sourceLink), inGuide: placeOf(entity), identifiers: FG.identifierItems(entity) }
+          relations: { basedOn: FG.refs(entity, "citation").map(FG.recordLink), inGuide: placeOf(entity), identifiers: FG.identifierItems(entity) }
         })));
     }
     const go = (next, focus) => FG.replaceInPlace(writeState(next), focus);

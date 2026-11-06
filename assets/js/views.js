@@ -1381,8 +1381,12 @@
 
   /** The sources a repository's facts came from, each leading to the source's own entry in the catalogue; the
       guide's own selection is named. The repository's record in each source is among its identifiers (D-185). */
+  /** The lists and snapshots a repository comes from: through a registry's record that founds it, the record's own. */
+  FG.repositorySourceIds = (repository) => [...new Set(FG.refIds(repository, "isBasedOn")
+    .flatMap((id) => (FG.kind(id) ? FG.refIds(FG.get(id), "isBasedOn") : [id])))];
+
   function repositorySources(repository) {
-    return FG.refIds(repository, "isBasedOn").map((id) => {
+    return FG.repositorySourceIds(repository).map((id) => {
       const source = FG.get(FG.id((FG.get(id) || {}).about));
       return source ? h("a", { href: FG.entryHref(source) }, FG.repositorySource(id)) : h("span", null, FG.repositorySource(id));
     });

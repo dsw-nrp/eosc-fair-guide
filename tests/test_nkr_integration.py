@@ -594,6 +594,8 @@ class NkrCatalogueTests(unittest.TestCase):
         before = build_crate.Graph()
         build_crate.build_crate(content, before)
         original = copy.deepcopy(before.entities[iri("repositories/cesnet-invenio")])
+        # The FIP Dashboard's own record of the repository it founds (design.md, decision 4).
+        dashboard = copy.deepcopy(before.entities[iri("repositories/cesnet-invenio#fip-dashboard")])
         record = copy.deepcopy(content["snapshots"][-1]["record"][0])
         record.update(
             id="nkr-cesnet",
@@ -615,8 +617,14 @@ class NkrCatalogueTests(unittest.TestCase):
         self.assertEqual(matching, [original["@id"]])
         self.assertNotIn(iri("repositories/nkr-cesnet"), graph.entities)
         entity = graph.entities[original["@id"]]
-        for prop in ("identifier", "provider", "review", "repositoryFunction"):
+        for prop in ("identifier", "repositoryFunction"):
             self.assertEqual(entity[prop], original[prop], prop)
+        # The dashboard's record keeps the dashboard's own values; NKR's win on the thing.
+        kept = graph.entities[dashboard["@id"]]
+        for prop in ("name", "provider", "review", "serviceStatus"):
+            self.assertEqual(kept.get(prop), dashboard.get(prop), prop)
+        self.assertEqual(kept["primaryTopic"], build_crate.ref(original["@id"]))
+        self.assertIn(build_crate.ref("#snapshot-fip-dashboard"), build_crate.as_list(kept["isBasedOn"]))
         self.assertEqual(
             entity["name"], build_crate.text({"cs": record["repositoryName"], "en": record["repositoryName"]})
         )
@@ -624,7 +632,7 @@ class NkrCatalogueTests(unittest.TestCase):
         self.assertEqual(entity["serviceStatus"], build_crate.ref(iri("vocabularies/statuses/pilot")))
         self.assertEqual(entity["statusAsOf"], "2026-11-01")
         self.assertIs(entity["acceptsDeposits"], False)
-        for source in ("#snapshot-fip-dashboard", "#snapshot-nkr"):
+        for source in (dashboard["@id"], "#snapshot-nkr"):
             self.assertIn(build_crate.ref(source), build_crate.as_list(entity["isBasedOn"]))
         for source in (
             "https://fip-dashboard.dmp.eosc.cz/resources/nrp-invenio",

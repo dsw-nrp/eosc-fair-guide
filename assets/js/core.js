@@ -207,6 +207,10 @@
   /** The Guide's own test of a question (`guide-dataset-01`), and a FAIR Champion test, by their IDs. */
   FG.localTest = (id) => FG.get(FG.address("tests", id, "guide"));
   FG.championTest = (id) => FG.get(FG.address("tests", id, "fair-champion"));
+  /** The thing a registry's record is about (`foaf:primaryTopic`), or the entity itself. */
+  FG.thingOf = (record) => FG.id(record && record.primaryTopic) || FG.id(record);
+  /** Whether a registry's record founds its thing, one only that registry knows: the thing rests on the record. */
+  FG.foundedBy = (record) => FG.refIds(FG.get(FG.thingOf(record)), "isBasedOn").includes(FG.id(record));
   /** A snapshot of a source, one of the crate's own nodes. */
   FG.isSnapshot = (value) => String(FG.id(value) || "").startsWith("#snapshot-");
 

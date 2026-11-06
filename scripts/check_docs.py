@@ -21,7 +21,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from build_crate import ADMS, DCAT, DCTERMS, FIP_TERMS, FTR, PROV, SCHEMA, SKOS, XSD, build_crate, load_content
+from build_crate import ADMS, DCAT, DCTERMS, FIP_TERMS, FOAF, FTR, PROV, SCHEMA, SKOS, XSD, build_crate, load_content
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = ("landing", "how-to", "reference", "explanation", "tutorial")
@@ -306,6 +306,7 @@ def semantic_mapping(text: str, crate: dict, base_context: dict) -> list[str]:
         "skos": SKOS,
         "dcat": DCAT,
         "adms": ADMS,
+        "foaf": FOAF,
         "xsd": XSD,
         "guide": guide_base,
     }
