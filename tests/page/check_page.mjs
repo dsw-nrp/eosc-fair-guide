@@ -123,6 +123,17 @@ async function axe(page, label) {
   }
 }
 
+async function checkNkrPopulation(page) {
+  const errors = await page.evaluate(() => {
+    const FG = window.FairGuide;
+    return FG.live.nkrRecords().flatMap((record) => {
+      const count = FG.repositoryEntries().filter((entity) => FG.refIds(entity, "sameAs").includes(FG.config.links.nkr + "objects/" + record.id)).length;
+      return count === 1 ? [] : [`NKR ${record.id} is listed ${count} times`];
+    });
+  });
+  for (const error of errors) fail(error);
+}
+
 import { misalignedControls, collisions } from "./layout.mjs";
 
 // 1. Load from a local file: no external request, no error.
@@ -354,9 +365,16 @@ sections.push(["page", async () => {
     const repositoryCount = () => view.evaluate(() => window.FairGuide.repositoryEntries().length);
     const repositoriesBefore = await repositoryCount();
     if (await view.locator("#nkr-load").count()) fail("finders: the reviewed NKR snapshot still offers an on-demand load");
+    if (await view.evaluate(() => window.FairGuide.live.nkrRecords().length)) {
+      if (await view.locator("#nkr-status").count()) fail("finders: populated NKR still shows an empty notice");
+      await checkNkrPopulation(view);
+    }
+    await view.evaluate(() => { const FG = window.FairGuide; window.__savedNkr = FG.config.nkr; FG.config.nkr = null; FG.rerender(); });
+    await view.waitForSelector("#nkr-status");
     if (!(await view.locator("#nkr-status").textContent()).includes("NKR zatím žádný repozitář neuvádí") || !(await view.locator('#nkr-status a[href^="https://"]').count())) fail("finders: an empty NKR snapshot does not say so with a link to NKR");
     if ((await repositoryCount()) !== repositoriesBefore) fail("finders: an empty NKR result changes the repositories");
     if (await view.locator(".nkr-sample, #nkr-samples").count()) fail("finders: records NKR does not have are shown in its place");
+    await view.evaluate(() => { const FG = window.FairGuide; FG.config.nkr = window.__savedNkr; delete window.__savedNkr; FG.rerender(); });
     // Joining matched and unmatched NKR records now happens at build time, covered by
     // test_annotations_and_nkr_records_join_the_catalogue_at_build_time in tests/test_scripts.py.
 
@@ -380,9 +398,15 @@ sections.push(["page", async () => {
     const courses = await view.waitForSelector('a.text-ref[href$="/catalogue/res/course/training-overview"]', { timeout: 10000 }).catch(() => null);
     if (!courses) fail("about: the introductory courses are not linked");
     await open("#/cs/V/catalogue/repositories");
-    for (const name of ["Dryad", "Harvard Dataverse", "Molecular Biophysics Database (MBDB)"]) {
+    for (const name of ["Dryad", "Harvard Dataverse"]) {
       if (!(await view.locator(".catalogue-results .card h3", { hasText: name }).count())) fail("repositories: " + name + " is not listed");
     }
+    const mbdbTitle = await view.evaluate(() => {
+      const FG = window.FairGuide;
+      const entry = FG.repositoryEntries().find((entity) => String(entity.url).includes("mbdb-data.org"));
+      return entry ? FG.abbreviatedName(entry, "cs") : null;
+    });
+    if (!mbdbTitle || !(await view.locator(".catalogue-results .card h3", { hasText: mbdbTitle }).count())) fail("repositories: MBDB is not listed under its current source name");
 
     // Exports: every view but a single check offers printing under it, and its content as data where it has a record
     // in the API; the whole crate is on the page for machines. The catalogue saves the filtered list it shows as CSV
@@ -1443,23 +1467,51 @@ sections.push(["self-check", async () => {
     if (!/zajišťuje NRP/i.test(await page.locator(`#item-${entryAnchor(id)}`).textContent())) fail(`gate check: ${id} is not marked as provided by NRP`);
   }
   if (await page.locator("#item-gate-18").count()) fail("gate check: gate.18 shows for the core-system profile");
-  // NKR lists no repository yet, so a record is put in place of the NKR snapshot the page carries.
+  // Isolate pre-fill from the published snapshot and restore it afterwards.
   await at("SR", "gate", "evidence");
   await page.evaluate(() => {
-    window.FairGuide.config.nkr = { retrieved: "2026-10-14", records: [{ id: "test/1", content: { repositoryName: "Test repository", pidType: ["DOI"], oaipmhEndpoint: ["https://repo.example/oai"] } }] };
+    window.__nkrBeforePrefill = window.FairGuide.config.nkr;
+    window.FairGuide.config.nkr = { retrieved: "2026-10-14", records: [{ id: "test-record", sourceId: "test/1", content: { repositoryName: "Test repository", mainContact: true, pidType: ["DOI"], oaipmhEndpoint: ["https://repo.example/oai"] } }] };
     window.FairGuide.rerender();
   });
   await page.locator("#prefill-nkr-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
   if (!(await page.locator('.evidence-card[data-source="nkr"] #prefill-status').count())) fail("gate check: the NKR run does not report in the NKR card");
-  await page.evaluate(() => { delete window.FairGuide.config.nkr; });
+  await page.evaluate(() => { window.FairGuide.config.nkr = window.__nkrBeforePrefill; delete window.__nkrBeforePrefill; });
   await at("SR", "gate", "answers");
-  for (const id of ["gate-01", "gate-07"]) {
+  for (const id of ["gate-01", "gate-07", "gate-13"]) {
     if (!(await checked(`answer-${id}-yes`))) fail(`gate check: ${id} is not pre-filled yes from an NKR record listing DOI`);
     if (!(await page.locator(`#origin-${id}`).textContent()).includes("NKR")) fail(`gate check: ${id} does not name NKR as its source`);
   }
   if (!(await checked("answer-gate-08-partly"))) fail("gate check: gate.08 exceeds its pre-fill level");
   if (await page.locator('input[name="answer-gate-06"]:checked').count()) fail("gate check: gate.06 is pre-filled although the record does not state it");
+  if (!(await page.locator("#origin-gate-13").textContent()).includes("Hlavní kontakt: uveden")) fail("gate check: contact presence lacks its readable Czech label");
+  await go("#/en/SR/check/gate/answers");
+  if (!(await page.locator("#origin-gate-13").textContent()).includes("Main contact: present")) fail("gate check: contact presence lacks its readable English label");
+  for (const [lang, value] of [["cs", "uveden"], ["en", "present"]]) {
+    await go(`#/${lang}/SR/check/gate/answers`);
+    const details = page.locator("#item-gate-13 .question-details");
+    if (!(await details.evaluate((node) => node.open))) await details.locator(":scope > summary").click();
+    const evidenceDetails = details.locator(".evidence-details");
+    if (!(await evidenceDetails.evaluate((node) => node.open))) await evidenceDetails.locator(":scope > summary").click();
+    const contactValue = details.locator('.evidence-field').filter({ has: page.locator('code', { hasText: /^mainContact$/ }) }).locator(".evidence-value");
+    if (!(await contactValue.isVisible()) || (await contactValue.textContent()).trim() !== value) fail(`gate check: expanded mainContact evidence is not localized in ${lang}`);
+  }
+  // Localizing the contact marker must preserve the same word when it is a source's actual title.
+  await page.evaluate(() => {
+    const entry = window.FairGuide.state.answers.gate.items["gate.13"];
+    entry.observations.push({ ...entry.prefill, source: "datacite", fields: [{ path: "titles[].title", values: ["present"] }] });
+  });
+  await at("SR", "gate", "report");
+  await page.locator(".export-preview summary").click();
+  await page.waitForFunction(() => document.getElementById("export-preview-text").value.startsWith("#"));
+  if (!(await page.locator("#export-preview-text").inputValue()).includes("Název: present")) fail("gate check: localizing contact presence rewrites an unrelated source value");
+  await page.locator("#export-format-jsonld").check();
+  await page.waitForFunction(() => document.getElementById("export-preview-text").value.startsWith("{"));
+  const contactExport = await page.locator("#export-preview-text").inputValue();
+  if (!contactExport.includes("present") || /[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/.test(contactExport)) fail("gate check: NKR contact presence is missing or an address leaked into the export");
+  await page.locator("#export-format-md").check();
+  await at("SR", "gate", "answers");
   await axe(page, "gate check");
 
   // Maturity and institution checks run end to end; the institution check has no Minimum items and shows them all.
@@ -1504,7 +1556,10 @@ sections.push(["self-check", async () => {
   await page.locator("#prefill-re3data-clear").click();
   // While NKR lists no repository, the check says to use the re3data record instead and offers no sample records,
   // which only the catalogue shows.
+  await page.evaluate(() => { const FG = window.FairGuide; window.__savedNkr = FG.config.nkr; FG.config.nkr = null; FG.rerender(); });
+  await page.waitForSelector("#nkr-status");
   if (!(await page.locator("#nkr-status").textContent()).includes("re3data níže") || (await page.locator("#nkr-samples").count()) || (await page.locator("#nkr-load").count())) fail("maturity check: an empty NKR does not point to the re3data record, offers sample records the check cannot use, or offers to load NKR");
+  await page.evaluate(() => { const FG = window.FairGuide; FG.config.nkr = window.__savedNkr; delete window.__savedNkr; FG.rerender(); });
   // FAIR Champion over a sample of records (replaced here). Each question shows the tests that can answer it and runs
   // them alone; an identifier that does not resolve is not tested. One record passes, one fails and one gives no
   // result. A narrower retention test covers only part of the tombstone question, so it suggests Partly (D-168).
@@ -2821,6 +2876,71 @@ sections.push(["grouping and typography", async () => {
     if (external.length || problems.length) fail(`grouping/typography: ${external.join(' ')} ${problems.join(' ')}`);
     await context.close();
   }
+}]);
+
+sections.push(["NKR integration", async () => {
+  const { context, page, problems } = await openPage();
+  await gotoView(page, pageUrl + "#/cs/K/catalogue/k!repositories");
+  await rendered(page);
+  const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { location.hash = target; }, hash));
+  await page.evaluate(() => {
+    const FG = window.FairGuide;
+    const entity = {
+      "@id": "#repository-nkr-development-test", "@type": "DataCatalog", identifier: "nkr-development-test",
+      name: [{ "@value": "Testovací repozitář ve vývoji", "@language": "cs" }, { "@value": "Test repository in development", "@language": "en" }],
+      repositoryKind: { "@id": "#rkind-domain" }, repositoryFunction: { "@id": "#rfunction-deposit-data" },
+      serviceStatus: { "@id": "#status-in-development" }, statusAsOf: "2026-11-01", acceptsDeposits: false,
+      sameAs: { "@id": "https://repo.cz/objects/test/development" }, isBasedOn: { "@id": "#repositories-curated" },
+      catalogueAddress: "repo/dom/nkr-development-test",
+    };
+    FG.graph.push(entity); FG.byId.set(entity["@id"], entity);
+    FG.get("#repositories").hasPart.push({ "@id": entity["@id"] });
+    FG.config.api.records[entity["@id"]] = entity.catalogueAddress;
+    FG.config.nkr = { records: [{ id: "nkr-development-test", sourceId: "test/development", content: { repositoryName: "Test repository" } }] };
+    FG.invalidateData(); FG.rerender();
+  });
+  await checkNkrPopulation(page);
+  for (const lang of ["cs", "en"]) {
+    for (const width of [1280, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      await visit(`#/${lang}/K/catalogue/k!repositories~f.rfunction!%23rfunction-deposit-data`);
+      if (await page.locator('[id="item-dom/nkr-development-test"]').count()) fail("NKR: data-deposit chooser offers a repository in development");
+      await visit(`#/${lang}/K/catalogue/k!repositories`);
+      const card = page.locator('[id="item-dom/nkr-development-test"]');
+      if (!(await card.count()) || !(await card.locator('[data-field="repositoryFunction"]').textContent()).includes(lang === "cs" ? "Uložit" : "Deposit")) fail("NKR: general catalogue loses the repository or its function");
+      if (!(await card.textContent()).includes(lang === "cs" ? "zatím nemá veřejnou adresu" : "no public address yet")) fail("NKR: address-free card lacks its bilingual explanation");
+      if ((await card.locator(".entry-title a").getAttribute("href")) !== `#/${lang}/K/catalogue/repo/dom/nkr-development-test`) fail("NKR: address-free title does not open its entry");
+      if (!(await card.locator('a[href="https://repo.cz/objects/test/development"]').count())) fail("NKR: address-free card has no NKR record link");
+      if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) fail(`NKR: catalogue overflows at ${width}px in ${lang}`);
+    }
+  }
+  const names = await page.evaluate(() => {
+    const FG = window.FairGuide;
+    return [FG.abbreviatedName({ name: "Molecular Biophysics Database - MBDB", abbreviation: "MBDB" }, "en"),
+      FG.abbreviatedName({ name: "Český sociálněvědní datový archiv", abbreviation: "ČSDA" }, "cs")];
+  });
+  if (names[0] !== "Molecular Biophysics Database - MBDB" || names[1] !== "Český sociálněvědní datový archiv (ČSDA)") fail("NKR: abbreviation composition repeats or loses the abbreviation");
+  await axe(page, "NKR repository without address");
+  const abbreviationCases = [
+    ["COMPASS – Tokamak for Thermonuclear Fusion Research", "COMPASS", "COMPASS – Tokamak for Thermonuclear Fusion Research"],
+    ["CzechNanoLab Research Infrastructure", "CzechNanoLab", "CzechNanoLab Research Infrastructure"],
+    ["The COMPASS facility", "COMPASS", "The COMPASS facility"],
+    ["Data (A+B) service", "A+B", "Data (A+B) service"],
+    ["ARCHIVE", "ARCH", "ARCHIVE (ARCH)"],
+    ["ŽČSDA", "ČSDA", "ŽČSDA (ČSDA)"],
+  ];
+  for (const [name, abbreviation, expected] of abbreviationCases) {
+    const actual = await page.evaluate(({ name, abbreviation }) => window.FairGuide.abbreviatedName({ name, abbreviation }, "en"), { name, abbreviation });
+    if (actual !== expected) fail(`NKR: abbreviation composition for ${name}: ${actual}`);
+  }
+  for (const lang of ["cs", "en"]) {
+    await visit(`#/${lang}/K/catalogue/ri/energy/compass`);
+    const title = await page.locator('[id="item-energy/compass"] .entry-title').textContent();
+    if ((title.match(/COMPASS/g) || []).length !== 1) fail(`NKR: rendered COMPASS title repeats its abbreviation in ${lang}: ${title}`);
+  }
+  await axe(page, "Catalogue abbreviation display");
+  for (const problem of problems) fail("NKR: " + problem);
+  await context.close();
 }]);
 
 // Named sections retain individual verdicts, timings and failure artifacts; selected runs remain partial.

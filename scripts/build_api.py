@@ -578,7 +578,7 @@ REQUIRED = {
     "Test": ["identifier", "name"],
     "Resource": ["identifier", "name"],
     "Source": ["identifier", "name"],
-    "Repository": ["name", "url"],
+    "Repository": ["name"],
     "Clause": ["identifier", "text", "isPartOf"],
     "Term": ["name"],
     "Organization": ["name"],
@@ -692,6 +692,33 @@ def schemas(language_keys: set[str], reference_keys: set[str]) -> dict[str, Any]
             "required": required,
             "properties": {key: property_schema(key) for key in required},
         }
+    out["Repository"]["description"] = (
+        "A repository requires an HTTPS address, except while planned or in development "
+        "with an NKR record in sameAs, when it has no public address yet."
+    )
+    out["Repository"]["properties"].update(
+        {
+            "url": {"type": "string", "pattern": "^https://"},
+            "acceptsDeposits": {"type": "boolean"},
+        }
+    )
+    out["Repository"]["if"] = {
+        "not": {
+            "required": ["serviceStatus", "sameAs"],
+            "properties": {
+                "serviceStatus": {
+                    "type": "object",
+                    "required": ["termCode"],
+                    "properties": {"termCode": {"enum": ["planned", "in-development"]}},
+                },
+                "sameAs": {
+                    "type": "array",
+                    "contains": {"type": "string", "pattern": r"^https://repo[.]cz/objects/.+"},
+                },
+            },
+        }
+    }
+    out["Repository"]["then"] = {"required": ["url"]}
     return out
 
 

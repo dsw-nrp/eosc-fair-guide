@@ -36,14 +36,17 @@ import check_content  # noqa: E402
 import duplicate_repairs  # noqa: E402
 from build_crate import ROOT, ContentError, load_content  # noqa: E402
 from catalogue_identity import alternate_id, bare_url  # noqa: E402
+from nkr_contract import nkr_status  # noqa: E402
 
 ACCEPTED_FILE = "duplicates.toml"
 # Exact reviewed placements, keyed by curated entry kind and registry link field.
 PLACEMENTS = {
     ("resource", "re3data"): ("content/resources.toml", "resource.repository"),
+    ("resource", "nkr"): ("content/resources.toml", "resource.repository"),
     ("resource", "fipDashboard"): ("content/resources.toml", ""),
     ("resource", "knav"): ("content/resources.toml", ""),
     ("repository", "re3data"): ("content/repositories.toml", ""),
+    ("repository", "nkr"): ("content/repositories.toml", ""),
     ("repository", "fipDashboard"): ("content/repositories.toml", ""),
     ("repository", "knav"): ("content/repositories.toml", ""),
     ("source", "knav"): ("content/sources.toml", ""),
@@ -57,9 +60,9 @@ def valid_placement(entry: Any, file: Any, table: Any, field_name: Any) -> bool:
     return bool(separator and identifier) and PLACEMENTS.get((kind, field_name)) == (file, table)
 
 
-AUTHORITATIVE_KEYS = ("url", "doi", "r3d", "fd", "knav")
+AUTHORITATIVE_KEYS = ("url", "doi", "r3d", "fd", "knav", "nkr")
 # Keys that state two entries are the same thing; every other key only suggests it.
-LINK_KEYS = ("fd", "fdorg", "r3d", "knav")
+LINK_KEYS = ("fd", "fdorg", "r3d", "knav", "nkr")
 KEY_NAMES = {
     "url": "address",
     "doi": "DOI",
@@ -68,6 +71,7 @@ KEY_NAMES = {
     "fd": "FIP Dashboard ID",
     "fdorg": "FIP Dashboard ID",
     "knav": "KNAV catalogue ID",
+    "nkr": "NKR handle",
     "id": "identifier",
     "name": "name",
     "text": "text",
@@ -125,6 +129,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
     out: list[Entry] = []
     # A record annotation joins the records it names across registries: each of them carries the others' IDs.
     joined: dict[str, dict[str, Any]] = {}
+    annotations = {item["re3data"]: item for item in content.get("repository_records", []) if item.get("re3data")}
     for item in content.get("repository_records", []):
         ids = {"r3d": item.get("re3data"), "fd": item.get("fipDashboard"), "knav": item.get("knav")}
         for kind, value in ids.items():
@@ -141,6 +146,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                 url=bare_url(resource.get("url")),
                 doi=citation.get("doi", "").lower(),
                 r3d=repository.get("re3data"),
+                nkr=repository.get("nkr"),
                 fd=resource.get("fipDashboard"),
                 knav=resource.get("knav"),
                 id=resource["id"],
@@ -156,6 +162,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                 url=bare_url(repository.get("url")),
                 doi=(repository.get("fairsharing") or "").lower(),
                 r3d=repository.get("re3data"),
+                nkr=repository.get("nkr"),
                 fd=repository.get("fipDashboard"),
                 knav=repository.get("knav"),
                 id=repository["id"],
@@ -176,6 +183,21 @@ def entries(content: dict[str, Any]) -> list[Entry]:
             )
         )
     for snapshot in content["snapshots"]:
+        if snapshot.get("snapshot", {}).get("source") == "NKR":
+            for record in snapshot.get("record", []):
+                if nkr_status(record.get("status")) is None:
+                    continue
+                handle = alternate_id(record, "nkr")
+                out.append(
+                    thing(
+                        f"nkr:{handle}",
+                        False,
+                        record=record,
+                        nkr=handle,
+                        url=bare_url(record.get("mainUrl")),
+                        name=words(record.get("repositoryName")),
+                    )
+                )
         for record in snapshot.get("resource", []):
             out.append(
                 thing(
@@ -195,7 +217,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                     f"re3data:{record['re3data']}",
                     False,
                     record=record,
-                    url=bare_url(record.get("url")),
+                    url=[bare_url(record.get("url")), bare_url(annotations.get(record["re3data"], {}).get("url"))],
                     r3d=record["re3data"],
                     fd=joined.get(f"r3d:{record['re3data']}", {}).get("fd"),
                     knav=joined.get(f"r3d:{record['re3data']}", {}).get("knav"),
@@ -296,6 +318,8 @@ def record_link(entry: Entry) -> tuple[str, str, str] | None:
         return "fd", "fipDashboard", key_value(entry, "fd")
     if kind == "knav":
         return "knav", "knav", key_value(entry, "knav")
+    if kind == "nkr":
+        return "nkr", "nkr", key_value(entry, "nkr")
     return None
 
 
@@ -378,7 +402,7 @@ def remedy(group: list[Entry]) -> str:
         kinds = {record.name.split(":")[0] for record in records}
         if "re3data" in kinds:
             return "state the record's ID as re3data"
-        fields = {"fip-dashboard": "fipDashboard", "knav": "knav"}
+        fields = {"fip-dashboard": "fipDashboard", "knav": "knav", "nkr": "nkr"}
         return "link the record with " + " and ".join(fields[kind] for kind in sorted(kinds) if kind in fields)
     return (
         "the registries list one thing twice; curate one entry that links both, "
@@ -413,6 +437,37 @@ def check(content: dict[str, Any], accepted: list[dict[str, Any]]) -> DuplicateR
                     f"links the same record as {', '.join(curated[1:])} ({KEY_NAMES[kind]} '{value}'); "
                     "merge them into one entry",
                 )
+    # Only NKR may join automatically through an exact address. Other registry joins stay reviewed.
+    for entry in found:
+        if entry_kind(entry) != "nkr":
+            continue
+        own = components.find(entry.name)
+        address = key_value(entry, "url")
+        reached = (
+            {
+                components.find(item.name)
+                for item in holders.get((entry.group, "url:" + address), [])
+                if item.name != entry.name
+            }
+            if address
+            else set()
+        )
+        if any(item.name != entry.name and components.find(item.name) == own for item in found):
+            reached.add(own)
+        if len(reached) > 1:
+            names = sorted(
+                item.name for item in found if item.name != entry.name and components.find(item.name) in reached
+            )
+            report.error(entry.name, "keys reach different entries: " + ", ".join(names))
+        elif reached:
+            components.join(entry.name, next(iter(reached)))
+    nkr_components: dict[str, list[str]] = {}
+    for entry in found:
+        if entry_kind(entry) == "nkr":
+            nkr_components.setdefault(components.find(entry.name), []).append(entry.name)
+    for records in nkr_components.values():
+        if len(records) > 1:
+            report.error(records[0], "NKR records reach the same entry: " + ", ".join(sorted(records)))
     # Any key that two things share is a duplicate, unless it is accepted.
     groups: dict[frozenset[str], set[str]] = {}
     for (_group, key), holding in holders.items():

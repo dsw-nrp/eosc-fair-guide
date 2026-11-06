@@ -60,6 +60,15 @@ if (!openapi.servers || openapi.servers.some((server) => /^[a-z]+:/i.test(server
 const ajv = new Ajv2020({ strict: false, allErrors: true });
 const definitions = JSON.parse(JSON.stringify(openapi.components.schemas).replaceAll("#/components/schemas/", "#/$defs/"));
 ajv.addSchema({ $id: "api", $defs: definitions });
+if (!healthOnly) {
+  const repository = ajv.compile({ $ref: "api#/$defs/Repository" });
+  const probe = { "@context": "context.jsonld", "@id": "repository.json", "@type": "DataCatalog", name: "NKR repository",
+    serviceStatus: { termCode: "in-development" }, sameAs: ["https://repo.cz/objects/test/record"] };
+  if (!repository(probe)) fail("Repository schema rejects an NKR repository in development without an address");
+  for (const invalid of [{ ...probe, serviceStatus: { termCode: "operational" } }, { ...probe, sameAs: [] }, { ...probe, url: "http://example.org" }]) {
+    if (repository(invalid)) fail("Repository schema accepts an operational, unlinked or insecure address-free repository");
+  }
+}
 const routes = Object.entries(openapi.paths).map(([template, item]) => {
   const parameter = (item.get.parameters || [])[0];
   const pattern = new RegExp("^" + template.slice(1).replace(/[.]/g, "\\.").replace(/\{[^}]+\}/, "([^/]+)") + "$");

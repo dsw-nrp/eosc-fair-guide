@@ -1545,7 +1545,7 @@ class SnapshotRefreshTests(FixtureCase):
             '[[record]]\nalternateIds = [{ scheme = "nkr", value = "21.T15999/abc" }]\n'
             'id = "national-repository"\nurl = "https://repo.cz/objects/21.T15999/abc"\n'
             'repositoryName = "National repository"\nmainUrl = "https://national.example.org/"\n'
-            'type = "institutional"\n',
+            'type = "institutional"\nstatus = "production"\n',
             encoding="utf-8",
         )
         content = build_crate.load_content(self.root / "content")
@@ -1783,12 +1783,14 @@ class SnapshotRefreshTests(FixtureCase):
         self.assertEqual(self.refresh("fip-dashboard").status, "changed")
 
     def nkr_page(self, page: int, size: int, ids: list[str]) -> None:
+        self.put("nkr-schema.json", json.loads((FIXTURE.parent / "nkr/nkr-schema.json").read_text(encoding="utf-8")))
         results = [
             {
                 "id": f"nkr/{i}",
                 "content": {
                     "repositoryName": f"Repository {i}",
-                    "mainUrl": "https://r.example.org/",
+                    "mainUrl": f"https://{i}.example.org/",
+                    "status": "production",
                     "pidType": ["DOI"],
                     "mainContact": {"email": "person@example.org"},
                     "unreviewed": "left out",
@@ -1799,6 +1801,7 @@ class SnapshotRefreshTests(FixtureCase):
         self.put(f"nkr-{page}.json", {"pageNum": page, "pageSize": 100, "size": size, "results": results})
 
     def test_nkr_pages_completely_and_keeps_only_reviewed_fields(self) -> None:
+        self.edit("checks/gate.toml", 'nkr = ["pidType"]', 'nkr = ["pidType", "mainContact"]')
         self.nkr_page(0, 0, [])
         outcome = self.refresh("nkr")
         self.assertEqual(outcome.status, "empty", "NKR lists none: no header-only file")
@@ -1809,7 +1812,7 @@ class SnapshotRefreshTests(FixtureCase):
             self.assertEqual(self.refresh("nkr").status, "changed")
             snapshot = (self.root / "content/snapshots/nkr.toml").read_text(encoding="utf-8")
             self.assertEqual(snapshot.count("[[record]]"), 3)
-            self.assertIn('pidType = ["DOI"]', snapshot)
+            self.assertNotIn('pidType = ["DOI"]', snapshot)
             self.assertIn("mainContactPresent = true", snapshot)
             self.assertNotIn("person@example.org", snapshot)
             self.assertNotIn("unreviewed", snapshot)

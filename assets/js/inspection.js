@@ -336,7 +336,7 @@
         if (overview) { overview.scrollIntoView({ block: "start" }); overview.focus({ preventScroll: true }); }
       } }, FG.t("selfcheck.providers.openOverview"))) : null,
       foundFields(pre).map((field) => h("div", { class: "evidence-field" }, h("p", null, h("strong", null, readableField(field)), " · ", h("code", null, field.path)),
-        h("div", { class: "evidence-value", tabindex: "0", role: "region", "aria-label": readableField(field) }, field.values.map((value) => h("p", null, valueNode(value, false)))), field.more ? h("p", { class: "small muted" }, FG.t("selfcheck.evidence.more", { n: field.more })) : null)),
+        h("div", { class: "evidence-value", tabindex: "0", role: "region", "aria-label": readableField(field) }, field.values.map((value) => h("p", null, valueNode(value, false, field)))), field.more ? h("p", { class: "small muted" }, FG.t("selfcheck.evidence.more", { n: field.more })) : null)),
       FG.list(pre.notes).map((note) => h("p", null, noteText(note))),
       pre.truncated ? h("p", { class: "small muted" }, FG.t("selfcheck.evidence.bounded"), pre.record ? [" ", FG.external(pre.record, FG.t("selfcheck.evidence.openSource"))] : null) : null);
   }
@@ -399,7 +399,7 @@
         h("span", { class: "evidence-source" }, label(observation.source) + " · " + FG.formatDate(observation.date) + ": "),
         h("span", { class: "verdict", "data-kind": observation.value ? "suggestion" : "none" }, observation.value ? FG.t("selfcheck.evidence.suggests", { value: FG.t("selfcheck.answer." + observation.value) }) : FG.t("selfcheck.evidence.noSuggestion")),
         observation.record ? [" · ", FG.external(observation.record, FG.t("selfcheck.evidence.record"))] : null,
-        fields.map((field) => [h("span", { class: "evidence-readable" }, h("strong", null, readableField(field) + ": "), field.values.slice(0, SHOWN_VALUES).map((value, index) => [index ? ", " : "", valueNode(value, true)]))])
+        fields.map((field) => [h("span", { class: "evidence-readable" }, h("strong", null, readableField(field) + ": "), field.values.slice(0, SHOWN_VALUES).map((value, index) => [index ? ", " : "", valueNode(value, true, field)]))])
       ),
       FG.list(observation.notes).filter((note) => note && typeof note === "object").slice(0, notes).map((note) => h("p", { class: "small evidence-note" }, noteText(note)))
     );

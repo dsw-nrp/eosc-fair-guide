@@ -2,6 +2,17 @@
 # Process Run Crate action by default; finer actions are reserved for separately attributable work.
 
 [[action]]
+id = "2026-11-02-nkr-integration"
+type = "update"
+name = "Join the first NKR records to the repository catalogue"
+description = "Reviewed the NKR Repository schema and CzBIRD record at https://repo.cz/objects/20.500.14818/srhtp4ek. Added the reviewed NKR handle to the Czech-BioImaging entry and bilingual interface text for repository address availability and contact presence; the contact address is never copied. Implemented schema-derived harvesting, repository joins and NKR fact precedence with regression fixtures."
+agent = "david-novak"
+instruments = ["openai-codex", "openai-gpt-6-runtime"]
+objects = ["nkr-schema"]
+results = ["czech-bioimaging"]
+endTime = 2026-11-02T01:20:26+01:00
+
+[[action]]
 id = "2026-10-16-initial-state"
 type = "create"
 name = "Initial public Guide state"

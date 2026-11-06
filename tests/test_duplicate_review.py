@@ -520,7 +520,7 @@ class ArtifactTests(unittest.TestCase):
                 ("resource", "repository", "source", "unknown"),
                 ("content/resources.toml", "content/repositories.toml", "content/sources.toml", "outside.toml"),
                 ("", "resource.repository", "other"),
-                ("re3data", "fipDashboard", "knav", "other"),
+                ("re3data", "fipDashboard", "knav", "nkr", "other"),
             )
         ]
         expected = [check_duplicates.valid_placement(x["entry"], x["file"], x["table"], x["field"]) for x in cases]
@@ -539,7 +539,7 @@ class ArtifactTests(unittest.TestCase):
             cwd=check_ci.ROOT,
         )
         self.assertEqual(json.loads(node.stdout), expected)
-        self.assertEqual(sum(expected), 7)
+        self.assertEqual(sum(expected), 9)
 
     def test_summary_reason_is_inert_code_text(self):
         with tempfile.TemporaryDirectory() as temp:

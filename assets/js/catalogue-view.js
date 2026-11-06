@@ -31,7 +31,7 @@
     },
     repositories: {
       shown: ["abbreviation", "about", "alternateName", "attributedTo", "audience", "catalogueType", "description", "developerSource", "guideType", "inLanguage", "isBasedOn", "keywords", "mentions", "name", "nodeMembership", "operatedBy", "operatedBySource", "operatorSource", "provider", "publisher", "rdmkitRecord", "repositoryFunction", "repositoryKind", "resourceType", "review", "sameAs", "sdDatePublished", "serviceStatus", "spatialCoverage", "statusAsOf", "trainingSearch", "url"],
-      excluded: { additionalType: SCHEMA_SUBTYPE },
+      excluded: { additionalType: SCHEMA_SUBTYPE, acceptsDeposits: "derived deposit availability controls the deposit facet; functions and dated status remain visible" },
     },
     infrastructures: {
       shown: ["abbreviation", "esfriStatus", "infrastructureCharacter", "infrastructurePhase", "isBasedOn", "memberOf", "name", "nationalNodeOf", "operates", "publisher", "researchField", "roadmapLocator", "roadmapSince", "sameAs", "subjectOf", "url"],
@@ -333,7 +333,7 @@
         principles: record && record.fer ? FG.refs(record.fer, "about").map(code) : [],
         order: (kindIndex < 0 ? FG.repositoryKindOrder.length : kindIndex) + ":" + FG.fold(FG.text(repository.name)),
         facets: {
-          rfunction: functions,
+          rfunction: functions.filter((value) => repository.acceptsDeposits !== false || value !== "#rfunction-deposit-data"),
           rkind: FG.id(repository.repositoryKind) ? [FG.id(repository.repositoryKind)] : [],
           rsource: FG.refIds(repository, "isBasedOn"),
           use: used,
@@ -354,7 +354,7 @@
             what: [field("repositoryFunction", functions.map(FG.termName).join(" · ") || null),
               field("repositoryKind", FG.id(repository.repositoryKind) ? FG.termName(FG.id(repository.repositoryKind)) : null),
               field("resourceType guideType", typeOf(repository) ? FG.termName(typeOf(repository)) : null)].concat(uses(used)),
-            title: FG.external(repository.url, FG.abbreviatedName(repository, FG.state.lang)),
+            title: repository.url ? FG.external(repository.url, FG.abbreviatedName(repository, FG.state.lang)) : h("a", { href: FG.entryHref(repository) }, FG.abbreviatedName(repository, FG.state.lang)),
             titleFields: "name abbreviation url",
             /* The name in the other language stays on the entry (D-173). */
             details: [
@@ -366,7 +366,7 @@
               field("spatialCoverage", repository.spatialCoverage ? FG.t("catalogue.spatial." + repository.spatialCoverage) : null),
               field("sdDatePublished", repository.sdDatePublished ? FG.t("catalogue.accessed", { date: FG.formatDate(repository.sdDatePublished) }) : null),
             ],
-            body: [repository.description ? h("p", { "data-field": "description mentions" }, FG.linkedSpan(repository, "description")) : null, dataciteBlock(repository, anchor)],
+            body: [repository.url ? null : h("p", { class: "small" }, FG.t("repositories.noPublicAddress")), repository.description ? h("p", { "data-field": "description mentions" }, FG.linkedSpan(repository, "description")) : null, dataciteBlock(repository, anchor)],
             states: [FG.statusBadge(repository), FG.nodeBadge(repository), fer ? FG.verificationBadges(fer) : null],
             fields: { basedOn: "isBasedOn rdmkitRecord trainingSearch" },
             relations: {

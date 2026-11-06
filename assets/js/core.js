@@ -250,7 +250,9 @@
   FG.abbreviatedName = function (entity, lang) {
     const name = FG.text(entity.name, lang);
     const abbreviation = entity.abbreviation ? FG.text(entity.abbreviation, lang) : "";
-    return abbreviation && !name.includes(abbreviation) ? name + " (" + abbreviation + ")" : name;
+    const escaped = abbreviation.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const present = abbreviation && new RegExp("(^|[^\\p{L}\\p{N}_])" + escaped + "(?=$|[^\\p{L}\\p{N}_])", "u").test(name);
+    return abbreviation && !present ? name + " (" + abbreviation + ")" : name;
   };
 
   /** The same name in the other language, where it differs, so an entry keeps both forms. */

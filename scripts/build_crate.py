@@ -38,6 +38,7 @@ import build_identity
 from catalogue_identity import (
     KIND_CODES,
     MAX_ID,
+    NKR_KIND,
     SAFE_ID,
     TYPE_CODES,
     alternate_id,
@@ -47,6 +48,7 @@ from catalogue_identity import (
     validate_identity,
 )
 from corrections import apply as apply_corrections
+from nkr_contract import NKR_PILOT_NOT_ACCEPTING, nkr_status
 from publication_location import base_url as publication_base
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -122,8 +124,7 @@ FTR_TEST = "https://w3id.org/ftr#Test"
 FIP_TERMS = "https://w3id.org/fair/fip/terms/"
 FIP_DASHBOARD = "https://fip-dashboard.dmp.eosc.cz/resources/"
 NKR_OBJECTS = "https://repo.cz/objects/"
-# NKR's repository types as the guide's repository kinds.
-NKR_KIND = {"disciplinary": "domain", "institutional": "institutional", "generic": "general"}
+NON_DEPOSIT_STATUSES = frozenset({"planned", "in-development", "prospective"})
 RE3DATA_RECORD = re.compile(r"re3data\.org/repository/(r3d\d+)")
 FTR = "https://w3id.org/ftr#"
 PROV = "http://www.w3.org/ns/prov#"
@@ -183,6 +184,7 @@ TERMS = MODEL_TERMS | {
     "catalogueType": "Type of a FAIR-enabling resource in the FIP Dashboard.",
     "repositoryKind": "Kind of a repository: domain, institutional or general-purpose.",
     "repositoryFunction": "What a reader can use a repository or registry for.",
+    "acceptsDeposits": "Whether a repository currently accepts deposits; false when its dated status rules them out.",
     "clauseKind": "Kind of a ledger clause: requirement, fulfilment in NRP, or statement.",
     "supersededBy": "Clause or source that replaces a superseded clause.",
     "lensOrder": "Order of a callout's items for one lens, written as '<lens>: <item>, <item>, ...'.",
@@ -301,6 +303,7 @@ GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
     "catalogueType": (DCTERMS + "type", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "repositoryKind": (DCTERMS + "type", SCHEMA + "DataCatalog", SCHEMA + "DefinedTerm"),
     "repositoryFunction": (DCTERMS + "subject", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "acceptsDeposits": ("", SCHEMA + "DataCatalog", XSD + "boolean"),
     "clauseKind": (DCTERMS + "type", SCHEMA + "CreativeWork", XSD + "string"),
     "lensOrder": ("", SCHEMA + "CreativeWork", XSD + "string"),
     "note": (SKOS + "note", SCHEMA + "CreativeWork", RDF_LANG),
@@ -339,6 +342,7 @@ GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
 GUIDE_TERM_REASONS: dict[str, str] = {
     term: reason
     for reason, terms in {
+        "No established property expresses current availability for repository deposits.": ["acceptsDeposits"],
         "The guide's Layers-and-Seams conceptual model has no established equivalent.": [
             "preparationStatus",
             "modelKind",
@@ -650,6 +654,8 @@ class Graph:
         self.index: dict[str, list[str]] = {}
         # Per entity whose text names others by reference: the phrase to link in each language.
         self.text_links: dict[str, list[dict[str, str]]] = {}
+        # Build-only repository identity, shared with retirement reporting; never serialized.
+        self.repository_keys: dict[str, set[str]] = {}
 
     def add(self, entity: dict[str, Any], content_id: str | None = None) -> str:
         entity = prune(entity)
@@ -1400,27 +1406,44 @@ def snapshot_id(snapshot: dict[str, Any]) -> str:
     return f"#snapshot-{slug(snapshot['snapshot']['source'])}"
 
 
+def nkr_match_keys(repository: dict[str, Any]) -> set[str]:
+    """The reviewed Repository schema supports an NKR handle and its exact address as join keys."""
+    keys = {"nkr:" + repository["nkr"]} if repository.get("nkr") else set()
+    if address := bare_url(repository.get("url")):
+        keys.add("url:" + address)
+    return keys
+
+
 def nkr_repositories(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     """The repositories of an NKR snapshot as repository records: NKR's name, address, kind and keywords, its record
-    ID and the re3data record it names. Nothing else of the record is read here."""
+    ID and source status. Nothing else of the record is read here."""
     if snapshot.get("snapshot", {}).get("source") != "NKR":
         return []
     repositories = []
     for record in snapshot.get("record", []):
-        registries = [
-            str(item.get("relatedRegistryUrl", ""))
-            for item in as_list(record.get("relatedRegistry"))
-            if isinstance(item, dict)
-        ]
-        r3d = next((found.group(1) for url in registries if (found := RE3DATA_RECORD.search(url))), None)
+        status = nkr_status(record.get("status"))
+        if status is None:
+            continue
         repositories.append(
             {
                 "id": record["id"],
-                "name": str(record["repositoryName"]),
+                "name": {
+                    "cs": str(record["repositoryName"]).strip(),
+                    "en": next(
+                        (
+                            str(item["additionalName"]).strip()
+                            for item in record.get("additionalNames", [])
+                            if item.get("lang") == "English" and item.get("additionalName", "").strip()
+                        ),
+                        str(record["repositoryName"]).strip(),
+                    ),
+                },
                 "url": record.get("mainUrl"),
                 "nkr": alternate_id(record, "nkr"),
-                "re3data": r3d,
                 "kind": NKR_KIND.get(str(record.get("type", ""))),
+                "status": status,
+                "asOf": snapshot["snapshot"]["retrieved"],
+                "nkrStatus": record["status"],
                 "subjects": {
                     "cs": ", ".join(map(str, as_list(record.get("keywordCz")))),
                     "en": ", ".join(map(str, as_list(record.get("keywordEn")))),
@@ -1505,9 +1528,11 @@ def nkr_config(snapshots: list[dict[str, Any]]) -> dict[str, Any] | None:
             {
                 "id": record["id"],
                 "sourceId": alternate_id(record, "nkr"),
-                "content": {name: record[name] for name in fields if name in record},
+                "content": {name: record[name] for name in fields if name in record and name != "mainContact"}
+                | ({"mainContact": True} if record.get("mainContactPresent") else {}),
             }
             for record in snapshot.get("record", [])
+            if nkr_status(record.get("status")) is not None
         ],
     }
 
@@ -1525,7 +1550,21 @@ def build_repositories(
     records = records or []
     annotations = {item["re3data"]: item for item in records if item.get("re3data")}
     merged: dict[str, dict[str, Any]] = {}
+    keys: dict[str, str] = {}
+    addresses: dict[str, set[str]] = {}
     order: list[str] = []
+    nkr_owners: dict[str, str] = {}
+    nkr_statuses: dict[str, str] = {}
+
+    def merge_into(existing: dict[str, Any], entity: dict[str, Any]) -> None:
+        for prop, value in entity.items():
+            if prop in ("isBasedOn", "sameAs", "alternateIdentifier"):
+                existing[prop] = as_list(existing.get(prop)) + [
+                    item for item in as_list(value) if item not in as_list(existing.get(prop))
+                ]
+            elif prop not in existing or existing[prop] in (None, [], ""):
+                existing[prop] = value
+
     graph.add({"@id": "#repositories-curated", "@type": "CreativeWork", "name": "Curated repository list"})
     from_resources = [
         {key: resource[key] for key in ("id", "name", "url", "status", "asOf") if key in resource}
@@ -1536,47 +1575,136 @@ def build_repositories(
     ]
     sources = [("#repositories-curated", curated + from_resources)]
     for snapshot in snapshots:
-        sources.append((snapshot_id(snapshot), snapshot.get("repository", []) + nkr_repositories(snapshot)))
-    for based_on, repositories in sources:
+        sources.append((snapshot_id(snapshot), snapshot.get("repository", [])))
+
+    def merge_source(based_on: str, repositories: list[dict[str, Any]]) -> None:
+        nonlocal keys, addresses
         for source_record in repositories:
-            repository = source_record | annotations.get(source_record.get("re3data"), {})
-            key = repository_key(repository)
+            is_nkr = based_on == "#snapshot-nkr"
+            repository = source_record if is_nkr else source_record | annotations.get(source_record.get("re3data"), {})
+            record_keys = {repository_key(repository)}
+            if repository.get("nkr"):
+                record_keys.add("nkr:" + repository["nkr"])
+            address = bare_url(repository.get("url"))
+            if is_nkr:
+                record_keys = nkr_match_keys(repository)
+            matching = {keys[key] for key in record_keys if key in keys}
+            if is_nkr and address:
+                matching.update(addresses.get(address, set()))
+            if is_nkr and len(matching) > 1:
+                names = ", ".join(sorted(str(merged[key]["_content_id"]) for key in matching))
+                raise ContentError(f"NKR {repository['nkr']} ({repository['name']}) reaches different entries: {names}")
+            key = next((key for key in order if key in matching), repository_key(repository))
+            if is_nkr:
+                if key in nkr_owners:
+                    raise ContentError(
+                        f"NKR records {nkr_owners[key]} and {repository['nkr']} reach the same entry: "
+                        f"{merged[key]['_content_id']}"
+                    )
+                nkr_owners[key] = repository["nkr"]
+                nkr_statuses[key] = repository["nkrStatus"]
+            # A non-NKR record may connect existing keys; preserve the earliest component's facts.
+            for other in [value for value in order if value in matching and value != key]:
+                merge_into(merged[key], merged.pop(other))
+                order.remove(other)
+                keys = {name: key if value == other else value for name, value in keys.items()}
+                addresses = {
+                    name: {key if value == other else value for value in values} for name, values in addresses.items()
+                }
             entity = repository_entity(repository, based_on)
             if repository.get("fipDashboard"):
                 entity["isBasedOn"].append(ref("#snapshot-fip-dashboard"))
             if key in merged:
-                existing = merged[key]
-                for prop, value in entity.items():
-                    if prop == "isBasedOn":
-                        existing["isBasedOn"] += [item for item in value if item not in existing["isBasedOn"]]
-                    elif prop in ("sameAs", "alternateIdentifier"):
-                        existing[prop] = as_list(existing.get(prop)) + [
-                            item for item in as_list(value) if item not in as_list(existing.get(prop))
-                        ]
-                    elif prop not in existing or existing[prop] in (None, [], ""):
-                        existing[prop] = value
+                merge_into(merged[key], entity)
             else:
                 entity["@id"] = repository.get("resource") or f"#repository-{repository['id']}"
                 entity["_content_id"] = repository["id"]
                 entity["_resource"] = bool(repository.get("resource"))
                 merged[key] = entity
                 order.append(key)
+            keys.update({name: key for name in record_keys})
+            for source_address in {address, bare_url(source_record.get("url"))} - {""}:
+                addresses.setdefault(source_address, set()).add(key)
+            if is_nkr:
+                merged[key]["_nkr"] = {
+                    prop: value
+                    for prop, value in entity.items()
+                    if prop in ("name", "repositoryKind", "serviceStatus", "statusAsOf", "keywords", "url")
+                    and value not in (None, [], "")
+                }
+
+    for based_on, repositories in sources:
+        merge_source(based_on, repositories)
+
+    # FIP-only entries already exist in the graph. Index them as separate components
+    # before NKR looks up addresses, preserving other sources' reviewed joins.
+    existing = list(merged.values()) + [
+        graph.entities[f"#resource-{resource['id']}"]
+        for resource in resources
+        if resource.get("repository") or resource.get("type") == "registry"
+    ]
+    linked = {
+        item["@id"].removeprefix(FIP_DASHBOARD)
+        for entity in existing
+        for item in as_list(entity.get("sameAs"))
+        if isinstance(item, dict) and item.get("@id", "").startswith(FIP_DASHBOARD)
+    }
+    dashboard_ids = []
+    dashboard_annotations = {item["fipDashboard"]: item for item in records if item.get("fipDashboard")}
+    for snapshot in snapshots:
+        for record in snapshot.get("resource", []):
+            handle = alternate_id(record, "fip-dashboard")
+            if record.get("type") != "repository" or handle in linked:
+                continue
+            entity_id = f"#fer-{record['id']}"
+            entity = graph.entities[entity_id]
+            functions = dashboard_annotations.get(handle, {}).get("functions", [])
+            if functions:
+                entity["repositoryFunction"] = refs([f"#rfunction-{value}" for value in functions])
+            key = "fip-dashboard:" + str(handle)
+            merged[key] = entity | {"_content_id": record["id"], "_resource": True}
+            keys[key] = key
+            address = bare_url(entity.get("url"))
+            if address:
+                addresses.setdefault(address, set()).add(key)
+            order.append(key)
+            dashboard_ids.append(entity_id)
+
+    for snapshot in snapshots:
+        merge_source(snapshot_id(snapshot), nkr_repositories(snapshot))
+
+    component_ids = {key: entity["@id"] for key, entity in merged.items()}
+    native_statuses = {component_ids[key]: status for key, status in nkr_statuses.items()}
+    graph.repository_keys = {name: {component_ids[key]} for name, key in keys.items() if name.startswith("nkr:")}
+    graph.repository_keys.update(
+        {"url:" + address: {component_ids[key] for key in components} for address, components in addresses.items()}
+    )
     repository_ids = []
     for key in order:
         entity = merged[key]
+        overrides = entity.pop("_nkr", {})
+        entity.update(overrides)
         content_id = entity.pop("_content_id")
         if entity.pop("_resource"):
+            is_dashboard = entity["@id"] in dashboard_ids
+            if is_dashboard and not overrides:
+                continue
             # The resource's entity takes the repository facts it does not state itself.
             resource = graph.entities[entity["@id"]]
+            resource.update(overrides)
             for prop in ("repositoryKind", "repositoryFunction", "keywords", "isBasedOn", "dataciteRepository"):
                 if entity.get(prop) and not resource.get(prop):
                     resource[prop] = entity[prop]
+            for source in as_list(entity.get("isBasedOn")):
+                if source not in as_list(resource.get("isBasedOn")):
+                    append_ref(resource, "isBasedOn", source["@id"])
             resource["sameAs"] = as_list(resource.get("sameAs")) + [
                 item for item in as_list(entity.get("sameAs")) if item not in as_list(resource.get("sameAs"))
             ]
             if not resource["sameAs"]:
                 del resource["sameAs"]
-            repository_ids.append(entity["@id"])
+            if not is_dashboard:
+                repository_ids.append(entity["@id"])
             continue
         repository_ids.append(graph.add({"@id": entity.pop("@id"), **entity}, content_id))
 
@@ -1592,25 +1720,16 @@ def build_repositories(
                 append_ref(entity, "isBasedOn", "#snapshot-fip-dashboard")
             if entity_id not in repository_ids:
                 repository_ids.append(entity_id)
-    linked = {
-        item["@id"].removeprefix(FIP_DASHBOARD)
-        for entity_id in repository_ids
-        for item in as_list(graph.entities[entity_id].get("sameAs"))
-        if isinstance(item, dict) and item.get("@id", "").startswith(FIP_DASHBOARD)
-    }
-    dashboard_annotations = {item["fipDashboard"]: item for item in records if item.get("fipDashboard")}
-    for snapshot in snapshots:
-        for record in snapshot.get("resource", []):
-            if record.get("type") != "repository" or alternate_id(record, "fip-dashboard") in linked:
-                continue
-            entity_id = f"#fer-{record['id']}"
-            entity = graph.entities[entity_id]
-            functions = dashboard_annotations.get(alternate_id(record, "fip-dashboard"), {}).get("functions", [])
-            if functions:
-                entity["repositoryFunction"] = refs([f"#rfunction-{value}" for value in functions])
-            repository_ids.append(entity_id)
+    repository_ids.extend(dashboard_ids)
     for entity_id in repository_ids:
         entity = graph.entities[entity_id]
+        if (
+            entity.get("serviceStatus") in [ref("#status-" + value) for value in NON_DEPOSIT_STATUSES]
+            or native_statuses.get(entity_id) == NKR_PILOT_NOT_ACCEPTING
+        ):
+            entity["acceptsDeposits"] = False
+        else:
+            entity.pop("acceptsDeposits", None)
         for record in as_list(entity.get("sameAs")):
             url = record.get("@id", "") if isinstance(record, dict) else str(record)
             if url.startswith(FIP_DASHBOARD):
@@ -3982,6 +4101,7 @@ GUIDE_TERM_GROUPS: list[tuple[str, list[str]]] = [
             "guideType",
             "catalogueType",
             "repositoryKind",
+            "acceptsDeposits",
             "repositoryFunction",
             "clauseKind",
             "discipline",

@@ -1090,6 +1090,18 @@ def check_repositories(report: Report, content: dict[str, Any], vocab: dict[str,
         for item in snapshot.get("resource", [])
     }
     tools = {alternate_id(item, "knav") for snapshot in content["snapshots"] for item in snapshot.get("tool", [])}
+    nkr_snapshot = next(
+        (item for item in content["snapshots"] if item.get("snapshot", {}).get("source") == "NKR"), None
+    )
+    if nkr_snapshot is not None:
+        handles = {alternate_id(item, "nkr") for item in nkr_snapshot.get("record", [])}
+        annotations = [(entry, entry) for entry in content["repositories"]] + [
+            (entry, entry.get("repository", {})) for entry in content["resources"]
+        ]
+        for entry, repository in annotations:
+            handle = repository.get("nkr")
+            if handle and (not isinstance(handle, str) or handle not in handles):
+                report.error(entry["id"], f"nkr names no record of the NKR snapshot ('{handle}')")
     annotations = content.get("repository_records", [])
     for key in ("re3data", "fipDashboard", "knav"):
         unique(report, f"repository records:{key}", [item[key] for item in annotations if item.get(key)], "record")

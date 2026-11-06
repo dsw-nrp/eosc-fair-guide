@@ -10,8 +10,8 @@ const escape = (value) => String(value).replace(/\s+/g, " ").slice(0, 400)
 const clean = (value, limit = 200) => String(value).replace(/[`\r\n]/g, " ").trim().slice(0, limit);
 // Independent trusted validator; the Python/Node parity test covers this exact domain.
 const placements = {
-  resource: { re3data: ["content/resources.toml", "resource.repository"], fipDashboard: ["content/resources.toml", ""], knav: ["content/resources.toml", ""] },
-  repository: { re3data: ["content/repositories.toml", ""], fipDashboard: ["content/repositories.toml", ""], knav: ["content/repositories.toml", ""] },
+  resource: { re3data: ["content/resources.toml", "resource.repository"], nkr: ["content/resources.toml", "resource.repository"], fipDashboard: ["content/resources.toml", ""], knav: ["content/resources.toml", ""] },
+  repository: { re3data: ["content/repositories.toml", ""], nkr: ["content/repositories.toml", ""], fipDashboard: ["content/repositories.toml", ""], knav: ["content/repositories.toml", ""] },
   source: { knav: ["content/sources.toml", ""] },
 };
 function validPlacement(item) {
