@@ -2246,7 +2246,7 @@ sections.push(["stored stage", async () => {
 // with its steps, disciplines and licence, and reaches the guide's steps through the crosswalk; an entry that is a
 // catalogue tool is listed once, marked, and opens from the tool's identifier; a plain-HTTP address is not linked.
 sections.push(["knav catalogue", async () => {
-  const tools = [].concat(crateNodes.byId.get("#knav-tools")?.hasPart || []).map((ref) => crateNodes.byId.get(ref["@id"])).filter(Boolean);
+  const tools = [].concat(crateNodes.byId.get("#snapshot-knav-data-management-tools-catalogue")?.hasPart || []).map((ref) => crateNodes.byId.get(ref["@id"])).filter(Boolean);
   // A tool only the catalogue knows is founded by its record: its thing rests on nothing but its own records, and on
   // no record of a registry that founds a thing before the KNAV catalogue does.
   const founded = (record) => {

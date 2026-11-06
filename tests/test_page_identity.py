@@ -49,14 +49,14 @@ class PageIdentityTests(unittest.TestCase):
 
     def test_the_families_are_the_ones_the_projection_retired(self):
         self.assertTrue({"station", "check", "item", "resource", "lens", "rtype", "knav"} <= self.retired)
-        self.assertIn("#knav-tools", self.kept)
+        self.assertIn("#snapshot-knav-data-management-tools-catalogue", self.kept)
 
     def test_the_guard_finds_a_fragment_prefix_test(self):
         found = retired_literals(
             'if (id.startsWith("#station-")) return FG.get(`#lens-${x}`);', self.retired, self.kept, self.fragments
         )
         self.assertEqual(found, [(1, "#station-"), (1, "#lens-${x}")])
-        current = 'FG.get("#knav-tools"); FG.get("#snapshot-nkr"); FG.get(record + "#fip-dashboard")'
+        current = 'FG.get("#guide-selection"); FG.get("#snapshot-nkr"); FG.get(record + "#fip-dashboard")'
         self.assertEqual(retired_literals(current, self.retired, self.kept, self.fragments), [])
 
     def test_no_page_script_tests_a_retired_fragment_prefix(self):

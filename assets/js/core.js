@@ -221,6 +221,11 @@
   FG.foundedBy = (record) => Boolean(record) && FG.foundingRecord(FG.get(FG.thingOf(record))) === FG.id(record);
   /** A snapshot of a source, one of the crate's own nodes. */
   FG.isSnapshot = (value) => String(FG.id(value) || "").startsWith("#snapshot-");
+  /** The snapshot of a catalogue, by the catalogue's own entry. */
+  FG.snapshotOf = (catalogue) => FG.graph.find((entity) => FG.isSnapshot(entity) && FG.id(entity.about) === catalogue);
+  /** A catalogue's records of resources and repositories, as its snapshot holds them. */
+  FG.registryRecords = (catalogue, fragment) => FG.refs(FG.snapshotOf(catalogue), "hasPart")
+    .filter((record) => FG.fragment(record) === fragment && ["resources", "repositories"].includes(FG.kind(record)));
 
   /** The implementation model is an independent organising vocabulary, with explicit editorial associations. */
   FG.model = () => FG.graph.find((entity) => FG.kind(entity) === "models" && !FG.fragment(entity));

@@ -68,8 +68,11 @@ class RegistryRecordTests(unittest.TestCase):
         self.assertIn("description", record)
         self.assertIn("license", record)
         self.assertEqual(record["primaryTopic"], kb.ref(tool))
-        # The catalogue's list of the KNAV records names the record, not the thing.
-        self.assertIn(kb.ref(tool + "#knav"), kb.as_list(self.entities["#knav-tools"]["hasPart"]))
+        # The catalogue's snapshot holds the record, not the thing.
+        snapshot = self.entities["#snapshot-knav-data-management-tools-catalogue"]
+        self.assertIn(kb.ref(tool + "#knav"), kb.as_list(snapshot["hasPart"]))
+        self.assertNotIn(kb.ref(tool), kb.as_list(snapshot["hasPart"]))
+        self.assertEqual(record["isPartOf"], kb.ref(snapshot["@id"]))
 
     def test_re3data_records_keep_re3data_values_beside_the_curated_ones(self):
         datarepo = iri("repositories/datarepo")
@@ -94,7 +97,9 @@ class RegistryRecordTests(unittest.TestCase):
         zenodo = iri("repositories/zenodo")
         record = records_of(self.entities, zenodo)["fairsharing"]
         self.assertEqual(record["identifier"], "10.25504/FAIRsharing.wy4egf")
-        self.assertIn(kb.ref("https://doi.org/10.25504/FAIRsharing.wy4egf"), kb.as_list(self.entities[zenodo]["sameAs"]))
+        self.assertIn(
+            kb.ref("https://doi.org/10.25504/FAIRsharing.wy4egf"), kb.as_list(self.entities[zenodo]["sameAs"])
+        )
         csda = iri("repositories/csda")
         self.assertEqual(records_of(self.entities, csda)["datacite"]["identifier"], "gesis.csda")
 
@@ -107,6 +112,20 @@ class RegistryRecordTests(unittest.TestCase):
                 self.assertEqual(len(snapshots), 1, entity_id)
                 # A thing credits a registry through its record, never through the snapshot directly.
                 self.assertNotIn(snapshots[0], kb.ids_of(thing.get("isBasedOn")), entity_id)
+
+    def test_a_snapshot_holds_its_records_and_is_about_its_catalogue(self):
+        self.assertNotIn("#knav-tools", self.entities)
+        self.assertNotIn("#fers", self.entities)
+        for entity_id, entity in self.entities.items():
+            if kb.CATALOG_RECORD in kb.as_list(entity.get("@type")):
+                snapshot = self.entities[entity["isPartOf"]["@id"]]
+                self.assertIn(kb.ref(entity_id), kb.as_list(snapshot["hasPart"]), entity_id)
+        for snapshot, catalogue in (
+            ("#snapshot-knav-data-management-tools-catalogue", "resources/knav-dm-tools-catalogue"),
+            ("#snapshot-fip-dashboard", "resources/fip-dashboard"),
+            ("#snapshot-re3data", "resources/re3data"),
+        ):
+            self.assertEqual(self.entities[snapshot]["about"], kb.ref(iri(catalogue)), snapshot)
 
     def test_a_curated_thing_rests_on_the_guides_selection(self):
         for address in ("repositories/zenodo", "resources/argos", "organizations/cesnet"):

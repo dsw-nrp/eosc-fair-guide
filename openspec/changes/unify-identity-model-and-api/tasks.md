@@ -86,7 +86,7 @@ its head in CI.
   unit tests find `datarepo`'s `#re3data` record keeping re3data's values, a `#fairsharing` record with the DOI in
   the thing's `sameAs`, a `#datacite` record, and every registry record named by its thing; `npm run check:page`
   passes.
-- [ ] 2.14 Let a snapshot hold its records: list the KNAV and FIP Dashboard records in their snapshots' `hasPart`,
+- [x] 2.14 Let a snapshot hold its records: list the KNAV and FIP Dashboard records in their snapshots' `hasPart`,
   each snapshot `about` its catalogue's resource, and drop `#knav-tools` and `#fers` (decision 4). Verify: a unit test
   finds no crate-local registry list and every record in its snapshot; `npm run check:page` passes.
 - [ ] 2.15 Resolve named agents to the one thing of that exact name, in any language and of any kind; accept an

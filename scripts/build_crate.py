@@ -1493,13 +1493,18 @@ def nkr_repositories(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     return repositories
 
 
+# The catalogue entry of a source whose snapshot names it otherwise than by the entry's ID.
+SNAPSHOT_CATALOGUES = {"KNAV Data Management Tools Catalogue": "knav-dm-tools-catalogue"}
+
+
 def build_snapshots(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
     """Add one entity per snapshot, with its retrieval date, the catalogue entry of its source where the guide has
-    one and, for the FIP Dashboard, its disclaimer."""
+    one and, for the FIP Dashboard, its disclaimer. A snapshot holds the records it supplies (attach_records)."""
     ids = []
     for snapshot in snapshots:
         info = snapshot["snapshot"]
-        source = f"#resource-{slug(info['source'])}"
+        catalogue = SNAPSHOT_CATALOGUES.get(info["source"], slug(info["source"]))
+        source = next(iter(graph.index.get(catalogue, [])), "")
         ids.append(
             graph.add(
                 {
@@ -1857,13 +1862,13 @@ def build_repositories(
 KNAV_REGISTRY = "knav-tools"  # the life-cycle model of the KNAV catalogue's steps (content/lifecycle/)
 
 
-def build_knav_tools(graph: Graph, content: dict[str, Any]) -> list[str]:
+def build_knav_tools(graph: Graph, content: dict[str, Any]) -> None:
     """The tools of the KNAV Data Management Tools Catalogue snapshot, each with its life-cycle steps, discipline
     groups and the catalogue's licence. A tool that a curated entry (`knav`) or a record annotation names is that
     entry: its record says so in `sameAs` and the catalogue lists the entry once."""
     snapshot = next((item for item in content["snapshots"] if item.get("tool")), None)
     if snapshot is None:
-        return []
+        return
     info = snapshot["snapshot"]
     standing: dict[str, str] = {}
     for entry in content["resources"] + content["repositories"] + content["sources"]:
@@ -1886,39 +1891,23 @@ def build_knav_tools(graph: Graph, content: dict[str, Any]) -> list[str]:
                     or graph.index.get(f"fip-dashboard.{dashboard}", [f"#fer-{dashboard}"])[0]
                 )
             standing[record["knav"]] = target
-    tool_ids = []
     for tool in snapshot["tool"]:
-        tool_ids.append(
-            graph.add(
-                {
-                    "@id": f"#knav-{tool['id']}",
-                    "@type": "CreativeWork",
-                    "identifier": tool["id"],
-                    "name": tool["name"],
-                    "description": {"@value": tool["description"], "@language": "en"},
-                    "url": tool.get("url"),
-                    "lifecycleStage": refs([lifecycle_stage_id(KNAV_REGISTRY, step) for step in tool["steps"]]),
-                    "discipline": tool.get("disciplines", []),
-                    "license": info.get("license"),
-                    "isBasedOn": ref(snapshot_id(snapshot)),
-                    "sameAs": ref(standing[alternate_id(tool, "knav")])
-                    if alternate_id(tool, "knav") in standing
-                    else None,
-                },
-                f"knav.{alternate_id(tool, 'knav')}",
-            )
+        graph.add(
+            {
+                "@id": f"#knav-{tool['id']}",
+                "@type": "CreativeWork",
+                "identifier": tool["id"],
+                "name": tool["name"],
+                "description": {"@value": tool["description"], "@language": "en"},
+                "url": tool.get("url"),
+                "lifecycleStage": refs([lifecycle_stage_id(KNAV_REGISTRY, step) for step in tool["steps"]]),
+                "discipline": tool.get("disciplines", []),
+                "license": info.get("license"),
+                "isBasedOn": ref(snapshot_id(snapshot)),
+                "sameAs": ref(standing[alternate_id(tool, "knav")]) if alternate_id(tool, "knav") in standing else None,
+            },
+            f"knav.{alternate_id(tool, 'knav')}",
         )
-    graph.add(
-        {
-            "@id": "#knav-tools",
-            "@type": "CreativeWork",
-            "name": "KNAV Data Management Tools Catalogue",
-            "url": info.get("url"),
-            "isBasedOn": ref(snapshot_id(snapshot)),
-            "hasPart": refs(tool_ids),
-        }
-    )
-    return ["#knav-tools"]
 
 
 DASHBOARD_FIP_CLASS = {
@@ -2228,21 +2217,13 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
         )
     graph.add(
         {
-            "@id": "#fers",
-            "@type": "CreativeWork",
-            "name": "FAIR-enabling resources (FIP Dashboard)",
-            "hasPart": refs(fer_ids),
-        }
-    )
-    graph.add(
-        {
             "@id": "#fips",
             "@type": "CreativeWork",
             "name": "FAIR Implementation Profiles (FIP Dashboard)",
             "hasPart": refs(fip_ids),
         }
     )
-    return ["#fers", "#fips"]
+    return ["#fips"]
 
 
 def build_glossary(graph: Graph, glossary: dict[str, Any], clauses: list[dict[str, Any]] | None = None) -> None:
@@ -2572,15 +2553,13 @@ def build_actions(graph: Graph, actions: list[dict[str, Any]], people: dict[str,
 # lists its records: the first registry that records a thing the Guide does not describe founds it, and a fact
 # neither the curated entry nor NKR states comes from the first registry that states it.
 RECORD_SCHEMES = ("re3data", "fip-dashboard", "knav", "nkr", "fairsharing", "datacite")
-# A registry's record about a thing, by the family of its build key, and the fragment it takes under the thing; the
-# crate's own lists that hold those records.
+# A registry's record about a thing, by the family of its build key, and the fragment it takes under the thing.
 REGISTRY_RECORDS = (
     ("#knav-", "knav"),
     ("#fer-", "fip-dashboard"),
     ("#fd-org-", "fip-dashboard"),
     *((registry_record_key(scheme, ""), scheme) for scheme in ("nkr", "re3data", "fairsharing", "datacite")),
 )
-REGISTRY_LISTS = ("#knav-tools", "#fers")
 # The facts other registries win for a thing a registry record founds, held on that record until it founds the thing.
 PRECEDENCE = "_precedence"
 # What a thing only a registry knows carries itself: its identity, name, address and the facts lists filter on.
@@ -2608,12 +2587,11 @@ def attach_records(graph: Graph, base: str) -> None:
     """Make each registry record a `dcat:CatalogRecord` about the one thing it describes. A record of a thing the
     Guide describes already sits under it (`<thing>#knav`); a thing only a registry knows is founded by its record:
     the thing keeps its identity, name, address and filter facts, and the registry's own record, with its text and
-    attribution, moves under it. The crate's registry lists keep naming the records, and every thing rests on each
-    of its records."""
-    moved: dict[str, str] = {}
+    attribution, moves under it. Every thing rests on each of its records, and each record is part of the snapshot
+    that supplied it, which lists it."""
     for key, published in list(graph.published.items()):
         scheme = next((name for prefix, name in REGISTRY_RECORDS if key.startswith(prefix)), None)
-        if scheme is None or key in REGISTRY_LISTS or not published.startswith(base) or published not in graph.entities:
+        if scheme is None or not published.startswith(base) or published not in graph.entities:
             continue
         if published.partition("#")[2] not in ("", scheme):
             continue  # a part of a record, such as a FIP Dashboard verification, is not itself a record
@@ -2636,10 +2614,9 @@ def attach_records(graph: Graph, base: str) -> None:
             record = record | {"@id": f"{published}#{scheme}"}
             # The thing rests on the record that founds it, and on any other source that won one of its facts.
             founded["isBasedOn"] = refs([record["@id"], *ids_of(founded.get("isBasedOn"))])
+            # The build key keeps naming the thing, which its content row describes; the record moves under it.
             graph.entities[published] = founded
             graph.entities[record["@id"]] = record
-            # The build key keeps naming the thing, which its content row describes; the record moves under it.
-            moved[published] = record["@id"]
         types = as_list(record.get("@type"))
         if CATALOG_RECORD not in types:
             record["@type"] = types + [CATALOG_RECORD]
@@ -2652,15 +2629,14 @@ def attach_records(graph: Graph, base: str) -> None:
         else:
             record.pop("sameAs", None)
         record["primaryTopic"] = ref(thing)
-    for name in REGISTRY_LISTS:
-        holder = graph.entities.get(name)
-        if holder and holder.get("hasPart"):
-            holder["hasPart"] = refs([moved.get(item, item) for item in ids_of(holder["hasPart"])])
     # Every thing rests on each registry's record about it, beside the Guide's selection where the Guide describes it.
-    for record_id, record in graph.entities.items():
+    for record_id, record in list(graph.entities.items()):
         thing = graph.entities.get(next(iter(ids_of(record.get("primaryTopic"))), ""))
         if thing is None or CATALOG_RECORD not in as_list(record.get("@type")):
             continue
+        snapshot = next(source for source in ids_of(record.get("isBasedOn")) if source.startswith("#snapshot-"))
+        record["isPartOf"] = ref(snapshot)
+        append_ref(graph.entities[snapshot], "hasPart", record_id)
         sources = ids_of(thing.get("isBasedOn"))
         own = [source for source in sources if source.startswith(thing["@id"] + "#")]
         others = [source for source in sources if source not in own]
@@ -3030,7 +3006,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     )
     infrastructure_ids = build_infrastructures(graph, content.get("infrastructures") or {})
     node_ids = build_node(graph, content.get("node") or {})
-    knav_ids = build_knav_tools(graph, content)
+    build_knav_tools(graph, content)
     callout_ids = build_callouts(graph, content["callouts"], all_lenses)
     test_ids = build_tests(graph, content["live"])
     build_providers(graph, content["live"])
@@ -3145,7 +3121,6 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             action_ids
             + ["#ledger", "#sources", "#resources", "#repositories"]
             + catalogue_ids
-            + knav_ids
             + snapshot_ids
             + check_ids
             + callout_ids
@@ -3301,13 +3276,12 @@ def catalogue_record_keys(
         for target in as_list(entity.get("sameAs"))
         if isinstance(target, dict)
     }
-    linked_fers = {
+    fers = {
         "#fer-" + row["id"]
         for snapshot in content.get("snapshots", [])
         for row in snapshot.get("resource", [])
-        if alternate_id(row, "fip-dashboard") and FIP_DASHBOARD + alternate_id(row, "fip-dashboard") in described
+        if not (alternate_id(row, "fip-dashboard") and FIP_DASHBOARD + alternate_id(row, "fip-dashboard") in described)
     }
-    fers = part_ids("#fers") - linked_fers
     sources = part_ids("#sources")
     records: dict[str, list[tuple[str, str]]] = {name: [] for name in API_COLLECTIONS}
     for entity_id, entity in entities.items():
@@ -3339,7 +3313,7 @@ def catalogue_record_keys(
             collection, record = "organizations", organizations[entity_id]
         elif FIP_TERMS + "FAIR-Implementation-Profile" in as_list(entity.get("additionalType")):
             collection = "fips"
-        elif entity_id.startswith("#knav-") and entity_id != "#knav-tools" and not entity.get("sameAs"):
+        elif entity_id.startswith("#knav-") and not entity.get("sameAs"):
             # A catalogue tool no entry of the guide stands for, under the catalogue's identifier for it.
             collection, record = "resources", f"knav.{entity['identifier']}"
         if entity_id == "#implementation-model":
@@ -3586,8 +3560,8 @@ def catalogue_addresses(entities: dict[str, dict[str, Any]], content: dict[str, 
 # provenance and pages name.
 # They are not catalogue records, so they have no address. Any other node without an address is refused.
 CRATE_LOCAL = re.compile(
-    r"#(?:repositories|sources|resources|ledger|path|fers|fips|infrastructures|tests"
-    r"|knav-tools|guide-selection|guide-source|guide-software|(?:snapshot|instrument|help|person)-[A-Za-z0-9._-]+)\Z"
+    r"#(?:repositories|sources|resources|ledger|path|fips|infrastructures|tests"
+    r"|guide-selection|guide-source|guide-software|(?:snapshot|instrument|help|person)-[A-Za-z0-9._-]+)\Z"
 )
 # The properties by which a record holds a part that has no address of its own.
 PART_PROPERTIES = ("hasPart", "potentialAction", "alternateIdentifier", "additionalProperty", "member", "review")
@@ -3634,7 +3608,9 @@ def identity_projection(graph: Graph, content: dict[str, Any]) -> dict[str, Plac
         thing(f"#callout-{callout['id']}", "callouts", callout["id"])
 
     # A registry's record about a thing the Guide describes sits under that thing.
-    topic_records = {registry_record_key(scheme, ""): scheme for scheme in ("nkr", "re3data", "fairsharing", "datacite")}
+    topic_records = {
+        registry_record_key(scheme, ""): scheme for scheme in ("nkr", "re3data", "fairsharing", "datacite")
+    }
     for key, entity in entities.items():
         scheme = next((name for prefix, name in topic_records.items() if key.startswith(prefix)), None)
         if scheme and key not in placed:
@@ -4290,11 +4266,9 @@ def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[st
     """The crate as the page loads it: the core every view needs, and the parts (PART_SCRIPTS) that views load when
     they first need them. A part holds whole entities, or properties of core entities (original passages and source
     bylines); the core and the parts together are the crate. What goes where follows each entity's address under the
-    record base (`base`, inferred from the crate when omitted) and the registries' own lists."""
+    record base (`base`, inferred from the crate when omitted) and the registries' records."""
     graph = crate["@graph"]
     base = base or record_base_of(crate)
-    lists = {entity["@id"]: entity for entity in graph if entity["@id"] in ("#fers", "#knav-tools")}
-    registry = {item for entity in lists.values() for item in ids_of(entity.get("hasPart"))}
 
     def address(entity: dict[str, Any]) -> str:
         return guide_address(entity["@id"], base) or ""
@@ -4308,6 +4282,15 @@ def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[st
     def scope(entity: dict[str, Any]) -> str:
         parts = address(entity).split("#")[0].split("/")
         return parts[1] if len(parts) == 3 else ""
+
+    # The FIP Dashboard's and the KNAV catalogue's records of resources and repositories.
+    registry = {
+        entity["@id"]
+        for entity in graph
+        if CATALOG_RECORD in as_list(entity.get("@type"))
+        and kind(entity) in ("resources", "repositories")
+        and fragment(entity) in ("fip-dashboard", "knav")
+    }
 
     def from_registry(entity: dict[str, Any]) -> bool:
         """A record a registry published, or a part of one: the FIP Dashboard's and the KNAV catalogue's."""

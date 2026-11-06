@@ -92,7 +92,7 @@
 
   /** The KNAV catalogue's records of its tools, and the record of each entry of the guide a record is about. */
   function knavIndex() {
-    const tools = FG.refs(FG.get("#knav-tools"), "hasPart");
+    const tools = FG.registryRecords("resources/knav-dm-tools-catalogue", "knav");
     const standing = new Map(tools.filter((tool) => !FG.foundedBy(tool)).map((tool) => [FG.thingOf(tool), tool]));
     return { tools, standing };
   }
@@ -109,7 +109,7 @@
     const thing = FG.get(FG.thingOf(tool)) || tool;
     const anchor = sourceKey("knav", tool.identifier);
     const holders = knavStations(tool);
-    const catalogue = FG.get("#knav-tools");
+    const catalogue = FG.snapshotOf("resources/knav-dm-tools-catalogue") || {};
     const source = FG.get("resources/knav-dm-tools-catalogue");
     const steps = FG.refs(tool, "lifecycleStage");
     return {
@@ -213,7 +213,7 @@
       });
     }
     /* An enabling resource only the FIP Dashboard knows: the thing its record founds, described by that record. */
-    for (const fer of FG.refs(FG.get("#fers"), "hasPart").filter((record) => FG.foundedBy(record) && !linkedFers.has(record["@id"]) && !repositoryIds.has(FG.thingOf(record)))) {
+    for (const fer of FG.registryRecords("resources/fip-dashboard", "fip-dashboard").filter((record) => FG.foundedBy(record) && !linkedFers.has(record["@id"]) && !repositoryIds.has(FG.thingOf(record)))) {
       const thing = FG.get(FG.thingOf(fer)) || fer;
       const tool = knav.standing.get(FG.thingOf(fer));
       const used = ["dashboard"].concat(tool ? ["knav"] : []);
