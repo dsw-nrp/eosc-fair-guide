@@ -872,7 +872,7 @@ definition = "Souhrnný název tří dokumentů k implementaci myšlenky otevře
 definitionLanguage = "cs"
 
 [[term]]
-id = "data"
+id = "data-text-mining"
 alternateIds = [{ "scheme" = "heslar", "value" = "383" }]
 guideRoute = "glossary"
 label = { cs = "vytěžování dat / textů", en = "Data / Text mining" }
@@ -953,7 +953,7 @@ definition = "Multioborový otevřený digitální repozitář, který umožňuj
 definitionLanguage = "cs"
 
 [[term]]
-id = "data-2"
+id = "data"
 alternateIds = [{ "scheme" = "heslar", "value" = "393" }]
 guideRoute = "glossary"
 label = { cs = "data", en = "Data" }
@@ -1646,7 +1646,7 @@ definition = "*nemá český ekvivalent\n\nFormulář nebo nástroj na evaluaci 
 definitionLanguage = "cs"
 
 [[term]]
-id = "research-infrastructure"
+id = "large-research-infrastructure"
 alternateIds = [{ "scheme" = "heslar", "value" = "79" }]
 guideRoute = "glossary"
 label = { cs = "velká výzkumná infrastruktura", en = "Research Infrastructure" }
@@ -1655,7 +1655,7 @@ definition = "Zařízení, zdroje a související služby, které vědecká obec
 definitionLanguage = "cs"
 
 [[term]]
-id = "research-infrastructure-2"
+id = "research-infrastructure"
 alternateIds = [{ "scheme" = "heslar", "value" = "80" }]
 guideRoute = "glossary"
 label = { cs = "výzkumná infrastruktura", en = "Research Infrastructure" }

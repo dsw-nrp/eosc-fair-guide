@@ -25,7 +25,7 @@ id = "assessment.02"
 lens = "V"
 level = "L0"
 text = { cs = "Zveřejněnou datovou sadu si můžete nechat automaticky zkontrolovat; stačí vložit její PID. Výsledek berte jako zpětnou vazbu: vypovídá hodně o nastavení repozitáře a méně o vaší práci.", en = "You can have a published dataset checked automatically; just enter its PID. Take the result as feedback: it says a lot about the repository's setup and less about your work." }
-action = { label = { cs = "Zkontrolovat datovou sadu", en = "Check your dataset" }, href = "#check-dataset" }
+action = { label = { cs = "Zkontrolovat datovou sadu", en = "Check your dataset" }, href = "checks/dataset" }
 sources = ["A.K5.2.1", "FAIR-CHAMPION.01"]
 
 [[advice]]
@@ -61,7 +61,7 @@ id = "assessment.07"
 lens = "DS"
 level = "L0"
 text = { cs = "Automatická hodnocení používejte jako podklad k rozhovoru s repozitářem, ne jako známku pro výzkumníka.", en = "Use automated assessments as a basis for a conversation with the repository, not as a grade for the researcher." }
-action = [{ label = { cs = "Přehled hodnoticích nástrojů", en = "Overview of assessment tools" }, href = "#resources?station=assessment" }, { label = { cs = "Testy FAIR Champion v katalogu", en = "FAIR Champion tests in the catalogue" }, href = "#tests" }]
+action = [{ label = { cs = "Přehled hodnoticích nástrojů", en = "Overview of assessment tools" }, href = "resources?station=assessment" }, { label = { cs = "Testy FAIR Champion v katalogu", en = "FAIR Champion tests in the catalogue" }, href = "tests" }]
 sources = ["A.K5.2.1", "A.K6"]
 
 [[advice]]
@@ -123,7 +123,7 @@ id = "assessment.15"
 lens = "SR"
 level = "L0"
 text = { cs = "Pravidelně testujte vzorek záznamů svého repozitáře (například ve [[resources/fair-champion|FAIR Champion]]) a výsledky použijte ke zlepšení konfigurace; skóre odráží hlavně repozitář.", en = "Regularly test a sample of your repository's records (for example in [[resources/fair-champion|FAIR Champion]]) and use the results to improve the configuration; the score mainly reflects the repository." }
-action = [{ label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }, href = "#check-maturity" }, { label = { cs = "Připravenost na CoreTrustSeal", en = "CoreTrustSeal readiness" }, href = "#check-coretrustseal" }]
+action = [{ label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }, href = "checks/maturity" }, { label = { cs = "Připravenost na CoreTrustSeal", en = "CoreTrustSeal readiness" }, href = "checks/coretrustseal" }]
 sources = ["A.K5.2.1", "OSTRAILS-CZ-PILOT.01"]
 
 [[advice]]
@@ -189,7 +189,7 @@ id = "assessment.23"
 lens = "K"
 level = "L0"
 text = { cs = "Pro oborové posouzení dat zvažte testy nebo benchmarky konkrétních požadavků komunitních profilů vybraných ve FIP.", en = "For domain assessment of data, consider tests or benchmarks for specific requirements of community profiles selected in the FIP." }
-action = [{ label = { cs = "Zkontrolovat úplnost FIP", en = "Check a FIP's completeness" }, href = "#check-fip" }, { label = { cs = "Katalog FAIR-IMPACT", en = "FAIR-IMPACT catalogue" }, href = "https://catalogue.fair-impact.eu/resources" }]
+action = [{ label = { cs = "Zkontrolovat úplnost FIP", en = "Check a FIP's completeness" }, href = "checks/fip" }, { label = { cs = "Katalog FAIR-IMPACT", en = "FAIR-IMPACT catalogue" }, href = "https://catalogue.fair-impact.eu/resources" }]
 sources = ["A.K2.3.1", "FAIR-IMPACT.01"]
 
 [[advice]]

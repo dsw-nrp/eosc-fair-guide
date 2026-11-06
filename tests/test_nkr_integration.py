@@ -19,12 +19,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from datetime import date
 
 import build_crate
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import catalogue_identity
 import check_content
 import check_duplicates
 import check_health
 import nkr_contract
 import refresh_snapshots
+from addresses import iri  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "nkr"
 
@@ -282,8 +285,8 @@ class NkrRefreshTests(unittest.TestCase):
 class NkrCatalogueTests(unittest.TestCase):
     def test_nkr_facts_bypass_annotations_and_join_through_the_original_address(self):
         for address, expected_id in (
-            ("https://digiarchiv.aiscr.cz/", "#repository-amcr"),
-            ("https://mbdb-data.org/", "#repository-mbdb"),
+            ("https://digiarchiv.aiscr.cz/", iri("repositories/amcr")),
+            ("https://mbdb-data.org/", iri("repositories/mbdb")),
         ):
             with self.subTest(address=address):
                 content = reference_content()
@@ -324,7 +327,7 @@ class NkrCatalogueTests(unittest.TestCase):
                     entry.update(status=status, asOf="2026-11-05")
                 graph = build_crate.Graph()
                 build_crate.build_crate(content, graph)
-                for entity_id in ("#repository-czech-bioimaging", "#resource-datarepo"):
+                for entity_id in (iri("repositories/czech-bioimaging"), iri("repositories/datarepo")):
                     expected = False if status in ("planned", "in-development", "prospective") else None
                     self.assertIs(graph.entities[entity_id].get("acceptsDeposits"), expected)
 
@@ -343,11 +346,11 @@ class NkrCatalogueTests(unittest.TestCase):
                 content["snapshots"][-1]["record"].append(record)
                 graph = build_crate.Graph()
                 build_crate.build_crate(content, graph)
-                self.assertFalse("#repository-nkr-amcr-test" in graph.entities)
-                self.assertEqual(graph.entities["#repository-amcr"]["url"], address)
+                self.assertFalse(iri("repositories/nkr-amcr-test") in graph.entities)
+                self.assertEqual(graph.entities[iri("repositories/amcr")]["url"], address)
                 self.assertIn(
                     build_crate.ref(build_crate.NKR_OBJECTS + "20.500.14818/amcr-test"),
-                    build_crate.as_list(graph.entities["#repository-amcr"]["sameAs"]),
+                    build_crate.as_list(graph.entities[iri("repositories/amcr")]["sameAs"]),
                 )
                 self.assertEqual(
                     check_duplicates.check(content, check_duplicates._accepted(build_crate.ROOT)).errors, []
@@ -403,22 +406,22 @@ class NkrCatalogueTests(unittest.TestCase):
         curated = next(row for row in content["repositories"] if row["id"] == "czech-bioimaging")
         crate = build_crate.build_crate(content)
         entities = {row["@id"]: row for row in crate["@graph"]}
-        bird = entities["#repository-czech-bioimaging"]
+        bird = entities[iri("repositories/czech-bioimaging")]
         self.assertEqual(bird["name"], build_crate.text({"cs": "CzBIRD", "en": "CzBIRD"}))
         self.assertEqual(bird["url"], curated["url"])
         self.assertEqual(
             build_crate.as_list(bird["repositoryFunction"]),
-            build_crate.refs(["#rfunction-" + value for value in curated["functions"]]),
+            build_crate.refs([iri("vocabularies/repository-functions/") + value for value in curated["functions"]]),
         )
-        self.assertEqual(bird["publisher"], build_crate.ref("#org-czech-bioimaging"))
-        self.assertEqual(bird["serviceStatus"], build_crate.ref("#status-in-development"))
+        self.assertEqual(bird["publisher"], build_crate.ref(iri("organizations/czech-bioimaging")))
+        self.assertEqual(bird["serviceStatus"], build_crate.ref(iri("vocabularies/statuses/in-development")))
         self.assertEqual(bird["statusAsOf"], "2026-11-01")
         self.assertEqual(
-            entities["#resource-datarepo"]["name"],
+            entities[iri("repositories/datarepo")]["name"],
             build_crate.text({"cs": "Datový catch-all repozitář", "en": "Data Catch-all Repository"}),
         )
         self.assertEqual(
-            entities["#repository-herbarium"]["name"],
+            entities[iri("repositories/herbarium")]["name"],
             build_crate.text({"cs": "Repozitář herbářových sbírek", "en": "Herbarium Collections Repository"}),
         )
 
@@ -433,9 +436,9 @@ class NkrCatalogueTests(unittest.TestCase):
                 row["status"] = native
                 graph = build_crate.Graph()
                 build_crate.build_crate(content, graph)
-                bird = graph.entities["#repository-czech-bioimaging"]
+                bird = graph.entities[iri("repositories/czech-bioimaging")]
                 if expected:
-                    self.assertEqual(bird["serviceStatus"], build_crate.ref("#status-" + expected))
+                    self.assertEqual(bird["serviceStatus"], build_crate.ref(iri("vocabularies/statuses/") + expected))
                     self.assertEqual(bird["statusAsOf"], "2026-11-01")
                     self.assertEqual(
                         bird.get("acceptsDeposits"),
@@ -445,12 +448,12 @@ class NkrCatalogueTests(unittest.TestCase):
                         else None,
                     )
                 else:
-                    self.assertEqual(bird["serviceStatus"], build_crate.ref("#status-pilot"))
+                    self.assertEqual(bird["serviceStatus"], build_crate.ref(iri("vocabularies/statuses/pilot")))
                     self.assertNotIn(build_crate.ref("#snapshot-nkr"), build_crate.as_list(bird["isBasedOn"]))
                     groups = check_health.integrity(content, build_crate.ROOT, date(2026, 11, 2), graph)
                     finding = next(group for group in groups if group["type"] == "NKR maintainer findings")["items"][0]
                     self.assertEqual(finding["id"], "20.500.14818/srhtp4ek")
-                    self.assertIn("#repository-czech-bioimaging", " ".join(finding["notes"]))
+                    self.assertIn(iri("repositories/czech-bioimaging"), " ".join(finding["notes"]))
 
     def test_retirement_filters_use_the_shared_mapping(self):
         content = reference_content()
@@ -462,7 +465,7 @@ class NkrCatalogueTests(unittest.TestCase):
             build_crate.build_crate(content, graph)
             self.assertNotIn(
                 build_crate.ref("#snapshot-nkr"),
-                build_crate.as_list(graph.entities["#repository-czech-bioimaging"]["isBasedOn"]),
+                build_crate.as_list(graph.entities[iri("repositories/czech-bioimaging")]["isBasedOn"]),
             )
             self.assertFalse(any(entry.name.endswith("srhtp4ek") for entry in check_duplicates.entries(content)))
             self.assertFalse(
@@ -489,8 +492,8 @@ class NkrCatalogueTests(unittest.TestCase):
                 content["snapshots"][-1]["record"].append(record)
                 graph = build_crate.Graph()
                 build_crate.build_crate(content, graph)
-                self.assertEqual(graph.entities["#repository-amcr"], before.entities["#repository-amcr"])
-                self.assertFalse("#repository-amcr-retired" in graph.entities)
+                self.assertEqual(graph.entities[iri("repositories/amcr")], before.entities[iri("repositories/amcr")])
+                self.assertFalse(iri("repositories/amcr-retired") in graph.entities)
                 groups = check_health.integrity(content, build_crate.ROOT, date(2026, 11, 5), graph)
                 finding = next(
                     item
@@ -499,7 +502,7 @@ class NkrCatalogueTests(unittest.TestCase):
                     for item in group["items"]
                     if item["id"] == "20.500.14818/amcr-retired"
                 )
-                self.assertIn("#repository-amcr", " ".join(finding["notes"]))
+                self.assertIn(iri("repositories/amcr"), " ".join(finding["notes"]))
 
     def test_retirement_reports_every_address_match(self):
         content = reference_content()
@@ -526,7 +529,7 @@ class NkrCatalogueTests(unittest.TestCase):
             for item in group["items"]
             if item["id"] == "20.500.14818/retired-keys"
         )
-        for entity_id in ("#repository-amcr", "#repository-other-amcr"):
+        for entity_id in (iri("repositories/amcr"), iri("repositories/other-amcr")):
             self.assertIn(entity_id, " ".join(finding["notes"]))
 
     def test_profile_accepts_only_not_yet_public_nkr_repositories_without_addresses(self):
@@ -540,13 +543,13 @@ class NkrCatalogueTests(unittest.TestCase):
         for shape in build_crate.profile_shapes(build_crate.ROOT, base).values():
             shapes.parse(data=shape, format="turtle", publicID=base)
         self.assertTrue(validate(data, shacl_graph=shapes, advanced=True)[0])
-        node = URIRef(base + "#repository-czbird")
+        node = URIRef(iri("repositories/czbird"))
         status = URIRef(base + "terms#serviceStatus")
-        data.set((node, status, URIRef(base + "#status-operational")))
+        data.set((node, status, URIRef(iri("vocabularies/statuses/operational"))))
         conforms, _, report = validate(data, shacl_graph=shapes, advanced=True)
         self.assertFalse(conforms)
-        self.assertIn("repository-czbird", report)
-        data.set((node, status, URIRef(base + "#status-in-development")))
+        self.assertIn("repositories/czbird", report)
+        data.set((node, status, URIRef(iri("vocabularies/statuses/in-development"))))
         data.remove((node, URIRef("http://schema.org/sameAs"), None))
         self.assertFalse(validate(data, shacl_graph=shapes, advanced=True)[0])
 
@@ -565,8 +568,8 @@ class NkrCatalogueTests(unittest.TestCase):
             )
         ]
         self.assertEqual(len(joined), 5)
-        self.assertIn("#repository-herbarium", entities)
-        self.assertIn(build_crate.ref("#snapshot-nkr"), entities["#resource-datarepo"]["isBasedOn"])
+        self.assertIn(iri("repositories/herbarium"), entities)
+        self.assertIn(build_crate.ref("#snapshot-nkr"), entities[iri("repositories/datarepo")]["isBasedOn"])
 
     def test_an_nkr_address_reaching_two_components_is_refused(self):
         content = reference_content()
@@ -590,7 +593,7 @@ class NkrCatalogueTests(unittest.TestCase):
         content = reference_content()
         before = build_crate.Graph()
         build_crate.build_crate(content, before)
-        original = copy.deepcopy(before.entities["#fer-cesnet-invenio"])
+        original = copy.deepcopy(before.entities[iri("repositories/cesnet-invenio")])
         record = copy.deepcopy(content["snapshots"][-1]["record"][0])
         record.update(
             id="nkr-cesnet",
@@ -610,15 +613,15 @@ class NkrCatalogueTests(unittest.TestCase):
             if build_crate.bare_url(graph.entities[link["@id"]].get("url")) == build_crate.bare_url(record["mainUrl"])
         ]
         self.assertEqual(matching, [original["@id"]])
-        self.assertNotIn("#repository-nkr-cesnet", graph.entities)
+        self.assertNotIn(iri("repositories/nkr-cesnet"), graph.entities)
         entity = graph.entities[original["@id"]]
-        for prop in ("identifier", "catalogueAddress", "provider", "review", "repositoryFunction"):
+        for prop in ("identifier", "provider", "review", "repositoryFunction"):
             self.assertEqual(entity[prop], original[prop], prop)
         self.assertEqual(
             entity["name"], build_crate.text({"cs": record["repositoryName"], "en": record["repositoryName"]})
         )
-        self.assertEqual(entity["repositoryKind"], build_crate.ref("#rkind-general"))
-        self.assertEqual(entity["serviceStatus"], build_crate.ref("#status-pilot"))
+        self.assertEqual(entity["repositoryKind"], build_crate.ref(iri("vocabularies/repository-kinds/general")))
+        self.assertEqual(entity["serviceStatus"], build_crate.ref(iri("vocabularies/statuses/pilot")))
         self.assertEqual(entity["statusAsOf"], "2026-11-01")
         self.assertIs(entity["acceptsDeposits"], False)
         for source in ("#snapshot-fip-dashboard", "#snapshot-nkr"):
@@ -637,8 +640,11 @@ class NkrCatalogueTests(unittest.TestCase):
         record["mainUrl"] = "https://nusl.cz/"
         graph = build_crate.Graph()
         build_crate.build_crate(content, graph)
-        entity = graph.entities["#fer-nusl"]
-        self.assertEqual(entity["repositoryFunction"], build_crate.refs(["#rfunction-deposit-publications"]))
+        entity = graph.entities[iri("repositories/nusl")]
+        self.assertEqual(
+            entity["repositoryFunction"],
+            build_crate.refs([iri("vocabularies/repository-functions/deposit-publications")]),
+        )
         self.assertIn(build_crate.ref("#snapshot-nkr"), build_crate.as_list(entity["isBasedOn"]))
 
     def test_nkr_handle_and_dashboard_address_reaching_different_entries_are_refused(self):
@@ -665,8 +671,8 @@ class NkrCatalogueTests(unittest.TestCase):
         graph = build_crate.Graph()
         build_crate.build_crate(content, graph)
         ids = [link["@id"] for link in build_crate.as_list(graph.entities["#repositories"]["hasPart"])]
-        self.assertIn("#repository-other-cesnet", ids)
-        self.assertIn("#fer-cesnet-invenio", ids)
+        self.assertIn(iri("repositories/other-cesnet"), ids)
+        self.assertIn(iri("repositories/cesnet-invenio"), ids)
         record = content["snapshots"][-1]["record"][0]
         record["mainUrl"] = "https://data.narodni-repozitar.cz/"
         with self.assertRaises(build_crate.ContentError) as raised:

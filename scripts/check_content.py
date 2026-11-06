@@ -43,7 +43,7 @@ from build_crate import (  # noqa: E402
     reference_targets,
     vocabulary_errors,
 )
-from catalogue_identity import address_hint, alternate_id
+from catalogue_identity import address_hint, alternate_id, parse_route
 from corrections import validate_fields
 from registry_identifiers import DATACITE_REPOSITORY, FAIRSHARING_DOI, canonical_fairsharing_doi
 
@@ -224,7 +224,7 @@ def check_texts(report: Report, content: dict[str, Any]) -> None:
 
 
 def topic_target_error(value: str, topics: dict[str, dict[str, set[str]]]) -> str | None:
-    """Why a topic target such as `#resources?type=standard,vocabulary` is invalid, or None when it is valid."""
+    """Why a topic target such as `resources?type=standard,vocabulary` is invalid, or None when it is valid."""
     base, _, query = value.partition("?")
     facets = topics.get(base)
     if facets is None:
@@ -251,16 +251,17 @@ def check_links(
                 continue
             if key == "url" and not (value.startswith("https://") or value.startswith("mailto:")):
                 report.error(where, f"link must use HTTPS: {value}")
-            elif key == "href":
-                if value.startswith("#") and "?" in value:
+            elif key == "href" and not value.startswith("https://"):
+                # An in-page target is a record's address or a kind's list, which a topic may narrow.
+                if "?" in value:
                     error = topic_target_error(value, topics or {})
                     if error:
                         report.error(where, f"topic target '{value}': {error}")
-                elif value.startswith("#"):
-                    if value not in targets:
-                        report.error(where, f"in-page target '{value}' does not exist")
-                elif not value.startswith("https://"):
-                    report.error(where, f"link must use HTTPS or an in-page target: {value}")
+                elif value not in targets:
+                    report.error(
+                        where,
+                        f"link must use HTTPS or name an in-page target, a record's address or a kind's list: {value}",
+                    )
             elif key in ("origin", "endpoint") and not value.startswith("https://"):
                 report.error(where, f"{key} must use HTTPS: {value}")
         for path, key, value in walk(data, name):
@@ -1992,11 +1993,16 @@ def vocabularies(content: dict[str, Any]) -> dict[str, Any]:
 
 
 def in_page_targets(content: dict[str, Any]) -> set[str]:
-    targets = {"#path", "#ledger", "#repositories", "#resources", "#tests"}
-    targets |= {f"#station-{data['station']['id']}" for data in content["stations"]}
-    targets |= {f"#check-{data['check']['id']}" for data in content["checks"]}
-    targets |= {f"#page-{page['id']}" for page in content["pages"]}
-    targets |= {f"#resource-{resource['id']}" for resource in content["resources"]}
+    """What a link may open in the page: the lists of the kinds the catalogue shows, and stations, checks, pages and
+    curated resources by their addresses."""
+    targets = {"stations", "clauses", "repositories", "resources", "tests"}
+    targets |= {f"stations/{data['station']['id']}" for data in content["stations"]}
+    targets |= {f"checks/{data['check']['id']}" for data in content["checks"]}
+    targets |= {f"pages/{page['id']}" for page in content["pages"]}
+    targets |= {
+        "/".join((parse_route(resource.get("guideRoute") or "resources")[0], resource["id"]))
+        for resource in content["resources"]
+    }
     return targets
 
 
@@ -2004,8 +2010,8 @@ def topic_targets(vocab: dict[str, Any]) -> dict[str, dict[str, set[str]]]:
     """The catalogue kinds a link may open narrowed to a topic, with the facets and values each accepts."""
     stations = set(vocab["stations"])
     return {
-        "#resources": {"type": set(vocab["resource_types"]), "station": stations},
-        "#repositories": {"function": set(vocab["repository_functions"]), "station": stations},
+        "resources": {"type": set(vocab["resource_types"]), "station": stations},
+        "repositories": {"function": set(vocab["repository_functions"]), "station": stations},
     }
 
 

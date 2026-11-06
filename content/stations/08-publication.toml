@@ -24,7 +24,7 @@ id = "publication.02"
 lens = "V"
 level = "L0"
 text = { cs = "Při zveřejnění repozitář datové sadě přidělí [[glossary/persistent-identifier|trvalý identifikátor]] (PID), nejčastěji DOI, jinde třeba [[resources/handle|Handle]]. Odkaz pak funguje i po letech a data lze citovat.", en = "At publication, the repository assigns the dataset a [[glossary/persistent-identifier|persistent identifier]] (PID), most often a DOI, elsewhere for example a [[resources/handle|Handle]]. The link then works for years, and the data can be cited." }
-action = [{ label = { cs = "Co zkontrolovat před zveřejněním", en = "What to check before publishing" }, href = "#check-dataset" }, { label = { cs = "Centrum PID", en = "PID Centre" }, href = "https://identifikatory.cz/cs/" }]
+action = [{ label = { cs = "Co zkontrolovat před zveřejněním", en = "What to check before publishing" }, href = "checks/dataset" }, { label = { cs = "Centrum PID", en = "PID Centre" }, href = "https://identifikatory.cz/cs/" }]
 sources = ["A.F1.R1", "A.F1.N2"]
 
 [[advice]]

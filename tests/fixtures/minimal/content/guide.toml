@@ -8,6 +8,8 @@ name = { cs = "Test", en = "Test" }
 description = { cs = "Testovací obsah.", en = "Test content." }
 url = "https://example.org/guide"
 baseUrl = "https://example.org/guide/"
+# The Guide's own namespace: records and terms keep it wherever the fixture is published.
+namespace = "https://w3id.org/eosc-cz/fair-guide/"
 profileVersion = "0.1"
 freshnessDays = 180
 editors = ["tester"]

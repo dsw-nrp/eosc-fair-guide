@@ -16,7 +16,7 @@ id = "metadata.01"
 lens = "V"
 level = "L0"
 text = { cs = "Popište data tak, aby jim porozuměl i někdo z jiného týmu za deset let: název, abstrakt, autoři s [[resources/orcid|ORCID]], instituce s [[resources/ror|ROR]], způsob vzniku dat, odborná hesla a klíčová slova.", en = "Describe the data so that someone from another team can understand them in ten years: title, abstract, authors with [[resources/orcid|ORCID]], institutions with [[resources/ror|ROR]], how the data were made, subject terms and keywords." }
-action = [{ label = { cs = "Co připravit před vyplněním formuláře", en = "What to prepare before filling in the form" }, href = "#check-dataset" }, { label = { cs = "Šablony README", en = "README templates" }, href = "https://github.com/Czech-Data-Steward-Community/README_FILES_EXAMPLES" }]
+action = [{ label = { cs = "Co připravit před vyplněním formuláře", en = "What to prepare before filling in the form" }, href = "checks/dataset" }, { label = { cs = "Šablony README", en = "README templates" }, href = "https://github.com/Czech-Data-Steward-Community/README_FILES_EXAMPLES" }]
 sources = ["A.F2.N2", "A.I2.R2", "A.R1.2.X1"]
 
 [[advice]]
@@ -74,7 +74,7 @@ id = "metadata.09"
 lens = "DS"
 level = "L0"
 text = { cs = "Pomozte s výběrem slovníků a se strukturou popisu. [[resources/ccmm|CCMM]] je společné minimum, oborový profil přidává hloubku.", en = "Help with choosing vocabularies and structuring the description. [[resources/ccmm|CCMM]] is the common minimum; a domain profile adds depth." }
-action = [{ label = { cs = "CCMM na ccmm.cz", en = "CCMM at ccmm.cz" }, href = "https://www.ccmm.cz" }, { label = { cs = "Připravenost metadat na CDIF", en = "Metadata readiness for CDIF" }, href = "#check-cdif" }]
+action = [{ label = { cs = "CCMM na ccmm.cz", en = "CCMM at ccmm.cz" }, href = "https://www.ccmm.cz" }, { label = { cs = "Připravenost metadat na CDIF", en = "Metadata readiness for CDIF" }, href = "checks/cdif" }]
 sources = ["A.F2.N1", "A.F2.X1"]
 
 [[advice]]
@@ -117,7 +117,7 @@ id = "metadata.15"
 lens = "SR"
 level = "L0"
 text = { cs = "Formulář repozitáře má pokrýt povinné prvky [[resources/ccmm|CCMM]] a nabídnout oborový profil; metadata je třeba harmonizovat. Obojí vyžadují podmínky NRP.", en = "The repository's form should cover the mandatory [[resources/ccmm|CCMM]] elements and offer a domain profile; metadata need to be harmonised. The NRP conditions require both." }
-action = [{ label = { cs = "CCMM: verze a vydání", en = "CCMM: versions and releases" }, href = "https://github.com/techlib/CCMM/releases" }, { label = { cs = "Připravenost metadat na CDIF", en = "Metadata readiness for CDIF" }, href = "#check-cdif" }]
+action = [{ label = { cs = "CCMM: verze a vydání", en = "CCMM: versions and releases" }, href = "https://github.com/techlib/CCMM/releases" }, { label = { cs = "Připravenost metadat na CDIF", en = "Metadata readiness for CDIF" }, href = "checks/cdif" }]
 sources = ["NRP.M12", "NRP.M8", "A.F2.R1"]
 
 [[advice]]

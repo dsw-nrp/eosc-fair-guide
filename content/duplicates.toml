@@ -3,7 +3,7 @@
 # other one, and an accepted group that no longer occurs.
 
 [[accepted]]
-entries = ["term:research-infrastructure", "term:research-infrastructure-2"]
+entries = ["term:large-research-infrastructure", "term:research-infrastructure"]
 reason = "Heslář gives two concepts, a large research infrastructure and a research infrastructure, the same English label."
 
 [[accepted]]

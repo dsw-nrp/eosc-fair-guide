@@ -120,7 +120,7 @@ url = "https://www.dia.gov.cz/"
 scope = "national"
 
 [[organization]]
-id = "dsw-2"
+id = "dsw"
 alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ds-wizard" }]
 guideRoute = "organizations"
 name = { cs = "Data Stewardship Wizard", en = "Data Stewardship Wizard" }
@@ -138,7 +138,7 @@ url = "https://www.e-infra.cz/"
 scope = "national"
 
 [[organization]]
-id = "elixir-cz-2"
+id = "elixir-cz"
 alternateIds = [{ "scheme" = "fip-dashboard", "value" = "elixir-cz" }]
 guideRoute = "organizations"
 name = { cs = "ELIXIR CZ", en = "ELIXIR CZ" }

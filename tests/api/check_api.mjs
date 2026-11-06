@@ -32,9 +32,9 @@ if (!existsSync(join(site, "openapi.json"))) {
 const openapi = read(join(site, "openapi.json"));
 const crate = read(join(site, "ro-crate-metadata.json"));
 const crateIds = new Set(crate["@graph"].map((entity) => entity["@id"]));
-// The address the API was built for, read from the crate's own vocabulary (<address>terms#), which no file of the
-// API may name.
-const sitePrefix = Object.values(crate["@context"][1]).find((iri) => String(iri).includes("terms#")).split("terms#")[0];
+// The address the API was built for, read from the linkset's anchor, which no file of the API may name: the site may
+// move. A record's persistent IRI under the Guide's namespace is its identity, not an address, and may appear.
+const sitePrefix = read(join(site, "linkset.json")).linkset[0].anchor;
 const files = [];
 (function walk(dir) {
   for (const name of readdirSync(dir)) {

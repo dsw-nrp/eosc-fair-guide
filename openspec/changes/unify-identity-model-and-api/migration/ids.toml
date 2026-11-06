@@ -1,0 +1,57 @@
+# Reviewed reassignments of Guide-owned identifiers in generated snapshots (design.md, decisions 3 and 17). No
+# identifier keeps a collision counter, and an identifier names what its record describes. Each row is found by its
+# source's own identifier, so a reassignment cannot reach another record. Applied once by migrate.py; the refresh
+# then carries the new identifiers as it carries any local identifier.
+
+# Heslář 383 is data and text mining, which received the bare slug `data` from its label "Data / Text mining";
+# Heslář 393, data itself, received the counter. The large research infrastructure is Heslář 79, the research
+# infrastructure 80.
+[[reassign]]
+file = "content/glossary.toml"
+scheme = "heslar"
+value = "383"
+id = "data-text-mining"
+
+[[reassign]]
+file = "content/glossary.toml"
+scheme = "heslar"
+value = "393"
+id = "data"
+
+[[reassign]]
+file = "content/glossary.toml"
+scheme = "heslar"
+value = "79"
+id = "large-research-infrastructure"
+
+[[reassign]]
+file = "content/glossary.toml"
+scheme = "heslar"
+value = "80"
+id = "research-infrastructure"
+
+# FIP Dashboard organisations that found their own record: their counters only avoided identifiers that records of
+# other kinds hold, and an address is unique within its kind.
+[[reassign]]
+file = "content/snapshots/fip-dashboard.toml"
+scheme = "fip-dashboard"
+value = "ds-wizard"
+id = "dsw"
+
+[[reassign]]
+file = "content/snapshots/fip-dashboard.toml"
+scheme = "fip-dashboard"
+value = "elixir-cz"
+id = "elixir-cz"
+
+# Entries that name a reassigned record by its identifier, as quoted strings. They are renamed together, in the run
+# whose reassignments change a snapshot, so names that swap are renamed once.
+[[rename]]
+file = "content/duplicates.toml"
+old = "term:research-infrastructure"
+new = "term:large-research-infrastructure"
+
+[[rename]]
+file = "content/duplicates.toml"
+old = "term:research-infrastructure-2"
+new = "term:research-infrastructure"

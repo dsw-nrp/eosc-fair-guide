@@ -6,12 +6,17 @@ Usage: python openspec/changes/unify-identity-model-and-api/migration/migrate.py
 Rewrites the authored TOML files under content/; the generated snapshots are renormalised by their own generator,
 ``scripts/refresh_snapshots.py --renormalise --routes routes.toml``. Steps:
 
+- identifiers: the reviewed reassignments in ``ids.toml`` give generated snapshot rows identifiers without collision
+  counters, each row found by its source's own identifier, and rename the entries that name those rows. This is the
+  one step that edits a generated snapshot, because a reassignment is an editorial decision no refresh can make;
 - routes: stored ``guideRoute`` values, through the reviewed ``[routes]`` table in ``routes.toml``;
 - references: every prose reference ``[[target|phrase]]`` to its one form, ``[[<kind>/<id>|phrase]]``. The word
   forms (``term:``, ``page:``, ``station:``, ``clause:``, ``infrastructure:``), the code addresses (``res/srv/``,
   ``term/``, ``step/`` and the rest) and bare resource or source IDs all name the same record by its address; a bare
   ID takes the kind its row's route freezes. A kind's list (``[[infrastructures|...]]``) and the Guide's profile
   (``[[profile|...]]``) keep their names;
+- in-page links: an ``href`` that opened an entity by its build key (``#station-plan``) or a crate-local list
+  (``#repositories?function=...``) names the record by its address (``stations/plan``) or the list by its kind;
 - link reviews: each reviewed missing-link decision names its target by address, and a decision that was current
   before the migration stays current: its text hash follows the field, whose only change is the reference markup.
 
@@ -37,6 +42,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from build_crate import load_content  # noqa: E402
 from catalogue_identity import KINDS, parse_route, translate_routes  # noqa: E402
 from check_content import walk  # noqa: E402
 
@@ -115,11 +121,40 @@ def migrate_references(text: str, bare: dict[str, str]) -> str:
     return REFERENCE.sub(lambda match: f"[[{reference_address(match['id'], bare)}|{match['phrase']}]]", text)
 
 
+HREF = re.compile(r'(href = )"#([^"?]*)(\?[^"]*)?"')
+# The crate-local lists an in-page link opened and the kind whose list it is now.
+LIST_KINDS = {
+    "path": "stations",
+    "ledger": "clauses",
+    "repositories": "repositories",
+    "resources": "resources",
+    "tests": "tests",
+}
+TARGET_KINDS = {"station": "stations", "check": "checks", "page": "pages"}
+
+
+def migrate_hrefs(text: str, bare: dict[str, str]) -> str:
+    """An in-page link names a record by its address and a list by its kind, keeping any topic it narrows to."""
+
+    def replace(match: re.Match[str]) -> str:
+        target, query = match[2], match[3] or ""
+        if target in LIST_KINDS:
+            new = LIST_KINDS[target]
+        else:
+            prefix, _, identifier = target.partition("-")
+            if prefix == "resource":
+                new = f"{bare.get(identifier, 'resources')}/{identifier}"
+            elif prefix in TARGET_KINDS:
+                new = f"{TARGET_KINDS[prefix]}/{identifier}"
+            else:
+                raise ValueError(f"unknown in-page target '#{target}'")
+        return f'{match[1]}"{new}{query}"'
+
+    return HREF.sub(replace, text)
+
+
 def field_texts(root: Path) -> dict[str, str]:
     """Every prose field the missing-link review hashes, by its review path."""
-    sys.path.insert(0, str(root / "scripts"))
-    from build_crate import load_content  # noqa: PLC0415
-
     content = load_content(root / "content")
     return {
         f"{path}.{key}": value
@@ -151,13 +186,58 @@ def migrate_reviews(text: str, before: dict[str, str], after: dict[str, str]) ->
     return "".join(blocks)
 
 
+IDS = tomllib.loads((HERE / "ids.toml").read_text(encoding="utf-8"))
+ROW = re.compile(r"(?m)(?=^\[\[[A-Za-z][A-Za-z0-9_.-]*\]\]\s*$)")
+
+
+def reassign(work: Path) -> bool:
+    """Give each reviewed snapshot row its new identifier, found by the source's own identifier; True if any changed."""
+    changed = False
+    for row in IDS.get("reassign", []):
+        path = work / row["file"]
+        if not path.exists():
+            continue  # a content fixture without that snapshot
+        blocks = ROW.split(path.read_text(encoding="utf-8"))
+        found = 0
+        for index, block in enumerate(blocks):
+            parsed = tomllib.loads(block) if block.startswith("[[") else {}
+            rows = [item for value in parsed.values() if isinstance(value, list) for item in value]
+            if not any(
+                {"scheme": row["scheme"], "value": row["value"]} in item.get("alternateIds", []) for item in rows
+            ):
+                continue
+            found += 1
+            new = re.sub(r'(?m)^id = "[^"]*"$', f"id = {json.dumps(row['id'])}", block, count=1)
+            changed |= new != block
+            blocks[index] = new
+        if found != 1:
+            raise ValueError(f"{row['file']}: {found} rows carry {row['scheme']} {row['value']}; expected one")
+        path.write_text("".join(blocks), encoding="utf-8", newline="\n")
+    return changed
+
+
+def rename(work: Path) -> None:
+    """Rename the quoted entry names of reassigned records together, so names that swap are renamed once."""
+    by_file: dict[str, dict[str, str]] = {}
+    for row in IDS.get("rename", []):
+        by_file.setdefault(row["file"], {})[json.dumps(row["old"])] = json.dumps(row["new"])
+    for name, names in by_file.items():
+        path = work / name
+        pattern = re.compile("|".join(re.escape(old) for old in sorted(names, key=len, reverse=True)))
+        path.write_text(
+            pattern.sub(lambda match, names=names: names[match[0]], path.read_text(encoding="utf-8")), encoding="utf-8"
+        )
+
+
 def run(work: Path) -> None:
     """Apply every step to the content copy under `work`."""
+    if reassign(work):
+        rename(work)
     before = field_texts(work)
     bare = bare_kinds(work)
     for path in authored_files(work):
         text = path.read_text(encoding="utf-8")
-        text = migrate_references(translate_routes(text, ROUTES), bare)
+        text = migrate_hrefs(migrate_references(translate_routes(text, ROUTES), bare), bare)
         tomllib.loads(text)  # every result stays valid TOML
         path.write_text(text, encoding="utf-8", newline="\n")
     reviews = work / "content" / "link-reviews.toml"
@@ -169,7 +249,6 @@ def run(work: Path) -> None:
 
 def copy_checkout(root: Path, work: Path) -> None:
     shutil.copytree(root / "content", work / "content")
-    shutil.copytree(root / "scripts", work / "scripts", ignore=shutil.ignore_patterns("__pycache__"))
     registry = root / ".github" / "source-registry.json"
     if registry.exists():
         (work / ".github").mkdir()

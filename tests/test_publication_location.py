@@ -105,12 +105,17 @@ class PublicationLocationTests(unittest.TestCase):
                         self.assertEqual(identity["vocabulary_base"], semantic + "terms#")
                         self.assertEqual(content["guide"]["guide"]["pageUrl"], location)
                         iris = {item["@id"] for item in crate["@graph"]}
-                        owned = {iri for iri in iris if iri.startswith(semantic)}
+                        records = {iri for iri in iris if iri.startswith(semantic + "id/")}
+                        owned = {iri for iri in iris if iri.startswith(semantic)} - records
                         # Every Guide term plus the profile: the probe exercises the actual semantic IRIs, whatever
                         # their number in this content tree.
                         expected = {semantic + "terms#" + term for term in build_crate.GUIDE_TERMS}
                         self.assertEqual(owned, expected | {semantic + "profile/0.1"})
-                        other = {iri for iri in iris if not iri.startswith(semantic)}
+                        # The records move with the namespace and keep their addresses; everything else stays.
+                        logical = {iri.removeprefix(semantic + "id/") for iri in records}
+                        other = {iri for iri in iris if not iri.startswith(semantic)} | {
+                            ("address", a) for a in logical
+                        }
                         if external is None:
                             external = other
                         self.assertEqual(other, external, "logical and external identities stay unchanged")

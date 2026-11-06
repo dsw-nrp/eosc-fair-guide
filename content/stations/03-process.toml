@@ -24,7 +24,7 @@ id = "process.02"
 lens = "V"
 level = "L0"
 text = { cs = "Než data vyčistíte nebo převedete, uložte původní soubory beze změny a každý krok zpracování zapisujte do skriptu nebo do deníku.", en = "Before you clean or convert data, keep the original files unchanged and write every processing step into a script or a notebook." }
-action = [{ label = { cs = "Záznam postupu a rozhodnutí", en = "Recording methods and decisions" }, href = "#page-provenance" }, { label = { cs = "Laboratorní a terénní deníky", en = "Laboratory and field notebooks" }, href = "#page-notebooks" }]
+action = [{ label = { cs = "Záznam postupu a rozhodnutí", en = "Recording methods and decisions" }, href = "pages/provenance" }, { label = { cs = "Laboratorní a terénní deníky", en = "Laboratory and field notebooks" }, href = "pages/notebooks" }]
 sources = ["RDMKIT.process.01", "MBDB-2026.01"]
 
 [[advice]]

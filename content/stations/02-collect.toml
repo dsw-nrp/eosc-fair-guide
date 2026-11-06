@@ -24,7 +24,7 @@ id = "collect.02"
 lens = "V"
 level = "L0"
 text = { cs = "Už během výzkumu data průběžně organizujte a dokumentujte: jednotné názvy souborů, verze, README a záznam postupu. Při zveřejnění vám to ušetří spoustu práce.", en = "Organise and document your data as you go: consistent file names, versions, a README and a record of how the data were made. It will save you a lot of work when you publish." }
-action = [{ label = { cs = "Šablony README", en = "README templates" }, href = "https://github.com/Czech-Data-Steward-Community/README_FILES_EXAMPLES" }, { label = { cs = "Laboratorní a terénní deníky", en = "Laboratory and field notebooks" }, href = "#page-notebooks" }]
+action = [{ label = { cs = "Šablony README", en = "README templates" }, href = "https://github.com/Czech-Data-Steward-Community/README_FILES_EXAMPLES" }, { label = { cs = "Laboratorní a terénní deníky", en = "Laboratory and field notebooks" }, href = "pages/notebooks" }]
 sources = ["CESSDA-DMEG.01", "A.R1.2.X1"]
 
 [[advice]]
@@ -78,7 +78,7 @@ id = "collect.09"
 lens = "DS"
 level = "L0"
 text = { cs = "Pomozte nastavit postupy dřív, než data vzniknou: úložiště, pojmenování, verzování a dokumentaci.", en = "Help set up practices before the data exist: storage, naming, versioning and documentation." }
-action = [{ label = { cs = "Úložiště a výpočty v e-INFRA CZ", en = "Storage and computing in e-INFRA CZ" }, href = "https://docs.e-infra.cz/" }, { label = { cs = "AI v e-INFRA CZ", en = "AI in e-INFRA CZ" }, href = "#page-ai" }]
+action = [{ label = { cs = "Úložiště a výpočty v e-INFRA CZ", en = "Storage and computing in e-INFRA CZ" }, href = "https://docs.e-infra.cz/" }, { label = { cs = "AI v e-INFRA CZ", en = "AI in e-INFRA CZ" }, href = "pages/ai" }]
 sources = ["EINFRA-DOCS.01", "CESSDA-DMEG.01"]
 
 [[advice]]

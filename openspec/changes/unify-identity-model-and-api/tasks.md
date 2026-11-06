@@ -19,7 +19,7 @@ complete only when `python scripts/check_all.py` passes in full.
   repository kind through `NKR_KIND` (design.md decision 2). Verify: `tests/test_catalogue_identity.py` covers every
   kind and scope, fails on a classification segment and on an unknown kind, and gives a new disciplinary NKR record
   `repositories/<id>`.
-- [ ] 2.2 Set `namespace = "https://w3id.org/eosc-cz/fair-guide/"` in `content/guide.toml`, and change
+- [x] 2.2 Set `namespace = "https://w3id.org/eosc-cz/fair-guide/"` in `content/guide.toml`, and change
   `scripts/build_crate.py` so that:
   - every Guide thing gets `<ns>id/<address>` as its `@id`;
   - parts get fragments under their thing;

@@ -20,10 +20,12 @@ url = "https://github.com/dsw-nrp/eosc-fair-guide"
 # the actual Pages configuration before validation and sets FAIR_GUIDE_BASE_URL. Runtime HTTP links follow their
 # own window.
 baseUrl = "https://dsw-nrp.github.io/eosc-fair-guide/"
-# The namespace of the Guide's own vocabulary (<namespace>terms#) and RO-Crate profile
-# (<namespace>profile/<profileVersion>). It does not follow the publication location: changing it renames every
-# Guide term, so it is a reviewed breaking change. Releases up to 1.0.0-alpha.3 used https://fair.eosc.cz/.
-namespace = "https://dsw-nrp.github.io/eosc-fair-guide/"
+# The namespace of the Guide's own vocabulary (<namespace>terms#), RO-Crate profile
+# (<namespace>profile/<profileVersion>) and records (<namespace>id/<address>), registered with w3id, whose redirect
+# leads to wherever the Guide is published. It does not follow the publication location: changing it renames every
+# Guide term and record, so it is a reviewed breaking change. Releases up to 1.0.0-alpha.3 used https://fair.eosc.cz/
+# and up to 1.0.0-alpha.5 https://dsw-nrp.github.io/eosc-fair-guide/.
+namespace = "https://w3id.org/eosc-cz/fair-guide/"
 profileVersion = "0.1"
 freshnessDays = 180
 # The guide is compiled and developed by its editors; the authors of its content basis are credited on the
@@ -611,95 +613,95 @@ name = { cs = "Zachovat zdrojový kód", en = "Preserve source code" }
 [[task]]
 lens = "V"
 label = { cs = "Poskytovatel chce plán správy dat", en = "My funder requires a data management plan" }
-href = "#station-plan"
+href = "stations/plan"
 icon = "clipboard-list"
 
 [[task]]
 lens = "V"
 label = { cs = "Mám hotová data a potřebuji pro ně DOI", en = "My data are ready and need a DOI" }
-href = "#station-repository"
+href = "stations/repository"
 icon = "box-archive"
 
 [[task]]
 lens = "V"
 label = { cs = "Chci sdílet citlivá data od respondentů", en = "I need to share sensitive respondent data" }
-href = "#station-licence"
+href = "stations/licence"
 icon = "scale-balanced"
 
 [[task]]
 lens = "V"
 label = { cs = "Používám cizí data a potřebuji je citovat", en = "I am reusing data and need to cite them" }
-href = "#station-citation"
+href = "stations/citation"
 icon = "quote-right"
 
 [[task]]
 lens = "DS"
 label = { cs = "Pomáhám týmu připravit plán správy dat", en = "I am helping a team prepare a data management plan" }
-href = "#station-plan"
+href = "stations/plan"
 icon = "clipboard-list"
 
 [[task]]
 lens = "DS"
 label = { cs = "Datům chybí srozumitelný popis", en = "The data need clearer documentation" }
-href = "#station-metadata"
+href = "stations/metadata"
 icon = "tags"
 
 [[task]]
 lens = "DS"
 label = { cs = "Instituce připravuje datovou strategii", en = "My institution is preparing its data strategy" }
-href = "#station-plan"
+href = "stations/plan"
 icon = "building-columns"
 
 [[task]]
 lens = "DS"
 label = { cs = "Tým chce zopakovat výpočetní postup", en = "A team needs to reproduce an analysis" }
-href = "#station-analyse"
+href = "stations/analyse"
 icon = "gears"
 
 [[task]]
 lens = "SR"
 label = { cs = "Začínáme s výzkumným repozitářem", en = "We are starting a research repository" }
-href = "#station-plan"
+href = "stations/plan"
 icon = "box-archive"
 
 [[task]]
 lens = "SR"
 label = { cs = "Repozitář připravujeme na podmínky NRP", en = "We are preparing our repository for NRP conditions" }
-href = "#station-repository"
+href = "stations/repository"
 icon = "door-open"
 
 [[task]]
 lens = "SR"
 label = { cs = "Naše záznamy nejsou v NMA", en = "Our records are missing from NMA" }
-href = "#station-findability"
+href = "stations/findability"
 icon = "plug"
 
 [[task]]
 lens = "SR"
 label = { cs = "Potřebujeme vyjasnit práva k vkládaným datům", en = "We need to clarify rights to deposited data" }
-href = "#station-licence"
+href = "stations/licence"
 icon = "scale-balanced"
 
 [[task]]
 lens = "K"
 label = { cs = "Domlouváme společná pravidla správy dat", en = "We are agreeing common data-management practices" }
-href = "#station-plan"
+href = "stations/plan"
 icon = "people-group"
 
 [[task]]
 lens = "K"
 label = { cs = "Vybíráme společná metadata a slovníky", en = "We are choosing shared metadata and vocabularies" }
-href = "#station-metadata"
+href = "stations/metadata"
 icon = "tags"
 
 [[task]]
 lens = "K"
 label = { cs = "Hledáme infrastrukturu pro náš obor", en = "We need infrastructure for our field" }
-href = "#station-repository"
+href = "stations/repository"
 icon = "box-archive"
 
 [[task]]
 lens = "K"
 label = { cs = "Chceme sdílet ověřený analytický postup", en = "We want to share a proven analysis workflow" }
-href = "#station-analyse"
+href = "stations/analyse"
 icon = "gears"

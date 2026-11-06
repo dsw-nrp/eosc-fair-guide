@@ -26,6 +26,8 @@ SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 import build_api  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_crate  # noqa: E402
 import build_site  # noqa: E402
 import check_all  # noqa: E402
@@ -34,6 +36,7 @@ import check_duplicates  # noqa: E402
 import fix_duplicates  # noqa: E402
 import refresh_snapshots  # noqa: E402
 import register_ids  # noqa: E402
+from addresses import iri  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "minimal"
 TODAY = date(2026, 3, 1)
@@ -121,12 +124,14 @@ class GeneratorTests(FixtureCase):
             item["@id"]: item
             for item in build_crate.build_crate(build_crate.load_content(self.root / "content"))["@graph"]
         }
-        self.assertEqual(entities["#term-1"]["description"], {"@value": "Snapshot definition.", "@language": "en"})
-        self.assertEqual(entities["#term-1"]["subjectOf"], {"@id": "#clause-A.F1.R1"})
         self.assertEqual(
-            entities["#clause-A.F1.R1"]["guidance"], {"@value": "Original source definition.", "@language": "cs"}
+            entities[iri("glossary/1")]["description"], {"@value": "Snapshot definition.", "@language": "en"}
         )
-        self.assertEqual(entities["#clause-A.F1.R1"]["sourceLocator"], "p. 5")
+        self.assertEqual(entities[iri("glossary/1")]["subjectOf"], {"@id": iri("clauses/A.F1.R1")})
+        self.assertEqual(
+            entities[iri("clauses/A.F1.R1")]["guidance"], {"@value": "Original source definition.", "@language": "cs"}
+        )
+        self.assertEqual(entities[iri("clauses/A.F1.R1")]["sourceLocator"], "p. 5")
         self.edit("ledger.toml", 'terms = ["1"]', 'terms = ["missing"]')
         self.assertError("original definition names unknown term 'missing'")
 
@@ -190,10 +195,10 @@ class GeneratorTests(FixtureCase):
         content = build_crate.load_content(self.root / "content")
         crate = build_crate.build_crate(content)
         entities = {item["@id"]: item for item in crate["@graph"]}
-        expected = [{"@id": "#source-report"}, {"@id": "#source-official-names"}]
-        self.assertEqual(entities["#infrastructure-ri"]["isBasedOn"], expected)
+        expected = [{"@id": iri("resources/report")}, {"@id": iri("resources/official-names")}]
+        self.assertEqual(entities[iri("infrastructures/ri")]["isBasedOn"], expected)
         self.assertEqual(entities["#infrastructures"]["isBasedOn"], expected)
-        self.assertEqual(entities["#eric-eu-ri-eric"]["isBasedOn"], {"@id": "#source-report"})
+        self.assertEqual(entities[iri("infrastructures/eu-ri-eric")]["isBasedOn"], {"@id": iri("resources/report")})
         self.edit("infrastructures.toml", 'namesSource = "official-names"', 'namesSource = "missing-source"')
         self.assertError("unknown namesSource 'missing-source'")
 
@@ -204,7 +209,7 @@ class GeneratorTests(FixtureCase):
         )
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
-        entity = next(item for item in crate["@graph"] if item["@id"] == "#infrastructure-ri")
+        entity = next(item for item in crate["@graph"] if item["@id"] == iri("infrastructures/ri"))
         self.assertEqual(entity["sameAs"], {"@id": "https://ri.example.org/"})
         self.edit("infrastructures.toml", "logo = false", 'logo = "file:///private"')
         self.assertError("logo must be an HTTPS address")
@@ -214,28 +219,29 @@ class GeneratorTests(FixtureCase):
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
         entities = {item["@id"]: item for item in crate["@graph"]}
-        infrastructure = entities["#infrastructure-ri"]
+        infrastructure = entities[iri("infrastructures/ri")]
         # The node of a European infrastructure, an ERIC membership and operating an entry stay three relations.
-        self.assertEqual(infrastructure["nationalNodeOf"], {"@id": "#european-ri-eu-ri-eric"})
-        self.assertEqual(infrastructure["memberOf"], {"@id": "#eric-eu-ri-eric"})
-        self.assertEqual(entities["#eric-eu-ri-eric"]["czechMembershipSince"], "2012")
-        self.assertEqual(infrastructure["operates"], {"@id": "#resource-service"})
-        service = entities["#resource-service"]
-        self.assertEqual(service["operatedBy"], {"@id": "#infrastructure-ri"})
+        self.assertEqual(infrastructure["nationalNodeOf"], {"@id": iri("infrastructures/eu-ri-eric")})
+        # The European infrastructure it is a node of and the ERIC it belongs to are one infrastructure.
+        self.assertEqual(infrastructure["memberOf"], {"@id": iri("infrastructures/eu-ri-eric")})
+        self.assertEqual(entities[iri("infrastructures/eu-ri-eric")]["czechMembershipSince"], "2012")
+        self.assertEqual(infrastructure["operates"], {"@id": iri("resources/service")})
+        service = entities[iri("resources/service")]
+        self.assertEqual(service["operatedBy"], {"@id": iri("infrastructures/ri")})
         self.assertEqual(service["operatedBySource"], "https://ri.example.org/about")
         # The entry carries its membership: role, date checked and source; the node names its operator and state.
         membership = entities[service["nodeMembership"]["@id"]]
-        self.assertEqual(membership["roleName"], {"@id": "#noderole-service"})
+        self.assertEqual(membership["roleName"], {"@id": iri("vocabularies/node-roles/service")})
         self.assertEqual(membership["statusAsOf"], "2026-01-02")
-        self.assertEqual(entities["#eosc-cz-node"]["operatedBy"], {"@id": "#infrastructure-ri"})
-        self.assertEqual(entities["#eosc-cz-node"]["nodeState"], "candidate")
+        self.assertEqual(entities[iri("organizations/eosc-cz-node")]["operatedBy"], {"@id": iri("infrastructures/ri")})
+        self.assertEqual(entities[iri("organizations/eosc-cz-node")]["nodeState"], "candidate")
         records = build_crate.api_records(entities, build_crate.load_content(self.root / "content"))
-        self.assertIn(("ri", "#infrastructure-ri"), records["infrastructures"])
-        self.assertIn(("eosc-cz-node", "#eosc-cz-node"), records["organizations"])
+        self.assertIn(("ri", iri("infrastructures/ri")), records["infrastructures"])
+        self.assertIn(("eosc-cz-node", iri("organizations/eosc-cz-node")), records["organizations"])
         # The infrastructures load with the catalogue; the node and its memberships come with every view.
         core, parts = build_crate.split_crate(crate)
-        self.assertIn("#infrastructure-ri", [item["@id"] for item in parts["fips"]["entities"]])
-        self.assertIn("#eosc-cz-node", [item["@id"] for item in core["@graph"]])
+        self.assertIn(iri("infrastructures/ri"), [item["@id"] for item in parts["fips"]["entities"]])
+        self.assertIn(iri("organizations/eosc-cz-node"), [item["@id"] for item in core["@graph"]])
 
     def test_infrastructure_and_node_records_are_checked(self) -> None:
         self.add_infrastructures('resource = "service"\nrole = "repository"\nlocator = "Appendix A"\n')
@@ -251,7 +257,9 @@ class GeneratorTests(FixtureCase):
         self.edit("stations/01-one.toml", "Take the first step.", "Read [[stations/one|the station]].")
         graph = build_crate.Graph()
         build_crate.build_crate(build_crate.load_content(self.root / "content"), graph)
-        self.assertTrue(any(link["ref"] == "#station-one" for links in graph.text_links.values() for link in links))
+        self.assertTrue(
+            any(link["ref"] == iri("stations/one") for links in graph.text_links.values() for link in links)
+        )
         self.edit("stations/01-one.toml", "stations/one", "stations/missing")
         self.assertError("unknown entry 'stations/missing'")
 
@@ -275,7 +283,7 @@ class GeneratorTests(FixtureCase):
         )
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
         graph = {entity["@id"]: entity for entity in crate["@graph"]}
-        self.assertEqual(graph["#clause-A.F1.R1"]["supersededBy"], {"@id": "#clause-A.F1.X1"})
+        self.assertEqual(graph[iri("clauses/A.F1.R1")]["supersededBy"], {"@id": iri("clauses/A.F1.X1")})
 
     def test_glossary_definition_language_license_and_deferred_text_are_lossless(self) -> None:
         definition = "Původní česká definice.\n\nDruhý odstavec."
@@ -297,21 +305,26 @@ class GeneratorTests(FixtureCase):
                 ],
             },
         )
-        entity = graph.entities["#term-1"]
+        entity = graph.entities["#term-1"]  # the builder's own key, before identities are published
         self.assertEqual(entity["description"], {"@value": definition, "@language": "cs"})
         self.assertEqual(entity["license"], license_uri)
         self.assertEqual(entity["url"], "https://example.org/term/1")
         self.assertNotIn("description", graph.entities["#term-2"])
-        crate = {"@graph": list(graph.entities.values())}
-        core, parts = build_crate.split_crate(crate)
+        # Published, the terms are glossary records at their addresses.
+        published = {
+            iri("glossary/" + key.removeprefix("#term-")) if key.startswith("#term-") else key: entry
+            | ({"@id": iri("glossary/" + key.removeprefix("#term-"))} if key.startswith("#term-") else {})
+            for key, entry in graph.entities.items()
+        }
+        core, parts = build_crate.split_crate({"@graph": list(published.values())}, iri(""))
         rebuilt = {entry["@id"]: dict(entry) for entry in core["@graph"]}
-        self.assertNotIn("description", rebuilt["#term-1"])
+        self.assertNotIn("description", rebuilt[iri("glossary/1")])
         for part in parts.values():
             for entry in part["entities"]:
                 rebuilt[entry["@id"]] = dict(entry)
             for identifier, properties in part["properties"].items():
                 rebuilt[identifier].update(properties)
-        self.assertEqual(rebuilt, graph.entities)
+        self.assertEqual(rebuilt, published)
 
     def test_the_guide_signposts_itself(self) -> None:
         self.edit("guide.toml", 'profileVersion = "0.1"\n', 'profileVersion = "0.1"\ndoi = "10.1234/guide"\n')
@@ -334,13 +347,13 @@ class GeneratorTests(FixtureCase):
         root = graph["./"]
         self.assertEqual(root["mainEntity"], {"@id": "#path"})
         self.assertIn({"@id": build_crate.PROCESS_RUN_CRATE}, root["conformsTo"])
-        advice = graph["#advice-one.01"]
-        self.assertEqual(advice["citation"], {"@id": "#clause-A.F1.R1"})
+        advice = graph[iri("advice/one.01")]
+        self.assertEqual(advice["citation"], {"@id": iri("clauses/A.F1.R1")})
         self.assertEqual(len(advice["audience"]), 2)
-        action = graph["#action-create"]
+        action = graph[iri("actions/create")]
         self.assertEqual(action["@type"], "CreateAction")
-        self.assertIn({"@id": "#advice-one.03"}, action["result"])
-        resource = graph["#resource-service"]
+        self.assertIn({"@id": iri("advice/one.03")}, action["result"])
+        resource = graph[iri("resources/service")]
         self.assertEqual(resource["additionalType"], "https://w3id.org/fair/fip/terms/Registry")
 
     def test_cited_datasets_and_software_stay_contextual(self) -> None:
@@ -353,11 +366,13 @@ class GeneratorTests(FixtureCase):
         )
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
         graph = {entity["@id"]: entity for entity in crate["@graph"]}
-        dataset = graph["https://doi.org/10.1234/x"]
+        # A cited work with a DOI is the Guide's record of it; the DOI stays its identity in sameAs.
+        dataset = graph[iri("resources/data")]
+        self.assertIn({"@id": "https://doi.org/10.1234/x"}, build_crate.as_list(dataset["sameAs"]))
         self.assertEqual(dataset["@type"], "CreativeWork")
         self.assertEqual(dataset["additionalType"], "http://schema.org/Dataset")
-        self.assertEqual(graph["#source-code"]["@type"], "CreativeWork")
-        self.assertEqual(graph["#source-code"]["additionalType"], "http://schema.org/SoftwareSourceCode")
+        self.assertEqual(graph[iri("resources/code")]["@type"], "CreativeWork")
+        self.assertEqual(graph[iri("resources/code")]["additionalType"], "http://schema.org/SoftwareSourceCode")
 
     def test_station_links_accumulate(self) -> None:
         (self.root / "content" / "glossary.toml").write_text(
@@ -368,9 +383,9 @@ class GeneratorTests(FixtureCase):
         )
         self.edit("stations/01-one.toml", "minutes = 5", 'minutes = 5\nglossary = ["pid"]')
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
-        station = next(entity for entity in crate["@graph"] if entity["@id"] == "#station-one")
-        self.assertEqual(station["mentions"], [{"@id": "#term-pid"}, {"@id": "#resource-service"}])
-        self.assertEqual(station["hasPart"], {"@id": "#callout-note"})
+        station = next(entity for entity in crate["@graph"] if entity["@id"] == iri("stations/one"))
+        self.assertEqual(station["mentions"], [{"@id": iri("glossary/pid")}, {"@id": iri("resources/service")}])
+        self.assertEqual(station["hasPart"], {"@id": iri("callouts/note")})
         self.assertEqual(self.errors(), [])
 
     def test_page_blocks_are_safe_and_preview_matches(self) -> None:
@@ -419,7 +434,8 @@ class GeneratorTests(FixtureCase):
                 graph[entity["@id"]] = entity
             for entity_id, properties in part["properties"].items():
                 graph[entity_id] |= properties
-        crate = json.loads(generated[build_crate.CRATE_FILE])
+        # The page names records by address; with that, its data and the crate are the same graph.
+        crate = build_crate.relative_ids(json.loads(generated[build_crate.CRATE_FILE]), iri(""))
         self.assertEqual(graph, {entity["@id"]: entity for entity in crate["@graph"]})
         self.assertEqual(
             {key: value for key, value in core.items() if key != "@graph"},
@@ -469,10 +485,10 @@ class GeneratorTests(FixtureCase):
         advice = next(entity for entity in crate["@graph"] if "Take the first step" in json.dumps(entity))
         self.assertNotIn("[[", json.dumps(advice, ensure_ascii=False))
         self.assertIn({"@value": "Take the first step in the Test service.", "@language": "en"}, advice["text"])
-        self.assertIn({"@id": "#resource-service"}, build_crate.as_list(advice["mentions"]))
+        self.assertIn({"@id": iri("resources/service")}, build_crate.as_list(advice["mentions"]))
         self.assertEqual(
             graph.text_links[advice["@id"]],
-            [{"ref": "#resource-service", "cs": "testovací službě", "en": "Test service"}],
+            [{"ref": iri("resources/service"), "cs": "testovací službě", "en": "Test service"}],
         )
         self.assertEqual(self.errors(), [])
 
@@ -562,30 +578,32 @@ class GeneratorTests(FixtureCase):
         content = build_crate.load_content(self.root / "content")
         crate = build_crate.build_crate(content)
         entities = {entity["@id"]: entity for entity in crate["@graph"]}
-        plan = entities["#lifecycle-rdmkit.plan"]
+        plan = entities[iri("lifecycles/rdmkit/plan")]
         self.assertEqual(
             plan["description"],
             [{"@value": "Planning the data.", "@language": "en"}, {"@value": "Plánování dat.", "@language": "cs"}],
         )
         self.assertEqual(plan["descriptionTranslation"], "cs")
-        self.assertEqual(plan["inDefinedTermSet"], {"@id": "#lifecycle-rdmkit"})
-        self.assertEqual(entities["#lifecycle-other.fund"]["nameTranslation"], "cs")
-        correspondence = entities["#crosswalk-rdmkit-plan-other-fund"]
+        self.assertEqual(plan["inDefinedTermSet"], {"@id": iri("lifecycles/rdmkit")})
+        self.assertEqual(entities[iri("lifecycles/other/fund")]["nameTranslation"], "cs")
+        correspondence = entities[iri("crosswalks/lifecycle-stages/rdmkit-plan-other-fund")]
         self.assertEqual(correspondence["mappingBasis"], "published")
-        self.assertEqual(correspondence["about"], [{"@id": "#lifecycle-rdmkit.plan"}, {"@id": "#lifecycle-other.fund"}])
-        self.assertEqual(correspondence["citation"], {"@id": "#source-report"})
-        self.assertEqual(entities["#station-one"]["lifecycleStage"], {"@id": "#lifecycle-rdmkit.plan"})
-        self.assertEqual(entities["#path"]["isBasedOn"], {"@id": "#lifecycle-rdmkit"})
+        self.assertEqual(
+            correspondence["about"], [{"@id": iri("lifecycles/rdmkit/plan")}, {"@id": iri("lifecycles/other/fund")}]
+        )
+        self.assertEqual(correspondence["citation"], {"@id": iri("resources/report")})
+        self.assertEqual(entities[iri("stations/one")]["lifecycleStage"], {"@id": iri("lifecycles/rdmkit/plan")})
+        self.assertEqual(entities["#path"]["isBasedOn"], {"@id": iri("lifecycles/rdmkit")})
         # The path's stages name the rail in the core; definitions and the other models load with the model part.
         core, parts = build_crate.split_crate(crate)
         core_ids = {entity["@id"]: entity for entity in core["@graph"]}
-        self.assertNotIn("description", core_ids["#lifecycle-rdmkit.plan"])
-        self.assertIn("description", parts["model"]["properties"]["#lifecycle-rdmkit.plan"])
-        self.assertNotIn("#crosswalk-rdmkit-plan-other-fund", core_ids)
+        self.assertNotIn("description", core_ids[iri("lifecycles/rdmkit/plan")])
+        self.assertIn("description", parts["model"]["properties"][iri("lifecycles/rdmkit/plan")])
+        self.assertNotIn(iri("crosswalks/lifecycle-stages/rdmkit-plan-other-fund"), core_ids)
         records = build_crate.api_records(entities, content)["lifecycle"]
         self.assertEqual(
             {record for record, _ in records},
-            {"rdmkit", "rdmkit.plan", "other", "other.fund", "crosswalk", "rdmkit-plan-other-fund"},
+            {"rdmkit", "rdmkit.plan", "other", "other.fund", "lifecycle-stages", "rdmkit-plan-other-fund"},
         )
 
 
@@ -636,14 +654,14 @@ class ContentCheckTests(FixtureCase):
     def test_a_clause_carries_its_title_and_guidance(self) -> None:
         self.assertEqual(self.errors(), [])
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
-        clause = next(entity for entity in crate["@graph"] if entity["@id"] == "#clause-CTS.R12")
+        clause = next(entity for entity in crate["@graph"] if entity["@id"] == iri("clauses/CTS.R12"))
         self.assertEqual(clause["guidance"]["@language"], "en")
         self.assertIn("- One item.", clause["guidance"]["@value"])
         self.assertIn({"@value": "Discovery and Identification", "@language": "en"}, clause["name"])
         principle = next(
             entity for entity in crate["@graph"] if entity.get("termCode") == "F1" and "relatedTo" in entity
         )
-        self.assertIn({"@id": "#clause-CTS.R12"}, build_crate.as_list(principle["relatedTo"]))
+        self.assertIn({"@id": iri("clauses/CTS.R12")}, build_crate.as_list(principle["relatedTo"]))
         self.edit("ledger.toml", "guidance = '''", "guidance = 1\nnote = '''")
         self.assertError("guidance is the source's own text")
 
@@ -799,7 +817,7 @@ class ContentCheckTests(FixtureCase):
         principle = next(
             entity for entity in crate["@graph"] if entity.get("termCode") == "F1" and "relatedTo" in entity
         )
-        self.assertIn({"@id": "#clause-CDIF.Core"}, build_crate.as_list(principle["relatedTo"]))
+        self.assertIn({"@id": iri("clauses/CDIF.Core")}, build_crate.as_list(principle["relatedTo"]))
 
     def test_an_item_takes_its_question_from_the_requirement(self) -> None:
         self.append(
@@ -827,12 +845,12 @@ class ContentCheckTests(FixtureCase):
 
     def test_station_without_next_action(self) -> None:
         self.edit(
-            "stations/01-one.toml", 'action = { label = { cs = "Začít", en = "Start" }, href = "#check-gate" }\n', ""
+            "stations/01-one.toml", 'action = { label = { cs = "Začít", en = "Start" }, href = "checks/gate" }\n', ""
         )
         self.assertError("needs one concrete action")
 
     def test_station_offers_at_most_two_actions(self) -> None:
-        one = 'action = { label = { cs = "Začít", en = "Start" }, href = "#check-gate" }'
+        one = 'action = { label = { cs = "Začít", en = "Start" }, href = "checks/gate" }'
         self.edit("stations/01-one.toml", one + "\n", "action = [" + ", ".join([one[len("action = ") :]] * 2) + "]\n")
         self.assertEqual(self.errors(), [])
         self.edit("stations/01-one.toml", "action = [", "action = [" + one[len("action = ") :] + ", ")
@@ -846,22 +864,24 @@ class ContentCheckTests(FixtureCase):
         self.assertError("a key point is an L1 item without steps")
 
     def test_in_page_target_must_exist(self) -> None:
-        self.edit("stations/01-one.toml", 'href = "#check-gate"', 'href = "#nowhere"')
-        self.assertError("in-page target '#nowhere' does not exist")
+        self.edit("stations/01-one.toml", 'href = "checks/gate"', 'href = "checks/nowhere"')
+        self.assertError("name an in-page target, a record's address or a kind's list: checks/nowhere")
+        self.edit("stations/01-one.toml", 'href = "checks/nowhere"', 'href = "#check-gate"')
+        self.assertError("name an in-page target, a record's address or a kind's list: #check-gate")
 
     def test_topic_target_names_known_facets_and_values(self) -> None:
         self.edit(
-            "stations/01-one.toml", 'href = "#check-gate"', 'href = "#resources?type=service,document&station=one"'
+            "stations/01-one.toml", 'href = "checks/gate"', 'href = "resources?type=service,document&station=one"'
         )
         self.assertEqual(self.errors(), [])
         self.edit("stations/01-one.toml", "type=service,document&station=one", "type=service,ghost")
-        self.assertError("unknown type value(s) ghost for #resources")
-        self.edit("stations/01-one.toml", "#resources?type=service,ghost", "#resources?colour=red")
-        self.assertError("unknown facet 'colour' for #resources")
-        self.edit("stations/01-one.toml", "#resources?colour=red", "#tests?type=service")
-        self.assertError("'#tests' takes no topic")
-        self.edit("stations/01-one.toml", "#tests?type=service", "#repositories?function=")
-        self.assertError("unknown function value(s) (none) for #repositories")
+        self.assertError("unknown type value(s) ghost for resources")
+        self.edit("stations/01-one.toml", "resources?type=service,ghost", "resources?colour=red")
+        self.assertError("unknown facet 'colour' for resources")
+        self.edit("stations/01-one.toml", "resources?colour=red", "tests?type=service")
+        self.assertError("'tests' takes no topic")
+        self.edit("stations/01-one.toml", "tests?type=service", "repositories?function=")
+        self.assertError("unknown function value(s) (none) for repositories")
 
     def test_lifecycle_models_hold_together(self) -> None:
         self.add_lifecycles()
@@ -1004,7 +1024,7 @@ class ContentCheckTests(FixtureCase):
         )
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
-        item = next(entity for entity in crate["@graph"] if entity["@id"] == "#item-gate.01")
+        item = next(entity for entity in crate["@graph"] if entity["@id"] == iri("questions/gate.01"))
         self.assertTrue(item["championEvidenceOnly"])
         self.edit("checks/gate.toml", "championEvidenceOnly = true", 'championEvidenceOnly = "true"')
         self.assertError("championEvidenceOnly must be a boolean")
@@ -1021,7 +1041,7 @@ class ContentCheckTests(FixtureCase):
         self.edit("checks/gate.toml", 'champion = ["test_one"] }', 'champion = ["test_one"] }\nlookup = "search"')
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
-        item = next(entity for entity in crate["@graph"] if entity["@id"] == "#item-gate.01")
+        item = next(entity for entity in crate["@graph"] if entity["@id"] == iri("questions/gate.01"))
         self.assertEqual(item["lookup"], {"@id": "https://example.org/search"})
 
     def test_nanopub_query_needs_the_fip_placeholder(self) -> None:
@@ -1039,7 +1059,7 @@ class ContentCheckTests(FixtureCase):
     def test_named_icon_must_be_vendored(self) -> None:
         self.append(
             "guide.toml",
-            '\n[[task]]\nlens = "V"\nlabel = { cs = "Úkol", en = "Task" }\nhref = "#station-one"\nicon = "star"\n',
+            '\n[[task]]\nlens = "V"\nlabel = { cs = "Úkol", en = "Task" }\nhref = "stations/one"\nicon = "star"\n',
         )
         self.assertError("icon 'star' is not vendored")
         (self.root / "assets" / "icons").mkdir(parents=True)
@@ -1048,7 +1068,7 @@ class ContentCheckTests(FixtureCase):
 
     def test_task_needs_a_known_lens(self) -> None:
         self.append(
-            "guide.toml", '\n[[task]]\nlens = "X"\nlabel = { cs = "Úkol", en = "Task" }\nhref = "#station-one"\n'
+            "guide.toml", '\n[[task]]\nlens = "X"\nlabel = { cs = "Úkol", en = "Task" }\nhref = "stations/one"\n'
         )
         self.assertError("unknown lens 'X'")
 
@@ -1114,10 +1134,10 @@ class ContentCheckTests(FixtureCase):
         self.assertEqual(self.errors(), [])
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
         graph = {entity["@id"]: entity for entity in crate["@graph"]}
-        self.assertIn({"@id": "#resource-service"}, build_crate.as_list(graph["#sources"]["hasPart"]))
-        self.assertEqual(graph["#clause-A.F1.R1"]["isPartOf"], {"@id": "#resource-service"})
-        self.assertEqual(graph["#resource-service"]["alternateName"], "Test service page")
-        self.assertNotIn("#source-service", graph)
+        self.assertIn({"@id": iri("resources/service")}, build_crate.as_list(graph["#sources"]["hasPart"]))
+        self.assertEqual(graph[iri("clauses/A.F1.R1")]["isPartOf"], {"@id": iri("resources/service")})
+        self.assertEqual(graph[iri("resources/service")]["alternateName"], "Test service page")
+        self.assertEqual([key for key in graph if key.startswith(iri("resources/service"))], [iri("resources/service")])
 
     def test_resource_cited_without_its_citation(self) -> None:
         self.edit("ledger.toml", 'source = "report"', 'source = "service"')
@@ -1159,8 +1179,8 @@ class ContentCheckTests(FixtureCase):
         self.edit("checks/gate.toml", 'block = "basics"', 'block = "other"')
         self.assertFalse(any("block" in error for error in self.errors()))
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
-        item = next(entity for entity in crate["@graph"] if entity["@id"] == "#item-gate.01")
-        self.assertEqual(item["block"], {"@id": "#block-gate-other"})
+        item = next(entity for entity in crate["@graph"] if entity["@id"] == iri("questions/gate.01"))
+        self.assertEqual(item["block"], {"@id": iri("vocabularies/blocks-gate/other")})
 
     def test_unused_resource_is_reported(self) -> None:
         self.edit("resources.toml", 'stations = ["one"]', "")
@@ -1187,9 +1207,11 @@ class ContentCheckTests(FixtureCase):
         self.assertEqual(self.errors(), [])
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
         graph = {entity["@id"]: entity for entity in crate["@graph"]}
-        self.assertIn({"@id": "#resource-repo"}, build_crate.as_list(graph["#repositories"]["hasPart"]))
-        self.assertEqual(graph["#resource-repo"]["repositoryKind"], {"@id": "#rkind-general"})
-        self.assertNotIn("#repository-repo", graph)
+        self.assertIn({"@id": iri("resources/repo")}, build_crate.as_list(graph["#repositories"]["hasPart"]))
+        self.assertEqual(
+            graph[iri("resources/repo")]["repositoryKind"], {"@id": iri("vocabularies/repository-kinds/general")}
+        )
+        self.assertNotIn(iri("repositories/repo"), graph)
 
     def test_every_page_sits_under_a_menu_item(self) -> None:
         pages = self.root / "content" / "pages.toml"
@@ -1277,9 +1299,11 @@ class SnapshotTests(FixtureCase):
         self.assertEqual(self.errors(), [])
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
         graph = {entity["@id"]: entity for entity in crate["@graph"]}
-        self.assertEqual(graph["#fer-r1"]["review"], {"@id": "#fer-r1-verification-1"})
-        self.assertEqual(graph["#fer-r1-verification-1"]["reviewAspect"], "verified")
-        self.assertEqual(graph["#fip-fip1-F1-r1"]["creativeWorkStatus"], "in-use")
+        # The Dashboard's record of the curated resource sits under it, with its own review.
+        record = graph[iri("resources/service#fip-dashboard")]
+        self.assertEqual(record["review"], {"@id": iri("resources/service#fip-dashboard-verification-1")})
+        self.assertEqual(graph[iri("resources/service#fip-dashboard-verification-1")]["reviewAspect"], "verified")
+        self.assertEqual(graph[iri("fips/fip1#F1-r1")]["creativeWorkStatus"], "in-use")
         self.assertIn({"@value": "Sample data.", "@language": "en"}, graph["#snapshot-fip-dashboard"]["disclaimer"])
 
     def test_a_reference_to_an_entity_the_crate_lacks_is_an_error(self) -> None:
@@ -1345,7 +1369,7 @@ class SnapshotTests(FixtureCase):
         self.assertEqual(facts["doi"], "10.17616/R3AB12")
         # DataCite finds the repository by the record's DOI, which the crate keeps as the record's other identifier.
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
-        entity = next(item for item in crate["@graph"] if item.get("catalogueAddress") == "repositories/old")
+        entity = next(item for item in crate["@graph"] if item["@id"] == iri("repositories/old"))
         self.assertIn({"@id": "https://doi.org/10.17616/R3AB12"}, entity["sameAs"])
         # A DOI that is not re3data's is refused, and the snapshot stays as it was.
         (inputs / "re3data-list.xml").write_text(
@@ -1484,14 +1508,14 @@ class SnapshotRefreshTests(FixtureCase):
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
         entities = {item["@id"]: item for item in crate["@graph"]}
-        corrected = entities["#repository-r3d100000002"]
+        corrected = entities[iri("repositories/r3d100000002")]
         self.assertEqual(
             corrected["abbreviation"], [{"@value": "ČA", "@language": "cs"}, {"@value": "CA", "@language": "en"}]
         )
         self.assertIn({"@value": "Český archiv", "@language": "cs"}, corrected["name"])
         # Without a curated name, the name re3data tags as Czech serves Czech readers.
         self.assertEqual(
-            entities["#repository-r3d100000003"]["name"],
+            entities[iri("repositories/r3d100000003")]["name"],
             [{"@value": "Jiný archiv", "@language": "cs"}, {"@value": "Other Archive", "@language": "en"}],
         )
 
@@ -1586,7 +1610,7 @@ class SnapshotRefreshTests(FixtureCase):
         def sources(entity: dict[str, object]) -> list[str]:
             return [item["@id"] for item in build_crate.as_list(entity.get("isBasedOn"))]
 
-        registered = repositories["#repository-r3d100000002"]
+        registered = repositories[iri("repositories/r3d100000002")]
         self.assertIn("https://doi.org/10.25504/FAIRsharing.abc123", same_as(registered))
         self.assertIn("#snapshot-fairsharing", sources(registered))
         datacite_values = {
@@ -1595,8 +1619,8 @@ class SnapshotRefreshTests(FixtureCase):
             if entity.get("@type") == "PropertyValue" and entity.get("propertyID") == "datacite"
         }
         self.assertIn("member.repo", datacite_values)
-        self.assertNotIn("dataciteRepository", repositories["#repository-local"])
-        self.assertIn("#snapshot-datacite", sources(repositories["#repository-local"]))
+        self.assertNotIn("dataciteRepository", repositories[iri("repositories/local")])
+        self.assertIn("#snapshot-datacite", sources(repositories[iri("repositories/local")]))
         # An annotation naming no listed repository adds none; an NKR record becomes a repository with NKR's address.
         self.assertFalse(any("zzz999" in value for entity in repositories.values() for value in same_as(entity)))
         national = next(
@@ -2044,7 +2068,8 @@ class ExactBaseTests(unittest.TestCase):
             action["results"] = [
                 result
                 for result in action.get("results", [])
-                if result.removeprefix("organization:") not in self.ORGANISATIONS
+                # The structural identity migration covers every item; it is not the coverage this test reports.
+                if result.removeprefix("organization:") not in self.ORGANISATIONS and result != "*"
             ]
         self.assertEqual(
             sorted(error.removeprefix("organization:").split(":", 1)[0] for error in self.errors(content)),
@@ -2207,8 +2232,8 @@ class DuplicateTests(FixtureCase):
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
         graph = {entity["@id"]: entity for entity in crate["@graph"]}
-        self.assertEqual(build_crate.as_list(graph["#repositories"]["hasPart"]), [{"@id": "#resource-service"}])
-        self.assertNotIn("#repository-service", graph)
+        self.assertEqual(build_crate.as_list(graph["#repositories"]["hasPart"]), [{"@id": iri("resources/service")}])
+        self.assertNotIn(iri("repositories/service"), graph)
         self.assertIn(
             're3data = "r3d100000001"',
             (self.root / "content" / "resources.toml").read_text(encoding="utf-8"),
@@ -2381,22 +2406,32 @@ class SiteTests(unittest.TestCase):
         graph = build_crate.Graph()
         build_crate.build_crate(content, graph)
         members = {item["@id"] for item in build_crate.as_list(graph.entities["#repositories"]["hasPart"])}
-        self.assertTrue({"#resource-nma", "#resource-fairsharing", "#fer-nusl", "#fer-cesnet-invenio"} <= members)
-        self.assertNotIn("#fer-asep", members)
-        self.assertNotIn("#fer-clarin-dspace", members)
-        self.assertNotIn("#fer-zenodo", members)
+        self.assertTrue(
+            {
+                iri("resources/nma"),
+                iri("resources/fairsharing"),
+                iri("repositories/nusl"),
+                iri("repositories/cesnet-invenio"),
+            }
+            <= members
+        )
+        self.assertNotIn(iri("repositories/asep#fip-dashboard"), members)
+        self.assertNotIn(iri("repositories/lindat-clariah-cz#fip-dashboard"), members)
+        self.assertNotIn(iri("repositories/zenodo#fip-dashboard"), members)
         self.assertEqual(graph.index["fip-dashboard.asep-arl"], graph.index["re3data.r3d100014032"])
         self.assertEqual(graph.index["fip-dashboard.clarin-dspace"], graph.index["re3data.r3d100010386"])
-        nma = graph.entities["#resource-nma"]
-        self.assertEqual(nma["serviceStatus"], {"@id": "#status-operational"})
-        self.assertEqual(nma["repositoryFunction"], {"@id": "#rfunction-find-metadata"})
+        nma = graph.entities[iri("resources/nma")]
+        self.assertEqual(nma["serviceStatus"], {"@id": iri("vocabularies/statuses/operational")})
+        self.assertEqual(nma["repositoryFunction"], {"@id": iri("vocabularies/repository-functions/find-metadata")})
         self.assertEqual(
-            build_crate.as_list(graph.entities["#fer-nusl"]["repositoryFunction"]),
-            [{"@id": "#rfunction-deposit-publications"}],
+            build_crate.as_list(graph.entities[iri("repositories/nusl")]["repositoryFunction"]),
+            [{"@id": iri("vocabularies/repository-functions/deposit-publications")}],
         )
         as_ep = graph.entities[graph.index["re3data.r3d100014032"][0]]
-        self.assertIn({"@id": "#rfunction-deposit-data"}, as_ep["repositoryFunction"])
-        self.assertIn({"@id": "#rfunction-deposit-publications"}, as_ep["repositoryFunction"])
+        self.assertIn({"@id": iri("vocabularies/repository-functions/deposit-data")}, as_ep["repositoryFunction"])
+        self.assertIn(
+            {"@id": iri("vocabularies/repository-functions/deposit-publications")}, as_ep["repositoryFunction"]
+        )
         self.assertIn({"@id": "#snapshot-fip-dashboard"}, as_ep["isBasedOn"])
 
     def test_record_annotations_are_validated_and_do_not_guess_identity(self) -> None:
@@ -2414,8 +2449,9 @@ class SiteTests(unittest.TestCase):
         graph = build_crate.Graph()
         build_crate.build_crate(content, graph)
         members = {item["@id"] for item in build_crate.as_list(graph.entities["#repositories"]["hasPart"])}
-        self.assertIn("#fer-asep", members)
-        self.assertIn("#fer-clarin-dspace", members)
+        # Without the reviewed annotation, the Dashboard's records stay entries of their own.
+        self.assertIn(iri("resources/asep"), members)
+        self.assertIn(iri("resources/clarin-dspace"), members)
 
     def test_duplicate_check_follows_reviewed_cross_registry_links(self) -> None:
         content = build_crate.load_content()
@@ -2864,13 +2900,11 @@ class ApiTests(unittest.TestCase):
                 self.assertTrue(documented(path), path)
 
     def test_record_ids_are_unique_and_safe_as_file_names(self) -> None:
-        content: dict = {"guide": {}}
+        content: dict = {"guide": {"guide": {"recordBase": iri("")}}}
         with self.assertRaises(build_crate.ContentError):
-            build_crate.api_records({"#clause-a": {"@id": "#clause-a", "identifier": "a b"}}, content)
-        twice = {
-            "#clause-a": {"@id": "#clause-a", "identifier": "x"},
-            "#clause-b": {"@id": "#clause-b", "identifier": "x"},
-        }
+            build_crate.api_records({iri("clauses/a b"): {"@id": iri("clauses/a b")}}, content)
+        # A layer and a seam are records of one API collection, so they cannot share an ID there.
+        twice = {iri("layers/x"): {"@id": iri("layers/x")}, iri("seams/x"): {"@id": iri("seams/x")}}
         with self.assertRaises(build_crate.ContentError):
             build_crate.api_records(twice, content)
 

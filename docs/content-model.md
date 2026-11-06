@@ -919,7 +919,6 @@ rename stored keys:
 | `attributedTo` | `prov:wasAttributedTo` |
 | `isImplementationOf` | `sio:SIO_000233` |
 | `abbreviation` | `schema:alternateName` |
-| `catalogueAddress` | `dcterms:identifier` |
 | `supersededBy` | `dcterms:isReplacedBy` |
 | `relatedTo` | `dcterms:relation` |
 | `operatorSource` | `dcterms:source` |
@@ -976,8 +975,8 @@ generated copy of `index.html`, so the page is the crate's HTML preview.
 ## Static API
 
 `scripts/build_api.py`, part of the site build, makes a read-only API from the crate in the site directory: a
-list per collection (`api/<collection>.json`), a record per entity at its catalogue address
-(`api/<catalogueAddress>.json`, such as `_site/api/q/software.04.json`), each question's manual test at
+list per collection (`api/<collection>.json`), a record per entity at its address
+(`api/<address>.json`, such as `_site/api/questions/software.04.json`), each question's manual test at
 `api/tests/<question-id>.json`, the JSON-LD context `_site/api/context.jsonld`, `_site/api/meta.json`, the OpenAPI 3.1
 description `openapi.json`, and its documentation `api/index.html`, which is the authored files in `api/` with the
 pinned Swagger UI package. In `build_crate.py`, `api_records` decides what each collection lists and `API_FILES`

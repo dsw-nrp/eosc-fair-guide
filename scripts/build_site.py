@@ -50,9 +50,6 @@ def render_test_docs(template: str, content: dict[str, Any], crate: dict[str, An
     }
     blocks = {}
     crate = kb.build_crate(content) if crate is None else crate
-    addresses = {
-        entity["@id"]: entity["catalogueAddress"] for entity in crate["@graph"] if entity.get("catalogueAddress")
-    }
     questions = {item["id"]: item for check in content["checks"] for item in check.get("item", [])}
     principle_labels = {entry["id"]: entry["label"] for entry in content["principles"]}
     for language in kb.LANGS:
@@ -62,8 +59,8 @@ def render_test_docs(template: str, content: dict[str, Any], crate: dict[str, An
             anchor = identifier + ("-en" if language == "en" else "")
             source = posixpath.relpath(test["script"], posixpath.dirname(LOCAL_TEST_DOC))
             strings = labels[language]
-            question_address = addresses["#item-" + test["question"]]
-            test_address = addresses["#test-" + identifier]
+            question_address = kb.issue_address("questions", test["question"])
+            test_address = kb.issue_address("tests", identifier, "guide")
             links = [
                 (source, strings["code"]),
                 (

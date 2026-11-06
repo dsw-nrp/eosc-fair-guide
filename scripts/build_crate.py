@@ -29,9 +29,10 @@ import sys
 import tomllib
 import unicodedata
 import urllib.parse
+from collections import Counter
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 from xml.etree import ElementTree
 
 import build_identity
@@ -44,7 +45,9 @@ from catalogue_identity import (
     bare_url,
     has_particles,
     parse_route,
+    short_id,
     source_scheme,
+    split_address,
     validate_identity,
 )
 from catalogue_identity import address as issue_address
@@ -87,7 +90,7 @@ LANGUAGE_SCRIPTS = {lang: f"assets/data/kb-{lang}.js" for lang in ("cs", "en")}
 # a small first download: the requirements of the standards the guide ingests (CoreTrustSeal, CDIF) with their
 # guidance, the records of the FIP Dashboard and KNAV catalogue snapshots, and the text of the guide's pages. Each is
 # a classic script like kb.js; kb.js and the parts together are the crate.
-STANDARD_CLAUSES = ("#clause-CTS.", "#clause-CDIF.", "#clause-FDO.", "#clause-FRSM.")
+STANDARD_CLAUSES = ("clauses/CTS.", "clauses/CDIF.", "clauses/FDO.", "clauses/FRSM.")
 PART_SCRIPTS = {
     "standards": "assets/data/kb-standards.js",
     "fips": "assets/data/kb-fips.js",
@@ -162,7 +165,6 @@ MODEL_TERMS = {
     "scope": "Precisely scoped component or connection observed in an implementation example.",
 }
 TERMS = MODEL_TERMS | {
-    "catalogueAddress": "The compact address of a Guide-owned catalogue record.",
     "disclosureLevel": "Disclosure level (L0 to L3) at which an advice item is shown.",
     "adviceKind": "Kind of an advice item that is not ordinary advice, such as the AI-in-FAIRification overlay.",
     "checkAfter": "What to check after following an AI tip, so that its output is verified before it is used.",
@@ -255,7 +257,6 @@ ESTABLISHED_TERMS: dict[str, str] = {
     "identifier": SCHEMA + "identifier",
     "alternateIdentifier": SCHEMA + "identifier",
     "dataciteRepository": SCHEMA + "identifier",
-    "catalogueAddress": DCTERMS + "identifier",
     "supersededBy": DCTERMS + "isReplacedBy",
     "relatedTo": DCTERMS + "relation",
     "operatorSource": DCTERMS + "source",
@@ -495,6 +496,7 @@ def apply_base_url(guide: dict[str, Any]) -> None:
     namespace = resolved("namespace", guide.get("namespace") or guide.get("baseUrl"))
     guide["pageUrl"] = resolved("baseUrl", os.environ.get(BASE_URL_ENV) or guide.get("baseUrl"))
     guide["vocabularyBase"] = namespace + "terms#"
+    guide["recordBase"] = namespace + "id/"
     guide["profile"] = f"{namespace}profile/{guide.get('profileVersion', '')}"
 
 
@@ -630,7 +632,8 @@ def as_list(value: Any) -> list[Any]:
 
 
 def prune(entity: dict[str, Any]) -> dict[str, Any]:
-    """Drop properties without a value, unwrap single-item lists, and give every entity a name."""
+    """Drop properties without a value, unwrap single-item lists, and name an entity by its headline or, for a typed
+    identifier, by its scheme. A name never only repeats the entity's identifier, which it carries once."""
     pruned: dict[str, Any] = {}
     for key, value in entity.items():
         if value in (None, [], "", {}):
@@ -638,7 +641,7 @@ def prune(entity: dict[str, Any]) -> dict[str, Any]:
         unwrapped = value[0] if isinstance(value, list) and len(value) == 1 and key != "@type" else value
         pruned[key] = unwrapped
     if "name" not in pruned and "rdfs:label" not in pruned:
-        fallback = pruned.get("identifier") or pruned.get("headline") or pruned.get("propertyID")
+        fallback = pruned.get("headline") or pruned.get("propertyID")
         if fallback is not None:
             pruned["name"] = fallback
     return pruned
@@ -658,6 +661,10 @@ class Graph:
         self.text_links: dict[str, list[dict[str, str]]] = {}
         # Build-only repository identity, shared with retirement reporting; never serialized.
         self.repository_keys: dict[str, set[str]] = {}
+        # Each catalogue record's address, by its published identifier, once the identities are published, and each
+        # build key's published identifier, for build-time readers of the content rows; neither is serialized.
+        self.addresses: dict[str, str] = {}
+        self.published: dict[str, str] = {}
 
     def add(self, entity: dict[str, Any], content_id: str | None = None) -> str:
         entity = prune(entity)
@@ -714,15 +721,18 @@ REFERENCE_KINDS = frozenset(
 )
 
 
-def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
-    """Every target a prose reference may name: a record's address, from the one identity projection, and the two
-    non-record targets, a kind's list and the Guide's profile."""
-    targets = {
-        address: entity_id
-        for entity_id, address in catalogue_addresses(graph.entities, content).items()
-        if address.split("/", 1)[0] in REFERENCE_KINDS
-    }
-    targets |= {issue_address("pages", page["id"]): f"#page-{page['id']}" for page in content["pages"]}
+def reference_targets(
+    content: dict[str, Any], graph: Graph, placements: dict[str, Placement] | None = None
+) -> dict[str, str]:
+    """Every target a prose reference may name, as the entity it names: a record's address, from the one identity
+    projection, and the two non-record targets, a kind's list and the Guide's profile. During the build the entities
+    are named by their build keys, afterwards by their published identifiers."""
+    if placements is None and graph.addresses:
+        records = {address: entity_id for entity_id, address in graph.addresses.items()}
+    else:
+        placements = placements if placements is not None else identity_projection(graph, content)
+        records = {placement.address: key for key, placement in placements.items() if placement.address}
+    targets = {address: entity_id for address, entity_id in records.items() if address.split("/")[0] in REFERENCE_KINDS}
     if (content.get("infrastructures") or {}).get("infrastructure"):
         targets["infrastructures"] = "#infrastructures"
     targets["profile"] = content["guide"]["guide"]["profile"]
@@ -844,9 +854,26 @@ def organization_ref(graph: Graph, organizations: dict[str, str], name: str | No
         return None
     if name in organizations:
         return ref(organizations[name])
-    entity_id = f"#org-{slug(name)}"
-    graph.add({"@id": entity_id, "@type": "Organization", "name": name})
-    return ref(entity_id)
+    return ref(agent_ref(graph, name))
+
+
+# The crate-local lists that hold the records of a kind, so a link to a kind's list names the list.
+KIND_LISTS = {
+    "stations": "#path",
+    "clauses": "#ledger",
+    "repositories": "#repositories",
+    "resources": "#resources",
+    "tests": "#tests",
+}
+
+
+def action_target(href: str) -> dict[str, str]:
+    """What an action opens: an outside page, a kind's list (with the topic it narrows to), or a record by its
+    address, which names the record's own IRI once identities are published."""
+    target, mark, query = href.partition("?")
+    if "://" in href or target not in KIND_LISTS:
+        return ref(href)
+    return ref(KIND_LISTS[target] + mark + query)
 
 
 def name_text(value: Any) -> str | None:
@@ -869,7 +896,9 @@ def agent_ref(graph: Graph, name: str) -> str:
             existing = name_text(entity.get("name"))
             if existing and unicodedata.normalize("NFKD", existing).casefold() == folded:
                 return entity_id
-    entity_id = f"#org-{slug(name)}"
+    # A new organisation is named like any minted record: by the name's words, without particles, within 32
+    # characters. The same words name an organisation the Guide already has, such as `cesnet` for "CESNET".
+    entity_id = f"#org-{short_id(name, set())}"
     if entity_id in graph.entities:
         return entity_id
     graph.add({"@id": entity_id, "@type": "Organization", "name": name})
@@ -1132,7 +1161,12 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
                 )
             for action_id, action in zip(action_ids, actions, strict=True):
                 graph.add(
-                    {"@id": action_id, "@type": "Action", "name": text(action["label"]), "target": ref(action["href"])}
+                    {
+                        "@id": action_id,
+                        "@type": "Action",
+                        "name": text(action["label"]),
+                        "target": action_target(action["href"]),
+                    }
                 )
         graph.add(
             {
@@ -1871,25 +1905,25 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
     collection_sources = list(based_on)
     ids = []
 
-    def european_ri(name: str, status: str) -> str:
+    def european_ri(name: str) -> dict[str, Any]:
+        """A European research infrastructure, by its name in the roadmap. A node of it and an ERIC of the same name
+        are one infrastructure, so both relations point to one entity with both facts."""
         entity_id = f"#european-ri-{slug(name)}"
         if entity_id not in graph.entities:
-            graph.add({"@id": entity_id, "@type": "Organization", "name": name, "esfriStatus": ref(f"#esfri-{status}")})
-        return entity_id
+            graph.add({"@id": entity_id, "@type": "Organization", "name": name})
+        return graph.entities[entity_id]
+
+    def node_of(name: str, status: str) -> str:
+        entity = european_ri(name)
+        entity.setdefault("esfriStatus", ref(f"#esfri-{status}"))
+        return entity["@id"]
 
     def eric(name: str, since: str) -> str:
-        entity_id = f"#eric-{slug(name)}"
-        if entity_id not in graph.entities:
-            graph.add(
-                {
-                    "@id": entity_id,
-                    "@type": "Organization",
-                    "name": name,
-                    "czechMembershipSince": since,
-                    "isBasedOn": refs(based_on[:1]),
-                }
-            )
-        return entity_id
+        entity = european_ri(name)
+        entity.setdefault("czechMembershipSince", since)
+        if based_on:
+            entity.setdefault("isBasedOn", ref(based_on[0]))
+        return entity["@id"]
 
     for item in items:
         entity_id = f"#infrastructure-{item['id']}"
@@ -1921,7 +1955,7 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
                     "infrastructureCharacter": ref(f"#richaracter-{item['character']}"),
                     "roadmapSince": str(item["included"]),
                     "esfriStatus": refs([f"#esfri-{status}" for status in item.get("esfri", [])]),
-                    "nationalNodeOf": refs([european_ri(row["name"], row["esfri"]) for row in item.get("nodeOf", [])]),
+                    "nationalNodeOf": refs([node_of(row["name"], row["esfri"]) for row in item.get("nodeOf", [])]),
                     "memberOf": refs([eric(row["name"], row["entry"]) for row in item.get("eric", [])]),
                     "operates": refs(operated),
                     # The FIP of the infrastructure's community in the FIP Dashboard snapshot, where it has one.
@@ -2401,7 +2435,12 @@ def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
             if action_id:
                 action = section["action"]
                 graph.add(
-                    {"@id": action_id, "@type": "Action", "name": text(action["label"]), "target": ref(action["href"])}
+                    {
+                        "@id": action_id,
+                        "@type": "Action",
+                        "name": text(action["label"]),
+                        "target": action_target(action["href"]),
+                    }
                 )
         graph.add(
             {
@@ -2950,9 +2989,9 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             if name:
                 append_ref(entity, agent_key, agent_ref(graph, name))
             entity.pop(name_key, None)
-    link_texts(graph, reference_targets(content, graph))
-    for entity_id, address in catalogue_addresses(graph.entities, content).items():
-        graph.entities[entity_id]["catalogueAddress"] = address
+    placements = identity_projection(graph, content)
+    link_texts(graph, reference_targets(content, graph, placements))
+    publish_identities(graph, placements, guide["recordBase"])
 
     context: dict[str, Any] = {
         term: ESTABLISHED_TERMS.get(term, vocabulary_base + term) for term in [*ESTABLISHED_TERMS, *GUIDE_TERMS]
@@ -3018,11 +3057,13 @@ API_PREFIXES = {
 }
 
 
-def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) -> dict[str, list[tuple[str, str]]]:
-    """What the static API publishes: per collection, each record's ID and the entity it describes, in the crate's
-    order. A record ID names a file, so it is unique within its collection and safe as a path segment. A FIP
-    Dashboard resource that a curated resource stands for is published as that resource; the manual tests of the
-    check questions are added by the API build."""
+def catalogue_record_keys(
+    entities: dict[str, dict[str, Any]], content: dict[str, Any]
+) -> dict[str, list[tuple[str, str]]]:
+    """The catalogue records among the built entities, by their build keys, before their identities are published:
+    per collection, each record's ID and the entity it describes, in the crate's order. A record ID names a file, so
+    it is unique within its collection and safe as a path segment. A FIP Dashboard resource that a curated resource
+    stands for is published as that resource; the manual tests of the check questions are added by the API build."""
 
     def part_ids(whole: str) -> set[str]:
         return {part["@id"] for part in as_list(entities.get(whole, {}).get("hasPart"))}
@@ -3086,6 +3127,86 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
         if collection is None:
             continue
         if not isinstance(record, str) or not API_ID.match(record):
+            raise ContentError(f"{entity_id}: no record ID the API can publish under {collection}/ ({record!r})")
+        if any(existing == record for existing, _ in records[collection]):
+            raise ContentError(f"{entity_id}: two entities share the API record {collection}/{record}")
+        records[collection].append((record, entity_id))
+    return records
+
+
+# The API's collections (until API v1) and the kind of record each publishes. Sources are the resources the Guide
+# cites; organisations and infrastructures are the Guide's own and the national roadmap's.
+API_KIND_COLLECTIONS = {
+    "principles": "principles",
+    "stations": "stations",
+    "checks": "checks",
+    "questions": "metrics",
+    "tests": "tests",
+    "resources": "resources",
+    "repositories": "repositories",
+    "clauses": "clauses",
+    "glossary": "terms",
+    "organizations": "organizations",
+    "fips": "fips",
+    "actions": "changes",
+    "models": "model",
+    "layers": "model",
+    "seams": "model",
+    "model-examples": "model",
+    "lifecycles": "lifecycle",
+    "crosswalks": "lifecycle",
+    "infrastructures": "infrastructures",
+}
+
+
+def guide_address(entity_id: str, base: str) -> str | None:
+    """The address a published identifier names, `<address>` for a record or `<address>#<fragment>` for its part;
+    None for a file, an outside IRI or a crate-local node."""
+    return entity_id[len(base) :] if entity_id.startswith(base) else None
+
+
+def record_address(entity_id: str, base: str) -> str | None:
+    """A record's address from its published identifier; None for a part or anything that is not a record."""
+    address = guide_address(entity_id, base)
+    return address if address and "#" not in address else None
+
+
+def kind_of(entity_id: str, base: str) -> str | None:
+    """The kind of the record an identifier names, or of the record its part belongs to."""
+    address = guide_address(entity_id, base)
+    return address.split("/", 1)[0] if address else None
+
+
+def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) -> dict[str, list[tuple[str, str]]]:
+    """What the static API publishes, from the published identities: per collection, each record's ID and the entity
+    it describes, in the crate's order. A record's collection follows from its kind; a record ID names a file, so it
+    is unique within its collection and safe as a path segment. The manual tests of the check questions are added by
+    the API build."""
+    base = content["guide"]["guide"]["recordBase"]
+    own_organizations = {row["id"] for row in content["guide"].get("organization", [])} | {"eosc-cz-node"}
+    roadmap = {row["id"] for row in (content.get("infrastructures") or {}).get("infrastructure", [])}
+    sources = set(ids_of(entities.get("#sources", {}).get("hasPart")))
+    records: dict[str, list[tuple[str, str]]] = {name: [] for name in API_COLLECTIONS}
+    for entity_id, entity in entities.items():
+        address = record_address(entity_id, base)
+        if address is None:
+            continue
+        try:
+            kind, scope, identifier = split_address(address)
+        except ValueError as error:
+            raise ContentError(f"{entity_id}: {error}") from error
+        collection = API_KIND_COLLECTIONS.get(kind)
+        if (
+            collection is None
+            or (kind == "organizations" and identifier not in own_organizations)
+            or (kind == "infrastructures" and identifier not in roadmap)
+        ):
+            continue
+        if kind == "resources" and entity_id in sources and not entity.get("resourceType"):
+            collection = "sources"
+        provider = kind == "tests" and scope not in ("guide", CHAMPION_SCOPE)
+        record = f"{scope}.{identifier}" if scope and (kind == "lifecycles" or provider) else identifier
+        if not API_ID.match(record):
             raise ContentError(f"{entity_id}: no record ID the API can publish under {collection}/ ({record!r})")
         if any(existing == record for existing, _ in records[collection]):
             raise ContentError(f"{entity_id}: two entities share the API record {collection}/{record}")
@@ -3199,7 +3320,7 @@ def catalogue_addresses(entities: dict[str, dict[str, Any]], content: dict[str, 
     records = catalogue_records(content)
     repositories = {item["@id"] for item in as_list(entities.get("#repositories", {}).get("hasPart"))}
     result: dict[str, str] = {}
-    for entity_id, old in api_paths(api_records(entities, content)).items():
+    for entity_id, old in api_paths(catalogue_record_keys(entities, content)).items():
         entity = entities[entity_id]
         collection, identifier = old.split("/", 1)
         kind, scope = record_route(entity_id, entity, collection, repositories)
@@ -3232,6 +3353,278 @@ def catalogue_addresses(entities: dict[str, dict[str, Any]], content: dict[str, 
             )
         result[entity_id] = address
     return result
+
+
+# ---------------------------------------------------------------------------
+# One identity projection (design decision 3)
+
+# Nodes that organise the crate itself keep their crate-local identifiers: the lists the catalogue groups, the
+# source snapshots, the Guide's own software, and the instruments, people without an ORCID iD and help routes its
+# provenance and pages name.
+# They are not catalogue records, so they have no address. Any other node without an address is refused.
+CRATE_LOCAL = re.compile(
+    r"#(?:repositories|repositories-curated|sources|resources|ledger|path|fers|fips|infrastructures|tests"
+    r"|knav-tools|guide-source|guide-software|(?:snapshot|instrument|help|person)-[A-Za-z0-9._-]+)\Z"
+)
+# The properties by which a record holds a part that has no address of its own.
+PART_PROPERTIES = ("hasPart", "potentialAction", "alternateIdentifier", "additionalProperty", "member", "review")
+
+
+class Placement(NamedTuple):
+    """Where an entity is published: a record at its address, a part of another entity under a fragment, or an
+    identifier kept as it is (a file of the crate, an outside IRI or a crate-local node)."""
+
+    address: str | None = None
+    owner: str | None = None
+    fragment: str | None = None
+    kept: str | None = None
+
+
+def identity_projection(graph: Graph, content: dict[str, Any]) -> dict[str, Placement]:
+    """Place every entity of the built graph, by its build key: each catalogue record at one address, each part under
+    the record it belongs to, a registry's record under the thing it describes, and files, outside IRIs and
+    crate-local nodes as they are. An entity that fits none of these, or two that would share a place, is refused."""
+    entities = graph.entities
+    rows = catalogue_records(content)
+    placed: dict[str, Placement] = {
+        key: Placement(address=address) for key, address in catalogue_addresses(entities, content).items()
+    }
+
+    def thing(key: str, kind: str, identifier: str, scope: str | None = None) -> None:
+        if key in entities and key not in placed:
+            try:
+                placed[key] = Placement(address=issue_address(kind, identifier, scope))
+            except ValueError as error:
+                raise ContentError(f"{key}: {error}") from error
+
+    def part(key: str, owner: str, fragment: str) -> None:
+        if key in entities and key not in placed:
+            placed[key] = Placement(owner=owner, fragment=fragment)
+
+    # Records the API publishes from API v1 on: advice, pages and callouts.
+    for data in content["stations"]:
+        for advice in data.get("advice", []):
+            thing(f"#advice-{advice['id']}", "advice", advice["id"])
+    for page in content["pages"]:
+        thing(f"#page-{page['id']}", "pages", page["id"])
+    for callout in content["callouts"]:
+        thing(f"#callout-{callout['id']}", "callouts", callout["id"])
+
+    # A registry's record about a thing the Guide describes sits under that thing (decision 4).
+    for key, entity in entities.items():
+        if key.startswith("#knav-") and key not in placed:
+            same = [target for target in ids_of(entity.get("sameAs")) if target in placed and target != key]
+            if len(same) == 1:
+                part(key, same[0], "knav")
+    dashboard_things = {
+        target.removeprefix(FIP_DASHBOARD): key
+        for key, entity in entities.items()
+        if key in placed
+        for target in ids_of(entity.get("sameAs"))
+        if target.startswith(FIP_DASHBOARD)
+    }
+    guide_organizations = {
+        str(row["fipDashboard"]): f"#org-{row['id']}"
+        for row in content["guide"].get("organization", [])
+        if isinstance(row.get("fipDashboard"), str)
+    }
+    for key in list(entities):
+        row = rows.get(key, {})
+        handle = alternate_id(row, "fip-dashboard") if row else None
+        if key.startswith("#fer-") and handle in dashboard_things:
+            part(key, dashboard_things[handle], "fip-dashboard")
+        elif key.startswith("#fd-org-"):
+            owner = guide_organizations.get(handle) or same_named_organization(entities, key)
+            if owner:
+                part(key, owner, "fip-dashboard")
+            else:
+                thing(key, "organizations", str(row.get("id") or key.removeprefix("#fd-org-")))
+
+    # The remaining organisations, the European research infrastructures and the controlled vocabularies.
+    for key, entity in entities.items():
+        if key.startswith("#org-"):
+            thing(key, "organizations", key.removeprefix("#org-"))
+        elif key.startswith("#european-ri-"):
+            thing(key, "infrastructures", key.removeprefix("#european-ri-"))
+        elif key.startswith("#lens-"):
+            thing(key, "vocabularies", key.removeprefix("#lens-"), "lenses")
+        elif "DefinedTermSet" in as_list(entity.get("@type")) and key.startswith("#"):
+            thing(key, "vocabularies", key.removeprefix("#"))
+    for key, entity in entities.items():
+        term_set = next(iter(ids_of(entity.get("inDefinedTermSet"))), None)
+        if term_set in placed and placed[term_set].address and placed[term_set].address.startswith("vocabularies/"):
+            code = str(entity.get("termCode") or entity.get("identifier") or "")
+            check = term_set.removeprefix("#blocks-")
+            if term_set.startswith("#blocks-"):
+                code = code.removeprefix(check + "-")
+            thing(key, "vocabularies", code, placed[term_set].address.split("/", 1)[1])
+
+    # Parts: what a record holds under its own fragment, placed once its whole is placed.
+    holders: dict[str, list[str]] = {}
+    for key, entity in entities.items():
+        for prop in PART_PROPERTIES:
+            for target in ids_of(entity.get(prop)):
+                holders.setdefault(target, []).append(key)
+    progress = True
+    while progress:
+        progress = False
+        for key, entity in entities.items():
+            if key in placed or not key.startswith("#") or CRATE_LOCAL.match(key):
+                continue
+            # The whole a part names itself comes first; otherwise the one record that holds it.
+            wholes = [whole for whole in ids_of(entity.get("isPartOf")) if whole in placed] or list(
+                dict.fromkeys(whole for whole in holders.get(key, []) if whole in placed)
+            )
+            if len(wholes) == 1:
+                part(key, wholes[0], part_fragment(key, entity, wholes[0]))
+                progress = True
+    for key, entity in entities.items():
+        if key in placed:
+            continue
+        if CRATE_LOCAL.match(key) or not key.startswith("#"):
+            placed[key] = Placement(kept=key)
+        elif key.startswith("#local-test-documentation-") and isinstance(entity.get("url"), str):
+            placed[key] = Placement(kept=entity["url"])  # a section of a file of the crate
+    unplaced = sorted(set(entities) - set(placed))
+    if unplaced:
+        raise ContentError("entities with no address or whole to belong to: " + ", ".join(unplaced[:12]))
+    return placed
+
+
+def ids_of(value: Any) -> list[str]:
+    return [item["@id"] for item in as_list(value) if isinstance(item, dict) and isinstance(item.get("@id"), str)]
+
+
+def same_named_organization(entities: dict[str, dict[str, Any]], key: str) -> str | None:
+    """The organisation a registry's organisation record describes, where the Guide names exactly one organisation of
+    exactly that name, as it resolves a named agent (agent_ref); a similar name never attaches a record."""
+
+    def folded(entity: dict[str, Any]) -> set[str]:
+        return {unicodedata.normalize("NFKC", name).casefold() for name in name_values(entity.get("name"))}
+
+    names = folded(entities[key])
+    matches = [other for other, entity in entities.items() if other.startswith("#org-") and names & folded(entity)]
+    return matches[0] if len(matches) == 1 else None
+
+
+def name_values(value: Any) -> list[str]:
+    return [item.get("@value", "") if isinstance(item, dict) else str(item) for item in as_list(value) if item]
+
+
+def part_fragment(key: str, entity: dict[str, Any], whole: str) -> str:
+    """A part's fragment under its whole: a name for what it is to the whole, its own identifier, or the rest of its
+    build key after the whole's."""
+    named = {
+        "#entry-localtest-": lambda: "entry-point",
+        "#mapping-": lambda: "mapping-" + key.removeprefix("#mapping-" + whole.removeprefix("#criterion-") + "-"),
+        "#node-membership-": lambda: "membership-" + key.removeprefix("#node-membership-"),
+        "#model-context-": lambda: "context-" + str(entity.get("identifier", "")).rsplit(".", 1)[-1],
+    }
+    fragment = next((rule() for prefix, rule in named.items() if key.startswith(prefix)), None)
+    if entity.get("@type") == "PropertyValue" and entity.get("propertyID") and key.startswith("#alternate-"):
+        fragment = "id-" + slug(str(entity["propertyID"]))
+    elif fragment is None and whole == "#implementation-model" and key.startswith("#model-"):
+        fragment = key.removeprefix("#model-")
+    elif fragment is None and key.startswith(whole + "-"):
+        own = entity.get("identifier") if whole.startswith("#page-") else None
+        fragment = own if isinstance(own, str) else key[len(whole) + 1 :]
+    if fragment is None:
+        raise ContentError(f"{key}: no fragment for a part of {whole}")
+    return fragment
+
+
+def published_ids(placements: dict[str, Placement], base: str) -> dict[str, str]:
+    """Each build key's published identifier: `<base><address>` for a record, the record's identifier and a fragment
+    for a part (a part of a part joins both fragments), and the kept identifier otherwise."""
+    result: dict[str, str] = {}
+
+    def resolve(key: str, seen: tuple[str, ...] = ()) -> str:
+        if key in result:
+            return result[key]
+        placement = placements[key]
+        if placement.address:
+            value = base + placement.address
+        elif placement.kept:
+            value = placement.kept
+        else:
+            if key in seen:
+                raise ContentError(f"{key}: a part cannot contain itself")
+            whole = resolve(placement.owner, (*seen, key))
+            value = whole + ("-" if "#" in whole else "#") + str(placement.fragment)
+        result[key] = value
+        return value
+
+    for key in placements:
+        resolve(key)
+    clashes = {value for value, count in Counter(result.values()).items() if count > 1}
+    if clashes:
+        raise ContentError("two entities share a published identifier: " + ", ".join(sorted(clashes)[:6]))
+    return result
+
+
+def publish_identities(graph: Graph, placements: dict[str, Placement], base: str) -> dict[str, str]:
+    """Re-key the built graph to the published identifiers: every entity, every reference and the build's indexes.
+    A record whose build key was an outside IRI (a DOI) keeps it in sameAs. Returns the addresses of the records."""
+    mapping = published_ids(placements, base)
+
+    # A reference may name a record by its address, as an action's target does; it becomes the record's IRI.
+    by_address = {placement.address: mapping[key] for key, placement in placements.items() if placement.address}
+
+    def rewrite(value: Any) -> Any:
+        if isinstance(value, list):
+            return [rewrite(item) for item in value]
+        if isinstance(value, dict):
+            return {
+                name: mapping.get(item) or by_address.get(item, item)
+                if name == "@id" and isinstance(item, str)
+                else rewrite(item)
+                for name, item in value.items()
+            }
+        return value
+
+    graph.entities = {mapping[key]: rewrite(entity) for key, entity in graph.entities.items()}
+    for key, placement in placements.items():
+        if placement.address and "://" in key:
+            append_ref(graph.entities[mapping[key]], "sameAs", key)  # an outside identity, such as a DOI
+    graph.index = {content_id: [mapping.get(key, key) for key in keys] for content_id, keys in graph.index.items()}
+    graph.text_links = {
+        mapping.get(key, key): [link | {"ref": mapping.get(link["ref"], link["ref"])} for link in links]
+        for key, links in graph.text_links.items()
+    }
+    graph.repository_keys = {
+        name: {mapping.get(key, key) for key in keys} for name, keys in graph.repository_keys.items()
+    }
+    graph.addresses = {mapping[key]: placement.address for key, placement in placements.items() if placement.address}
+    graph.published = mapping
+    return graph.addresses
+
+
+def record_base_of(crate: dict[str, Any]) -> str:
+    """The record base of a published crate: the namespace its profile names, followed by `id/`; for a crate without
+    the Guide's profile, the base its records share, or none."""
+    root = next((entity for entity in crate["@graph"] if entity["@id"] == "./"), {})
+    profiles = [
+        reference
+        for reference in ids_of(root.get("conformsTo"))
+        if "/profile/" in reference and "w3id.org/ro/" not in reference
+    ]
+    if profiles:
+        return profiles[0].split("profile/", 1)[0] + "id/"
+    records = [entity["@id"] for entity in crate["@graph"] if "/id/" in entity["@id"] and "://" in entity["@id"]]
+    return records[0].split("/id/", 1)[0] + "/id/" if records else "urn:fair-guide:no-records/"
+
+
+def relative_ids(value: Any, base: str) -> Any:
+    """The page's view of published identifiers: a record, or a part of one, by its address relative to the Guide's
+    namespace; files, outside IRIs and crate-local nodes as they are."""
+    if isinstance(value, list):
+        return [relative_ids(item, base) for item in value]
+    if isinstance(value, dict):
+        return {
+            name: item.removeprefix(base) if name == "@id" and isinstance(item, str) else relative_ids(item, base)
+            for name, item in value.items()
+        }
+    return value
 
 
 LINKSET_FILE = "linkset.json"
@@ -3541,7 +3934,7 @@ def page_config(
             "pageUrl": guide.get("pageUrl"),
             "textLinks": text_links or {},
             "foldedSections": [
-                f"#page-{page['id']}-{number}"
+                f"pages/{page['id']}#{section.get('id') or number}"
                 for page in content["pages"]
                 for number, section in enumerate(page.get("section", []), start=1)
                 if section.get("details")
@@ -3659,11 +4052,39 @@ def data_script(key: str, value: Any, about: str) -> str:
     )
 
 
-def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     """The crate as the page loads it: the core every view needs, and the parts (PART_SCRIPTS) that views load when
     they first need them. A part holds whole entities, or properties of core entities (original passages and source
-    bylines); the core and the parts together are the crate."""
+    bylines); the core and the parts together are the crate. What goes where follows each entity's address under the
+    record base (`base`, inferred from the crate when omitted) and the registries' own lists."""
     graph = crate["@graph"]
+    base = base or record_base_of(crate)
+    lists = {entity["@id"]: entity for entity in graph if entity["@id"] in ("#fers", "#knav-tools")}
+    registry = {item for entity in lists.values() for item in ids_of(entity.get("hasPart"))}
+
+    def address(entity: dict[str, Any]) -> str:
+        return guide_address(entity["@id"], base) or ""
+
+    def kind(entity: dict[str, Any]) -> str:
+        return address(entity).split("/", 1)[0]
+
+    def fragment(entity: dict[str, Any]) -> str:
+        return address(entity).partition("#")[2]
+
+    def scope(entity: dict[str, Any]) -> str:
+        parts = address(entity).split("#")[0].split("/")
+        return parts[1] if len(parts) == 3 else ""
+
+    def from_registry(entity: dict[str, Any]) -> bool:
+        """A record a registry published, or a part of one: the FIP Dashboard's and the KNAV catalogue's."""
+        return (
+            entity["@id"] in registry
+            or entity["@id"].split("#")[0] in registry
+            or (
+                kind(entity) in ("resources", "repositories") and fragment(entity).startswith(("fip-dashboard", "knav"))
+            )
+        )
+
     guidance_sources = {
         reference["@id"] for entity in graph if entity.get("guidance") for reference in as_list(entity.get("isPartOf"))
     }
@@ -3671,20 +4092,22 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
         reference["@id"] for entity in graph if entity["@id"] == "./" for reference in as_list(entity.get("isBasedOn"))
     }
     guidance_sources -= initial_sources
-    pages = [entity for entity in graph if str(entity["@id"]).startswith("#page-") and "isPartOf" not in entity]
+    pages = [
+        entity for entity in graph if kind(entity) == "pages" and not fragment(entity) and "isPartOf" not in entity
+    ]
     sections = {ref["@id"] for page in pages for ref in as_list(page.get("hasPart"))}
     sections |= {
         ref["@id"] for entity in graph if entity["@id"] in sections for ref in as_list(entity.get("potentialAction"))
     }
     parts: dict[str, dict[str, Any]] = {name: {"entities": [], "properties": {}} for name in PART_SCRIPTS}
     core = []
-    path_stages = f"#lifecycle-{PATH_LIFECYCLE}."
+    path_model = f"lifecycles/{PATH_LIFECYCLE}"
     for entity in graph:
-        if entity["@id"] == "#implementation-model" or str(entity["@id"]).startswith(
-            ("#layer-", "#seam-", "#model-context-", "#model-example-", "#model-worked-")
+        if kind(entity) in ("models", "layers", "seams", "model-examples") or (
+            kind(entity) == "stations" and fragment(entity).startswith("context-")
         ):
             parts["model"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith(path_stages):
+        elif address(entity).startswith(path_model + "/"):
             # The path's stages name the rail on every view; their definitions load with the other life-cycle models.
             detail = {
                 key: entity[key]
@@ -3693,12 +4116,12 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
             }
             parts["model"]["properties"][entity["@id"]] = detail
             core.append({key: value for key, value in entity.items() if key not in detail})
-        elif entity["@id"] == f"#lifecycle-{PATH_LIFECYCLE}":
+        elif address(entity) == path_model:
             # The path's model names its stages' source on the landing, with a link to the page that publishes it.
             detail = {key: entity[key] for key in ("citation", "hasDefinedTerm") if key in entity}
             parts["model"]["properties"][entity["@id"]] = detail
             core.append({key: value for key, value in entity.items() if key not in detail})
-        elif str(entity["@id"]).startswith(("#lifecycle-", "#crosswalk-")):
+        elif kind(entity) in ("lifecycles", "crosswalks"):
             parts["model"]["entities"].append(entity)
         elif entity.get("@type") == "rdf:Property" and entity.get("rdfs:label") in MODEL_TERMS:
             # Full definitions are needed only with the model; its property IRIs remain in the core context.
@@ -3707,17 +4130,19 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
             # Vocabulary definitions serve source detail and machine readers, rather than initial navigation.
             # Keep their full definitions with the standards part, which the machine-data page also loads.
             parts["standards"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith("#alternate-term-"):
+        elif kind(entity) == "glossary" and fragment(entity).startswith("id-"):
             # Imported glossary IDs are detail metadata; catalogue/search load them with the definitions.
             parts["standards"]["entities"].append(entity)
         # The FIP Dashboard snapshot (the profiles and the resource records they declare) and the KNAV catalogue's.
-        elif str(entity["@id"]).startswith(("#item-", "#criterion-", "#mapping-")):
+        elif kind(entity) == "questions" or (
+            kind(entity) == "tests" and scope(entity) not in ("guide", CHAMPION_SCOPE)
+        ):
             # External evaluators' criteria and their reviewed mappings load with the questions they relate to.
             parts["questions"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith(("#fip-", "#fer-", "#knav-", "#infrastructure", "#european-ri-", "#eric-")):
+        elif kind(entity) in ("fips", "infrastructures") or from_registry(entity):
             # The large research infrastructures load with the catalogue, as the registries' records do.
             parts["fips"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith(STANDARD_CLAUSES):
+        elif address(entity).startswith(STANDARD_CLAUSES):
             parts["standards"]["entities"].append(entity)
         elif entity.get("@type") in ("CreateAction", "UpdateAction") and (
             entity.get("description") or entity.get("result")
@@ -3738,7 +4163,7 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
             core.append({key: value for key, value in entity.items() if key not in detail})
         elif entity["@id"] in sections:
             parts["pages"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith("#term-") and entity.get("description"):
+        elif kind(entity) == "glossary" and not fragment(entity) and entity.get("description"):
             # Glossary labels serve navigation immediately; original definitions load with sourced detail/search.
             parts["standards"]["properties"][entity["@id"]] = {"description": entity["description"]}
             core.append({key: value for key, value in entity.items() if key != "description"})
@@ -3755,7 +4180,8 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
     # with their own deferred entities, so concurrent part loading cannot drop a patch for a missing target.
     for index, original in enumerate(core):
         entity = original
-        if entity.get("disclosureLevel", {}).get("@id") in ("#level-L1", "#level-L2", "#level-L3"):
+        level = guide_address(entity.get("disclosureLevel", {}).get("@id", ""), base)
+        if level in ("vocabularies/levels/L1", "vocabularies/levels/L2", "vocabularies/levels/L3"):
             detail = {key: value for key, value in entity.items() if key in ("text", "description")}
             if detail:
                 parts["advice"]["properties"][entity["@id"]] = detail
@@ -3855,7 +4281,7 @@ def split_languages(value: Any) -> tuple[Any, dict[str, Any], list[dict[str, Any
             # themselves tables (the language facet's labels) is structure, and both languages keep all of it.
             bilingual = all(lang in node for lang in LANGS) and not any(isinstance(node[lang], dict) for lang in LANGS)
             source_language = node.get("inLanguage") if not node.get("resourceType") else None
-            glossary = str(node.get("@id", "")).startswith("#term-") and node.get("termCode")
+            glossary = str(node.get("@id", "")).startswith("glossary/") and node.get("termCode")
             # A repository's or an infrastructure's entry keeps its name in the other language too (D-173).
             named = node.get("@type") == "DataCatalog" or "abbreviation" in node
             for key, item in node.items():
@@ -3977,19 +4403,31 @@ def outputs(
     page = render_page(
         (root / PAGE_FILE).read_text(encoding="utf-8"), content, crate, icon_sprite(root / "assets" / "icons")
     )
-    core, parts = split_crate(crate)
-    ui = page_config(
-        content,
-        graph.text_links,
-        {key: entity["catalogueAddress"] for key, entity in graph.entities.items() if entity.get("catalogueAddress")},
-        links,
-    )
+    core, parts = split_crate(crate, content["guide"]["guide"]["recordBase"])
+    # The page names a record by its address and a part by the address and a fragment, relative to the namespace.
+    base = content["guide"]["guide"]["recordBase"]
+    core = relative_ids(core, base)
+    parts = {
+        name: relative_ids(part, base)
+        | {
+            "properties": {
+                key.removeprefix(base): relative_ids(value, base) for key, value in part["properties"].items()
+            }
+        }
+        for name, part in parts.items()
+    }
+    entities = {entity["@id"]: entity for entity in crate["@graph"]}
+    records = {
+        entity_id.removeprefix(base): record_address(entity_id, base)
+        for members in api_records(entities, content).values()
+        for _, entity_id in members
+    }
+    text_links = {
+        key.removeprefix(base): [link | {"ref": link["ref"].removeprefix(base)} for link in found]
+        for key, found in graph.text_links.items()
+    }
+    ui = page_config(content, text_links, records, links)
     ui["config"]["catalogueKinds"] = {kind: kind for kind in sorted(KINDS)}
-    # The page uses config.api.records; the complete graph field returns with its deferred data part.
-    for index, entity in enumerate(core["@graph"]):
-        if entity.get("catalogueAddress"):
-            parts["fips"]["properties"].setdefault(entity["@id"], {})["catalogueAddress"] = entity["catalogueAddress"]
-            core["@graph"][index] = {key: value for key, value in entity.items() if key != "catalogueAddress"}
     ui["config"]["parts"] = dict(PART_SCRIPTS)
     ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
     ui["config"]["partLanguages"] = dict(PART_LANGUAGE_SCRIPTS)

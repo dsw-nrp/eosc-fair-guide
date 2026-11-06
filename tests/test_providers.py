@@ -15,6 +15,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_crate  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from addresses import iri  # noqa: E402
 from test_scripts import FixtureCase  # noqa: E402
 
 EVALUATOR = """
@@ -129,18 +132,18 @@ class ProviderCrateTests(ProviderCase):
     def test_criteria_and_mappings_are_crate_entities_loaded_with_the_questions(self) -> None:
         outputs = build_crate.outputs(self.root)
         graph = {entity["@id"]: entity for entity in json.loads(outputs[build_crate.CRATE_FILE])["@graph"]}
-        criterion = graph["#criterion-evaluator-M1"]
+        criterion = graph[iri("tests/service/M1")]
         self.assertEqual(criterion["identifier"], "M1")
         self.assertEqual(criterion["name"], {"@language": "en", "@value": "The provider's own wording."})
-        self.assertEqual(criterion["about"], {"@id": build_crate.principle_iri("F1")})
+        self.assertEqual(criterion["about"], {"@id": iri("principles/F1")})
         self.assertEqual(criterion["url"], "https://evaluator.example.org/api/metric_M1")
-        mapping = graph["#mapping-evaluator-M1-gate.01"]
-        self.assertEqual(mapping["about"], {"@id": "#item-gate.01"})
+        mapping = graph[iri("tests/service/M1#mapping-gate.01")]
+        self.assertEqual(mapping["about"], {"@id": iri("questions/gate.01")})
         self.assertEqual(mapping["mappingCoverage"], "whole")
         self.assertEqual(build_crate.as_list(mapping["reviewedVersion"]), ["api 1.0"])
-        unmapped = graph["#criterion-evaluator-M2"]
+        unmapped = graph[iri("tests/service/M2")]
         self.assertNotIn("hasPart", unmapped, "an unmapped criterion stays listed without an invented association")
-        entity = '{"@id":"#criterion-evaluator-M1","@type"'
+        entity = '{"@id":"tests/service/M1","@type"'  # the page names it by its address
         self.assertIn(entity, outputs[build_crate.PART_SCRIPTS["questions"]])
         self.assertNotIn(entity, outputs[build_crate.KB_SCRIPT], "criteria stay off the initial download")
 

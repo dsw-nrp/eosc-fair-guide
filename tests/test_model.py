@@ -12,9 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_api  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_crate  # noqa: E402
 import check_content  # noqa: E402
 import check_health  # noqa: E402
+from addresses import iri  # noqa: E402
 
 
 def bilingual(value: str) -> dict[str, str]:
@@ -91,12 +94,12 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(self.content)
         graph = {item["@id"]: item for item in crate["@graph"]}
-        seam = graph["#seam-repository-nma"]
-        self.assertEqual(seam["implementationLayers"], {"@id": "#layer-infrastructure"})
+        seam = graph[iri("seams/repository-nma")]
+        self.assertEqual(seam["implementationLayers"], {"@id": iri("layers/infrastructure")})
         self.assertNotIn("serviceStatus", seam)
-        self.assertEqual(graph["#model-example-pilot"]["statusAsOf"], "2026-09")
-        self.assertEqual(graph["#resource-service"]["implementationSeams"], {"@id": "#seam-repository-nma"})
-        self.assertNotIn("implementationSeams", graph["#item-gate.01"])
+        self.assertEqual(graph[iri("model-examples/pilot")]["statusAsOf"], "2026-09")
+        self.assertEqual(graph[iri("resources/service")]["implementationSeams"], {"@id": iri("seams/repository-nma")})
+        self.assertNotIn("implementationSeams", graph[iri("questions/gate.01")])
 
     def test_unknown_association_target_or_model_term_is_rejected(self) -> None:
         self.content["model"]["association"][0]["target"] = "missing"
@@ -127,8 +130,8 @@ class ModelTests(unittest.TestCase):
         crate = build_crate.build_crate(self.content)
         core, parts = build_crate.split_crate(crate)
         restored = {item["@id"]: copy.deepcopy(item) for item in core["@graph"]}
-        self.assertNotIn("#seam-repository-nma", restored)
-        self.assertNotIn("#model-example-pilot", restored)
+        self.assertNotIn(iri("seams/repository-nma"), restored)
+        self.assertNotIn(iri("model-examples/pilot"), restored)
         deferred_ids = {item["@id"] for item in parts["model"]["entities"]}
         for term in build_crate.MODEL_TERMS:
             term_iri = crate["@context"][1][term]
@@ -186,13 +189,16 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(self.content)
         graph = {item["@id"]: item for item in crate["@graph"]}
-        worked = graph["#model-worked-example"]
+        worked = graph[iri("models/layers-seams#worked-example")]
         self.assertEqual(
-            worked["hasPart"], [{"@id": "#clause-A.F1.R1"}, {"@id": "#item-gate.01"}, {"@id": f"#action-{action}"}]
+            worked["hasPart"],
+            [{"@id": iri("clauses/A.F1.R1")}, {"@id": iri("questions/gate.01")}, {"@id": iri(f"actions/{action}")}],
         )
-        self.assertEqual(graph["#implementation-model"]["workExample"], {"@id": "#model-worked-example"})
+        self.assertEqual(
+            graph[iri("models/layers-seams")]["workExample"], {"@id": iri("models/layers-seams#worked-example")}
+        )
         api = build_api.Api(crate, self.content)
-        record = api.record("model", "layers-seams", "#implementation-model")
+        record = api.record("model", "layers-seams", iri("models/layers-seams"))
         self.assertTrue(
             any(
                 isinstance(item, dict) and item.get("identifier") == "model-worked-example"
@@ -203,10 +209,10 @@ class ModelTests(unittest.TestCase):
     def test_seam_association_reuses_endpoint_layers_without_citation_inheritance(self) -> None:
         self.content["model"]["association"][0].pop("layers")
         graph = {item["@id"]: item for item in build_crate.build_crate(self.content)["@graph"]}
-        self.assertEqual(graph["#resource-service"]["implementationLayers"], {"@id": "#layer-infrastructure"})
-        self.assertNotIn("implementationLayers", graph["#item-gate.01"])
+        self.assertEqual(graph[iri("resources/service")]["implementationLayers"], {"@id": iri("layers/infrastructure")})
+        self.assertNotIn("implementationLayers", graph[iri("questions/gate.01")])
         api = build_api.Api(build_crate.build_crate(self.content), self.content)
-        station = api.record("stations", "one", "#station-one")
+        station = api.record("stations", "one", iri("stations/one"))
         contexts = build_crate.as_list(station["hasPart"])
         self.assertTrue(any(isinstance(item, dict) and item.get("identifier") == "context.one.V" for item in contexts))
 

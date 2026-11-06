@@ -24,7 +24,7 @@ id = "analyse.02"
 lens = "V"
 level = "L0"
 text = { cs = "Analýzu pište jako skript nebo výpočetní notebook a ukládejte ho s verzí softwaru a parametry, se kterými jste výsledky získali.", en = "Write your analysis as a script or computational notebook and keep it with the software version and parameters that produced the results." }
-action = [{ label = { cs = "Skripty a výzkumný software", en = "Scripts and research software" }, href = "#page-software" }, { label = { cs = "Výpočty v e-INFRA CZ", en = "Computing in e-INFRA CZ" }, href = "https://docs.e-infra.cz/" }]
+action = [{ label = { cs = "Skripty a výzkumný software", en = "Scripts and research software" }, href = "pages/software" }, { label = { cs = "Výpočty v e-INFRA CZ", en = "Computing in e-INFRA CZ" }, href = "https://docs.e-infra.cz/" }]
 sources = ["RDMKIT.analyse.02", "CODE.01"]
 
 [[advice]]
