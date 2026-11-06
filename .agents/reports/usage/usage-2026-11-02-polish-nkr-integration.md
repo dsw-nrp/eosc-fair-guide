@@ -97,5 +97,14 @@
   `774b241890fdfb31be6ec111c0db9e415b998c5c` reproduced the eight NKR profile
   failures and identified one unrelated checkout-name assumption. The user
   explicitly requested a local commit of the review and verification repairs.
-  No push, PR creation, archive, source-refresh dispatch or hosted publication
-  was performed.
+   No push, PR creation, archive, source-refresh dispatch or hosted publication was performed before the archive session below.
+- **When:** 2026-11-06 (+01:00)
+- **Agent / runtime:** Kilo
+- **Model / backend:** kimi-k3.1-pro (e-infra-cz/kimi-k3.1-pro)
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `openspec-archive-change polish-nkr-integration` with the inline `openspec-sync-specs` merge.
+- **What:** Synchronize the completed change's delta requirements into the two main specs and archive it after all 34 tasks and all artifacts verified complete.
+- **Impacted:** `openspec/specs/fair-guide/guide-experience/spec.md`, `openspec/specs/fair-guide/guide-knowledge-base/spec.md`, this usage entry, and the change's move to `openspec/changes/archive/2026-11-06-polish-nkr-integration/` (including `.openspec.yaml` and all authored artifacts).
+- **Verification (archive, 2026-11-06):** Guide-experience applied 3 MODIFIED and 1 ADDED requirements; guide-knowledge-base applied 2 MODIFIED and 7 ADDED requirements. All delta scenarios are present and no delta operation headers remain in main specs. One pre-existing 507-character description and the synced NKR description were shortened below 500 characters to satisfy strict validation without changing behaviour; existing purposes were untouched. Strict OpenSpec validation passed 6/6 before the move and 5/5 after it. `python scripts/check_all.py` passed 36/36 checks in 222.2 seconds. `npx openspec list --json` reports no active change.
+- **Close-out (archive):** The user approved syncing before archiving. `git mv` moved the change to `openspec/changes/archive/2026-11-06-polish-nkr-integration/`; all files are preserved, main specs are synced, and the aggregate close-out is green. No commit, push, pull request, merge, source-refresh dispatch or hosted publication was performed.
