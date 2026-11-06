@@ -130,7 +130,7 @@ class LocalTestRecords(unittest.TestCase):
         content = copy.deepcopy(self.content)
         test = content["live"]["test"][0]
         identifier = test["id"]
-        content["identifiers"]["issued"]["tests"].remove(identifier)
+        content["identifiers"]["issued"]["tests"].remove(f"guide/{identifier}")
         test["script"] = "assets/js/tests/../../outside.js"
         test["entryPoint"] = 'FairGuide.selfcheck.localTests["another-test"]'
         test["question"] = "fdo.09"

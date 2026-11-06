@@ -79,13 +79,30 @@ class MigrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "no-such-item"):
             migrate.migrate(self.root, dry_run=True)
 
-    def test_the_register_kinds_take_the_kind_vocabulary(self) -> None:
-        text = '[issued]\nrequirements = [\n  "A.F1.N1",\n]\nmodel = []\nlifecycle = []\nlenses = ["V"]\n'
-        renamed = migrate.rename_register_kinds(text)
-        self.assertEqual(
-            renamed, '[issued]\nclauses = [\n  "A.F1.N1",\n]\nmodels = []\nlifecycles = []\nlenses = ["V"]\n'
+    def test_the_register_keys_each_identifier_by_its_records_kind(self) -> None:
+        content = migrate.load_content(self.root / "content")
+        text = (
+            "[register]\nprepared = 2026-10-15\n\n[issued]\n"
+            'lenses = ["V"]\nmodes = ["dataset.before"]\nprofiles = ["gate.core-system"]\n'
+            'callouts = ["callout:note"]\ncallout_items = ["callout.note.one"]\nrequirements = ["A.F1.R1"]\n'
+            'tests = ["guide-dataset-01"]\nsources = ["report"]\nadvice = ["one.01"]\n\n'
+            '[retired]\nadvice = ["one.99"]\n'
         )
-        self.assertEqual(migrate.rename_register_kinds(renamed), renamed)
+        rekeyed = tomllib.loads(migrate.rekey_register(text, content))
+        self.assertEqual(
+            rekeyed["issued"],
+            {
+                "vocabularies": ["lenses/V", "modes-dataset/before", "profiles-gate/core-system"],
+                "callouts": ["note", "note#one"],
+                "clauses": ["A.F1.R1"],
+                "tests": ["guide/guide-dataset-01"],
+                "resources": ["report"],
+                "advice": ["one.01"],
+            },
+        )
+        self.assertEqual(rekeyed["retired"], {"advice": ["one.99"]})
+        again = migrate.rekey_register(migrate.rekey_register(text, content), content)
+        self.assertEqual(again, migrate.rekey_register(text, content))
 
     def test_compression_keeps_the_prefix_then_falls_back_to_scopes_and_addresses(self) -> None:
         universe = [

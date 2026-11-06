@@ -10,6 +10,7 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import build_crate  # noqa: E402
 import check_content as cc  # noqa: E402
+from catalogue_identity import KINDS  # noqa: E402
 
 
 class ProvenanceScopeTests(unittest.TestCase):
@@ -33,7 +34,20 @@ class ProvenanceScopeTests(unittest.TestCase):
             self.assertTrue(any(cc.covered(p, key) for p in patterns), key)
         issued = cc.issued_ids(content)
         self.assertEqual(set(issued["callouts"]), set(content["identifiers"]["issued"]["callouts"]))
-        self.assertEqual(set(issued["callout_items"]), set(content["identifiers"]["issued"]["callout_items"]))
+        self.assertIn("sensitive-data#rights", issued["callouts"])
+
+    def test_the_register_keys_identifiers_by_the_kind_of_their_record(self):
+        register = self.content["identifiers"]
+        for section in ("issued", "retired"):
+            for kind in register.get(section, {}):
+                self.assertIn(kind, KINDS, f"{section}.{kind}")
+        issued = cc.issued_ids(self.content)
+        self.assertIn("lenses/V", issued["vocabularies"])
+        self.assertIn("profiles-gate/core-system", issued["vocabularies"])
+        self.assertIn("plan#context-V", issued["stations"])
+        self.assertIn("guide/guide-dataset-01", issued["tests"])
+        # Sources and resources share one ID space, under the kind their records are issued as.
+        self.assertIn("knav-dm-tools-catalogue", issued["resources"])
 
     def test_page_repository_source_and_callout_changes_need_a_new_covering_action(self):
         before = copy.deepcopy(self.content)

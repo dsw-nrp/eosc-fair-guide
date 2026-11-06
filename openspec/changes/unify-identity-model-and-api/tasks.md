@@ -98,7 +98,7 @@ its head in CI.
 - [x] 2.16 Name records by address in the fields that can name several kinds: provenance `objects`, model association
   targets and the worked example's steps, through `migrate.py` (decision 16). Verify: a second migration run changes
   nothing, and the content check rejects a bare ID in each field with the address form named.
-- [ ] 2.17 Key the identifier register by record kind, with each value the address without the kind (vocabularies,
+- [x] 2.17 Key the identifier register by record kind, with each value the address without the kind (vocabularies,
   callouts with their items, stations with the model contexts, models, layers, seams, model examples, life cycles,
   crosswalks, tests with their scope, and sources within resources), through `migrate.py`, `issued_ids` and
   `scripts/register_ids.py` (decision 17). Verify: a unit test finds every register key in the kind vocabulary, and

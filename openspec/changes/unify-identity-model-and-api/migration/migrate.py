@@ -19,9 +19,10 @@ Rewrites the authored TOML files under content/; the generated snapshots are ren
   (``#repositories?function=...``) names the record by its address (``stations/plan``) or the list by its kind;
 - link reviews: each reviewed missing-link decision names its target by address, and a decision that was current
   before the migration stays current: its text hash follows the field, whose only change is the reference markup;
-- the identifier register: the kinds that name records under another word take the kind vocabulary
-  (``requirements`` becomes ``clauses``, ``model`` ``models`` and ``lifecycle`` ``lifecycles``); its other categories
-  (lenses, modes, profiles, callout items, sources) are named sets of their own and keep their names;
+- the identifier register: every issued and retired identifier is keyed by the kind of its record, with its address
+  without the kind as the value (``lenses = ["V"]`` becomes ``vocabularies = ["lenses/V", ...]``, a callout item
+  ``callout.x.y`` ``callouts = ["x#y"]``, a station's model context ``stations = ["plan#context-V"]``, a local test
+  ``tests = ["guide/guide-dataset-01"]``, and sources share ``resources``); no category keeps its old name;
 - provenance results: each content ID or prefix pattern (``test:x``, ``provider:*``, ``plan.*``) becomes the addresses
   that name the same published records and parts (``tests/guide/x``, ``tests/f-uji/*``, ``advice/plan.*``), read from
   the build of the migrated copy; ``guide`` and ``*`` stay;
@@ -51,6 +52,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import register_ids  # noqa: E402
 from build_crate import Graph, build_crate, load_content, result_covers  # noqa: E402
 from catalogue_identity import KINDS, parse_route, translate_routes  # noqa: E402
 from check_content import content_addresses, walk  # noqa: E402
@@ -238,9 +240,6 @@ def rename(work: Path) -> None:
         )
 
 
-# The register's kinds that name records under another word than the kind vocabulary's.
-REGISTER_KINDS = {"requirements": "clauses", "model": "models", "lifecycle": "lifecycles"}
-REGISTER_KEY = re.compile(r"(?m)^(" + "|".join(REGISTER_KINDS) + r") = \[")
 RESULTS = re.compile(r"(?ms)^results = \[(?P<body>[^\]]*)\]$")
 # The family words of the content IDs that provenance results used, before an item's own ID.
 FAMILIES = (
@@ -265,8 +264,64 @@ FAMILIES = (
 )
 
 
-def rename_register_kinds(text: str) -> str:
-    return REGISTER_KEY.sub(lambda match: f"{REGISTER_KINDS[match[1]]} = [", text)
+# The register's old categories whose values are content IDs, which the content's own map names by address; an
+# earlier run of this step named the first three by their kind word already.
+CONTENT_ID_CATEGORIES = {
+    "requirements",
+    "clauses",
+    "model",
+    "models",
+    "lifecycle",
+    "lifecycles",
+    "sources",
+    "resources",
+}
+# The register's old categories whose values are an address without the kind once their family word goes.
+FAMILY_CATEGORIES = {"callouts": ("callouts", "callout:"), "checks": ("checks", ""), "pages": ("pages", "")}
+
+
+def register_entry(category: str, value: str, addresses: dict[str, str]) -> tuple[str, str]:
+    """An old register entry as the kind of its record and its address without the kind."""
+    if category in KINDS and f"{category}/{value}" in addresses.values():
+        return category, value  # an entry this step has keyed already
+    if category in CONTENT_ID_CATEGORIES and value in addresses:
+        kind, identifier = addresses[value].split("/", 1)
+        return kind, identifier
+    if category == "lenses":
+        return "vocabularies", f"lenses/{value}"
+    if category in ("modes", "profiles"):
+        check, _, code = value.partition(".")
+        return "vocabularies", f"{category}-{check}/{code}"
+    if category == "callout_items":
+        callout, _, item = value.removeprefix("callout.").partition(".")
+        return "callouts", f"{callout}#{item}"
+    if category == "tests":
+        return "tests", value if "/" in value else f"guide/{value}"
+    if category in FAMILY_CATEGORIES:
+        kind, family = FAMILY_CATEGORIES[category]
+        return kind, value.removeprefix(family)
+    if category in ("requirements", "clauses"):
+        return "clauses", value
+    if category in CONTENT_ID_CATEGORIES:
+        raise ValueError(f"register entry {category}:{value} names no record")
+    return category, value  # already a kind of the vocabulary: stations, advice, questions, actions and the rest
+
+
+def rekey_register(text: str, content: dict) -> str:
+    """Key every issued and retired identifier by the kind of its record, with its address without the kind as the
+    value, keeping the register's order within each kind."""
+    data = tomllib.loads(text)
+    addresses = content_addresses(content)
+    sections: dict[str, dict[str, list[str]]] = {}
+    for section in ("issued", "retired"):
+        rekeyed: dict[str, list[str]] = {}
+        for category, values in data.get(section, {}).items():
+            for value in values:
+                kind, identifier = register_entry(category, value, addresses)
+                if identifier not in rekeyed.setdefault(kind, []):
+                    rekeyed[kind].append(identifier)
+        sections[section] = rekeyed
+    return register_ids.render(data["register"]["prepared"], sections["issued"], sections["retired"])
 
 
 def is_address(pattern: str) -> bool:
@@ -393,7 +448,8 @@ def run(work: Path) -> None:
         reviews.write_text(text, encoding="utf-8", newline="\n")
     register = work / "content" / "identifiers.toml"
     if register.exists():
-        register.write_text(rename_register_kinds(register.read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
+        text = rekey_register(register.read_text(encoding="utf-8"), load_content(work / "content"))
+        register.write_text(text, encoding="utf-8", newline="\n")
     # Names first: the build that the results step reads resolves those fields by address.
     migrate_named_records(work)
     migrate_results(work)

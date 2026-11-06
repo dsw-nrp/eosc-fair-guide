@@ -172,7 +172,7 @@ class ModelTests(unittest.TestCase):
         self.assertNotEqual(before["resources/service"], after["resources/service"])
         self.assertEqual(before["questions/gate.01"], after["questions/gate.01"])
         self.assertIn("stations/one#context-V", after)
-        self.assertIn("seam.repository-nma", check_content.issued_ids(self.content)["models"])
+        self.assertIn("repository-nma", check_content.issued_ids(self.content)["seams"])
 
     def test_fields_that_can_name_several_kinds_refuse_a_bare_id(self) -> None:
         self.content["model"]["association"][0]["target"] = "service"

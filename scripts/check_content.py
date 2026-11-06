@@ -1504,40 +1504,46 @@ def content_addresses(content: dict[str, Any]) -> dict[str, str]:
     return found
 
 
+# The kinds of the records the Guide's content issues identifiers for. Glossary terms, organisations and
+# infrastructures carry their sources' identifiers, as FIPs, registry records and external evaluators' tests do.
+ISSUED_KINDS = (
+    "vocabularies",
+    "stations",
+    "advice",
+    "checks",
+    "questions",
+    "pages",
+    "callouts",
+    "tests",
+    "clauses",
+    "resources",
+    "repositories",
+    "actions",
+    "models",
+    "layers",
+    "seams",
+    "model-examples",
+    "lifecycles",
+    "crosswalks",
+)
+
+
 def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
-    """Every identifier the guide issues, by kind, in content order. Terms, FIPs, FIP Dashboard records and external
-    tests carry their registries' identifiers. Local tests have guide-issued IDs (docs/content-model.md)."""
-    return {
-        "lenses": [lens["id"] for lens in content["guide"].get("lens", [])],
-        "stations": [data["station"]["id"] for data in content["stations"]],
-        "checks": [data["check"]["id"] for data in content["checks"]],
-        # A check's modes and profiles are named within their check, and share links carry them.
-        "modes": [
-            f"{data['check']['id']}.{mode}" for data in content["checks"] for mode in data["check"].get("modes", [])
-        ],
-        "profiles": [
-            f"{data['check']['id']}.{profile['id']}"
-            for data in content["checks"]
-            for profile in data["check"].get("profile", [])
-        ],
-        "pages": [page["id"] for page in content["pages"]],
-        "callouts": [f"callout:{callout['id']}" for callout in content["callouts"]],
-        "callout_items": [
-            f"callout.{callout['id']}.{item['id']}"
-            for callout in content["callouts"]
-            for item in callout.get("item", [])
-        ],
-        "advice": [advice["id"] for data in content["stations"] for advice in data.get("advice", [])],
-        "questions": [item["id"] for data in content["checks"] for item in data.get("item", [])],
-        "tests": [test["id"] for test in content["live"].get("test", [])],
-        "clauses": [clause["id"] for clause in content["ledger"]],
-        "sources": [source["id"] for source in content["sources"]],
-        "resources": [resource["id"] for resource in content["resources"]],
-        "repositories": [repository["id"] for repository in content["repositories"]],
-        "actions": [action["id"] for action in content["provenance"]],
-        "models": list(model_items(content)),
-        "lifecycles": list(lifecycle_items(content)),
-    }
+    """Every identifier the Guide issues, by the kind of its record, in content order: the record's address without
+    its kind (`lenses/V`, `sensitive-data#steward`, `guide/guide-dataset-01`). Sources and resources share one ID
+    space; a local test is the Guide's own, other tests carry their providers' identifiers (docs/content-model.md)."""
+    issued: dict[str, list[str]] = {kind: [] for kind in ISSUED_KINDS}
+    # The terms share links carry: lenses, and each check's modes and profiles, as their vocabularies' terms.
+    issued["vocabularies"] += [f"lenses/{lens['id']}" for lens in content["guide"].get("lens", [])]
+    for data in content["checks"]:
+        check = data["check"]
+        issued["vocabularies"] += [f"modes-{check['id']}/{mode}" for mode in check.get("modes", [])]
+        issued["vocabularies"] += [f"profiles-{check['id']}/{profile['id']}" for profile in check.get("profile", [])]
+    for address in content_addresses(content).values():
+        kind, _, identifier = address.partition("/")
+        if kind in issued and (kind != "tests" or identifier.startswith("guide/")) and identifier not in issued[kind]:
+            issued[kind].append(identifier)
+    return issued
 
 
 def check_identifiers(report: Report, content: dict[str, Any]) -> None:

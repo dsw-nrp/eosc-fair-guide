@@ -2113,7 +2113,7 @@ class IdentifierRegisterTests(FixtureCase):
         added = self.register()
         self.assertIn("advice:one.03", added)
         self.assertIn("questions:gate.01", added)
-        self.assertIn("profiles:gate.a", added)
+        self.assertIn("vocabularies:profiles-gate/a", added)
         self.assertEqual(self.errors(), [])
         self.assertEqual(self.register(), [])
         # A renamed entry leaves its registered identifier without an entry, and its new one unregistered.
