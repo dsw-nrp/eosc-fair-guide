@@ -373,7 +373,7 @@
 
   /** A snapshot an entry's facts come from, by name with the date it was taken. */
   const snapshotItem = (snapshot) =>
-    h("span", null, snapshot.url ? FG.external(snapshot.url, FG.repositorySource(snapshot["@id"])) : FG.repositorySource(snapshot["@id"]), snapshot.dateCreated ? h("span", { class: "muted" }, " · " + FG.t("catalogue.snapshotOf", { date: FG.formatDate(snapshot.dateCreated) })) : null);
+    h("span", null, snapshot.url ? FG.external(snapshot.url, FG.sourceName(snapshot["@id"])) : FG.sourceName(snapshot["@id"]), snapshot.dateCreated ? h("span", { class: "muted" }, " · " + FG.t("catalogue.snapshotOf", { date: FG.formatDate(snapshot.dateCreated) })) : null);
 
   /* Rows that take the card's full width under their label: a table needs more than the row's column. */
   const WIDE_ROWS = ["declarations"];
@@ -502,9 +502,9 @@
     ];
   }
 
-  /** What an entry rests on: the snapshots its facts come from, and the RDMkit and training records that list it. */
+  /** What an entry rests on: the catalogues that supplied it, and the RDMkit and training records that list it. */
   const basedOnRow = (entity) => [
-    FG.refs(entity, "isBasedOn").filter(FG.isSnapshot).map(snapshotItem),
+    FG.sourceCredits(entity),
     entity.rdmkitRecord ? FG.external(entity.rdmkitRecord, "RDMkit") : null,
     entity.trainingSearch ? FG.external(entity.trainingSearch, FG.t("catalogue.trainingSearch")) : null,
   ];

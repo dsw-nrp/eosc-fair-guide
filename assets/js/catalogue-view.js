@@ -208,7 +208,7 @@
             byline: source.creditText || FG.refs(source, "author").map((person) => FG.text(person.name)).join(", ") || null,
             bylineFields: "creditText author",
             details: citationDetails(source),
-            relations: { license: licenceRow(source), inGuide: inGuide(citedBy), identifiers: FG.identifierItems(source) },
+            relations: { license: licenceRow(source), basedOn: basedOnRow(source), inGuide: inGuide(citedBy), identifiers: FG.identifierItems(source) },
           }),
       });
     }
@@ -338,7 +338,7 @@
         facets: {
           rfunction: functions.filter((value) => repository.acceptsDeposits !== false || value !== DEPOSIT),
           rkind: FG.id(repository.repositoryKind) ? [FG.id(repository.repositoryKind)] : [],
-          rsource: FG.repositorySourceIds(repository),
+          rsource: FG.sourceIds(repository),
           use: used,
           status: FG.id(repository.serviceStatus) ? [FG.id(repository.serviceStatus)] : [],
           language: FG.list(repository.inLanguage).map(String),
@@ -380,7 +380,7 @@
               developedBy: developerRow(repository),
               providedBy: FG.refs(repository, "provider").map((party) => (party.url ? FG.external(party.url, FG.abbreviatedName(party, FG.state.lang)) : h("span", null, FG.abbreviatedName(party, FG.state.lang)))),
               declaredIn: declaredInRow(fer),
-              basedOn: [FG.repositorySourceLinks(repository), repository.rdmkitRecord ? FG.external(repository.rdmkitRecord, "RDMkit") : null, repository.trainingSearch ? FG.external(repository.trainingSearch, FG.t("catalogue.trainingSearch")) : null],
+              basedOn: [FG.sourceCredits(repository), repository.rdmkitRecord ? FG.external(repository.rdmkitRecord, "RDMkit") : null, repository.trainingSearch ? FG.external(repository.trainingSearch, FG.t("catalogue.trainingSearch")) : null],
               audience: audiences(FG.refIds(repository, "audience")),
               inGuide: inGuide(holders),
               identifiers: FG.identifierItems(repository),
@@ -1143,7 +1143,7 @@
     repositories: [
       { key: "rfunction", values: () => termsOf("repository-functions"), label: categoryLabel },
       { key: "rkind", values: () => FG.repositoryKindOrder, label: categoryLabel },
-      { key: "rsource", label: (value) => FG.repositorySource(value) },
+      { key: "rsource", label: (value) => FG.sourceName(value) },
       { key: "use", values: () => ["recommended", "cited", "dashboard", "knav"], label: (value) => FG.t("catalogue.use." + value) },
       { key: "status", label: categoryLabel },
       { key: "language", values: () => ["cs", "en"], label: (value) => FG.t("catalogue.language." + value) },
@@ -1312,7 +1312,7 @@
     }
     if (order === "status") return byFacet("status", termsOf("statuses"), FG.t("catalogue.withoutStatus"));
     if (order === "field") return byFacet("field", termsOf("research-fields"), "");
-    if (order === "rsource") return byFacet("rsource", ["#repositories-curated", "#snapshot-re3data", "#snapshot-nkr", "#snapshot-fairsharing", "#snapshot-datacite", "#snapshot-fip-dashboard"], "");
+    if (order === "rsource") return byFacet("rsource", ["#guide-selection", "#snapshot-re3data", "#snapshot-nkr", "#snapshot-fairsharing", "#snapshot-datacite", "#snapshot-fip-dashboard", "#snapshot-knav-data-management-tools-catalogue"], "");
     if (order === "checked") {
       /* The status checked longest ago first, so stale entries surface. */
       return grouped(
@@ -1457,7 +1457,7 @@
     if (kind === "repositories") {
       /* NKR, FAIRsharing and DataCite come with the page, refreshed by a scheduled workflow; nothing is loaded here. */
       const all = FG.repositoryEntries();
-      const recorded = all.filter((repository) => FG.refIds(repository, "isBasedOn").includes("#snapshot-fairsharing")).length;
+      const recorded = all.filter((repository) => FG.sourceIds(repository).includes("#snapshot-fairsharing")).length;
       const snapshot = FG.get("#snapshot-fairsharing");
       return h(
         "div",

@@ -1620,7 +1620,13 @@ class SnapshotRefreshTests(FixtureCase):
             return [item["@id"] for item in build_crate.as_list(entity.get("sameAs"))]
 
         def sources(entity: dict[str, object]) -> list[str]:
-            return [item["@id"] for item in build_crate.as_list(entity.get("isBasedOn"))]
+            """The catalogues an entity rests on: its own sources, and each registry record's snapshot."""
+            found = []
+            for item in build_crate.ids_of(entity.get("isBasedOn")):
+                record = graph.entities.get(item, {})
+                is_record = build_crate.CATALOG_RECORD in build_crate.as_list(record.get("@type"))
+                found += build_crate.ids_of(record.get("isBasedOn")) if is_record else [item]
+            return found
 
         registered = repositories[iri("repositories/r3d100000002")]
         self.assertIn("https://doi.org/10.25504/FAIRsharing.abc123", same_as(registered))
@@ -2458,7 +2464,7 @@ class SiteTests(unittest.TestCase):
         self.assertIn(
             {"@id": iri("vocabularies/repository-functions/deposit-publications")}, as_ep["repositoryFunction"]
         )
-        self.assertIn({"@id": "#snapshot-fip-dashboard"}, as_ep["isBasedOn"])
+        self.assertIn({"@id": as_ep["@id"] + "#fip-dashboard"}, as_ep["isBasedOn"])
 
     def test_record_annotations_are_validated_and_do_not_guess_identity(self) -> None:
         content = build_crate.load_content()

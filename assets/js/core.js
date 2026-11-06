@@ -209,8 +209,16 @@
   FG.championTest = (id) => FG.get(FG.address("tests", id, "fair-champion"));
   /** The thing a registry's record is about (`foaf:primaryTopic`), or the entity itself. */
   FG.thingOf = (record) => FG.id(record && record.primaryTopic) || FG.id(record);
-  /** Whether a registry's record founds its thing, one only that registry knows: the thing rests on the record. */
-  FG.foundedBy = (record) => FG.refIds(FG.get(FG.thingOf(record)), "isBasedOn").includes(FG.id(record));
+  /** The registry record that founds a thing only registries know: the first of its records, in the build's order
+      of registries, when the thing rests on nothing else; none for a thing the Guide's own content describes. */
+  FG.foundingRecord = function (thing) {
+    const sources = FG.refIds(thing, "isBasedOn");
+    if (!sources.length || sources.some((id) => FG.recordOf(id) !== FG.id(thing) || !FG.fragment(id))) return null;
+    const order = FG.list(FG.config && FG.config.recordSchemes);
+    return sources.slice().sort((a, b) => order.indexOf(FG.fragment(a)) - order.indexOf(FG.fragment(b)))[0];
+  };
+  /** Whether a registry's record founds its thing, one only registries know. */
+  FG.foundedBy = (record) => Boolean(record) && FG.foundingRecord(FG.get(FG.thingOf(record))) === FG.id(record);
   /** A snapshot of a source, one of the crate's own nodes. */
   FG.isSnapshot = (value) => String(FG.id(value) || "").startsWith("#snapshot-");
 

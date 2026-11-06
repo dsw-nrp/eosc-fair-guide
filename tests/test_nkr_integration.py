@@ -569,7 +569,10 @@ class NkrCatalogueTests(unittest.TestCase):
         ]
         self.assertEqual(len(joined), 5)
         self.assertIn(iri("repositories/herbarium"), entities)
-        self.assertIn(build_crate.ref("#snapshot-nkr"), entities[iri("repositories/datarepo")]["isBasedOn"])
+        # A curated repository NKR also lists rests on NKR's record, which rests on the snapshot.
+        datarepo = iri("repositories/datarepo")
+        self.assertIn(build_crate.ref(datarepo + "#nkr"), entities[datarepo]["isBasedOn"])
+        self.assertIn(build_crate.ref("#snapshot-nkr"), build_crate.as_list(entities[datarepo + "#nkr"]["isBasedOn"]))
 
     def test_an_nkr_address_reaching_two_components_is_refused(self):
         content = reference_content()
@@ -632,8 +635,9 @@ class NkrCatalogueTests(unittest.TestCase):
         self.assertEqual(entity["serviceStatus"], build_crate.ref(iri("vocabularies/statuses/pilot")))
         self.assertEqual(entity["statusAsOf"], "2026-11-01")
         self.assertIs(entity["acceptsDeposits"], False)
-        for source in (dashboard["@id"], "#snapshot-nkr"):
-            self.assertIn(build_crate.ref(source), build_crate.as_list(entity["isBasedOn"]))
+        self.assertEqual(
+            build_crate.as_list(entity["isBasedOn"]), build_crate.refs([dashboard["@id"], original["@id"] + "#nkr"])
+        )
         for source in (
             "https://fip-dashboard.dmp.eosc.cz/resources/nrp-invenio",
             "https://repo.cz/objects/20.500.14818/cesnet-test",
@@ -653,7 +657,7 @@ class NkrCatalogueTests(unittest.TestCase):
             entity["repositoryFunction"],
             build_crate.refs([iri("vocabularies/repository-functions/deposit-publications")]),
         )
-        self.assertIn(build_crate.ref("#snapshot-nkr"), build_crate.as_list(entity["isBasedOn"]))
+        self.assertIn(build_crate.ref(entity["@id"] + "#nkr"), build_crate.as_list(entity["isBasedOn"]))
 
     def test_nkr_handle_and_dashboard_address_reaching_different_entries_are_refused(self):
         content = reference_content()

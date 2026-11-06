@@ -2247,8 +2247,13 @@ sections.push(["stored stage", async () => {
 // catalogue tool is listed once, marked, and opens from the tool's identifier; a plain-HTTP address is not linked.
 sections.push(["knav catalogue", async () => {
   const tools = [].concat(crateNodes.byId.get("#knav-tools")?.hasPart || []).map((ref) => crateNodes.byId.get(ref["@id"])).filter(Boolean);
-  // A tool only the catalogue knows is founded by its record: the thing rests on it (design.md, decision 4).
-  const founded = (record) => [].concat(crateNodes.byId.get(record.primaryTopic?.["@id"])?.isBasedOn || []).some((ref) => ref["@id"] === record["@id"]);
+  // A tool only the catalogue knows is founded by its record: its thing rests on nothing but its own records, and on
+  // no record of a registry that founds a thing before the KNAV catalogue does.
+  const founded = (record) => {
+    const thing = record.primaryTopic?.["@id"];
+    const sources = [].concat(crateNodes.byId.get(thing)?.isBasedOn || []).map((ref) => ref["@id"]);
+    return sources.includes(record["@id"]) && sources.every((id) => id.startsWith(thing + "#") && !/#(re3data|fip-dashboard)$/.test(id));
+  };
   const unlinked = tools.filter(founded);
   if (!tools.length || tools.length === unlinked.length) fail("knav catalogue: the crate has no tools, or none an entry stands for");
   const { context, page, problems } = await openPage();
@@ -2934,7 +2939,7 @@ sections.push(["NKR integration", async () => {
       name: [{ "@value": "Testovací repozitář ve vývoji", "@language": "cs" }, { "@value": "Test repository in development", "@language": "en" }],
       repositoryKind: { "@id": "vocabularies/repository-kinds/domain" }, repositoryFunction: { "@id": "vocabularies/repository-functions/deposit-data" },
       serviceStatus: { "@id": "vocabularies/statuses/in-development" }, statusAsOf: "2026-11-01", acceptsDeposits: false,
-      sameAs: { "@id": "https://repo.cz/objects/test/development" }, isBasedOn: { "@id": "#repositories-curated" },
+      sameAs: { "@id": "https://repo.cz/objects/test/development" }, isBasedOn: { "@id": "#guide-selection" },
     };
     FG.graph.push(entity); FG.byId.set(entity["@id"], entity);
     FG.get("#repositories").hasPart.push({ "@id": entity["@id"] });

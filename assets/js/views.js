@@ -1369,8 +1369,8 @@
   FG.repositoryEntries = () => FG.refs(FG.get("#repositories"), "hasPart");
   FG.repositoryKindOrder = KIND_ORDER;
 
-  /** The name of a source a repository record comes from. */
-  FG.repositorySource = (id) => (id === "#repositories-curated" ? FG.t("repositories.curated") : FG.text((FG.get(id) || {}).name).replace(/^Snapshot of /, ""));
+  /** The name of a catalogue an entry comes from: the Guide's selection, or a registry by its snapshot. */
+  FG.sourceName = (id) => (id === "#guide-selection" ? FG.t("repositories.curated") : FG.text((FG.get(id) || {}).name).replace(/^Snapshot of /, ""));
 
   /** A repository's subjects in the reader's language, or as the record gives them when it has none in it. */
   function subjectsOf(repository) {
@@ -1379,20 +1379,21 @@
     return (mine.length ? mine : words).map((word) => (typeof word === "string" ? word : word["@value"])).filter((value, index, all) => all.indexOf(value) === index);
   }
 
-  /** The sources a repository's facts came from, each leading to the source's own entry in the catalogue; the
-      guide's own selection is named. The repository's record in each source is among its identifiers (D-185). */
-  /** The lists and snapshots a repository comes from: through a registry's record that founds it, the record's own. */
-  FG.repositorySourceIds = (repository) => [...new Set(FG.refIds(repository, "isBasedOn")
+  /** The catalogues an entry comes from: the Guide's selection where the Guide describes it, and the snapshot of
+      each registry record it holds, read through the record. */
+  FG.sourceIds = (entity) => [...new Set(FG.refIds(entity, "isBasedOn")
     .flatMap((id) => (FG.kind(id) ? FG.refIds(FG.get(id), "isBasedOn") : [id])))];
 
-  function repositorySources(repository) {
-    return FG.repositorySourceIds(repository).map((id) => {
-      const source = FG.get(FG.id((FG.get(id) || {}).about));
-      return source ? h("a", { href: FG.entryHref(source) }, FG.repositorySource(id)) : h("span", null, FG.repositorySource(id));
-    });
-  }
+  /** Those catalogues, each leading to its own entry in the catalogue, with the date of its snapshot. */
+  FG.sourceCredits = (entity) => FG.sourceIds(entity).map((id) => {
+    const snapshot = FG.get(id) || {};
+    const catalogue = FG.get(FG.id(snapshot.about));
+    const name = FG.sourceName(id);
+    return h("span", { class: "source-credit" },
+      catalogue ? h("a", { href: FG.entryHref(catalogue) }, name) : snapshot.url ? FG.external(snapshot.url, name) : name,
+      snapshot.dateCreated ? h("span", { class: "muted" }, " · " + FG.t("catalogue.snapshotOf", { date: FG.formatDate(snapshot.dateCreated) })) : null);
+  });
 
-  FG.repositorySourceLinks = repositorySources;
   FG.subjectsOf = subjectsOf;
 
   FG.renderList = function (id, build) {

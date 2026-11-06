@@ -850,6 +850,7 @@ def build_organizations(graph: Graph, guide: dict[str, Any]) -> dict[str, str]:
                 "identifier": organization.get("identifier"),
                 "sameAs": ref(organization["ror"]) if organization.get("ror") else None,
                 "funder": refs([organizations[funder] for funder in as_list(organization.get("funder"))]),
+                "isBasedOn": ref(GUIDE_SELECTION),
             },
             "organization:" + organization["id"],
         )
@@ -864,6 +865,10 @@ def organization_ref(graph: Graph, organizations: dict[str, str], name: str | No
         return ref(organizations[name])
     return ref(agent_ref(graph, name))
 
+
+# What a thing the Guide's own content describes rests on, beside any registry's record about it. A thing that rests
+# on nothing but registry records is one only registries know.
+GUIDE_SELECTION = "#guide-selection"
 
 # The crate-local lists that hold the records of a kind, so a link to a kind's list names the list.
 KIND_LISTS = {
@@ -1048,6 +1053,7 @@ def build_sources(
                 "alternateName": text(source.get("short")),
                 "guideType": guide_type(crosswalk, "form", source.get("type")),
                 "url": source.get("url"),
+                "isBasedOn": ref(GUIDE_SELECTION),
             }
             | citation_properties(graph, source, organizations, people, names),
             source["id"],
@@ -1351,6 +1357,7 @@ def build_resources(
                 + ([FIP_DASHBOARD + resource["fipDashboard"]] if resource.get("fipDashboard") else [])
                 + ([f"https://doi.org/{citation['doi']}"] if citation and citation.get("doi") else [])
             ),
+            "isBasedOn": [ref(GUIDE_SELECTION)],
         }
         if citation:
             cited.append(resource_id)
@@ -1380,6 +1387,11 @@ def link_resources(graph: Graph, resources: list[dict[str, Any]]) -> None:
             station_entity = graph.entities.get(f"#station-{station}")
             if station_entity is not None:
                 append_ref(station_entity, "mentions", f"#resource-{resource['id']}")
+
+
+def registry_record_key(scheme: str, value: str) -> str:
+    """The build key of a registry's record about a thing, which the identity projection places under the thing."""
+    return f"#{scheme}-record-{slug(str(value))}"
 
 
 def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, Any]:
@@ -1508,11 +1520,15 @@ def build_snapshots(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
     return ids
 
 
+ANNOTATION_SCHEMES = {"FAIRsharing": "fairsharing", "DataCite": "datacite"}
+
+
 def annotate_repositories(graph: Graph, repository_ids: list[str], snapshots: list[dict[str, Any]]) -> None:
     """Join each snapshot annotation (FAIRsharing, DataCite) to the repository it names, by re3data record or else
-    by address: its FAIRsharing record becomes one of the repository's identifiers, its DataCite repository is
-    recorded where the guide names none, and the snapshot becomes one of its sources. An annotation adds no
-    repository of its own; one that names no listed repository is left out."""
+    by address, as that registry's record about the repository: a FAIRsharing record with its DOI and name, a
+    DataCite record with its repository ID. The repository keeps the FAIRsharing DOI among its identifiers and the
+    DataCite repository where the Guide names none, and rests on the record. An annotation adds no repository of its
+    own; one that names no listed repository is left out."""
     by_re3data: dict[str, dict[str, Any]] = {}
     by_address: dict[str, dict[str, Any]] = {}
     for entity_id in repository_ids:
@@ -1526,21 +1542,31 @@ def annotate_repositories(graph: Graph, repository_ids: list[str], snapshots: li
         if entity.get("url"):
             by_address.setdefault(bare_url(entity["url"]), entity)
     for snapshot in snapshots:
+        scheme = ANNOTATION_SCHEMES.get(snapshot["snapshot"]["source"])
         for row in snapshot.get("annotation", []):
             entity = (
                 by_re3data.get(row["re3data"]) if row.get("re3data") else by_address.get(bare_url(row.get("url", "")))
             )
-            if entity is None:
+            if entity is None or scheme is None or not row.get(scheme):
                 continue
-            if row.get("fairsharing"):
-                same_as = as_list(entity.get("sameAs"))
-                record = f"https://doi.org/{row['fairsharing']}"
-                if record not in [item.get("@id") for item in same_as if isinstance(item, dict)]:
-                    entity["sameAs"] = same_as + [ref(record)]
-            if row.get("datacite") and not entity.get("dataciteRepository"):
+            record = {
+                "@id": registry_record_key(scheme, row[scheme]),
+                "@type": CATALOG_RECORD,
+                "identifier": row[scheme],
+                "isPartOf": ref(snapshot_id(snapshot)),
+                "isBasedOn": ref(snapshot_id(snapshot)),
+                "primaryTopic": ref(entity["@id"]),
+            }
+            if scheme == "fairsharing":
+                doi = f"https://doi.org/{row['fairsharing']}"
+                record |= {"name": row.get("fairsharingName"), "sameAs": ref(doi)}
+                if doi not in ids_of(entity.get("sameAs")):
+                    entity["sameAs"] = as_list(entity.get("sameAs")) + [ref(doi)]
+            elif not entity.get("dataciteRepository"):
                 entity["dataciteRepository"] = row["datacite"]
-            if snapshot_id(snapshot) not in [item.get("@id") for item in as_list(entity.get("isBasedOn"))]:
-                append_ref(entity, "isBasedOn", snapshot_id(snapshot))
+            graph.add(record)
+            if record["@id"] not in ids_of(entity.get("isBasedOn")):
+                append_ref(entity, "isBasedOn", record["@id"])
 
 
 def nkr_config(snapshots: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -1574,7 +1600,9 @@ def build_repositories(
 ) -> list[str]:
     """List repositories and registries by meaning, regardless of source. Reviewed record annotations join
     registry identities without changing a snapshot's facts or inferring identity from a similar host or name.
-    Source records remain available as evidence; the catalogue lists the described thing once."""
+    Each registry's row stays that registry's record about the thing, and the catalogue lists the thing once, with
+    the winning values: what the curated entry states, then NKR's name, kind, dated status, keywords and address,
+    then the first registry that states a fact, in the order of RECORD_SCHEMES."""
     records = records or []
     annotations = {item["re3data"]: item for item in records if item.get("re3data")}
     merged: dict[str, dict[str, Any]] = {}
@@ -1593,7 +1621,7 @@ def build_repositories(
             elif prop not in existing or existing[prop] in (None, [], ""):
                 existing[prop] = value
 
-    graph.add({"@id": "#repositories-curated", "@type": "CreativeWork", "name": "Curated repository list"})
+    registry_rows: list[tuple[str, dict[str, Any]]] = []
     from_resources = [
         {key: resource[key] for key in ("id", "name", "url", "status", "asOf") if key in resource}
         | resource["repository"]
@@ -1601,7 +1629,7 @@ def build_repositories(
         for resource in resources
         if resource.get("repository")
     ]
-    sources = [("#repositories-curated", curated + from_resources)]
+    sources = [(GUIDE_SELECTION, curated + from_resources)]
     for snapshot in snapshots:
         sources.append((snapshot_id(snapshot), snapshot.get("repository", [])))
 
@@ -1609,6 +1637,14 @@ def build_repositories(
         nonlocal keys, addresses
         for source_record in repositories:
             is_nkr = based_on == "#snapshot-nkr"
+            if is_nkr:
+                record_key = registry_record_key("nkr", source_record["nkr"])
+            elif based_on == "#snapshot-re3data":
+                # The row is re3data's record; the thing rests on it, and the record keeps re3data's own values.
+                record_key = registry_record_key("re3data", source_record["re3data"])
+                registry_rows.append((record_key, source_record))
+            else:
+                record_key = based_on
             repository = source_record if is_nkr else source_record | annotations.get(source_record.get("re3data"), {})
             record_keys = {repository_key(repository)}
             if repository.get("nkr"):
@@ -1639,9 +1675,7 @@ def build_repositories(
                 addresses = {
                     name: {key if value == other else value for value in values} for name, values in addresses.items()
                 }
-            entity = repository_entity(repository, based_on)
-            if repository.get("fipDashboard"):
-                entity["isBasedOn"].append(ref("#snapshot-fip-dashboard"))
+            entity = repository_entity(repository, record_key)
             if key in merged:
                 merge_into(merged[key], entity)
             else:
@@ -1747,14 +1781,9 @@ def build_repositories(
     annotate_repositories(graph, repository_ids, snapshots)
     for entity_id, values in nkr_values.items():
         handle = next(owner for key, owner in nkr_owners.items() if component_ids[key] == entity_id)
-        record_id = f"#nkr-record-{slug(handle)}"
-        thing = graph.entities[entity_id]
-        if as_list(thing.get("isBasedOn")) == [ref("#snapshot-nkr")]:
-            # A repository only NKR knows is founded by NKR's record and rests on it.
-            thing["isBasedOn"] = refs([record_id, "#snapshot-nkr"])
         graph.add(
             {
-                "@id": record_id,
+                "@id": registry_record_key("nkr", handle),
                 "@type": CATALOG_RECORD,
                 "identifier": handle,
                 **values,
@@ -1768,13 +1797,35 @@ def build_repositories(
     for resource in resources:
         if resource.get("type") == "registry":
             entity_id = f"#resource-{resource['id']}"
-            entity = graph.entities[entity_id]
-            append_ref(entity, "isBasedOn", "#repositories-curated")
-            if resource.get("fipDashboard"):
-                append_ref(entity, "isBasedOn", "#snapshot-fip-dashboard")
             if entity_id not in repository_ids:
                 repository_ids.append(entity_id)
     repository_ids.extend(dashboard_ids)
+
+    # re3data's record of each repository it lists, about the thing that rests on it, with re3data's own values.
+    topics = {
+        source: entity_id
+        for entity_id in repository_ids
+        for holder in (graph.entities[entity_id], graph.entities[entity_id].get(PRECEDENCE, {}))
+        for source in ids_of(holder.get("isBasedOn"))
+    }
+    for record_key, row in registry_rows:
+        own = repository_entity(row, "#snapshot-re3data")
+        graph.add(
+            {
+                "@id": record_key,
+                "@type": CATALOG_RECORD,
+                "identifier": row["re3data"],
+                "name": text(row["name"]),
+                "url": row.get("url"),
+                "repositoryKind": own["repositoryKind"],
+                "keywords": own["keywords"],
+                "inLanguage": own["inLanguage"],
+                "sameAs": own["sameAs"],
+                "isPartOf": ref("#snapshot-re3data"),
+                "isBasedOn": ref("#snapshot-re3data"),
+                "primaryTopic": ref(topics[record_key]),
+            }
+        )
     for entity_id in repository_ids:
         entity = graph.entities[entity_id]
         holder = entity.get(PRECEDENCE, entity)
@@ -2086,6 +2137,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
                 "alternateName": organization.get("acronym"),
                 "url": organization.get("url"),
                 "sameAs": refs([organization["ror"]] if organization.get("ror") else []),
+                "isBasedOn": based_on,
             }
         )
     defined_terms(
@@ -2516,13 +2568,17 @@ def build_actions(graph: Graph, actions: list[dict[str, Any]], people: dict[str,
     return action_ids
 
 
+# The registries whose records describe things, by the fragment a record takes under its thing, in the order a thing
+# lists its records: the first registry that records a thing the Guide does not describe founds it, and a fact
+# neither the curated entry nor NKR states comes from the first registry that states it.
+RECORD_SCHEMES = ("re3data", "fip-dashboard", "knav", "nkr", "fairsharing", "datacite")
 # A registry's record about a thing, by the family of its build key, and the fragment it takes under the thing; the
 # crate's own lists that hold those records.
 REGISTRY_RECORDS = (
     ("#knav-", "knav"),
     ("#fer-", "fip-dashboard"),
     ("#fd-org-", "fip-dashboard"),
-    ("#nkr-record-", "nkr"),
+    *((registry_record_key(scheme, ""), scheme) for scheme in ("nkr", "re3data", "fairsharing", "datacite")),
 )
 REGISTRY_LISTS = ("#knav-tools", "#fers")
 # The facts other registries win for a thing a registry record founds, held on that record until it founds the thing.
@@ -2549,10 +2605,11 @@ FOUNDED_FACTS = (
 
 
 def attach_records(graph: Graph, base: str) -> None:
-    """Make each registry record a `dcat:CatalogRecord` about the one thing it describes (design.md, decision 4). A
-    record of a thing the Guide describes already sits under it (`<thing>#knav`); a thing only a registry knows is
-    founded by its record: the thing keeps its identity, name, address and filter facts, and the registry's own
-    record, with its text and attribution, moves under it. The crate's registry lists keep naming the records."""
+    """Make each registry record a `dcat:CatalogRecord` about the one thing it describes. A record of a thing the
+    Guide describes already sits under it (`<thing>#knav`); a thing only a registry knows is founded by its record:
+    the thing keeps its identity, name, address and filter facts, and the registry's own record, with its text and
+    attribution, moves under it. The crate's registry lists keep naming the records, and every thing rests on each
+    of its records."""
     moved: dict[str, str] = {}
     for key, published in list(graph.published.items()):
         scheme = next((name for prefix, name in REGISTRY_RECORDS if key.startswith(prefix)), None)
@@ -2599,6 +2656,25 @@ def attach_records(graph: Graph, base: str) -> None:
         holder = graph.entities.get(name)
         if holder and holder.get("hasPart"):
             holder["hasPart"] = refs([moved.get(item, item) for item in ids_of(holder["hasPart"])])
+    # Every thing rests on each registry's record about it, beside the Guide's selection where the Guide describes it.
+    for record_id, record in graph.entities.items():
+        thing = graph.entities.get(next(iter(ids_of(record.get("primaryTopic"))), ""))
+        if thing is None or CATALOG_RECORD not in as_list(record.get("@type")):
+            continue
+        sources = ids_of(thing.get("isBasedOn"))
+        own = [source for source in sources if source.startswith(thing["@id"] + "#")]
+        others = [source for source in sources if source not in own]
+        own = sorted(set(own) | {record_id}, key=lambda source: RECORD_SCHEMES.index(source.rsplit("#", 1)[1]))
+        thing["isBasedOn"] = refs(list(dict.fromkeys(others)) + own)
+
+
+def founding_record(thing: dict[str, Any]) -> str | None:
+    """The registry record that founds a thing only registries know: the first of its records, in the order of
+    RECORD_SCHEMES, when the thing rests on nothing else. None for a thing the Guide's own content describes."""
+    sources = ids_of(thing.get("isBasedOn"))
+    if not sources or any(not source.startswith(thing["@id"] + "#") for source in sources):
+        return None
+    return min(sources, key=lambda source: RECORD_SCHEMES.index(source.rsplit("#", 1)[1]))
 
 
 def attach_results(graph: Graph, base: str) -> None:
@@ -2901,6 +2977,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         }
     )
     graph.add({"@id": "./", "@type": "Dataset"}, "guide")  # completed below, after its parts exist
+    graph.add({"@id": GUIDE_SELECTION, "@type": "CreativeWork", "name": "The Guide's selection"})
     graph.add(
         {"@id": PROCESS_RUN_CRATE, "@type": ["CreativeWork", "Profile"], "name": "Process Run Crate", "version": "0.5"}
     )
@@ -3509,8 +3586,8 @@ def catalogue_addresses(entities: dict[str, dict[str, Any]], content: dict[str, 
 # provenance and pages name.
 # They are not catalogue records, so they have no address. Any other node without an address is refused.
 CRATE_LOCAL = re.compile(
-    r"#(?:repositories|repositories-curated|sources|resources|ledger|path|fers|fips|infrastructures|tests"
-    r"|knav-tools|guide-source|guide-software|(?:snapshot|instrument|help|person)-[A-Za-z0-9._-]+)\Z"
+    r"#(?:repositories|sources|resources|ledger|path|fers|fips|infrastructures|tests"
+    r"|knav-tools|guide-selection|guide-source|guide-software|(?:snapshot|instrument|help|person)-[A-Za-z0-9._-]+)\Z"
 )
 # The properties by which a record holds a part that has no address of its own.
 PART_PROPERTIES = ("hasPart", "potentialAction", "alternateIdentifier", "additionalProperty", "member", "review")
@@ -3556,12 +3633,14 @@ def identity_projection(graph: Graph, content: dict[str, Any]) -> dict[str, Plac
     for callout in content["callouts"]:
         thing(f"#callout-{callout['id']}", "callouts", callout["id"])
 
-    # A registry's record about a thing the Guide describes sits under that thing (decision 4).
+    # A registry's record about a thing the Guide describes sits under that thing.
+    topic_records = {registry_record_key(scheme, ""): scheme for scheme in ("nkr", "re3data", "fairsharing", "datacite")}
     for key, entity in entities.items():
-        if key.startswith("#nkr-record-") and key not in placed:
+        scheme = next((name for prefix, name in topic_records.items() if key.startswith(prefix)), None)
+        if scheme and key not in placed:
             topic = next(iter(ids_of(entity.get("primaryTopic"))), None)
             if topic in placed:
-                part(key, topic, "nkr")
+                part(key, topic, scheme)
         if key.startswith("#knav-") and key not in placed:
             same = [target for target in ids_of(entity.get("sameAs")) if target in placed and target != key]
             if len(same) == 1:
@@ -4085,6 +4164,8 @@ def page_config(
             # Records are named by address relative to `<namespace>id/`; the kinds are the address's first segment.
             "namespace": guide["recordBase"].removesuffix("id/"),
             "kinds": sorted(KINDS),
+            # The registries whose records describe things, in the order a thing lists them (founding first).
+            "recordSchemes": list(RECORD_SCHEMES),
             "textLinks": text_links or {},
             "foldedSections": [
                 f"pages/{page['id']}#{section.get('id') or number}"
@@ -4233,14 +4314,9 @@ def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[st
         return (
             entity["@id"] in registry
             or entity["@id"].split("#")[0] in registry
-            or (
-                kind(entity) in ("resources", "repositories")
-                and fragment(entity).startswith(("fip-dashboard", "knav", "nkr"))
-            )
+            or (kind(entity) in ("resources", "repositories") and fragment(entity).startswith(RECORD_SCHEMES))
             # A thing only a registry knows loads with the record that founds it.
-            or any(
-                item in registry and item.startswith(entity["@id"] + "#") for item in ids_of(entity.get("isBasedOn"))
-            )
+            or founding_record(entity) in registry
         )
 
     guidance_sources = {

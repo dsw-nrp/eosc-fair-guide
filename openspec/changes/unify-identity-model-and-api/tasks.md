@@ -80,7 +80,7 @@ its head in CI.
   the namespace. Verify: `python scripts/check_all.py --only changelog` passes.
 - [x] 2.12 Validate the content's `baseUrl` also when `FAIR_GUIDE_BASE_URL` gives the build its publication
   location. Verify: `tests/test_scripts.py`'s HTTPS test passes with the variable set, as in CI, and without it.
-- [ ] 2.13 Publish re3data's repository rows and the FAIRsharing and DataCite annotations as `#re3data`,
+- [x] 2.13 Publish re3data's repository rows and the FAIRsharing and DataCite annotations as `#re3data`,
   `#fairsharing` and `#datacite` records, with the winning values on the thing in the documented order, a repository
   only re3data knows founded by its record, and every thing naming its records in `isBasedOn` (decision 4). Verify:
   unit tests find `datarepo`'s `#re3data` record keeping re3data's values, a `#fairsharing` record with the DOI in
