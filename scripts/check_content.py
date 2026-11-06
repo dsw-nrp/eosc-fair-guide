@@ -43,6 +43,7 @@ from build_crate import (  # noqa: E402
     is_generated,
     load_content,
     reference_targets,
+    result_covers,
     vocabulary_errors,
 )
 from catalogue_identity import address_hint, addresses_ending_in, alternate_id, parse_route
@@ -1418,7 +1419,8 @@ def check_providers(
 
 
 def covered(pattern: str, item_id: str) -> bool:
-    return item_id.startswith(pattern[:-1]) if pattern.endswith("*") else item_id == pattern
+    """Whether a provenance result covers an item, as the crate records it (result_covers)."""
+    return result_covers(pattern, item_id)
 
 
 # The kinds of the model's own records, by the family word of their content IDs (`layer.policy`).

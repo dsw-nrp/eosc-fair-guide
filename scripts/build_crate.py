@@ -2656,15 +2656,16 @@ def founding_record(thing: dict[str, Any]) -> str | None:
 
 def attach_results(graph: Graph, base: str) -> None:
     """Each provenance action's results, which name items by address (`stations/plan`, `advice/plan.*`,
-    `callouts/sensitive-data#steward`), `guide` for the Guide or `*` for everything, as the published records and
-    parts they match (design.md, decision 17)."""
+    `callouts/sensitive-data#steward`), as the published records and parts they match. `guide` names the Guide's
+    metadata, and `*` a change of the Guide as a whole, such as a structural migration: both record the Guide itself,
+    so a record's list of changes holds only the changes made to it."""
     addresses = {entity_id: entity_id.removeprefix(base) for entity_id in graph.entities if entity_id.startswith(base)}
     for action_key, patterns in graph.results.items():
         matched: list[str] = []
         for pattern in patterns:
             if pattern in ("guide", "*"):
                 matched.append("./")
-            if pattern != "guide":
+            else:
                 matched += [entity_id for entity_id, address in addresses.items() if result_covers(pattern, address)]
         action = graph.entities[graph.published.get(action_key, action_key)]
         if matched:
@@ -2672,8 +2673,15 @@ def attach_results(graph: Graph, base: str) -> None:
 
 
 def result_covers(pattern: str, address: str) -> bool:
-    """Whether a provenance result names an address: exactly, or as a prefix with a trailing `*`."""
-    return address.startswith(pattern[:-1]) if pattern.endswith("*") else address == pattern
+    """Whether a provenance result names an address: exactly, or as a prefix with a trailing `*`, which matches
+    records (`advice/plan.*`) and matches parts only where the pattern names a part (`callouts/sensitive-data#*`).
+    `*` alone names the Guide as a whole, and so covers every item."""
+    if pattern == "*":
+        return True
+    if not pattern.endswith("*"):
+        return address == pattern
+    prefix = pattern[:-1]
+    return address.startswith(prefix) and ("#" in prefix or "#" not in address)
 
 
 def build_model(graph: Graph, data: dict[str, Any]) -> list[str]:

@@ -338,6 +338,11 @@ sections.push(["page", async () => {
     if (!(await view.locator('[data-facet="principle"]').count()) || (await view.locator('[data-facet="station"]').count())) fail("catalogue: FIP profiles do not filter by principle alone");
     await open("#/cs/V/catalogue/actions");
     if (!(await view.locator('[data-facet="station"]').count())) fail("catalogue: content changes do not filter by the stations they changed");
+    // A change of the Guide as a whole, such as a structural migration, lists the Guide alone among what it changed.
+    await open("#/cs/V/catalogue/actions/2026-11-06-identity-migration");
+    const migrated = await view.evaluate(() => window.FairGuide.refIds(window.FairGuide.get("actions/2026-11-06-identity-migration"), "result"));
+    if (migrated.join(" ") !== "./") fail("catalogue: a structural migration lists more than the Guide among its changes: " + migrated.slice(0, 5).join(", "));
+    if ((await view.locator('#item-2026-11-06-identity-migration dd[data-field="result"] li').count()) > 1) fail("catalogue: a structural migration's card lists more than the Guide");
 
     // Finders: resources order by type, status or the date their status was checked, oldest first, and keep their
     // orientation tags; repositories order by data source and link each source to its record; while NKR lists no

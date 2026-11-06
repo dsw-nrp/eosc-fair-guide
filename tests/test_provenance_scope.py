@@ -36,6 +36,32 @@ class ProvenanceScopeTests(unittest.TestCase):
         self.assertEqual(set(issued["callouts"]), set(content["identifiers"]["issued"]["callouts"]))
         self.assertIn("sensitive-data#rights", issued["callouts"])
 
+    def test_a_prefix_result_matches_records_and_parts_only_where_it_names_one(self):
+        self.assertTrue(cc.covered("advice/plan.*", "advice/plan.01"))
+        self.assertFalse(cc.covered("advice/plan.*", "advice/plan.01#step-1"))
+        self.assertTrue(cc.covered("callouts/sensitive-data#*", "callouts/sensitive-data#steward"))
+        self.assertFalse(cc.covered("callouts/sensitive-data#*", "callouts/sensitive-data"))
+        self.assertTrue(cc.covered("stations/plan", "stations/plan"))
+        self.assertFalse(cc.covered("stations/plan", "stations/plan#context-V"))
+        # A change of the Guide as a whole covers every item.
+        self.assertTrue(cc.covered("*", "advice/plan.01#step-1"))
+
+    def test_a_structural_change_records_the_guide_as_its_result(self):
+        crate = build_crate.build_crate(self.content)
+        entities = {entity["@id"]: entity for entity in crate["@graph"]}
+        action = next(
+            entity
+            for entity_id, entity in entities.items()
+            if entity_id.endswith("/actions/2026-11-06-identity-migration")
+        )
+        # The migration changed the Guide as a whole: no record lists it among its own changes.
+        self.assertEqual(build_crate.as_list(action["result"]), [{"@id": "./"}])
+        # Its instruments are the tools that made it; no migration script is an instrument.
+        self.assertEqual(
+            {ref["@id"] for ref in build_crate.as_list(action["instrument"])},
+            {"#instrument-claude-code", "#instrument-claude-opus-5-5"},
+        )
+
     def test_the_register_keys_identifiers_by_the_kind_of_their_record(self):
         register = self.content["identifiers"]
         for section in ("issued", "retired"):

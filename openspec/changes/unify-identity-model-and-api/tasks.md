@@ -103,7 +103,7 @@ its head in CI.
   crosswalks, tests with their scope, and sources within resources), through `migrate.py`, `issued_ids` and
   `scripts/register_ids.py` (decision 17). Verify: a unit test finds every register key in the kind vocabulary, and
   `python scripts/check_all.py --only content` passes.
-- [ ] 2.18 Resolve result prefixes to records and to parts only where the pattern names one, record the Guide as the
+- [x] 2.18 Resolve result prefixes to records and to parts only where the pattern names one, record the Guide as the
   crate result of an action whose result is `*`, and drop the `identity-migration` instrument (decision 17). Verify:
   unit tests cover both prefix forms and the `*` action; the catalogue entry of `actions/2026-11-06-identity-migration`
   names the Guide only.
