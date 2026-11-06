@@ -40,8 +40,11 @@ submission.
   - One identity projection serves IRIs, API paths, page routes, prose references, the page's data keys and exports.
     Collision counters disappear.
 - **One node per real-world thing.**
-  - Registry records (KNAV, FIP Dashboard, re3data, NKR) become catalogue records about one thing. They keep their
-    source's own wording, licence and retrieval date.
+  - Registry records (KNAV, FIP Dashboard, NKR, re3data, FAIRsharing, DataCite) become catalogue records about one
+    thing. They keep their source's own wording, licence and retrieval date, and the thing rests on them.
+  - A name in content, such as a publisher or an operator, resolves to the one thing the Guide describes under that
+    name. A registry's organisation record attaches to a thing only by a reviewed key, never by its name.
+  - Registries are resources; the catalogue's repository family holds repositories only.
   - The duplicate check attaches every record to exactly one thing.
 - **One model.**
   - Controlled vocabularies are modelled once.
@@ -69,8 +72,10 @@ submission.
     with a section for each part. Its link into the Guide, `#/id/<address>`, opens the entry in the reader's saved
     language and lens.
   - The production sitemap lists the landing pages, so search engines and harvesters reach every record.
-  - Every record shows its own persistent IRI as a labelled chip.
-  - Prose uses one reference syntax.
+  - Every catalogue entry shows its own persistent IRI among its identifiers. Identifier chips carry no labels, since
+    each identifier is shown in full.
+  - An entry credits every catalogue that supplied it.
+  - Prose, and every field that can name records of several kinds, names a record by its address.
 - **Saved results.** Format revision 4 names persistent test IRIs. Revisions 1–3 still load, and their
   `api/tests/<question>.json` references keep resolving.
 - **Contract stability.** Nothing published is permanent before Guide `1.0.0`. A deprecation rule takes effect from
@@ -92,8 +97,8 @@ None. The changed behaviour belongs to the existing capabilities below.
   - the namespace and the route baseline;
   - new requirements for IRI resolution, registry records, vocabulary and status modelling, the graph distribution
     and recipes, and derived question text.
-- `fair-guide/guide-experience`: the machine-readable page, signposting, identifier routing, identifier chips,
-  catalogue routes and record landing pages.
+- `fair-guide/guide-experience`: the machine-readable page, signposting, identifier routing, identifier chips, the
+  credited sources, the repository family and its facets, catalogue routes and record landing pages.
 - `fair-guide/guide-delivery`: health snapshot publication, the production sitemap, namespace alignment between
   channels, and monitoring and maintaining the w3id redirect.
 - `fair-guide/guide-self-check`: result format revision 4 and its persistent test references.
@@ -112,7 +117,8 @@ None. The changed behaviour belongs to the existing capabilities below.
   - every content file with prose references;
   - `guideRoute` in the snapshots;
   - `content/identifiers.toml`;
-  - provenance result IDs;
+  - provenance results and objects, model association targets and the worked example's steps;
+  - agent names that need an address, and reviewed FIP Dashboard handles on curated rows;
   - the 55 merged question statements in `content/checks/`.
 - **Tests:** Python, page and API tests, and fixtures.
 - **Documentation and tooling:**
@@ -129,6 +135,9 @@ None. The changed behaviour belongs to the existing capabilities below.
     ([dsw-nrp/eosc-fair-guide#33](https://github.com/dsw-nrp/eosc-fair-guide/issues/33));
   - a query service, precomputed query views, SQL or tabular distributions, and an in-browser query console;
   - content wording beyond the 55 merged question statements.
+- **Delivery:** one pull request,
+  [dsw-nrp/eosc-fair-guide#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172), carries the whole change. It
+  merges when `python scripts/check_all.py` passes in full on it.
 - **Validation:**
   - `npm run openspec:validate` and `python scripts/check_all.py`;
   - the new RDF, recipe and template-coverage checks;

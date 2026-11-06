@@ -91,10 +91,10 @@ peer node. The content checks SHALL enforce these rules and SHALL report entries
 
 ### Requirement: Prose references name catalogue entries
 
-A prose reference SHALL name any allowed published catalogue entry by its address in one syntax,
-`[[<kind>/<id>|phrase]]`. Its targets SHALL derive from the same identity projection as IRIs, API records and routes,
-with a short kind allow-list. The content checks SHALL reject any other reference form. Synthetic source-route aliases
-SHALL NOT be required.
+A prose reference SHALL name a published catalogue entry by its address, `[[<kind>/<id>|phrase]]`, or a kind's
+catalogue list by the kind word. A content field that can name records of several kinds SHALL name a record by its
+address too. Targets SHALL derive from the same identity projection as IRIs, API records and routes. The content
+checks SHALL reject any other reference and name the record whose ID it ends with, where one has it.
 
 #### Scenario: A catalogue tool named in a step
 
@@ -102,11 +102,23 @@ SHALL NOT be required.
 - **WHEN** the step is shown
 - **THEN** the reference is one the content checks accept, and it links to that tool's catalogue entry
 
-#### Scenario: A reference in a retired form
+#### Scenario: A reference without a kind
 
-- **GIVEN** an advice text that references a station as `[[station:licence|...]]`
+- **GIVEN** an advice text that references a station as `[[licence|...]]`
 - **WHEN** the content checks run
 - **THEN** they fail, name the item and give the address form `[[stations/licence|...]]`
+
+#### Scenario: A field that names records of several kinds
+
+- **GIVEN** a model association whose target is the question `dataset.01`
+- **WHEN** the content checks run
+- **THEN** they accept the target `questions/dataset.01` and reject the bare `dataset.01`, naming the address form
+
+#### Scenario: The Guide's profile named in prose
+
+- **GIVEN** a text that names the Guide's profile
+- **WHEN** the page is shown
+- **THEN** the reference names the section of the machines page that presents the profile, and no reference names a target that is neither a record nor a kind
 
 ### Requirement: Catalogue addresses are guide-issued
 
@@ -255,10 +267,10 @@ SHALL carry no API version. A host move or a new API major version SHALL change 
 
 ### Requirement: Registry records describe one thing
 
-A record a registry publishes (KNAV, FIP Dashboard, re3data, NKR) SHALL be a catalogue record about exactly one thing.
-It SHALL keep the registry's wording, licence and retrieval date, and its IRI SHALL be scoped under that thing by the
-registry's scheme. A record that matches no curated entry SHALL found a thing of its own. The duplicate check SHALL
-report a record that could attach to more than one thing.
+A record a registry publishes (KNAV, FIP Dashboard, NKR, re3data, FAIRsharing, DataCite) SHALL be a catalogue record
+about exactly one thing, scoped under it by the registry's scheme. It SHALL keep the registry's wording, licence and
+retrieval date. The thing SHALL rest on its records. A record that matches no curated entry SHALL found a thing of
+its own. The duplicate check SHALL report a record that could attach to more than one thing.
 
 #### Scenario: A registry describes a curated service
 
@@ -271,6 +283,55 @@ report a record that could attach to more than one thing.
 - **GIVEN** a curated service and a KNAV record that name the same provider and service, one by its documentation page and one by its service address
 - **WHEN** the duplicate check runs
 - **THEN** it reports the pair for review instead of publishing two things
+
+#### Scenario: A repository re3data describes
+
+- **GIVEN** a curated repository that re3data and FAIRsharing also describe
+- **WHEN** the graph is built
+- **THEN** it holds one node with `#re3data` and `#fairsharing` records under it, each keeping its registry's values, and the node names both records among what it rests on
+
+### Requirement: Named agents resolve to one thing
+
+An organisation, publisher, operator, developer or author named in content SHALL resolve to the one thing the Guide
+describes under exactly that name, in any language and of any kind, and SHALL be a new organisation only where no
+thing has the name. A name that two things share SHALL be refused unless the content names the agent by address. A
+registry's organisation record SHALL attach to a thing only by a reviewed key, never by its name.
+
+#### Scenario: A publisher that is a described service
+
+- **GIVEN** a source whose publisher is named "Zenodo", and the curated repository Zenodo
+- **WHEN** the graph is built
+- **THEN** the source's publisher is the Zenodo repository node, and no separate organisation named Zenodo exists
+
+#### Scenario: An organisation named in its other language
+
+- **GIVEN** an operator named "Charles University" and the curated organisation whose names are "Univerzita Karlova" and "Charles University"
+- **WHEN** the graph is built
+- **THEN** the operator is that organisation
+
+#### Scenario: A registry's organisation record with a known name
+
+- **GIVEN** a FIP Dashboard organisation record named like a described infrastructure, with no ROR and no reviewed handle
+- **WHEN** the graph is built and the duplicate check runs
+- **THEN** the record is not attached by its name, and the duplicate check lists the pair for review
+
+### Requirement: Provenance names items by their addresses
+
+A provenance action SHALL name what it consulted and what it produced or changed by address or address prefix. A
+prefix SHALL match records, and a part of a record only where the prefix names one. An action that covers every item
+(`*`) SHALL record the Guide itself as its result, while the freshness check SHALL read it as covering every item.
+
+#### Scenario: A structural change
+
+- **GIVEN** a provenance action with the result `*` that renamed every record's identity
+- **WHEN** its catalogue entry is shown
+- **THEN** it names the Guide as what it changed, and no record lists it among its own changes
+
+#### Scenario: Advice of one station
+
+- **GIVEN** an action with the result `advice/plan.*`
+- **WHEN** the graph is built
+- **THEN** its results are the plan station's advice items, without their steps or actions
 
 ### Requirement: Controlled vocabularies have one model
 

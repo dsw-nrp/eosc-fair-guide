@@ -36,7 +36,11 @@ The approach is bound by these constraints:
 - **The page.** It runs from files and in an iframe without any request on load, and it reads the crate through
   generated data scripts. It finds and classifies entities through 213 fragment-prefix literals in 10 scripts.
 - **Pre-release freedom.** Before Guide `1.0.0`, identifiers, addresses and the published contract may change in
-  place without compatibility routes (*The first release establishes the route baseline*, as modified here).
+  place without compatibility routes (*The first release establishes the route baseline*, as modified here). No
+  name, form or register category is kept for compatibility alone.
+- **Durable prose.** Code, tests, content and durable documents cite no part of this change. They explain a rule in
+  their own words and name no design decision, task or migration step; this change's artifacts stay under
+  `openspec/changes/`, and knowledge of the old forms lives only in its `migration/` folder.
 
 ## Goals / Non-Goals
 
@@ -53,8 +57,8 @@ The approach is bound by these constraints:
 - A query runtime of any kind (B and C in the exploration), SQL or tabular distributions, and an in-browser query
   console.
 - Changing what any advice, question or requirement says, except the 55 statements merged into their clauses.
-- Re-shaping the page beyond addressing, the identifier chip, the `#/id/` entry route and the record landing pages
-  (decision 19).
+- Re-shaping the page beyond addressing, identifier chips, credited sources, the repository family's name, the
+  `#/id/` entry route and the record landing pages (decision 19).
 
 ## Decisions
 
@@ -140,9 +144,20 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
 ### 4. Registry records are records about one thing (R1)
 
 - **The record node.** A registry record becomes a `dcat:CatalogRecord` with `foaf:primaryTopic` naming the thing.
-  It sits at the thing's IRI plus `#<scheme>` (for example `.../repositories/zenodo#knav`). It carries the
-  registry's own name, description, licence, retrieval date and source identifier, and it is part of its snapshot.
-  FOAF joins the established vocabularies in `ESTABLISHED_TERMS`, for this one property.
+  It sits at the thing's IRI plus `#<scheme>`: `#knav`, `#fip-dashboard`, `#nkr`, `#re3data`, `#fairsharing` or
+  `#datacite` (for example `.../repositories/zenodo#knav`). It carries the registry's own name, description, licence,
+  retrieval date and source identifier, and it is part of its snapshot. FOAF joins the established vocabularies in
+  `ESTABLISHED_TERMS`, for this one property.
+- **Every registry is treated alike.** re3data's repository rows and the FAIRsharing and DataCite annotations become
+  records as the KNAV, FIP Dashboard and NKR rows do, instead of merging into the thing. A FAIRsharing record carries
+  its DOI and name, a DataCite record its repository ID; the thing keeps the DOI in `sameAs`.
+- **The thing rests on its records.** Every thing names each of its registry records in `isBasedOn`, beside the
+  Guide's curated list where it is curated, and each record names its snapshot. A consumer reads from the graph
+  which catalogues supplied a thing, and the page credits them from the same statements (decision 15).
+- **A snapshot holds its records.** The KNAV catalogue's and the FIP Dashboard's record lists are their snapshots:
+  each snapshot lists its records in `hasPart` and is `about` the catalogue's own resource
+  (`resources/knav-dm-tools-catalogue`, `resources/fip-dashboard`). The crate-local lists `#knav-tools` and `#fers`
+  go, so the catalogue is not a second node beside its own entry.
 - **A thing only a registry knows** is founded by its record. The thing node carries its identity, its name, its
   address and the facts lists filter on: kind, status with its date, functions and `acceptsDeposits`. The
   descriptive text stays on the record, with its attribution. An NKR repository with no web address is such a
@@ -152,7 +167,18 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
   status, keywords and web address do (*NKR records are shown as found*), the build writes the winning values on the
   thing, so the API and the page read one set of facts. The record keeps the registry's own values. This replaces
   the `_nkr` overrides in `build_repositories`, which write NKR's values into the entity and keep the originals only
-  in the snapshot.
+  in the snapshot. A fact the curated entry states wins; NKR wins for its fields; any other fact comes from the first
+  registry that states it, in the order re3data, FIP Dashboard, KNAV, FAIRsharing, DataCite.
+- **Named agents are things.** A publisher, operator, developer or author named in content resolves to the one thing
+  the Guide describes under exactly that name, in any language and of any kind: an organisation, an infrastructure,
+  a repository or a resource. "Charles University" is `organizations/cuni`, and "Zenodo" as a publisher is
+  `repositories/zenodo`, so an organisation and its eponymous service are one node. Only a name no thing has mints an
+  organisation. Where two things share the name, the content names the agent by its address, and the build refuses
+  an ambiguous name.
+- **Organisation records attach by a reviewed key.** A FIP Dashboard organisation record attaches to a thing only
+  through its ROR or a reviewed `fipDashboard` handle on the curated organisation, infrastructure or resource row,
+  never through its name. A record that names no thing founds one; the duplicate check reports one whose name a
+  described thing shares, for review.
 - **External record pages stay in `sameAs`.** The thing keeps `sameAs` to a registry's own page, such as
   `https://repo.cz/objects/<handle>` for NKR, as records name their FIP Dashboard counterparts (proposal,
   *Interoperability by identity*). Chips and the not-yet-public exception read that link. The profile's `Repository`
@@ -173,9 +199,13 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
   alone. Two NKR records that reach one thing stay rejected, by the build and by the check.
 - **Shared keys** (address, DOI, registry IDs, ROR) still report a duplicate. The authoritative ones
   (`AUTHORITATIVE_KEYS`) propose the reviewed link as the safe `--fix` suggestion. Neither joins anything on its own.
-- **A new review key** catches the ownCloud case: the same registrable host, or the same normalised name with the
-  same provider, between a record and a thing. It reports for review and never fixes or joins automatically, since a
-  similar name or host must not join records (*NKR records are shown as found*).
+- **A new review key** catches the ownCloud case: the same registrable domain with a distinctive name word in
+  common, or the same normalised name with the same provider, between a record and a thing. A plain domain match is
+  not enough: many unrelated services share `github.com` or `cesnet.cz`. A review is listed in the report and the
+  output; it never fails the check, never proposes a fix and never joins, since a similar name or host must not join
+  records (*NKR records are shown as found*).
+- **Names shared across kinds.** Two described things of one exact name, such as an infrastructure and the
+  repository it operates, are reported unless an accepted group says why they are two.
 - **Accepted groups** in `content/duplicates.toml` keep their reasons.
 
 ### 6. Controlled vocabularies and statuses
@@ -210,7 +240,7 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
   advice addressed by lens and level.
 - **Their kind** (direction or tip) becomes `adviceKind`, a term in the advice-kind scheme.
 - **Steps** (52) stay `HowToDirection` parts at `#step-<n>` under their advice item's IRI. **Actions** (77) stay
-  `potentialAction` parts at `#action`.
+  `potentialAction` parts at `#action`, with `#action-2` for an advice item's second action.
 
 ### 8. FTR in the graph
 
@@ -278,6 +308,9 @@ openapi.json                          one list and one record operation per kind
   functions*), so no list entry carries `true`, and the schema and the documentation say so.
 - **Records** refer to vocabulary terms by address, with the term set published once, instead of embedding them;
   today `pr/R1.1` repeats one lens description 67 times.
+- **Parts** are given in full in their thing's record under their fragment: an advice item's steps and actions, a
+  FIP's declarations, and a thing's registry records (`#knav`, `#nkr`, `#re3data` and the others), so a thing only a
+  registry knows still reads with its registry's description and attribution.
 - **Schemas** are typed, with enums from the term sets. The OpenAPI document describes a scoped kind's `{scope}` as
   an enum and `{id}` with a pattern and examples.
 - **Removed:**
@@ -342,19 +375,32 @@ openapi.json                          one list and one record operation per kind
     published to an embedding page.
   - An unknown address says so and offers search.
 - **Identifier input.** Search and the identifier input accept a Guide IRI or an address.
-- **Chips.** An ID chip still shows the record ID; its title names the full address. `FG.pids` labels the record's
-  own w3id IRI as the Guide's identifier ("Identifikátor Průvodce" / "Guide identifier"), apart from external PIDs.
+- **Chips.** An ID chip still shows the record ID; its title names the full address. Every catalogue entry, of every
+  kind and in the list as well as alone, shows its own persistent IRI first among its identifiers. No identifier chip
+  carries a label: an identifier is shown in full, and its address already says what issued it ("Identifikátor
+  Průvodce", "re3data" or "FAIRsharing" would only repeat it).
+- **Credited sources.** An entry's "Vychází z" / "Based on" row reads its `isBasedOn` (decision 4): the Guide's
+  selection where the entry is curated, and the catalogue of each registry record under it, each leading to that
+  catalogue's own entry with its snapshot's date. A registry that only identifies the thing, without a record (an NKR
+  handle before NKR's first snapshot), is shown among the identifiers and not credited as a source.
+- **The repository family** is "Repozitáře" / "Repositories": registries are resources (decision 2), so a registry
+  is listed and filtered with the resources.
 - **Anchors** for glossary terms and repositories become the bare ID.
-- **Accessibility.** The new chip is a native link with a visible label and focus. It carries text, not colour
-  alone, and wraps at slashes on narrow screens as PID chips already do.
+- **Accessibility.** An identifier chip is a native link with a visible focus. It carries text, not colour alone, and
+  wraps at slashes on narrow screens.
 
 ### 16. One reference syntax
 
-- **Prose** references are `[[<kind>/<id>|phrase]]` only, with the scope inside the address where there is one.
-  Two targets that are not records keep their names (found in M1): a kind's list, `[[infrastructures|...]]`, and the
-  Guide's profile, `[[profile|...]]`, which lives at `<ns>profile/<version>` rather than under `id/`.
-- **Retired forms:** `term:<id>`, `station:`, `clause:`, `page:`, `infrastructure:` and the code addresses. The
-  content check rejects them and names the address form.
+- **Prose** references are `[[<kind>/<id>|phrase]]`, with the scope inside the address where there is one, and a
+  part as `<address>#<fragment>`. A kind word alone names that kind's catalogue list, as `[[infrastructures|...]]`
+  does; it is the rule, not an exception. The one reference to the Guide's profile names the section of the machines
+  page that presents it, `[[pages/machines#tasks|...]]`, so no target outside the records and kinds remains.
+- **Fields that can name several kinds** name a record by its address too: provenance `results` and `objects`, a
+  model association's `target`, the worked example's `steps`, and an agent field where a name is ambiguous
+  (decision 4). A field whose name fixes the kind, such as `fixAt`, `stations` or `sources`, keeps the bare ID.
+- **An unknown reference** names no record and no kind. The content check refuses it and names the one record whose
+  ID equals the reference's last segment, where there is one (`[[licence|...]]` gives `[[stations/licence|...]]`).
+  It knows no earlier form; the migration owns those (decision 17).
 - **Documentation.** The native content rule in `.agents/guide/` and `docs/content-model.md` document the one
   syntax, and the vendor mirrors are regenerated.
 
@@ -363,18 +409,32 @@ openapi.json                          one list and one record operation per kind
 - **The script.** One standard-library script, `openspec/changes/unify-identity-model-and-api/migration/migrate.py`,
   owned by this change. It is idempotent, has a dry-run that prints the diff, and writes:
   - prose references: about 260 address forms plus the word forms;
-  - `content/identifiers.toml` kind names (`requirements` becomes `clauses`, and the rest follow the kind table);
-  - provenance `results` (`test:`, `provider:`, `infrastructure:` and other prefixes become addresses);
+  - the identifier register (below);
+  - provenance `results` and `objects`, model association targets and the worked example's steps, as addresses
+    that name the same published items;
   - the 55 statement merges through `requirement` (decision 10).
+- **The register** keys every issued ID by its record kind, and its value is the address without the kind:
+  `vocabularies` holds `lenses/V`, `modes-dataset/before` and `profiles-gate/core-system`; `callouts` holds
+  `sensitive-data` and its items as parts, `sensitive-data#steward`; `stations` holds the model contexts as
+  `plan#context-V`; `models`, `layers`, `seams` and `model-examples` split today's `model`; `lifecycles` and
+  `crosswalks` split `lifecycle`; `tests` carries the scope, `guide/guide-dataset-01`; sources share `resources`,
+  one ID space. No category is kept for its old name; share links carry a mode's or profile's code, which this does
+  not change.
 - **Snapshots** are generated files, so their `guideRoute` (219 records plus the glossary when measured) is rewritten
-  by a new `refresh_snapshots.py --renormalise` mode. It covers every snapshot that carries `guideRoute`, including
-  `snapshots/nkr.toml` once its first harvest merges. A harvest made before M1 still mints `repo/<subtype>` and one
-  made after mints `repositories`, so the order of the two does not matter. It rereads the recorded snapshot without
-  a new observation and keeps `retrieved`. `guideRoute` keeps its meaning, the frozen kind (and scope), so a later
-  reclassification still cannot move an identity.
-- **Paradata.** One provenance action, `<date>-unify-identity-model-and-api`, with `results = ["*"]` covers the
-  freshness check. Its agent is the responsible maintainer; its instruments are the migration script and the AI model
-  used; it is described as a structural migration. Content credit gains no person.
+  by the migration's renormalisation, which rereads the recorded snapshot without a new observation and keeps
+  `retrieved`. `guideRoute` keeps its meaning, the frozen kind (and scope), so a later reclassification still cannot
+  move an identity. A harvest proposed before this change and merged after it is renormalised with the same script.
+- **The migration owns the old forms.** The route table, the word forms, the code prefixes and the renormalisation
+  live in `migration/` with their tests (`migration/test_migrate.py`). `scripts/` and `tests/` know only the current
+  forms: the content check has no table of retired forms (decision 16), and `refresh_snapshots.py` has no route
+  translation.
+- **Results name records.** A result is an address or an address prefix. A prefix (`advice/plan.*`) matches records;
+  it matches a part only when the pattern names one (`callouts/sensitive-data#*`). An action whose result is `*`
+  changed the Guide as a whole: the crate records the Guide itself as its result, and the freshness check reads `*`
+  as covering every item. A record's list of changes therefore never fills with one structural migration.
+- **Paradata.** One provenance action, `2026-11-06-identity-migration`, with `results = ["*"]` covers the freshness
+  check. Its agent is the responsible maintainer; its instruments are the AI tools used, and no migration script is
+  an instrument; it is described as a structural migration. Content credit gains no person.
 
 ### 18. The w3id registration
 
@@ -466,6 +526,16 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=30
   at the same relative path, and the loader maps them.
 - [The build figures were measured on `1ec02bd`, before its last review rounds] → Task 1.1 recounted both builds
   with one script and found no change (*Context*). Later tasks verify their counts against the actual build.
+- [A named agent that resolves to a service makes a resource or repository the `publisher` of a work, where a reader
+  of schema.org expects an organisation] → One node per name is what the catalogue shows anyway, and the profile
+  allows any described thing as an agent. A name that should mean the organisation and not the service names the
+  organisation's address in the content.
+- [Two kinds of thing legitimately share a name, such as the Czech National Corpus infrastructure and its corpus
+  repository] → The build refuses the ambiguous agent name, the content names the agent by address, and an accepted
+  group records why the two are separate.
+- [A founded thing moves its description to its record, so a consumer reading only the thing's node finds less] →
+  The record is under the thing's IRI, the thing names it in `isBasedOn`, and the API record of the thing carries
+  its records (decision 11).
 
 ## Migration Plan
 
@@ -483,9 +553,11 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=30
                     the release that switches production
 ```
 
-- **Pull requests.** Each milestone is one pull request (M1 may split into generator and migration commits), merged
-  with the full checks. The preview carries the w3id namespace from M1, while production keeps its namespace until
-  M4's release, through the existing channel handling.
-- **Rollback.** Before the release, a milestone reverts by reverting its pull request; no published artifact changes.
+- **One pull request.** The whole change is one pull request,
+  [dsw-nrp/eosc-fair-guide#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172); the milestones are groups of
+  commits in it. It merges only when `python scripts/check_all.py` passes in full on its head, so `main` never holds
+  a partial identity model. The preview carries the w3id namespace from M1, while production keeps its namespace
+  until M4's release, through the existing channel handling.
+- **Rollback.** Before the release, the change reverts by reverting its pull request; no published artifact changes.
   After the switching release, rollback is a new release: earlier archives keep their bytes and contexts, and the
   redirect can point at any host.

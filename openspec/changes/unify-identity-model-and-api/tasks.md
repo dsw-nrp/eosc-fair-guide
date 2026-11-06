@@ -1,9 +1,11 @@
 # Tasks
 
-Each group is one milestone and one pull request (design.md, *Migration Plan*). A group lands the tests and
-documentation its own work needs, and closes with the full checks. Run unit tests with
+Each group is one milestone; the whole change is one pull request,
+[dsw-nrp/eosc-fair-guide#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172) (design.md, *Migration Plan*).
+A group lands the tests and documentation its own work needs, and closes with the full checks. Run unit tests with
 `python -m unittest tests/<file>.py`, and named checks with `python scripts/check_all.py --only <name>`. A group is
-complete only when `python scripts/check_all.py` passes in full.
+complete only when `python scripts/check_all.py` passes in full, and the pull request merges only when it passes on
+its head in CI.
 
 ## 1. Baseline
 
@@ -76,9 +78,56 @@ complete only when `python scripts/check_all.py` passes in full.
   `python scripts/check_all.py --only docs agent-generation agent-ownership` passes.
 - [x] 2.11 Add the `[Unreleased]` breaking lines to `CHANGELOG.md` for addresses, routes, the reference syntax and
   the namespace. Verify: `python scripts/check_all.py --only changelog` passes.
-- [ ] 2.12 Inspect the catalogue, a record of each kind and the identifier input in Czech and English, at phone width
-  and in print. Then run `python scripts/check_all.py`. Verify: the full run passes, and the M1 pull request is open
-  for human review.
+- [ ] 2.12 Validate the content's `baseUrl` also when `FAIR_GUIDE_BASE_URL` gives the build its publication
+  location. Verify: `tests/test_scripts.py`'s HTTPS test passes with the variable set, as in CI, and without it.
+- [ ] 2.13 Publish re3data's repository rows and the FAIRsharing and DataCite annotations as `#re3data`,
+  `#fairsharing` and `#datacite` records, with the winning values on the thing in the documented order, a repository
+  only re3data knows founded by its record, and every thing naming its records in `isBasedOn` (decision 4). Verify:
+  unit tests find `datarepo`'s `#re3data` record keeping re3data's values, a `#fairsharing` record with the DOI in
+  the thing's `sameAs`, a `#datacite` record, and every registry record named by its thing; `npm run check:page`
+  passes.
+- [ ] 2.14 Let a snapshot hold its records: list the KNAV and FIP Dashboard records in their snapshots' `hasPart`,
+  each snapshot `about` its catalogue's resource, and drop `#knav-tools` and `#fers` (decision 4). Verify: a unit test
+  finds no crate-local registry list and every record in its snapshot; `npm run check:page` passes.
+- [ ] 2.15 Resolve named agents to the one thing of that exact name, in any language and of any kind; accept an
+  address in an agent field; refuse an ambiguous name; attach FIP Dashboard organisation records only by ROR or a
+  reviewed `fipDashboard` handle, added for today's name matches; report name-only matches for review (decisions 4
+  and 5). Verify: unit tests find no two described things of one exact name outside an accepted group, "Charles
+  University" resolving to `organizations/cuni`, the publisher "Zenodo" resolving to `repositories/zenodo`, and a
+  name-only organisation record listed for review.
+- [ ] 2.16 Name records by address in the fields that can name several kinds: provenance `objects`, model association
+  targets and the worked example's steps, through `migrate.py` (decision 16). Verify: a second migration run changes
+  nothing, and the content check rejects a bare ID in each field with the address form named.
+- [ ] 2.17 Key the identifier register by record kind, with each value the address without the kind (vocabularies,
+  callouts with their items, stations with the model contexts, models, layers, seams, model examples, life cycles,
+  crosswalks, tests with their scope, and sources within resources), through `migrate.py`, `issued_ids` and
+  `scripts/register_ids.py` (decision 17). Verify: a unit test finds every register key in the kind vocabulary, and
+  `python scripts/check_all.py --only content` passes.
+- [ ] 2.18 Resolve result prefixes to records and to parts only where the pattern names one, record the Guide as the
+  crate result of an action whose result is `*`, and drop the `identity-migration` instrument (decision 17). Verify:
+  unit tests cover both prefix forms and the `*` action; the catalogue entry of `actions/2026-11-06-identity-migration`
+  names the Guide only.
+- [ ] 2.19 Move every form older than this change out of `scripts/` and `tests/`: the route table, the word forms,
+  the code prefixes, `refresh_snapshots.py --renormalise --routes` and their tests go into `migration/`, and the
+  content check names the record whose ID ends an unknown reference (decisions 16 and 17). Verify: a search of
+  `scripts/` and `tests/` for code addresses and word forms finds none, and `migration/test_migrate.py` passes.
+- [ ] 2.20 Rework the page's identifiers and sources: identifier chips without labels, every catalogue entry showing
+  its own IRI, "Vychází z" / "Based on" from the entry's `isBasedOn` with each catalogue's snapshot date, and the
+  repository family named "Repozitáře" / "Repositories", with unused strings removed from `content/ui.toml`
+  (decision 15). Verify: `npm run check:page` covers the three scenarios of *An entry credits the catalogues that
+  supplied it* and an IRI chip in an entry of every kind, in both languages.
+- [ ] 2.21 Replace `[[profile|...]]` with a reference to the machines page's section that presents the profile, so
+  only records and kinds remain as targets (decision 16). Verify: the content check refuses a target that is neither
+  a record nor a kind.
+- [ ] 2.22 Remove every citation of this change from code, tests, content and durable documents (the design's
+  decisions, its tasks and its migration), and add a check that fails on one (design.md, *Context*). Verify: the check
+  fails on a planted citation and passes on the tree.
+- [ ] 2.23 Update `docs/content-model.md`, `docs/design.md`, the native content rule (regenerated) and
+  `CHANGELOG.md` for tasks 2.13 to 2.22. Verify: `python scripts/check_all.py --only docs agent-generation
+  agent-ownership changelog` passes.
+- [ ] 2.24 Inspect the catalogue, a record of each kind and the identifier input in Czech and English, at phone width
+  and in print. Then run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull
+  request's head.
 
 ## 3. One graph model (M2)
 
@@ -111,8 +160,8 @@ complete only when `python scripts/check_all.py` passes in full.
   in development and rejects an operational one.
 - [ ] 3.8 Update `docs/content-model.md` (*Term classification*, *Statuses*, `checks/<id>.toml`) and `docs/design.md`.
   Verify: `python scripts/check_all.py --only docs` passes.
-- [ ] 3.9 Run `python scripts/check_all.py`. Verify: the full run passes, and the M2 pull request is open for human
-  review.
+- [ ] 3.9 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
+  head.
 
 ## 4. API v1 and graph access (M3)
 
@@ -148,7 +197,8 @@ complete only when `python scripts/check_all.py` passes in full.
   - the RDF distribution;
   - the recipes;
   - API v1;
-  - the table mapping Guide kinds to FIP Dashboard collections (F1).
+  - the table mapping Guide kinds to FIP Dashboard collections (F1);
+  - the practice section's paragraph on addresses, which still says the permanent address is to be settled.
 
   Verify: `npm run check:page` passes for the machines page in both languages, at phone width and in print.
 - [ ] 4.8 Write saved results as format revision 4, with persistent test IRIs, and load revisions 1–3 with their
@@ -172,8 +222,8 @@ complete only when `python scripts/check_all.py` passes in full.
     `error_page` rule in `docker/nginx.conf`;
   - `npm run check:deployment`, whose server answers a missing path as Pages does, gets status 404 and the page for
     an unknown address.
-- [ ] 4.12 Run `python scripts/check_all.py`. Verify: the full run passes, and the M3 pull request is open for human
-  review.
+- [ ] 4.12 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
+  head.
 
 ## 5. w3id registration and release (M4)
 
