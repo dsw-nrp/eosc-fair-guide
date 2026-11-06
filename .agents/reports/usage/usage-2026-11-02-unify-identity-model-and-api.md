@@ -114,3 +114,50 @@
   pixels and in print.
 - **Close-out:** M1 tasks 2.1 to 2.11 are complete (12 of 43). Task 2.12 waits only for the M1 pull request:
   nothing is pushed and PR #172 is unchanged until the maintainer approves the push.
+
+## Claude Code session (M1 review follow-up)
+
+- **When:** 2026-11-06 (+01:00)
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none (GitHub was reached through the `gh` CLI)
+- **Workflow context used:** `openspec-explore` on the maintainer's review of
+  [dsw-nrp/eosc-fair-guide#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172), then
+  `openspec-apply-change unify-identity-model-and-api`; delivered `aiscr-planning-core`,
+  `aiscr-quality-first-execution`, `aiscr-usage-logging` and `aiscr-model-logging` rules; the native
+  `fair-guide-content` and `fair-guide-surfaces` rules; `scripts/generate_agent_surfaces.py`; the change's own
+  `migration/migrate.py`; local Playwright checks; `gh pr checks` and `gh run view` for the PR's CI.
+- **What:**
+  - Folded the review into the change (`05e6bed`): every registry alike, named agents, registries as resources,
+    unlabelled chips and credited sources, address fields, a kind-keyed register, no compatibility names, no
+    change citations in durable prose, and one pull request for the whole change; new M1 tasks 2.12 to 2.24.
+  - Tasks 2.12 to 2.14 and 2.16 to 2.23 in `a0608ed` to `cc12724`:
+    - the content's `baseUrl` validated when `FAIR_GUIDE_BASE_URL` is set, the CI unit failure on the PR;
+    - `#re3data`, `#fairsharing` and `#datacite` records; every thing rests on its records and, where curated,
+      on the Guide's selection; snapshots hold their records and `#knav-tools` and `#fers` are gone;
+    - provenance objects, association targets and the worked example's steps by address; the register keyed by
+      record kind; a `*` result names the Guide; the `identity-migration` instrument dropped;
+    - the route translation, renormalisation and retired word forms moved into `migration/`, with a guard;
+      `[[profile|...]]` became `[[pages/machines#tasks|...]]`;
+    - unlabelled identifier chips, every entry's IRI first, "Vychází z" from the records with snapshot dates,
+      registries among the resources and the family "Repozitáře" / "Repositories";
+    - citations of the change removed from code and tests, with a check in `check_docs.py`; docs, the native
+      rule and its mirrors, and the changelog.
+- **Impacted:** `assets/` (`js/core.js`, `js/views.js`, `js/catalogue.js`, `js/catalogue-view.js`,
+  `css/app.css`), `content/` (`guide.toml`, `identifiers.toml`, `model.toml`, `pages.toml`, `provenance.toml`,
+  `ui.toml`), `scripts/` (`build_crate.py`, `catalogue_identity.py`, `check_content.py`, `check_docs.py`,
+  `check_duplicates.py`, `duplicate_repairs.py`, `refresh_snapshots.py`), `tests/`, `docs/` (`content-model.md`,
+  `design.md`), `CHANGELOG.md`, `.agents/guide/rules/fair-guide-content.md` and its generated mirrors and
+  `CODEX.md` region, `openspec/changes/unify-identity-model-and-api/` (all artifacts, `migration/`); this entry.
+- **Verification:** `python scripts/check_all.py` passes 36 of 36 checks on `cc12724`; the live checks were not
+  run. `migration/test_migrate.py` passes 10 of 10, including the guard that no script, test or page script names
+  an earlier form, and a second migration run changes nothing. `npx openspec validate
+  unify-identity-model-and-api --strict` passes. The unit lane passes locally with CI's `FAIR_GUIDE_BASE_URL`.
+- **Close-out:** 23 of 55 tasks are complete. Task 2.15 (named agents) waits for a maintainer decision: an
+  organisation and its eponymous service are one node, and four of them (DataCite, FAIRsharing, ORCID, Creative
+  Commons) would hold two FIP Dashboard records under one fragment. Task 2.24 needs CI on the PR's head; nothing
+  is pushed yet.
+- **Corrections:** the maintainer's review asked to drop the migration instrument, to keep change-specific
+  references out of durable prose, to keep one pull request, to name register entries by kind instead of keeping
+  names for share links, and to credit every catalogue that supplied an entry.
