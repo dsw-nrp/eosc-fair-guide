@@ -3828,6 +3828,11 @@ section.datacite-read p {
   min-width: 0;
 }
 
+/* Each catalogue an entry comes from, with its snapshot's date, on a line of its own. */
+.relations dd > .source-credit {
+  flex: 1 1 100%;
+}
+
 /* A relation's groups, one under another across the row; a long one folds behind its count, and a table inside it
    scrolls within the row (design D8). */
 .relations dd > .relation-group {
@@ -5510,5 +5515,10 @@ section.datacite-read p {
   main a[href^="http"]::after {
     content: " (" attr(href) ")";
     font-size: var(--size-small);
+  }
+
+  /* An identifier chip already shows its address in full. */
+  main a.pid-chip[href^="http"]::after {
+    content: none;
   }
 }
