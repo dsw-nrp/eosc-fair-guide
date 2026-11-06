@@ -2441,15 +2441,9 @@ class SiteTests(unittest.TestCase):
         graph = build_crate.Graph()
         build_crate.build_crate(content, graph)
         members = {item["@id"] for item in build_crate.as_list(graph.entities["#repositories"]["hasPart"])}
-        self.assertTrue(
-            {
-                iri("resources/nma"),
-                iri("resources/fairsharing"),
-                iri("repositories/nusl"),
-                iri("repositories/cesnet-invenio"),
-            }
-            <= members
-        )
+        self.assertTrue({iri("repositories/nusl"), iri("repositories/cesnet-invenio")} <= members)
+        # A registry is a resource: the catalogue lists it with the resources, not in the repository family.
+        self.assertFalse({iri("resources/nma"), iri("resources/fairsharing")} & members)
         self.assertNotIn(iri("repositories/asep#fip-dashboard"), members)
         self.assertNotIn(iri("repositories/lindat-clariah-cz#fip-dashboard"), members)
         self.assertNotIn(iri("repositories/zenodo#fip-dashboard"), members)

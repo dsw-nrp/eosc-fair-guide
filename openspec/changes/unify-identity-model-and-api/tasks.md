@@ -111,7 +111,7 @@ its head in CI.
   the code prefixes, `refresh_snapshots.py --renormalise --routes` and their tests go into `migration/`, and the
   content check names the record whose ID ends an unknown reference (decisions 16 and 17). Verify: a search of
   `scripts/` and `tests/` for code addresses and word forms finds none, and `migration/test_migrate.py` passes.
-- [ ] 2.20 Rework the page's identifiers and sources: identifier chips without labels, every catalogue entry showing
+- [x] 2.20 Rework the page's identifiers and sources: identifier chips without labels, every catalogue entry showing
   its own IRI, "Vychází z" / "Based on" from the entry's `isBasedOn` with each catalogue's snapshot date, and the
   repository family named "Repozitáře" / "Repositories", with unused strings removed from `content/ui.toml`
   (decision 15). Verify: `npm run check:page` covers the three scenarios of *An entry credits the catalogues that

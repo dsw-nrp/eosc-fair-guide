@@ -113,7 +113,7 @@
       follow a persistent identifier scheme. */
   FG.pids = function (entity) {
     const seen = new Set();
-    /* A record's own persistent IRI comes first, labelled as the Guide's identifier (decision 15). */
+    /* A record's own persistent IRI comes first, before the identifiers other registries give it. */
     const own = FG.kind(entity) ? [{ iri: FG.iri(entity), scheme: "guide" }] : [];
     return own.concat([entity["@id"]]
       .concat(FG.refIds(entity, "sameAs"), [entity.url])
@@ -131,17 +131,17 @@
   /* An address that may wrap after each slash, so a narrow screen breaks it between its parts. */
   const breakable = (iri) => iri.split(/(?<=\/)/).flatMap((part, index) => (index ? [h("wbr"), part] : [part]));
 
-  /** An entity's persistent identifiers, each named by its scheme and linked in full; none when it has none. */
-  FG.pidItems = (entity) => FG.pids(entity).map((pid) => FG.pidItem(pid.scheme, pid.iri));
+  /** An entity's persistent identifiers, each linked in full; none when it has none. */
+  FG.pidItems = (entity) => FG.pids(entity).map((pid) => FG.pidItem(pid.iri));
 
-  /** One identifier or record address as a chip, as the guide shows every identifier (D-185): its scheme named, the
-      identifier in full, leading to it. */
-  FG.pidItem = (scheme, iri) => FG.external(iri, [h("span", { class: "pid-scheme" }, FG.t("pid." + scheme)), " ", breakable(iri)], { class: "id-chip pid-chip" });
+  /** One identifier or record address as a chip, as the Guide shows every identifier: in full, leading to it. The
+      identifier says what issued it, so the chip carries no label that would repeat it. */
+  FG.pidItem = (iri) => FG.external(iri, breakable(iri), { class: "id-chip pid-chip" });
 
   /** The object a check is about as a chip: its DOI or Handle, or its address. */
   FG.targetChip = (target) => {
     const pid = FG.live && FG.live.parsePid(target);
-    if (pid && (pid.type === "doi" || pid.type === "handle")) return FG.pidItem(pid.type, FG.live.pidUrl(pid));
+    if (pid && (pid.type === "doi" || pid.type === "handle")) return FG.pidItem(FG.live.pidUrl(pid));
     return /^https?:\/\//.test(String(target || "")) ? FG.external(target, breakable(target), { class: "id-chip pid-chip" }) : h("span", { class: "id-chip id-chip-static" }, String(target || ""));
   };
   FG.statusBadge = statusBadge;

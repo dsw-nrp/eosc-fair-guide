@@ -584,25 +584,26 @@ sections.push(["page", async () => {
       const wrong = cards.filter((card) => card.chip !== card.id.split("/").at(-1).replace(/^item-/, "") || card.labels.some((label, index) => !order.includes(label) || (index && order.indexOf(label) <= order.indexOf(card.labels[index - 1]))));
       if (wrong.length) fail(`catalogue: ${kind} cards without their own identifier in the head, or with relations out of order: ` + wrong.slice(0, 3).map((card) => card.id + " " + card.labels.join("/")).join("; "));
     }
-    // An entry shows the persistent identifiers it has, named by scheme, and none it lacks; the stations and checks
-    // an entry names carry their icons.
+    // An entry shows the persistent identifiers it has, each in full and without a label, and none it lacks; the
+    // stations and checks an entry names carry their icons.
     const pidsOf = async (hash, anchor) => {
       await gotoView(view, pageUrl + hash);
       await view.waitForSelector(`[id="item-${entryAnchor(anchor)}"]`);
       return view.locator(`[id="item-${entryAnchor(anchor)}"]`).evaluate((card) => ({
-        pids: [...card.querySelectorAll(".pid-chip")].map((link) => [link.querySelector(".pid-scheme")?.textContent, link.getAttribute("href"), link.textContent.replace(link.querySelector(".pid-scheme")?.textContent || "", "").replace(/\s*\(.*\)$/, "").trim()]),
+        pids: [...card.querySelectorAll(".pid-chip")].map((link) => [link.getAttribute("href"), link.textContent.replace(/\s*\(.*\)$/, "").trim()]),
         plainIcons: [...card.querySelectorAll(".relations a.holder-link")].filter((link) => !link.querySelector("svg.icon")).length,
         holders: card.querySelectorAll(".relations a.holder-link").length,
       }));
     };
     const roCrate = await pidsOf("#/cs/DS/catalogue/k!resources~q!crate", "ro-crate");
-    if (!roCrate.pids.some(([scheme, href, text]) => scheme === "DOI" && href === "https://doi.org/10.5281/zenodo.13751027" && text === href)) fail("catalogue: RO-Crate does not show its DOI in full: " + JSON.stringify(roCrate.pids));
+    if (!roCrate.pids.some(([href, text]) => href === "https://doi.org/10.5281/zenodo.13751027" && text === href)) fail("catalogue: RO-Crate does not show its DOI in full, without a label: " + JSON.stringify(roCrate.pids));
+    if (roCrate.pids[0]?.[0] !== siteNamespace(site) + "id/resources/ro-crate") fail("catalogue: RO-Crate does not show its own persistent IRI first: " + JSON.stringify(roCrate.pids));
     if (!roCrate.holders || roCrate.plainIcons) fail("catalogue: a station an entry names lacks its icon");
     const zenodo = await pidsOf("#/cs/V/catalogue/k!repositories~q!zenodo", "zenodo");
-    if (!zenodo.pids.some(([scheme, href]) => scheme === "re3data" && href.endsWith("/r3d100010468"))) fail("catalogue: Zenodo does not show its re3data identifier: " + JSON.stringify(zenodo.pids));
+    if (!zenodo.pids.some(([href]) => href === "https://www.re3data.org/repository/r3d100010468")) fail("catalogue: Zenodo does not show its re3data identifier: " + JSON.stringify(zenodo.pids));
     // One real-world thing is one entry: Zenodo's FIP Dashboard record is shown with the curated repository, not on
     // its own, and the borrowed identifiers of its records lead to it from either kind.
-    if (!zenodo.pids.some(([, href]) => href.endsWith("/resources/zenodo"))) fail("catalogue: Zenodo does not show its FIP Dashboard record: " + JSON.stringify(zenodo.pids));
+    if (!zenodo.pids.some(([href]) => href.endsWith("/resources/zenodo"))) fail("catalogue: Zenodo does not show its FIP Dashboard record: " + JSON.stringify(zenodo.pids));
     await gotoView(view, pageUrl + "#/cs/V/catalogue/k!resources~q!zenodo");
     await view.waitForSelector(".catalogue-results");
     if (await view.locator('[id="item-zenodo"]').count()) fail("catalogue: Zenodo's FIP Dashboard record is listed apart from the repository");
@@ -664,9 +665,9 @@ sections.push(["page", async () => {
       if (!(await view.locator(".kind-intro .notice").count())) fail("repositories and registries: the dashboard's demo disclaimer is missing");
     }
     const datacite = await pidsOf("#/cs/V/catalogue/k!resources~q!DataCite", "datacite");
-    if (!datacite.pids.some(([scheme, href, text]) => scheme === "Nanopublikace" && href.startsWith("https://purl.org/np/") && text.startsWith("http://purl.org/np/"))) fail("catalogue: a nanopublication IRI is not shown as it is and linked over HTTPS: " + JSON.stringify(datacite.pids));
+    if (!datacite.pids.some(([href, text]) => href.startsWith("https://purl.org/np/") && text.startsWith("http://purl.org/np/"))) fail("catalogue: a nanopublication IRI is not shown as it is and linked over HTTPS: " + JSON.stringify(datacite.pids));
     const clause = await pidsOf("#/cs/V/catalogue/k!clauses~q!A.F1.N1", "A.F1.N1");
-    if (clause.pids.length) fail("catalogue: a requirement shows a persistent identifier it does not have");
+    if (clause.pids.length !== 1 || clause.pids[0][0] !== namespace + "id/clauses/A.F1.N1") fail("catalogue: a requirement shows a persistent identifier it does not have, or not its own IRI: " + JSON.stringify(clause.pids));
     // The accessibility statement names the API documentation as exempt and points to the accessible list.
     await gotoView(view, pageUrl + "#/cs/V/page/accessibility");
     await view.waitForSelector("#main h1");
@@ -856,8 +857,57 @@ sections.push(["page", async () => {
     if (await view.locator("#fairsharing-load").count()) fail("repositories: FAIRsharing still offers an on-demand load");
     const card = view.locator(".catalogue-results .entry-card");
     const record = card.locator('.pid-chip[href="https://doi.org/10.25504/FAIRsharing.f4bfb1"]');
-    if (!(await record.count()) || !(await record.locator(".pid-scheme").textContent()).includes("FAIRsharing")) fail("repositories: the snapshot's FAIRsharing record is not an identifier chip on its repository");
+    if (!(await record.count()) || (await record.textContent()).replace(/\s*\(.*\)$/, "").trim() !== "https://doi.org/10.25504/FAIRsharing.f4bfb1") fail("repositories: the snapshot's FAIRsharing record is not an unlabelled identifier chip on its repository");
     if (!(await card.locator('.relations a[href$="/catalogue/resources/fairsharing"]').count())) fail("repositories: the FAIRsharing source does not lead to its catalogue entry");
+    await view.close();
+  }
+
+  // An entry credits the catalogues that supplied it: the Guide's selection where it is curated and the catalogue of
+  // each registry record it holds, each leading to that catalogue's entry with its snapshot's date. A registry that only
+  // identifies the entry is among its identifiers, not its sources. A registry is a resource, and an entry of every
+  // kind shows its own persistent IRI first among its identifiers, in both languages.
+  {
+    const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const entryOf = async (hash, anchor) => {
+      await gotoView(view, pageUrl + hash);
+      await view.waitForSelector(`[id="item-${anchor}"]`);
+      return view.locator(`[id="item-${anchor}"]`).evaluate((card) => ({
+        sources: [...card.querySelectorAll('dd[data-field~="isBasedOn"] .source-credit')].map((item) => [item.querySelector("a")?.getAttribute("href") || "", item.textContent.trim()]),
+        pids: [...card.querySelectorAll(".pid-chip")].map((link) => link.getAttribute("href")),
+      }));
+    };
+    const dated = (source) => /\d{4}/.test(source[1]);
+    const zenodo = await entryOf("#/cs/V/catalogue/repositories/zenodo", "zenodo");
+    const credited = (entry, catalogue) => entry.sources.find(([href]) => href.endsWith(cataloguePath("resources", catalogue)));
+    if (!zenodo.sources.some(([href, text]) => !href && text === "výběr Průvodce")) fail("sources: Zenodo does not credit the Guide's selection: " + JSON.stringify(zenodo.sources));
+    for (const catalogue of ["knav-dm-tools-catalogue", "fip-dashboard"]) {
+      const source = credited(zenodo, catalogue);
+      if (!source || !dated(source)) fail(`sources: Zenodo does not credit ${catalogue} with its snapshot's date: ` + JSON.stringify(zenodo.sources));
+    }
+    const argos = await entryOf("#/cs/V/catalogue/resources/argos", "argos");
+    if (argos.sources.length !== 2 || argos.sources[0][1] !== "výběr Průvodce" || !credited(argos, "knav-dm-tools-catalogue")) fail("sources: a curated resource with a KNAV record does not credit the Guide's selection and the KNAV catalogue: " + JSON.stringify(argos.sources));
+    const bird = await entryOf("#/cs/V/catalogue/repositories/czech-bioimaging", "czech-bioimaging");
+    if (!bird.pids.some((href) => href.startsWith("https://repo.cz/objects/"))) fail("sources: an NKR handle is not among the repository's identifiers: " + JSON.stringify(bird.pids));
+    if (bird.sources.some(([href, text]) => href.endsWith(cataloguePath("resources", "nkr")) || text.startsWith("NKR"))) fail("sources: NKR is credited without a record the Guide holds: " + JSON.stringify(bird.sources));
+    await entryOf("#/cs/V/catalogue/resources/nkr", "nkr");
+    const registry = await view.evaluate(() => ({
+      repository: window.FairGuide.repositoryEntries().some((entry) => entry["@id"] === "resources/nkr"),
+      functions: document.querySelector('[id="item-nkr"] [data-field~="repositoryFunction"]')?.textContent.trim() || "",
+    }));
+    if (registry.repository || !registry.functions) fail("sources: NKR is not listed among the resources with its functions, apart from the repositories: " + JSON.stringify(registry));
+    for (const lang of ["cs", "en"]) {
+      await gotoView(view, pageUrl + `#/${lang}/V/catalogue/k!resources`);
+      await view.waitForSelector(".catalogue-results");
+      const missing = await view.evaluate(() => {
+        const FG = window.FairGuide;
+        return Object.entries(FG.catalogueEntries()).flatMap(([kind, entries]) => {
+          const entry = entries[0];
+          const chip = entry && entry.render().querySelector(".pid-chip");
+          return !entry || (chip && chip.getAttribute("href") === FG.iri(entry.entity)) ? [] : [kind + ": " + (chip ? chip.getAttribute("href") : "no identifier")];
+        });
+      });
+      if (missing.length) fail(`sources: an entry does not show its own persistent IRI first (${lang}): ` + missing.join("; "));
+    }
     await view.close();
   }
 

@@ -1415,10 +1415,6 @@ button.id-chip {
   cursor: pointer;
 }
 
-.pid-scheme {
-  font-weight: 700;
-}
-
 /* A station or a check named by a catalogue entry, with its icon as in the path menu. */
 .holder-link .icon {
   margin-right: 0.3em;

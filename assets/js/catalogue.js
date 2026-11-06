@@ -349,8 +349,8 @@
     const shown = new Set(pids.map((pid) => pid.iri));
     const others = FG.refIds(entity, "sameAs")
       .filter((iri) => /^https:\/\//.test(iri) && !shown.has(iri) && !/^https:\/\/(dx\.)?doi\.org\/10\.17616\//i.test(iri))
-      .map((iri) => FG.pidItem(iri.startsWith(FG.DASHBOARD) ? "dashboard" : "address", iri));
-    return pids.map((pid) => FG.pidItem(pid.scheme, pid.iri)).concat(others);
+      .map((iri) => FG.pidItem(iri));
+    return pids.map((pid) => FG.pidItem(pid.iri)).concat(others);
   };
 
   /* A FIP declaration's status by its icon, beside its text. */
@@ -370,10 +370,6 @@
         ] }])
       : [];
   };
-
-  /** A snapshot an entry's facts come from, by name with the date it was taken. */
-  const snapshotItem = (snapshot) =>
-    h("span", null, snapshot.url ? FG.external(snapshot.url, FG.sourceName(snapshot["@id"])) : FG.sourceName(snapshot["@id"]), snapshot.dateCreated ? h("span", { class: "muted" }, " · " + FG.t("catalogue.snapshotOf", { date: FG.formatDate(snapshot.dateCreated) })) : null);
 
   /* Rows that take the card's full width under their label: a table needs more than the row's column. */
   const WIDE_ROWS = ["declarations"];
@@ -419,7 +415,8 @@
     const what = FG.list(spec.what).filter(Boolean);
     const details = FG.list(spec.details).filter(Boolean);
     const states = [spec.states].flat(Infinity).filter(Boolean);
-    const relations = spec.relations || {};
+    /* Every entry of the catalogue shows its identifiers, its own persistent IRI first. */
+    const relations = Object.assign({ identifiers: FG.kind(spec.entity) ? FG.identifierItems(spec.entity) : null }, spec.relations);
     const rows = spec.compact ? [] : RELATIONS.map((key) => [key, [relations[key]].flat(Infinity).filter(Boolean)]).filter(([, items]) => items.length);
     const rowFields = (key) => (spec.fields && key in spec.fields ? spec.fields[key] : ROW_FIELDS[key]) || null;
     return h(
@@ -609,5 +606,5 @@
 
 
   /* What the catalogue view builds on, for assets/js/catalogue-view.js. */
-  FG.catalogueParts = { audiences, basedOnRow, citationDetails, citations, code, declaredInRow, developerRow, entryCard, entryLink, field, icons, inGuide, licenceRow, operatorRow, resourceCard, serviceOf, slug, snapshotItem, sourceLink, stationsOf, tiles, typeOf, uses, writeState };
+  FG.catalogueParts = { audiences, basedOnRow, citationDetails, citations, code, declaredInRow, developerRow, entryCard, entryLink, field, icons, inGuide, licenceRow, operatorRow, resourceCard, serviceOf, slug, sourceLink, stationsOf, tiles, typeOf, uses, writeState };
 })();

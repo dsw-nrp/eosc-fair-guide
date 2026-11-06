@@ -7,7 +7,7 @@
 
   const FG = window.FairGuide;
   const h = (...args) => FG.h(...args);
-  const { audiences, basedOnRow, citationDetails, citations, code, declaredInRow, developerRow, entryCard, entryLink, field, icons, inGuide, licenceRow, operatorRow, resourceCard, serviceOf, slug, snapshotItem, sourceLink, stationsOf, tiles, typeOf, uses, writeState } = FG.catalogueParts;
+  const { audiences, basedOnRow, citationDetails, citations, code, declaredInRow, developerRow, entryCard, entryLink, field, icons, inGuide, licenceRow, operatorRow, resourceCard, serviceOf, slug, sourceLink, stationsOf, tiles, typeOf, uses, writeState } = FG.catalogueParts;
 
   /* The catalogue's lists, named by the kind of their records; a few kinds are listed together (FG.catalogueGroup). */
   const KINDS = ["resources", "repositories", "infrastructures", "clauses", "questions", "glossary", "fips", "tests", "lifecycles", "models", "actions"];
@@ -110,7 +110,6 @@
     const anchor = sourceKey("knav", tool.identifier);
     const holders = knavStations(tool);
     const catalogue = FG.snapshotOf("resources/knav-dm-tools-catalogue") || {};
-    const source = FG.get("resources/knav-dm-tools-catalogue");
     const steps = FG.refs(tool, "lifecycleStage");
     return {
       kind: "resources", entity: thing, name: tool.name,
@@ -133,7 +132,7 @@
           steps.length ? h("p", { class: "small", "data-field": "lifecycleStage" }, h("span", { class: "entry-what" }, FG.t("catalogue.knavSteps") + ": "),
             steps.map((stage, index) => [index ? ", " : null, h("a", { href: FG.entryHref(stage) }, FG.span(stage.name))])) : null,
         ],
-        relations: { basedOn: [source ? FG.sourceLink(source) : null, FG.refs(tool, "isBasedOn").map(snapshotItem)], inGuide: inGuide(holders) },
+        relations: { basedOn: FG.sourceCredits(thing), inGuide: inGuide(holders) },
       }),
     };
   }
@@ -246,8 +245,8 @@
               principles: tiles(FG.principlesOf(fer)),
               providedBy: FG.refs(fer, "provider").map((party) => (party.url ? FG.external(party.url, FG.abbreviatedName(party, FG.state.lang)) : h("span", null, FG.abbreviatedName(party, FG.state.lang)))),
               declaredIn: declaredInRow(fer),
-              basedOn: FG.refs(fer, "isBasedOn").map(snapshotItem),
-              identifiers: FG.identifierItems(fer),
+              basedOn: FG.sourceCredits(thing),
+              identifiers: FG.identifierItems(thing),
             },
           }),
       });
@@ -712,7 +711,7 @@
             fields: { basedOn: "isBasedOn" },
             relations: {
               declarations: declarationsRow(fip, FG.config.api.records[fip["@id"]].split("/").slice(1).join("/")),
-              basedOn: FG.refs(fip, "isBasedOn").map(snapshotItem),
+              basedOn: FG.sourceCredits(fip),
               identifiers: FG.pidItems(fip),
             },
           }),

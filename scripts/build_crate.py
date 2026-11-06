@@ -1610,7 +1610,8 @@ def build_repositories(
     resources: list[dict[str, Any]],
     records: list[dict[str, Any]] | None = None,
 ) -> list[str]:
-    """List repositories and registries by meaning, regardless of source. Reviewed record annotations join
+    """List repositories by meaning, regardless of source; a registry is a resource, listed with the resources, whose
+    identities are indexed beside the repositories'. Reviewed record annotations join
     registry identities without changing a snapshot's facts or inferring identity from a similar host or name.
     Each registry's row stays that registry's record about the thing, and the catalogue lists the thing once, with
     the winning values: what the curated entry states, then NKR's name, kind, dated status, keywords and address,
@@ -1805,12 +1806,13 @@ def build_repositories(
             }
         )
 
-    # Registry resources belong here too, even when the guide recommends or cites them elsewhere.
-    for resource in resources:
-        if resource.get("type") == "registry":
-            entity_id = f"#resource-{resource['id']}"
-            if entity_id not in repository_ids:
-                repository_ids.append(entity_id)
+    # A registry is a resource the catalogue lists with the resources; its identities are indexed here too, so a
+    # registry's own records join it as they join a repository.
+    registries = [
+        f"#resource-{resource['id']}"
+        for resource in resources
+        if resource.get("type") == "registry" and f"#resource-{resource['id']}" not in repository_ids
+    ]
     repository_ids.extend(dashboard_ids)
 
     # re3data's record of each repository it lists, about the thing that rests on it, with re3data's own values.
@@ -1838,7 +1840,7 @@ def build_repositories(
                 "primaryTopic": ref(topics[record_key]),
             }
         )
-    for entity_id in repository_ids:
+    for entity_id in repository_ids + registries:
         entity = graph.entities[entity_id]
         holder = entity.get(PRECEDENCE, entity)
         if (
@@ -1859,7 +1861,7 @@ def build_repositories(
         {
             "@id": "#repositories",
             "@type": "CreativeWork",
-            "name": "Repositories and registries",
+            "name": "Repositories",
             "hasPart": refs(repository_ids),
         }
     )

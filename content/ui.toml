@@ -138,20 +138,7 @@ page = { cs = "Stránky", en = "Pages" }
 clause = { cs = "Požadavky analýzy", en = "Requirements of the analysis" }
 
 [pid]
-doi = { cs = "DOI", en = "DOI" }
-handle = { cs = "Handle", en = "Handle" }
-nanopub = { cs = "Nanopublikace", en = "Nanopublication" }
-ror = { cs = "ROR", en = "ROR" }
 orcid = { cs = "ORCID", en = "ORCID" }
-re3data = { cs = "re3data", en = "re3data" }
-fairsharing = { cs = "FAIRsharing", en = "FAIRsharing" }
-nkr = { cs = "NKR", en = "NKR" }
-ark = { cs = "ARK", en = "ARK" }
-iri = { cs = "Trvalé IRI", en = "Persistent IRI" }
-# The record's own persistent IRI, apart from the identifiers other registries give it.
-guide = { cs = "Identifikátor Průvodce", en = "Guide identifier" }
-dashboard = { cs = "FIP Dashboard", en = "FIP Dashboard" }
-address = { cs = "Adresa", en = "Address" }
 
 [station]
 stage = { cs = "Fáze {n} · {name}", en = "Stage {n} · {name}" }
@@ -985,7 +972,7 @@ statement = { cs = "zjištění", en = "finding" }
 
 [catalogue.tab]
 resources = { cs = "Zdroje", en = "Resources" }
-repositories = { cs = "Repozitáře a registry", en = "Repositories and registries" }
+repositories = { cs = "Repozitáře", en = "Repositories" }
 clauses = { cs = "Požadavky a doporučení", en = "Requirements and recommendations" }
 glossary = { cs = "Pojmy", en = "Glossary" }
 fips = { cs = "Profily FIP", en = "FIP profiles" }
@@ -1015,7 +1002,7 @@ entry = { cs = "Celý záznam v katalogu", en = "The whole entry in the catalogu
 
 [catalogue.kindOne]
 resources = { cs = "Zdroj", en = "Resource" }
-repositories = { cs = "Repozitář nebo registr", en = "Repository or registry" }
+repositories = { cs = "Repozitář", en = "Repository" }
 clauses = { cs = "Požadavek nebo doporučení", en = "Requirement or recommendation" }
 glossary = { cs = "Pojem", en = "Glossary term" }
 fips = { cs = "Profil FIP", en = "FIP profile" }
