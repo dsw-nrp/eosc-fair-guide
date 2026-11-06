@@ -7,6 +7,7 @@ migration, so the migration is checked against the input it was written for.
 
 from __future__ import annotations
 
+import re
 import shutil
 import sys
 import tempfile
@@ -148,6 +149,51 @@ class MigrationTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "unknown reference target"):
             migrate.migrate_references("[[nothing|x]]", bare)
+
+
+class RenormaliseTests(unittest.TestCase):
+    """A recorded snapshot moves to the current route format without a new observation."""
+
+    SNAPSHOT = (
+        '[snapshot]\nsource = "NKR"\nretrieved = 2026-11-01\n\n'
+        '[[record]]\nid = "herbarium"\nalternateIds = [{ "scheme" = "nkr", "value" = "20.500.14818/jgu5fyqf" }]\n'
+        'guideRoute = "repo/dom"\nrepositoryName = "Herbarium"\nmainUrl = "https://herbarium.biodiversity.cz"\n'
+    )
+
+    def test_an_nkr_route_is_rewritten_once_and_the_retrieval_date_stays(self):
+        first = migrate.renormalise_snapshot(self.SNAPSHOT, {"repo/dom": "repositories"})
+        self.assertEqual(tomllib.loads(first)["record"][0]["guideRoute"], "repositories")
+        self.assertEqual(str(tomllib.loads(first)["snapshot"]["retrieved"]), "2026-11-01")
+        self.assertEqual(first.replace('"repositories"', '"repo/dom"'), self.SNAPSHOT)
+        self.assertEqual(migrate.renormalise_snapshot(first, {"repo/dom": "repositories"}), first)
+
+    def test_an_untranslated_old_route_or_a_broken_identity_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "unknown record kind 'repo'"):
+            migrate.renormalise_snapshot(self.SNAPSHOT)
+        with self.assertRaisesRegex(ValueError, "missing genuine nkr"):
+            migrate.renormalise_snapshot(self.SNAPSHOT.replace('"scheme" = "nkr"', '"scheme" = "knav"'))
+
+
+class CurrentFormsTests(unittest.TestCase):
+    """The repository's scripts, tests and page know only the current forms; the old ones live in this folder."""
+
+    def test_no_durable_file_names_a_reference_word_form_or_a_code_address(self) -> None:
+        # `check/<id>` is also the page's current view of a check, so that one head says nothing about an address.
+        heads = sorted(set(migrate.PREFIXES) - {"check"}, key=len, reverse=True)
+        code_address = re.compile(r"[\"'\[](?:" + "|".join(re.escape(head) for head in heads) + r")/[A-Za-z0-9]")
+        word_form = re.compile(r"\[\[(?:" + "|".join(migrate.WORD_KINDS) + r"):")
+        found = []
+        for folder, patterns in (
+            ("scripts", ("*.py",)),
+            ("tests", ("*.py", "*.mjs", "*.toml")),
+            ("assets/js", ("*.js",)),
+        ):
+            for pattern in patterns:
+                for path in sorted((ROOT / folder).rglob(pattern)):
+                    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                        if code_address.search(line) or word_form.search(line):
+                            found.append(f"{path.relative_to(ROOT).as_posix()}:{number}: {line.strip()[:100]}")
+        self.assertEqual(found, [])
 
 
 if __name__ == "__main__":

@@ -3,18 +3,21 @@
 
 Usage: python openspec/changes/unify-identity-model-and-api/migration/migrate.py [--dry-run] [--root DIR]
 
-Rewrites the authored TOML files under content/; the generated snapshots are renormalised by their own generator,
-``scripts/refresh_snapshots.py --renormalise --routes routes.toml``. Steps:
+Rewrites the TOML files under content/. This folder alone knows the forms the content had before; the repository's
+scripts and tests know only the current ones. A harvest proposed before the change and merged after it is migrated
+with the same script. Steps:
 
 - identifiers: the reviewed reassignments in ``ids.toml`` give generated snapshot rows identifiers without collision
-  counters, each row found by its source's own identifier, and rename the entries that name those rows. This is the
-  one step that edits a generated snapshot, because a reassignment is an editorial decision no refresh can make;
+  counters, each row found by its source's own identifier, and rename the entries that name those rows, because a
+  reassignment is an editorial decision no refresh can make;
+- snapshots: every generated snapshot is renormalised without a new observation: its rows, source passages and
+  retrieval date stay, its identities are revalidated and its stored routes translated (``renormalise_snapshot``);
 - routes: stored ``guideRoute`` values, through the reviewed ``[routes]`` table in ``routes.toml``;
 - references: every prose reference ``[[target|phrase]]`` to its one form, ``[[<kind>/<id>|phrase]]``. The word
   forms (``term:``, ``page:``, ``station:``, ``clause:``, ``infrastructure:``), the code addresses (``res/srv/``,
   ``term/``, ``step/`` and the rest) and bare resource or source IDs all name the same record by its address; a bare
-  ID takes the kind its row's route freezes. A kind's list (``[[infrastructures|...]]``) and the Guide's profile
-  (``[[profile|...]]``) keep their names;
+  ID takes the kind its row's route freezes. A kind's list (``[[infrastructures|...]]``) keeps its name, and the
+  Guide's profile (``[[profile|...]]``) is named by the section of the machines page that presents it;
 - in-page links: an ``href`` that opened an entity by its build key (``#station-plan``) or a crate-local list
   (``#repositories?function=...``) names the record by its address (``stations/plan``) or the list by its kind;
 - link reviews: each reviewed missing-link decision names its target by address, and a decision that was current
@@ -54,7 +57,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import register_ids  # noqa: E402
 from build_crate import Graph, build_crate, load_content, result_covers  # noqa: E402
-from catalogue_identity import KINDS, parse_route, translate_routes  # noqa: E402
+from catalogue_identity import KINDS, RECORD_KINDS, parse_route, source_scheme, validate_identity  # noqa: E402
 from check_content import content_addresses, walk  # noqa: E402
 
 TABLES = tomllib.loads((HERE / "routes.toml").read_text(encoding="utf-8"))
@@ -70,8 +73,10 @@ WORD_KINDS = {
     "clause": "clauses",
     "infrastructure": "infrastructures",
 }
-# Non-record targets that keep their names: a kind's list and the Guide's profile.
-KEPT = {"profile", *KINDS}
+# Non-record targets that keep their names: a kind's list.
+KEPT = set(KINDS)
+# Non-record targets that name a record's part instead: the Guide's profile, as the machines page presents it.
+REPLACED = {"profile": "pages/machines#tasks"}
 # The prose sections whose fields the missing-link review covers (scripts/check_health.py, missing_links).
 REVIEWED_SECTIONS = ("pages", "stations", "checks", "callouts", "resources")
 
@@ -115,9 +120,11 @@ def bare_kinds(root: Path) -> dict[str, str]:
 
 
 def reference_address(target: str, bare: dict[str, str]) -> str:
-    """The one form of a reference target: `<kind>/<id>`, or a kept non-record name."""
+    """The one form of a reference target: `<kind>/<id>`, a part's `<kind>/<id>#<fragment>`, or a kind."""
     if target in KEPT:
         return target
+    if target in REPLACED:
+        return REPLACED[target]
     prefix, colon, rest = target.partition(":")
     if colon and prefix in WORD_KINDS:
         return f"{WORD_KINDS[prefix]}/{rest}"
@@ -276,35 +283,37 @@ CONTENT_ID_CATEGORIES = {
     "sources",
     "resources",
 }
-# The register's old categories whose values are an address without the kind once their family word goes.
-FAMILY_CATEGORIES = {"callouts": ("callouts", "callout:"), "checks": ("checks", ""), "pages": ("pages", "")}
+
+
+def within_check(prefix: str):
+    """A check's mode or profile (`dataset.before`) as the term of that check's vocabulary (`modes-dataset/before`)."""
+    return lambda value: ("vocabularies", "{}-{}/{}".format(prefix, *value.split(".", 1)))
+
+
+# The register's other old categories, each with the kind and the address without the kind its entries take.
+REGISTER_RULES = {
+    "lenses": lambda value: ("vocabularies", f"lenses/{value}"),
+    "modes": within_check("modes"),
+    "profiles": within_check("profiles"),
+    "callouts": lambda value: ("callouts", value.removeprefix("callout:")),
+    "callout_items": lambda value: ("callouts", "{}#{}".format(*value.removeprefix("callout.").split(".", 1))),
+    "tests": lambda value: ("tests", value if "/" in value else f"guide/{value}"),
+    "requirements": lambda value: ("clauses", value),
+}
 
 
 def register_entry(category: str, value: str, addresses: dict[str, str]) -> tuple[str, str]:
-    """An old register entry as the kind of its record and its address without the kind."""
+    """An old register entry as the kind of its record and its address without the kind. An entry this step keyed
+    already, and a kind of the vocabulary whose entries need no change (stations, advice, actions), stay as they are."""
     if category in KINDS and f"{category}/{value}" in addresses.values():
-        return category, value  # an entry this step has keyed already
+        return category, value
     if category in CONTENT_ID_CATEGORIES and value in addresses:
         kind, identifier = addresses[value].split("/", 1)
         return kind, identifier
-    if category == "lenses":
-        return "vocabularies", f"lenses/{value}"
-    if category in ("modes", "profiles"):
-        check, _, code = value.partition(".")
-        return "vocabularies", f"{category}-{check}/{code}"
-    if category == "callout_items":
-        callout, _, item = value.removeprefix("callout.").partition(".")
-        return "callouts", f"{callout}#{item}"
-    if category == "tests":
-        return "tests", value if "/" in value else f"guide/{value}"
-    if category in FAMILY_CATEGORIES:
-        kind, family = FAMILY_CATEGORIES[category]
-        return kind, value.removeprefix(family)
-    if category in ("requirements", "clauses"):
-        return "clauses", value
-    if category in CONTENT_ID_CATEGORIES:
+    if category in CONTENT_ID_CATEGORIES - {"requirements", "clauses"}:
         raise ValueError(f"register entry {category}:{value} names no record")
-    return category, value  # already a kind of the vocabulary: stations, advice, questions, actions and the rest
+    rule = REGISTER_RULES.get(category)
+    return rule(value) if rule else (category, value)
 
 
 def rekey_register(text: str, content: dict) -> str:
@@ -430,10 +439,45 @@ def migrate_named_records(work: Path) -> None:
         path.write_text(text, encoding="utf-8", newline="\n")
 
 
+ROUTE_LINE = re.compile(r'(?m)^guideRoute = ("(?:[^"\\]|\\.)*")$')
+
+
+def translate_routes(text: str, routes: dict[str, str]) -> str:
+    """Rewrite the stored guideRoute values of a TOML text through a reviewed translation, leaving every other byte;
+    every resulting route must be a kind of the vocabulary, with its scope where it has one."""
+
+    def replace(match: re.Match[str]) -> str:
+        value = json.loads(match[1])
+        new = routes.get(value, value)
+        parse_route(new)
+        return f"guideRoute = {json.dumps(new, ensure_ascii=False)}"
+
+    return ROUTE_LINE.sub(replace, text)
+
+
+def renormalise_snapshot(text: str, routes: dict[str, str] | None = None) -> str:
+    """A recorded snapshot in the current identity format, without a new observation: its rows, source passages and
+    retrieval date stay; their identities are revalidated and their stored routes translated and checked."""
+    data = tomllib.loads(text)
+    for kind in RECORD_KINDS:
+        for row in data.get(kind, []):
+            validate_identity(row, source_scheme(data, kind))
+    return translate_routes(text, routes or {})
+
+
+def renormalise_snapshots(work: Path) -> None:
+    """Renormalise every generated snapshot: its stored routes take the kind vocabulary, and nothing else changes."""
+    for path in sorted(generated_files(work)):
+        if path.exists():
+            text = path.read_text(encoding="utf-8")
+            path.write_text(renormalise_snapshot(text, ROUTES), encoding="utf-8", newline="\n")
+
+
 def run(work: Path) -> None:
     """Apply every step to the content copy under `work`."""
     if reassign(work):
         rename(work)
+    renormalise_snapshots(work)
     before = field_texts(work)
     bare = bare_kinds(work)
     for path in authored_files(work):

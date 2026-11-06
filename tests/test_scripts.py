@@ -37,6 +37,7 @@ import fix_duplicates  # noqa: E402
 import refresh_snapshots  # noqa: E402
 import register_ids  # noqa: E402
 from addresses import iri  # noqa: E402
+from catalogue_identity import KINDS  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "minimal"
 TODAY = date(2026, 3, 1)
@@ -517,22 +518,22 @@ class GeneratorTests(FixtureCase):
         )
         self.assertError("a reference is not well formed; write [[<kind>/<id>|phrase]]")
 
-    def test_a_retired_reference_form_names_the_address_to_write(self) -> None:
-        """Only the address form `[[<kind>/<id>|phrase]]` resolves; each retired form fails and names that form."""
+    def test_an_unknown_reference_names_the_record_its_last_segment_is(self) -> None:
+        """Only the address form `[[<kind>/<id>|phrase]]` resolves; a target that names no record and no kind fails
+        and names the record whose identifier is its last segment, where there is one."""
         current = 'text = { cs = "Udělejte první krok.", en = "Take the first step." }'
-        for retired, address in (
-            ("station:one", "stations/one"),
-            ("clause:CTS.R12", "clauses/CTS.R12"),
+        for unknown, address in (
+            ("one", "stations/one"),
+            ("CTS.R12", "clauses/CTS.R12"),
             ("service", "resources/service"),
-            ("res/srv/service", "resources/service"),
-            ("step/one", "stations/one"),
+            ("station/one", "stations/one"),
         ):
-            with self.subTest(retired=retired):
-                new = f'text = {{ cs = "Krok [[{retired}|x]].", en = "Step [[{retired}|x]]." }}'
+            with self.subTest(unknown=unknown):
+                new = f'text = {{ cs = "Krok [[{unknown}|x]].", en = "Step [[{unknown}|x]]." }}'
                 self.edit("stations/01-one.toml", current, new)
                 current = new
                 self.assertError(
-                    f"refers to an unknown entry '{retired}'; references name a record by its address: "
+                    f"refers to an unknown entry '{unknown}'; references name a record by its address: "
                     f"write [[{address}|...]]"
                 )
         scoped = "[[tests/fair-champion/test_one|test]]"
@@ -541,7 +542,7 @@ class GeneratorTests(FixtureCase):
 
     def test_the_reference_map_comes_from_the_catalogue_identity(self) -> None:
         """A reference names a published catalogue entry by its address, so a repository and a catalogue tool are
-        referenceable as a resource is, and the retired short forms are gone."""
+        referenceable as a resource is, and every target is an address or a kind."""
         content = build_crate.load_content()
         graph = build_crate.Graph()
         build_crate.build_crate(content, graph)
@@ -551,8 +552,10 @@ class GeneratorTests(FixtureCase):
         self.assertNotIn("knav.github", targets)
         self.assertTrue(any(key.startswith("questions/") for key in targets), "a question is nameable")
         self.assertIn("pages/software", targets)
-        for retired in ("page:software", "term:data", "station:plan", "res/tool/github", "datacite", "layer.policy"):
-            self.assertNotIn(retired, targets)
+        # A part is named by its record's address and its fragment, as the profile's section of the machines page.
+        self.assertIn("pages/machines#tasks", targets)
+        for target in targets:
+            self.assertIn(target.split("/", 1)[0], KINDS, target)
 
     def test_a_repository_reference_resolves_and_an_unknown_one_fails(self) -> None:
         self.edit(

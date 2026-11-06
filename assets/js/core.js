@@ -448,17 +448,14 @@
 
   /* ---------------------------------------------------------------- references in text */
 
-  /** Where a reference in text leads: its catalogue entry, page or lifecycle station. */
+  /** Where a reference in text leads: its catalogue entry, page (at the section it names) or lifecycle station. */
   FG.referenceHref = function (id) {
     if (id === "#infrastructures") return FG.catalogueHref("infrastructures");
     const kind = FG.kind(id);
-    if (kind === "pages") return FG.href("page", FG.localId(id));
+    if (kind === "pages") return FG.href("page", FG.localId(id)) + (FG.fragment(id) ? "/" + encodeURIComponent(FG.fragment(id)) : "");
     if (kind === "stations") return FG.href("path", FG.localId(id));
     if (kind === "checks") return FG.href("check", FG.localId(id));
-    if (FG.config.api?.records[id]) return FG.catalogueHref(id);
-    // The Guide's own documents under its namespace, such as its profile, are served beside the page.
-    const namespace = FG.config.namespace || "";
-    return namespace && String(id).startsWith(namespace) ? String(id).slice(namespace.length).replace(/\/?$/, "/") : null;
+    return FG.config.api?.records[id] ? FG.catalogueHref(id) : null;
   };
 
   /** A text as nodes, with the first occurrence of each phrase its entity names by reference linked; a link already

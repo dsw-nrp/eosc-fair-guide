@@ -107,7 +107,7 @@ its head in CI.
   crate result of an action whose result is `*`, and drop the `identity-migration` instrument (decision 17). Verify:
   unit tests cover both prefix forms and the `*` action; the catalogue entry of `actions/2026-11-06-identity-migration`
   names the Guide only.
-- [ ] 2.19 Move every form older than this change out of `scripts/` and `tests/`: the route table, the word forms,
+- [x] 2.19 Move every form older than this change out of `scripts/` and `tests/`: the route table, the word forms,
   the code prefixes, `refresh_snapshots.py --renormalise --routes` and their tests go into `migration/`, and the
   content check names the record whose ID ends an unknown reference (decisions 16 and 17). Verify: a search of
   `scripts/` and `tests/` for code addresses and word forms finds none, and `migration/test_migrate.py` passes.
@@ -116,7 +116,7 @@ its head in CI.
   repository family named "Repozitáře" / "Repositories", with unused strings removed from `content/ui.toml`
   (decision 15). Verify: `npm run check:page` covers the three scenarios of *An entry credits the catalogues that
   supplied it* and an IRI chip in an entry of every kind, in both languages.
-- [ ] 2.21 Replace `[[profile|...]]` with a reference to the machines page's section that presents the profile, so
+- [x] 2.21 Replace `[[profile|...]]` with a reference to the machines page's section that presents the profile, so
   only records and kinds remain as targets (decision 16). Verify: the content check refuses a target that is neither
   a record nor a kind.
 - [ ] 2.22 Remove every citation of this change from code, tests, content and durable documents (the design's

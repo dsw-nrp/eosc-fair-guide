@@ -732,18 +732,25 @@ REFERENCE_KINDS = frozenset(
 def reference_targets(
     content: dict[str, Any], graph: Graph, placements: dict[str, Placement] | None = None
 ) -> dict[str, str]:
-    """Every target a prose reference may name, as the entity it names: a record's address, from the one identity
-    projection, and the two non-record targets, a kind's list and the Guide's profile. During the build the entities
-    are named by their build keys, afterwards by their published identifiers."""
+    """Every target a prose reference may name, as the entity it names: a record's address or a part's
+    (`pages/machines#tasks`), from the one identity projection, and a kind word for that kind's list. During the
+    build the entities are named by their build keys, afterwards by their published identifiers."""
     if placements is None and graph.addresses:
-        records = {address: entity_id for entity_id, address in graph.addresses.items()}
+        base = content["guide"]["guide"]["recordBase"]
+        records = {
+            entity_id.removeprefix(base): entity_id for entity_id in graph.entities if entity_id.startswith(base)
+        }
     else:
         placements = placements if placements is not None else identity_projection(graph, content)
         records = {placement.address: key for key, placement in placements.items() if placement.address}
+        records |= {
+            f"{placements[placement.owner].address}#{placement.fragment}": key
+            for key, placement in placements.items()
+            if placement.owner in placements and placements[placement.owner].address
+        }
     targets = {address: entity_id for address, entity_id in records.items() if address.split("/")[0] in REFERENCE_KINDS}
     if (content.get("infrastructures") or {}).get("infrastructure"):
         targets["infrastructures"] = "#infrastructures"
-    targets["profile"] = content["guide"]["guide"]["profile"]
     return targets
 
 

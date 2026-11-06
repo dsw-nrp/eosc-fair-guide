@@ -336,17 +336,6 @@ def source_scheme(data: dict[str, Any], kind: str) -> str:
     return {"term": "heslar", "tool": "knav", "repository": "re3data", "record": "nkr"}.get(kind, "fip-dashboard")
 
 
-# The retired word forms of a prose reference and the kind of record each named, so the checks can name the address
-# form to write instead.
-RETIRED_WORD_FORMS = {
-    "term": "glossary",
-    "page": "pages",
-    "station": "stations",
-    "clause": "clauses",
-    "infrastructure": "infrastructures",
-}
-
-
 def addresses_ending_in(entry: str, known: set[str]) -> list[str]:
     """The known addresses whose identifier is the last segment of a value that names no record, such as a bare ID
     (`licence` for `stations/licence`): what such a value most likely meant."""
@@ -357,45 +346,14 @@ def addresses_ending_in(entry: str, known: set[str]) -> list[str]:
 
 
 def address_hint(entry: str, known: set[str]) -> str:
-    """For a reference target no record has, such as a retired word form, code address or bare ID, the address form
-    to write: the published address with the same identifier, or the form itself when none or several match."""
-    prefix, colon, rest = entry.partition(":")
-    if colon and prefix in RETIRED_WORD_FORMS:
-        candidates = [f"{RETIRED_WORD_FORMS[prefix]}/{rest}"]
-    else:
-        candidates = addresses_ending_in(entry, known)
-    candidates = [target for target in candidates if target in known and target != entry]
+    """For a reference target that names no record and no kind, such as a bare ID, the address form to write: the
+    record whose identifier is the target's last segment, or the form itself when none or several match."""
+    candidates = addresses_ending_in(entry, known)
     if len(candidates) == 1:
         return f"; references name a record by its address: write [[{candidates[0]}|...]]"
     if candidates:
         return "; references name a record by its address, one of " + ", ".join(candidates)
     return "; references name a record by its address, [[<kind>/<id>|...]]"
-
-
-ROUTE_LINE = re.compile(r'(?m)^guideRoute = ("(?:[^"\\]|\\.)*")$')
-
-
-def translate_routes(text: str, routes: dict[str, str]) -> str:
-    """Rewrite the stored guideRoute values of a TOML text through a reviewed translation, leaving every other byte;
-    every resulting route must be a kind of the vocabulary, with its scope where it has one."""
-
-    def replace(match: re.Match[str]) -> str:
-        value = json.loads(match[1])
-        new = routes.get(value, value)
-        parse_route(new)
-        return f"guideRoute = {json.dumps(new, ensure_ascii=False)}"
-
-    return ROUTE_LINE.sub(replace, text)
-
-
-def renormalise_snapshot(text: str, routes: dict[str, str] | None = None) -> str:
-    """A recorded snapshot in the current identity format, without a new observation: its rows, source passages and
-    retrieval date stay; their identities are revalidated and their stored routes translated and checked."""
-    data = tomllib.loads(text)
-    for kind in RECORD_KINDS:
-        for row in data.get(kind, []):
-            validate_identity(row, source_scheme(data, kind))
-    return translate_routes(text, routes or {})
 
 
 def preserve_snapshot(new_text: str, old_text: str, reserved: set[str] | None = None) -> str:

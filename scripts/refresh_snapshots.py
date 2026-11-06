@@ -39,11 +39,6 @@ the source is reported as rejected. Replacement is atomic; a response that diffe
 retrieval date changes nothing. ``--report`` writes each source's outcome (changed, unchanged, empty, rejected or
 failed, with counts and the reason) as JSON, for the trusted publisher and the health report. Exits 1 when any
 source was rejected or failed. Uses only the Python standard library; it never commits or opens pull requests.
-
-``--renormalise`` makes no request: it rewrites every recorded snapshot's Guide-owned identity fields in the current
-format and keeps its rows, source passages and retrieval date. ``--routes FILE`` names a reviewed TOML table
-(``[routes]``, stored route = current route) that translates stored ``guideRoute`` values once, when the route
-format changes; every resulting route must be a kind of the vocabulary.
 """
 
 from __future__ import annotations
@@ -66,7 +61,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
-from catalogue_identity import bare_url, preserve_snapshot, renormalise_snapshot
+from catalogue_identity import bare_url, preserve_snapshot
 from nkr_contract import NKR_FIELD_SHAPES, nkr_status
 from registry_identifiers import DATACITE_REPOSITORY, FAIRSHARING_DOI, canonical_fairsharing_doi
 
@@ -1010,44 +1005,6 @@ def write_atomically(target: Path, text: str) -> None:
         raise
 
 
-def renormalise(
-    registry: dict[str, dict[str, Any]], root: Path | None = None, routes: dict[str, str] | None = None
-) -> list[Outcome]:
-    """Rewrite each recorded snapshot's Guide-owned identity fields in the current format, without a new observation.
-
-    Its rows, source passages and retrieval date stay. A snapshot whose identities fail validation is left as it was
-    and reported as rejected."""
-    root = root or ROOT
-    outcomes = []
-    for name, entry in registry.items():
-        for relative in entry["files"]:
-            target = root / relative
-            if not target.exists():
-                continue
-            text = target.read_text(encoding="utf-8")
-            try:
-                new_text = renormalise_snapshot(text, routes)
-            except (ValueError, tomllib.TOMLDecodeError) as error:
-                outcomes.append(Outcome(name, "rejected", relative, reason=f"identity needs review: {error}"))
-                continue
-            if new_text == text:
-                outcomes.append(Outcome(name, "unchanged", relative, reason="already in the current format"))
-                continue
-            write_atomically(target, new_text)
-            outcomes.append(Outcome(name, "changed", relative, reason="renormalised without a new observation"))
-    return outcomes
-
-
-def load_routes(path: Path) -> dict[str, str]:
-    """A reviewed route translation: a `[routes]` table of stored route = current route."""
-    routes = tomllib.loads(path.read_text(encoding="utf-8")).get("routes")
-    if not isinstance(routes, dict) or not all(
-        isinstance(key, str) and isinstance(value, str) for key, value in routes.items()
-    ):
-        raise ValueError(f"{path}: needs a [routes] table of stored route = current route")
-    return routes
-
-
 def refresh(
     name: str,
     fetch: Fetcher,
@@ -1081,32 +1038,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--input", type=Path, help="read responses from this directory instead of the network")
     parser.add_argument("--report", type=Path, help="write each source's outcome as JSON to this file")
     parser.add_argument("--root", type=Path, default=None, help="checkout whose content/ is refreshed (default: this)")
-    parser.add_argument(
-        "--renormalise",
-        action="store_true",
-        help="rewrite the recorded snapshots' identity fields in the current format, without a request",
-    )
-    parser.add_argument("--routes", type=Path, help="with --renormalise: a reviewed [routes] translation (TOML)")
     args = parser.parse_args(argv)
     unknown = [name for name in args.sources if name not in SOURCES]
     if unknown:
         parser.error(f"unknown sources: {', '.join(unknown)}")
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.date):
         parser.error("--date must be YYYY-MM-DD")
-    if args.routes and not args.renormalise:
-        parser.error("--routes needs --renormalise")
     try:
         registry = load_source_registry()
-        routes = load_routes(args.routes) if args.routes else None
     except (OSError, ValueError) as error:
         print(f"refresh_snapshots: {error}", file=sys.stderr)
         return 2
-    if args.renormalise:
-        selected = {name: entry for name, entry in registry.items() if not args.sources or name in args.sources}
-        outcomes = renormalise(selected, args.root, routes)
-    else:
-        fetch = Fetcher(args.input)
-        outcomes = [refresh(name, fetch, args.date, args.root, registry) for name in args.sources or list(registry)]
+    fetch = Fetcher(args.input)
+    outcomes = [refresh(name, fetch, args.date, args.root, registry) for name in args.sources or list(registry)]
     for outcome in outcomes:
         counts = ", ".join(f"{key} {value}" for key, value in outcome.counts.items())
         print(

@@ -1,7 +1,7 @@
 # The reviewed translation of stored guideRoute values from the code addresses to the kind vocabulary
 # (design.md, decisions 2 and 17). A route freezes a record's kind and scope; a classification segment is dropped,
 # because it becomes a property. Registries were filed under repositories and become resources. Used once by
-# `refresh_snapshots.py --renormalise --routes` for the generated snapshots and by `migrate.py` for authored files.
+# `migrate.py`, for the generated snapshots and the authored files alike.
 
 [routes]
 "fip" = "fips"
