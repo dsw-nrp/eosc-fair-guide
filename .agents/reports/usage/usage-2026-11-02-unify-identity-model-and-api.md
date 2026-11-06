@@ -81,3 +81,36 @@
   the plan and M1 in [dsw-nrp/eosc-fair-guide#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172).
 - **Corrections:** the maintainer rejected dropping the lens from catalogue routes as a regression, and chose
   landing pages over the `#/id/` redirect target.
+
+## Claude Code session (M1 implementation)
+
+- **When:** 2026-11-06 (+01:00)
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `openspec-apply-change unify-identity-model-and-api`; delivered
+  `aiscr-planning-core`, `aiscr-quality-first-execution`, `aiscr-usage-logging` and `aiscr-model-logging` rules;
+  the native `fair-guide-content` and `fair-guide-surfaces` rules; `scripts/generate_agent_surfaces.py`; the
+  change's own `migration/migrate.py` and `scripts/refresh_snapshots.py --renormalise`; local Playwright checks.
+- **What:** M1 tasks 2.1 to 2.11 in local commits `63728eb`, `42c9864`, `96a3d42`, `251971d` and `6e0b660`:
+  - kind-word addresses and routes, the identity projection to w3id IRIs, page data keyed by address;
+  - the catalogue routed by kind under the lens, the `#/id/<address>` entry route (also for an embedding host),
+    a labelled Guide-identifier chip and a single entry for every record;
+  - provenance results and the identifier register named by address and kind, through the migration script;
+  - registry records as `dcat:CatalogRecord` parts with `foaf:primaryTopic`, things founded by their records,
+    NKR's precedence on the thing, and the duplicate check's review key;
+  - tests on shared address helpers (`tests/addresses.py`, `tests/page/addresses.mjs`), a guard against fragment
+    prefixes in page scripts, and the docs, native rule, mirrors and changelog.
+- **Impacted:** `assets/js/`, `assets/css/`, `content/` (routes, references, results, register, identifiers,
+  `ui.toml`, `icons.toml`), `scripts/` (`build_crate.py`, `build_api.py`, `check_content.py`, `check_duplicates.py`,
+  `check_health.py`, `check_docs.py`, `duplicate_repairs.py`, `catalogue_identity.py`, `refresh_snapshots.py`),
+  `profile/fair-guide/must/1_content.ttl`, `tests/`, `docs/`, `CHANGELOG.md`, `.agents/guide/rules/` and its
+  generated mirrors, `openspec/changes/unify-identity-model-and-api/` (`tasks.md`, `migration/`); this entry.
+- **Verification:** `python scripts/check_all.py` passes 36 of 36 checks on `6e0b660` with this entry
+  (767 unit tests, the page, final-candidate, model, helpers, assessment, api and diagram browser groups among
+  them); the live checks were not run. `npx openspec validate unify-identity-model-and-api --strict` passes. The
+  catalogue, a record of each kind and the identifier input were inspected in Czech and English at 390 and 1280
+  pixels and in print.
+- **Close-out:** M1 tasks 2.1 to 2.11 are complete (12 of 43). Task 2.12 waits only for the M1 pull request:
+  nothing is pushed and PR #172 is unchanged until the maintainer approves the push.
