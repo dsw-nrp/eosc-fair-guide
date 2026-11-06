@@ -1665,11 +1665,32 @@ def check_coherence(report: Report, content: dict[str, Any], graph: Graph, build
     # R4, references to snapshot records resolve (one entry per thing is scripts/check_duplicates.py)
     dashboard = next((item for item in content["snapshots"] if item.get("fip") or item.get("resource")), {})
     org_ids = {alternate_id(org, "fip-dashboard") for org in dashboard.get("organization", [])}
-    for organization in content["guide"].get("organization", []):
-        if organization.get("fipDashboard") and organization["fipDashboard"] not in org_ids:
+    # The reviewed handles and keys by which a registry's record names a thing the Guide describes.
+    tools = {alternate_id(item, "knav") for snapshot in content["snapshots"] for item in snapshot.get("tool", [])}
+    handles = [
+        (f"organization:{row['id']}", row.get("fipDashboard")) for row in content["guide"].get("organization", [])
+    ]
+    handles += [(f"resource:{row['id']}", row.get("fipDashboardOrganization")) for row in content["resources"]]
+    keys = []
+    for item in (content.get("infrastructures") or {}).get("infrastructure", []):
+        for row in [item, *item.get("nodeOf", []), *item.get("eric", [])]:
+            where = f"infrastructure:{item['id']}" + (f" ({row['name']})" if row is not item else "")
+            handles.append((where, row.get("fipDashboard")))
+            keys.append((where, row.get("knav")))
+    for where, handle in handles:
+        if handle and handle not in org_ids:
+            report.error(where, f"FIP Dashboard has no organisation '{handle}'")
+    for where, key in keys:
+        if key and key not in tools:
+            report.error(where, f"knav names no tool of the KNAV catalogue snapshot ('{key}')")
+    claimed: dict[str, list[str]] = {}
+    for where, handle in handles:
+        if handle:
+            claimed.setdefault(handle, []).append(where)
+    for handle, holders in sorted(claimed.items()):
+        if len(holders) > 1:
             report.error(
-                f"organization:{organization['id']}",
-                f"FIP Dashboard has no organisation '{organization['fipDashboard']}'",
+                holders[0], f"names the FIP Dashboard organisation '{handle}' as {', '.join(holders[1:])} does"
             )
 
     # R5, entries nothing uses

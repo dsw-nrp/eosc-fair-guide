@@ -144,8 +144,11 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
 ### 4. Registry records are records about one thing (R1)
 
 - **The record node.** A registry record becomes a `dcat:CatalogRecord` with `foaf:primaryTopic` naming the thing.
-  It sits at the thing's IRI plus `#<scheme>`: `#knav`, `#fip-dashboard`, `#nkr`, `#re3data`, `#fairsharing` or
-  `#datacite` (for example `.../repositories/zenodo#knav`). It carries the registry's own name, description, licence,
+  It sits at the thing's IRI plus `#<scheme>`: `#knav`, `#fip-dashboard`, `#fip-dashboard-organization`, `#nkr`,
+  `#re3data`, `#fairsharing` or `#datacite` (for example `.../repositories/zenodo#knav`). The FIP Dashboard keeps two
+  collections, so its organisation records take a fragment of their own: an organisation and its eponymous service
+  are one node, which can hold both the Dashboard's resource and organisation records (`resources/datacite`). It
+  carries the registry's own name, description, licence,
   retrieval date and source identifier, and it is part of its snapshot. FOAF joins the established vocabularies in
   `ESTABLISHED_TERMS`, for this one property.
 - **Every registry is treated alike.** re3data's repository rows and the FAIRsharing and DataCite annotations become
@@ -176,9 +179,10 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
   organisation. Where two things share the name, the content names the agent by its address, and the build refuses
   an ambiguous name.
 - **Organisation records attach by a reviewed key.** A FIP Dashboard organisation record attaches to a thing only
-  through its ROR or a reviewed `fipDashboard` handle on the curated organisation, infrastructure or resource row,
-  never through its name. A record that names no thing founds one; the duplicate check reports one whose name a
-  described thing shares, for review.
+  through its ROR or a reviewed handle, never through its name: `fipDashboard` on a curated organisation or
+  infrastructure row, and `fipDashboardOrganization` on a resource row, whose `fipDashboard` names the Dashboard's
+  resource record. A record that names no thing founds one; the duplicate check reports one whose name a described
+  thing shares, for review.
 - **External record pages stay in `sameAs`.** The thing keeps `sameAs` to a registry's own page, such as
   `https://repo.cz/objects/<handle>` for NKR, as records name their FIP Dashboard counterparts (proposal,
   *Interoperability by identity*). Chips and the not-yet-public exception read that link. The profile's `Repository`

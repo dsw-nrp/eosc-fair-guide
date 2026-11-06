@@ -309,6 +309,12 @@ registry's organisation record SHALL attach to a thing only by a reviewed key, n
 - **WHEN** the graph is built
 - **THEN** the operator is that organisation
 
+#### Scenario: An organisation and its eponymous service
+
+- **GIVEN** the curated resource DataCite, with the FIP Dashboard's resource record and a reviewed handle of its organisation record
+- **WHEN** the graph is built
+- **THEN** one node holds both, as `#fip-dashboard` and `#fip-dashboard-organization`, and no separate organisation named DataCite exists
+
 #### Scenario: A registry's organisation record with a known name
 
 - **GIVEN** a FIP Dashboard organisation record named like a described infrastructure, with no ROR and no reviewed handle

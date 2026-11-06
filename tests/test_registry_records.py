@@ -52,7 +52,7 @@ class RegistryRecordTests(unittest.TestCase):
 
     def test_one_knav_library_organisation_node(self):
         library = iri("organizations/knav")
-        self.assertEqual(set(records_of(self.entities, library)), {"fip-dashboard"})
+        self.assertEqual(set(records_of(self.entities, library)), {"fip-dashboard-organization"})
         organisations = [
             entity_id
             for entity_id, entity in self.entities.items()

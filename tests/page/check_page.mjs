@@ -2329,7 +2329,9 @@ sections.push(["knav catalogue", async () => {
   if ((await viewCode()) !== 1) fail("knav catalogue: opening the catalogue did not load its view code once");
   const borrowed = listed.filter((id) => unlinked.some((tool) => localId(address(tool)) === id));
   if (borrowed.length !== unlinked.length) fail(`knav catalogue: ${borrowed.length} tools listed under their own identifier, ${unlinked.length} expected`);
-  if (listed.length !== tools.length) fail(`knav catalogue: the KNAV use lists ${listed.length} entries for ${tools.length} tools`);
+  // A tool of an infrastructure the roadmap names is that infrastructure's own entry, among the infrastructures.
+  const ofInfrastructures = tools.filter((tool) => (addressOf(tool.primaryTopic?.["@id"] || "", namespace) || "").startsWith("infrastructures/"));
+  if (listed.length !== tools.length - ofInfrastructures.length) fail(`knav catalogue: the KNAV use lists ${listed.length} entries for ${tools.length - ofInfrastructures.length} tools`);
   await visit("#/cs/K/catalogue/resources/ais-cr");
   const card = cards.first();
   if (!(await card.locator('a[href*="/catalogue/lifecycles/knav-tools/reusing"]').count())) fail("knav catalogue: a tool does not lead to its catalogue step");

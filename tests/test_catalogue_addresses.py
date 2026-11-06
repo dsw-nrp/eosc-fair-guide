@@ -116,8 +116,9 @@ class CatalogueAddressTests(unittest.TestCase):
 
     def test_title_changes_do_not_reissue_addresses(self):
         content = copy.deepcopy(self.content)
+        # A tool no agent is named after: renaming GitHub would also change which thing its publishers name.
         tool = next(
-            row for snapshot in content["snapshots"] for row in snapshot.get("tool", []) if row["id"] == "github"
+            row for snapshot in content["snapshots"] for row in snapshot.get("tool", []) if row["id"] == "alphafold"
         )
         tool["name"] = "A different source label"
         entities = {entry["@id"]: entry for entry in kb.build_crate(content)["@graph"]}
@@ -147,7 +148,7 @@ class CatalogueAddressTests(unittest.TestCase):
         zenodo = iri("repositories/zenodo")
         self.assertIn(zenodo + "#knav", self.entities)
         self.assertNotIn(iri("resources/zenodo"), self.entities)
-        self.assertIn(iri("organizations/cesnet") + "#fip-dashboard", self.entities)
+        self.assertIn(iri("organizations/cesnet") + "#fip-dashboard-organization", self.entities)
 
 
 if __name__ == "__main__":

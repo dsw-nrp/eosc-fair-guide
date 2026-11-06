@@ -25,6 +25,7 @@ import re
 import sys
 import tempfile
 import tomllib
+import unicodedata
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -34,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import check_content  # noqa: E402
 import duplicate_repairs  # noqa: E402
-from build_crate import ROOT, ContentError, load_content  # noqa: E402
+from build_crate import ROOT, ContentError, Graph, build_crate, founding_record, load_content  # noqa: E402
 from catalogue_identity import alternate_id, bare_url  # noqa: E402
 from nkr_contract import nkr_status  # noqa: E402
 
@@ -800,6 +801,69 @@ def _accepted(root: Path) -> list[dict[str, Any]]:
     return tomllib.loads(path.read_text(encoding="utf-8")).get("accepted", []) if path.exists() else []
 
 
+def _distinct(root: Path) -> list[dict[str, Any]]:
+    path = root / "content" / ACCEPTED_FILE
+    return tomllib.loads(path.read_text(encoding="utf-8")).get("distinct", []) if path.exists() else []
+
+
+# The kinds of the things a name can describe twice: what an agent can be.
+NAMED_KINDS = ("organizations", "infrastructures", "repositories", "resources")
+
+
+def shared_names(content: dict[str, Any], distinct: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
+    """Things the Guide describes under one exact name, in any language, as the build publishes them: errors, and
+    pairs a person should look at. Two such things are one thing, unless a reviewed `[[distinct]]` group in
+    content/duplicates.toml says why they are two. A thing a FIP Dashboard organisation record founds because no
+    reviewed handle or ROR names it is listed for review instead: a name never attaches a record."""
+    graph = Graph()
+    build_crate(content, graph)
+    base = content["guide"]["guide"]["recordBase"]
+    named: dict[str, set[str]] = {}
+    for entity_id, entity in graph.entities.items():
+        address = entity_id.removeprefix(base)
+        if entity_id.startswith(base) and "#" not in address and address.split("/", 1)[0] in NAMED_KINDS:
+            for value in as_names(entity.get("name")):
+                named.setdefault(unicodedata.normalize("NFKC", value).casefold(), set()).add(address)
+    groups = [(frozenset(group.get("addresses", [])), group) for group in distinct]
+    errors, reviews, used = [], [], set()
+    for addresses in sorted({frozenset(found) for found in named.values() if len(found) > 1}, key=sorted):
+        accepted = next((members for members, _ in groups if addresses <= members), None)
+        if accepted is not None:
+            used.add(accepted)
+            continue
+        shared = sorted(name for name, found in named.items() if found >= addresses)[0]
+        message = f"{', '.join(sorted(addresses))} share the name '{shared}'"
+        founded = [
+            address
+            for address in addresses
+            if str(founding_record(graph.entities[base + address])).endswith("#fip-dashboard-organization")
+        ]
+        if founded:
+            reviews.append(
+                message + "; a FIP Dashboard organisation record attaches only by a reviewed handle or its ROR: add "
+                "one to the row that describes it, or accept them as distinct"
+            )
+        else:
+            errors.append(
+                message + "; describe one thing once, or accept them as [[distinct]] in content/duplicates.toml"
+                " with the reason they are two"
+            )
+    for members, group in groups:
+        if members not in used:
+            errors.append(f"{', '.join(sorted(members))}: an accepted distinct group that no longer shares a name")
+        if not group.get("reason"):
+            errors.append(f"{', '.join(sorted(members))}: an accepted distinct group needs its reason")
+    return errors, reviews
+
+
+def as_names(value: Any) -> list[str]:
+    return [item.get("@value", "") if isinstance(item, dict) else str(item) for item in as_list(value) if item]
+
+
+def as_list(value: Any) -> list[Any]:
+    return value if isinstance(value, list) else [] if value is None else [value]
+
+
 def apply_local(
     root: Path, report: DuplicateReport, *, person: str, content: dict[str, Any]
 ) -> tuple[DuplicateReport, bool]:
@@ -887,6 +951,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"check_duplicates: cannot read the content: {error}", file=sys.stderr)
         return 2
     report = check(content, accepted)
+    try:
+        named, review = shared_names(content, _distinct(args.root))
+    except ContentError as error:
+        print(f"check_duplicates: cannot build the content: {error}", file=sys.stderr)
+        return 2
+    report.errors.extend(named)
+    report.reviews.extend(review)
     for error in report.errors:
         print(f"error: {error}")
     for review in report.reviews:

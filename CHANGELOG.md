@@ -18,7 +18,8 @@ All notable changes to this guide are recorded here. The format follows
   its records, and on the Guide's selection where the Guide describes it, instead of on their snapshots; a snapshot
   lists its records, and the crate's `#knav-tools` and `#fers` lists are gone. A thing only registries know keeps its
   identity, name, address and filter facts, and its description stays on the record. A registry is a resource and
-  is no longer in `#repositories`.
+  is no longer in `#repositories`. A named agent is the one thing of that name, and a FIP Dashboard organisation
+  record joins a thing only by a reviewed handle or ROR, as `#fip-dashboard-organization`.
 - Breaking: references in text are `[[<kind>/<id>|phrase]]`, with a part as `<address>#<fragment>` and a kind word
   for its list; the Guide's profile is `[[pages/machines#tasks|…]]`, and anything else is refused.
 - Breaking: provenance `objects`, model association `target` and the worked example's `steps` name records by

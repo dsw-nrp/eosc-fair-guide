@@ -61,7 +61,9 @@ Never add a score.
 
 For a **resource**: set type, `status` (operational, pilot, in development, planned, prospective) with `asOf`,
 lenses, stations, and `sameAs` for its published FER nanopublication or FAIRsharing DOI where one exists. Links
-use HTTPS.
+use HTTPS. A publisher, operator, developer or host named by name is the one thing the Guide describes under that
+name; where two things share it, name the agent by its address. A FIP Dashboard organisation record joins a thing
+only through a reviewed handle (`fipDashboard`, or `fipDashboardOrganization` on a resource) or its ROR.
 
 ## 3. Sources and the ledger
 

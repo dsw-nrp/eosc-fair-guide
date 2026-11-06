@@ -460,6 +460,7 @@ esfri = "project"
 [[infrastructure.nodeOf]]
 name = "eLTER RI"
 esfri = "project"
+knav = "elterri"
 
 [[infrastructure.eric]]
 name = "ICOS ERIC"
@@ -688,6 +689,7 @@ id = "elixir-cz"
 website = "https://www.elixir-czech.cz/"
 fip = "elixir-cz-life"
 acronym = "ELIXIR CZ"
+fipDashboard = "elixir-cz"
 name = { cs = "Česká národní infrastruktura pro biologická data", en = "Czech National Infrastructure for Biological Data" }
 host = "Institute of Organic Chemistry and Biochemistry of the Czech Academy of Sciences"
 field = "biological-and-medical-sciences"
@@ -822,6 +824,7 @@ entry = "2013"
 [[infrastructure.eric]]
 name = "CESSDA ERIC"
 entry = "2017"
+fipDashboard = "cessda"
 
 [[infrastructure.operates]]
 repository = "r3d100010484"
@@ -854,6 +857,7 @@ id = "lindat-clariah-cz"
 website = "https://lindat.cz/"
 fip = "lindat-clariah"
 acronym = "LINDAT/CLARIAH-CZ"
+fipDashboard = "lindat"
 name = { cs = "Digitální výzkumná infrastruktura pro jazykové technologie, umění a humanitní vědy", en = "Digital Research Infrastructure for Language Technologies, Arts and Humanities" }
 namesSource = "isvavai-infrastructures"
 host = "Charles University"
@@ -880,6 +884,7 @@ esfri = "project"
 [[infrastructure.eric]]
 name = "CLARIN ERIC"
 entry = "2012"
+fipDashboard = "clarin"
 
 [[infrastructure.eric]]
 name = "DARIAH ERIC"
@@ -917,6 +922,7 @@ guideRoute = "infrastructures"
 id = "e-infra-cz"
 website = "https://www.e-infra.cz/"
 acronym = "e-INFRA CZ"
+fipDashboard = "e-infra-cz"
 name = { cs = "e-Infrastruktura CZ", en = "e-Infrastructure of the Czech Republic" }
 namesSource = "isvavai-infrastructures"
 host = "CESNET, z. s. p. o."

@@ -413,7 +413,8 @@ class NkrCatalogueTests(unittest.TestCase):
             build_crate.as_list(bird["repositoryFunction"]),
             build_crate.refs([iri("vocabularies/repository-functions/") + value for value in curated["functions"]]),
         )
-        self.assertEqual(bird["publisher"], build_crate.ref(iri("organizations/czech-bioimaging")))
+        # The operator named "Czech-BioImaging" is the infrastructure the Guide describes under that name.
+        self.assertEqual(bird["publisher"], build_crate.ref(iri("infrastructures/czech-bioimaging")))
         self.assertEqual(bird["serviceStatus"], build_crate.ref(iri("vocabularies/statuses/in-development")))
         self.assertEqual(bird["statusAsOf"], "2026-11-01")
         self.assertEqual(

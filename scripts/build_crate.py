@@ -864,15 +864,6 @@ def build_organizations(graph: Graph, guide: dict[str, Any]) -> dict[str, str]:
     return organizations
 
 
-def organization_ref(graph: Graph, organizations: dict[str, str], name: str | None) -> dict[str, str] | None:
-    """Reference a known organisation by ID, or add one by name."""
-    if not name:
-        return None
-    if name in organizations:
-        return ref(organizations[name])
-    return ref(agent_ref(graph, name))
-
-
 # What a thing the Guide's own content describes rests on, beside any registry's record about it. A thing that rests
 # on nothing but registry records is one only registries know.
 GUIDE_SELECTION = "#guide-selection"
@@ -907,22 +898,98 @@ def name_text(value: Any) -> str | None:
     return None
 
 
-def agent_ref(graph: Graph, name: str) -> str:
-    """The entity for a named agent (an operating, hosting or developing organisation): an existing organisation
-    with the same name where there is one, a new one otherwise. An agent is named by reference, not by a literal."""
-    folded = unicodedata.normalize("NFKD", name).casefold()
+# The build keys of the things a named agent can be: an organisation, an infrastructure, a repository or a resource
+# the Guide describes. A FIP Dashboard organisation record no curated thing names is such an organisation too.
+AGENT_THINGS = ("#org-", "#infrastructure-", "#european-ri-", "#repository-", "#resource-", "#eosc-cz-node")
+
+
+def folded_names(entity: dict[str, Any]) -> set[str]:
+    """An entity's names in every language, its alternate names and its acronym, as an exact name comparison reads
+    them."""
+    values = [value for key in ("name", "alternateName", "abbreviation") for value in name_values(entity.get(key))]
+    return {unicodedata.normalize("NFKC", value).casefold() for value in values}
+
+
+def agent_things(graph: Graph, founded: set[str]) -> dict[str, str]:
+    """Every entity a named agent's name can match, with the thing it stands for: a thing the Guide describes stands
+    for itself, a KNAV or FIP Dashboard record for the curated thing it is linked to, and a record no curated thing
+    stands for founds a thing of its own. `founded` holds the FIP Dashboard organisation records that found
+    organisations of their own."""
+    dashboard_pages = {
+        target: entity_id
+        for entity_id, entity in graph.entities.items()
+        if entity_id.startswith(AGENT_THINGS)
+        for target in ids_of(entity.get("sameAs"))
+        if target.startswith(FIP_DASHBOARD)
+    }
+    things = {entity_id: entity_id for entity_id in graph.entities if entity_id.startswith(AGENT_THINGS)}
+    things |= {key: key for key in founded}
     for entity_id, entity in graph.entities.items():
-        if entity_id.startswith("#org-") and "Organization" in as_list(entity.get("@type")):
-            existing = name_text(entity.get("name"))
-            if existing and unicodedata.normalize("NFKD", existing).casefold() == folded:
-                return entity_id
+        if entity_id.startswith("#fer-"):
+            pages = [target for target in ids_of(entity.get("sameAs")) if target in dashboard_pages]
+            things[entity_id] = dashboard_pages[pages[0]] if pages else entity_id
+    for entity_id, entity in graph.entities.items():
+        if entity_id.startswith("#knav-"):
+            standing = next((target for target in ids_of(entity.get("sameAs")) if target in graph.entities), None)
+            things[entity_id] = things.get(standing, standing) if standing else entity_id
+    return things
+
+
+def agent_ref(graph: Graph, name: str, things: dict[str, str]) -> str:
+    """The entity for a named agent (a publisher, an operating, hosting or developing organisation): the one thing the
+    Guide describes under exactly that name, in any language and of any kind (agent_things), or the record an address
+    names. A name two things share is refused, and the content names the agent by address instead; only a name no
+    thing has adds an organisation, which a later agent of that name finds."""
+    if "/" in name and name.split("/", 1)[0] in KINDS:
+        return name  # an address, which becomes the record's IRI once identities are published
+    folded = unicodedata.normalize("NFKC", name).casefold()
+    matches = sorted(
+        {thing for entity_id, thing in things.items() if folded in folded_names(graph.entities[entity_id])}
+    )
+    if len(matches) > 1:
+        raise ContentError(f"the agent '{name}' names several things ({', '.join(matches)}); name it by its address")
+    if matches:
+        return matches[0]
     # A new organisation is named like any minted record: by the name's words, without particles, within 32
-    # characters. The same words name an organisation the Guide already has, such as `cesnet` for "CESNET".
+    # characters.
     entity_id = f"#org-{short_id(name, set())}"
-    if entity_id in graph.entities:
-        return entity_id
     graph.add({"@id": entity_id, "@type": "Organization", "name": name})
+    things[entity_id] = entity_id
     return entity_id
+
+
+def organization_record_owners(graph: Graph, content: dict[str, Any]) -> dict[str, str]:
+    """Each FIP Dashboard organisation record's thing, by build key: the curated thing whose row names the record's
+    handle (an organisation's or an infrastructure's `fipDashboard`, a European infrastructure's in its `nodeOf` or
+    `eric` entry, a resource's `fipDashboardOrganization`), or that carries the record's ROR. A name never attaches a
+    record; one no thing names founds an organisation of its own."""
+    handles: dict[str, str] = {}
+    for row in content["guide"].get("organization", []):
+        if isinstance(row.get("fipDashboard"), str):
+            handles[row["fipDashboard"]] = f"#org-{row['id']}"
+    for item in (content.get("infrastructures") or {}).get("infrastructure", []):
+        if item.get("fipDashboard"):
+            handles[item["fipDashboard"]] = f"#infrastructure-{item['id']}"
+        for entry in item.get("nodeOf", []) + item.get("eric", []):
+            if entry.get("fipDashboard"):
+                handles[entry["fipDashboard"]] = f"#european-ri-{slug(entry['name'])}"
+    for resource in content["resources"]:
+        if resource.get("fipDashboardOrganization"):
+            handles[resource["fipDashboardOrganization"]] = f"#resource-{resource['id']}"
+    rors = {
+        target: entity_id
+        for entity_id, entity in graph.entities.items()
+        if entity_id.startswith(AGENT_THINGS)
+        for target in ids_of(entity.get("sameAs"))
+        if target.startswith("https://ror.org/")
+    }
+    owners = {}
+    for snapshot in content["snapshots"]:
+        for row in snapshot.get("organization", []):
+            owner = handles.get(alternate_id(row, "fip-dashboard")) or rors.get(row.get("ror", ""))
+            if owner in graph.entities:
+                owners[f"#fd-org-{row['id']}"] = owner
+    return owners
 
 
 def build_instruments(graph: Graph, guide: dict[str, Any]) -> None:
@@ -1076,7 +1143,8 @@ def citation_properties(
     authors = citation.get("authors", [])
     return {
         "inLanguage": citation.get("inLanguage"),
-        "publisher": organization_ref(graph, organizations, citation.get("publisher")),
+        "publisher": ref(organizations[citation["publisher"]]) if citation.get("publisher") in organizations else None,
+        "publisherName": citation.get("publisher") if citation.get("publisher") not in organizations else None,
         "version": citation.get("version"),
         "author": refs([people[author] for author in authors if author in people]),
         "creditText": "; ".join(names.get(author, author) for author in authors) or None,
@@ -1883,6 +1951,12 @@ def build_knav_tools(graph: Graph, content: dict[str, Any]) -> None:
     for entry in content["resources"] + content["repositories"] + content["sources"]:
         if entry.get("knav") and graph.index.get(entry["id"]):
             standing[entry["knav"]] = graph.index[entry["id"]][0]
+    for item in (content.get("infrastructures") or {}).get("infrastructure", []):
+        if item.get("knav"):
+            standing[item["knav"]] = f"#infrastructure-{item['id']}"
+        for entry in item.get("nodeOf", []) + item.get("eric", []):
+            if entry.get("knav"):
+                standing[entry["knav"]] = f"#european-ri-{slug(entry['name'])}"
     # A FIP Dashboard record a curated entry links is listed as that entry, so a tool joined to it is too.
     curated_records = {
         entry["fipDashboard"]: graph.index[entry["id"]][0]
@@ -1996,6 +2070,9 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
         entity_id = f"#european-ri-{slug(name)}"
         if entity_id not in graph.entities:
             graph.add({"@id": entity_id, "@type": "Organization", "name": name})
+        # The roadmap names it, so the Guide describes it whatever registry also records it.
+        if based_on:
+            graph.entities[entity_id].setdefault("isBasedOn", ref(based_on[0]))
         return graph.entities[entity_id]
 
     def node_of(name: str, status: str) -> str:
@@ -2006,8 +2083,6 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
     def eric(name: str, since: str) -> str:
         entity = european_ri(name)
         entity.setdefault("czechMembershipSince", since)
-        if based_on:
-            entity.setdefault("isBasedOn", ref(based_on[0]))
         return entity["@id"]
 
     for item in items:
@@ -2562,12 +2637,12 @@ def build_actions(graph: Graph, actions: list[dict[str, Any]], people: dict[str,
 # The registries whose records describe things, by the fragment a record takes under its thing, in the order a thing
 # lists its records: the first registry that records a thing the Guide does not describe founds it, and a fact
 # neither the curated entry nor NKR states comes from the first registry that states it.
-RECORD_SCHEMES = ("re3data", "fip-dashboard", "knav", "nkr", "fairsharing", "datacite")
+RECORD_SCHEMES = ("re3data", "fip-dashboard", "fip-dashboard-organization", "knav", "nkr", "fairsharing", "datacite")
 # A registry's record about a thing, by the family of its build key, and the fragment it takes under the thing.
 REGISTRY_RECORDS = (
     ("#knav-", "knav"),
     ("#fer-", "fip-dashboard"),
-    ("#fd-org-", "fip-dashboard"),
+    ("#fd-org-", "fip-dashboard-organization"),
     *((registry_record_key(scheme, ""), scheme) for scheme in ("nkr", "re3data", "fairsharing", "datacite")),
 )
 # The facts other registries win for a thing a registry record founds, held on that record until it founds the thing.
@@ -3187,19 +3262,30 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
                 )
                 append_ref(entity, "alternateIdentifier", datacite_entity)
             entity.pop("dataciteRepository", None)
-    # An agent (an operating, hosting or developing organisation) is named by reference to an entity, not by a
-    # literal name: one way to name an agent and its source (design: group 21).
+    # An agent (a publisher, an operating, hosting or developing organisation) is named by reference to an entity,
+    # not by a literal name, once every thing it can be exists.
+    founded = {key for key in graph.entities if key.startswith("#fd-org-")} - set(
+        organization_record_owners(graph, content)
+    )
+    things = agent_things(graph, founded)
+    agents: list[str] = []
     for entity in list(graph.entities.values()):
         for name_key, agent_key in (
+            ("publisherName", "publisher"),
             ("operatorName", "publisher"),
             ("developerName", "attributedTo"),
             ("hostingInstitution", "publisher"),
         ):
             name = name_text(entity.get(name_key))
             if name:
-                append_ref(entity, agent_key, agent_ref(graph, name))
+                agents.append(agent_ref(graph, name, things))
+                append_ref(entity, agent_key, agents[-1])
             entity.pop(name_key, None)
     placements = identity_projection(graph, content)
+    issued = {placement.address for placement in placements.values() if placement.address}
+    unknown = sorted({agent for agent in agents if "/" in agent and agent not in issued})
+    if unknown:
+        raise ContentError("an agent names no record: " + ", ".join(unknown))
     link_texts(graph, reference_targets(content, graph, placements))
     publish_identities(graph, placements, guide["recordBase"])
     attach_associations(graph, content.get("model", {}), guide["recordBase"])
@@ -3623,6 +3709,11 @@ def identity_projection(graph: Graph, content: dict[str, Any]) -> dict[str, Plac
     for callout in content["callouts"]:
         thing(f"#callout-{callout['id']}", "callouts", callout["id"])
 
+    # The European research infrastructures, which a registry's record may be about.
+    for key in entities:
+        if key.startswith("#european-ri-"):
+            thing(key, "infrastructures", key.removeprefix("#european-ri-"))
+
     # A registry's record about a thing the Guide describes sits under that thing.
     topic_records = {
         registry_record_key(scheme, ""): scheme for scheme in ("nkr", "re3data", "fairsharing", "datacite")
@@ -3644,20 +3735,15 @@ def identity_projection(graph: Graph, content: dict[str, Any]) -> dict[str, Plac
         for target in ids_of(entity.get("sameAs"))
         if target.startswith(FIP_DASHBOARD)
     }
-    guide_organizations = {
-        str(row["fipDashboard"]): f"#org-{row['id']}"
-        for row in content["guide"].get("organization", [])
-        if isinstance(row.get("fipDashboard"), str)
-    }
+    owners = organization_record_owners(graph, content)
     for key in list(entities):
         row = rows.get(key, {})
         handle = alternate_id(row, "fip-dashboard") if row else None
         if key.startswith("#fer-") and handle in dashboard_things:
             part(key, dashboard_things[handle], "fip-dashboard")
         elif key.startswith("#fd-org-"):
-            owner = guide_organizations.get(handle) or same_named_organization(entities, key)
-            if owner:
-                part(key, owner, "fip-dashboard")
+            if key in owners:
+                part(key, owners[key], "fip-dashboard-organization")
             else:
                 thing(key, "organizations", str(row.get("id") or key.removeprefix("#fd-org-")))
 
@@ -3665,8 +3751,6 @@ def identity_projection(graph: Graph, content: dict[str, Any]) -> dict[str, Plac
     for key, entity in entities.items():
         if key.startswith("#org-"):
             thing(key, "organizations", key.removeprefix("#org-"))
-        elif key.startswith("#european-ri-"):
-            thing(key, "infrastructures", key.removeprefix("#european-ri-"))
         elif key.startswith("#lens-"):
             thing(key, "vocabularies", key.removeprefix("#lens-"), "lenses")
         elif "DefinedTermSet" in as_list(entity.get("@type")) and key.startswith("#"):
@@ -3714,18 +3798,6 @@ def identity_projection(graph: Graph, content: dict[str, Any]) -> dict[str, Plac
 
 def ids_of(value: Any) -> list[str]:
     return [item["@id"] for item in as_list(value) if isinstance(item, dict) and isinstance(item.get("@id"), str)]
-
-
-def same_named_organization(entities: dict[str, dict[str, Any]], key: str) -> str | None:
-    """The organisation a registry's organisation record describes, where the Guide names exactly one organisation of
-    exactly that name, as it resolves a named agent (agent_ref); a similar name never attaches a record."""
-
-    def folded(entity: dict[str, Any]) -> set[str]:
-        return {unicodedata.normalize("NFKC", name).casefold() for name in name_values(entity.get("name"))}
-
-    names = folded(entities[key])
-    matches = [other for other, entity in entities.items() if other.startswith("#org-") and names & folded(entity)]
-    return matches[0] if len(matches) == 1 else None
 
 
 def name_values(value: Any) -> list[str]:

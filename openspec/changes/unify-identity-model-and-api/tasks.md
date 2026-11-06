@@ -89,12 +89,14 @@ its head in CI.
 - [x] 2.14 Let a snapshot hold its records: list the KNAV and FIP Dashboard records in their snapshots' `hasPart`,
   each snapshot `about` its catalogue's resource, and drop `#knav-tools` and `#fers` (decision 4). Verify: a unit test
   finds no crate-local registry list and every record in its snapshot; `npm run check:page` passes.
-- [ ] 2.15 Resolve named agents to the one thing of that exact name, in any language and of any kind; accept an
-  address in an agent field; refuse an ambiguous name; attach FIP Dashboard organisation records only by ROR or a
-  reviewed `fipDashboard` handle, added for today's name matches; report name-only matches for review (decisions 4
-  and 5). Verify: unit tests find no two described things of one exact name outside an accepted group, "Charles
-  University" resolving to `organizations/cuni`, the publisher "Zenodo" resolving to `repositories/zenodo`, and a
-  name-only organisation record listed for review.
+- [x] 2.15 Resolve named agents to the one thing of that exact name, in any language and of any kind; accept an
+  address in an agent field; refuse an ambiguous name; attach FIP Dashboard organisation records, under
+  `#fip-dashboard-organization`, only by ROR or a reviewed handle (`fipDashboard` on an organisation or
+  infrastructure row, `fipDashboardOrganization` on a resource row), added for today's name matches; report
+  name-only matches for review (decisions 4 and 5). Verify: unit tests find no two described things of one exact
+  name outside an accepted group, "Charles University" resolving to `organizations/cuni`, the publisher "Zenodo"
+  resolving to `repositories/zenodo`, DataCite holding both of its FIP Dashboard records, and a name-only
+  organisation record listed for review.
 - [x] 2.16 Name records by address in the fields that can name several kinds: provenance `objects`, model association
   targets and the worked example's steps, through `migrate.py` (decision 16). Verify: a second migration run changes
   nothing, and the content check rejects a bare ID in each field with the address form named.

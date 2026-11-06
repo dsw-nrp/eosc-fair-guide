@@ -182,8 +182,21 @@ re3data's records; organisations with the dashboard's; terms; FIPs; tests; advic
 requirements) by address, DOI, re3data, ROR and FIP Dashboard ID, identifier, name and text, and names what to do
 about each match: link the record, merge the entries or say it once. A group that only looks alike, or that a
 registry itself lists twice, is accepted in `content/duplicates.toml` with its reason; the check reports any other
-group, and an accepted group that no longer occurs. The content checks add that one ID names one entity and report
-entries nothing uses as warnings.
+group, and an accepted group that no longer occurs. Across kinds, the check reads the built graph: two things the
+Guide describes under one exact name, in any language, are one thing, unless a `[[distinct]]` group in
+`content/duplicates.toml` names both by address with the reason they are two (an infrastructure and the repository
+it operates under its name). A pair in which the FIP Dashboard's organisation record founds an organisation only
+because no reviewed handle names its thing is listed for review. The content checks add that one ID names one
+entity and report entries nothing uses as warnings.
+
+A named agent, the `publisher` of a cited work given by name, an `operator` or `developer` name or an
+infrastructure's `host`, is the one thing the Guide describes under exactly that name, in any language, as its
+name, alternate name or acronym: an organisation, an infrastructure, a repository or a resource, a thing only a
+registry knows included. An organisation and its eponymous service are therefore one node (the publisher
+"Zenodo" is `repositories/zenodo`). A name two things share is refused; the content then names the agent by its
+address (`operator = { name = "repositories/zenodo", ... }`). Only a name no thing has adds an organisation.
+A FIP Dashboard organisation record joins a thing only through its ROR or a reviewed handle, never through its
+name, and takes the fragment `#fip-dashboard-organization`.
 
 A group the check can resolve without editorial judgement also carries a structured suggestion: the curated entry,
 the registry record, `resolution = "link"`, `safe = true`, and the exact `file`, `table`, `field` and `value`. A
@@ -491,7 +504,7 @@ publisher named like a curated organisation.
 | | `isBasedOn` | list of IDs | Sources the guide refreshes (the FAIR analysis) |
 | | `acknowledgement`, `aiStatement` | text | Mandatory NRP acknowledgement; statement on AI use |
 | `[[person]]` | `id`, `name`, `orcid`, `affiliation`, `github`, `commitNames`, `orcidOptOut` | | A person; `orcid` is the full ORCID URL, `affiliation` a list of organisation IDs. `github` (account name) and `commitNames` (exact names the person commits under) are reviewed identities that `scripts/contributors.py` matches commits against; `orcidOptOut = true` records that the person asked not to list an ORCID iD, so none is stored or suggested |
-| `[[organization]]` | `id`, `name`, `url`, `ror`, `identifier`, `funder`, `fipDashboard` | | An organisation or project; all but `id` and `name` are optional; a Czech `name` is a table with its English name (from ROR where it has one); `fipDashboard` links the matching organisation of the FIP Dashboard snapshot |
+| `[[organization]]` | `id`, `name`, `url`, `ror`, `identifier`, `funder`, `fipDashboard` | | An organisation or project; all but `id` and `name` are optional; a Czech `name` is a table with its English name (from ROR where it has one); `fipDashboard` is the reviewed handle of the matching organisation of the FIP Dashboard snapshot |
 | `[[instrument]]` | `id`, `name`, `version`, `url`, `kind` | | A tool used in provenance actions; `kind` is `ai-model`, `software` or `service` |
 | `[[lens]]` | `id`, `name`, `description`, `icon` | | `V`, `DS`, `SR`, `K` |
 | `[[level]]` | `id`, `name`, `description`, `icon` | | `L0`–`L3`; the icon leads the level's heading on a station |
@@ -620,8 +633,9 @@ block instead of by principle or path step.
 `[[resource]]`: `id`, `name` (text, or a string for a proper name), `description`, `url`, `type` (a
 `[[resourceType]]` of `guide.toml`: `service`, `tool`, `registry` (repository or registry), `guide`, `document`,
 `publication`, `standard`, `vocabulary`, `licence`, `policy`, `data`, `community`, `project`, `course`), `fipClass` (FAIR-enabling resource classes of the FIP ontology, such as `Identifier-service` or
-`Metadata-schema`), `fipDashboard` (the resource's ID in the FIP Dashboard), `knav` (the tool's ID in the KNAV
-Data Management Tools Catalogue), `status`, `asOf`, `lenses`, `stations`, `languages`, `sameAs` (FER nanopublication IRIs, FAIRsharing DOIs). A `course` at a station is that
+`Metadata-schema`), `fipDashboard` (the resource's ID in the FIP Dashboard), `fipDashboardOrganization` (the
+reviewed handle of the FIP Dashboard's organisation record of the same thing, as for DataCite), `knav` (the tool's
+ID in the KNAV Data Management Tools Catalogue), `status`, `asOf`, `lenses`, `stations`, `languages`, `sameAs` (FER nanopublication IRIs, FAIRsharing DOIs). A `course` at a station is that
 step's training: the station lists it among the help routes as "Školení k tomuto kroku", not as a resource card.
 
 `[resource.citation]` (when the guide also cites the resource): the fields of a `[[source]]` except `id`, `code` and
@@ -768,10 +782,12 @@ hosting institution, the coordinator, as Annex 1 names it), `field`, `phase` and
 of inclusion), `esfri` (`[[esfriStatus]]` values), `annex1` (its locator), `url` (its portal page),
 `website` (its reviewed official site, emitted as `sameAs`), optional `logo` (an HTTPS image linked by that site,
 or `false` when review finds no distinct usable mark), `fip` (the FIP of its
-community in the FIP Dashboard snapshot, where it has one). `[[infrastructure.nodeOf]]`: `name` and `esfri` of a
+community in the FIP Dashboard snapshot, where it has one), and the reviewed `fipDashboard` handle of the FIP
+Dashboard's organisation record and `knav` ID of the KNAV catalogue's record of the same infrastructure, where
+they exist. `[[infrastructure.nodeOf]]`: `name` and `esfri` of a
 European research infrastructure the infrastructure is the Czech node of (Annex 7). `[[infrastructure.eric]]`: `name`
 of an ERIC it belongs to and `entry`, the year the Czech Republic entered it, or `expected` while the ERIC is being set
-up (Annex 6). `[[infrastructure.operates]]`: a catalogue entry (`resource`, or `repository` by curated ID or re3data
+up (Annex 6). Either may carry the European infrastructure's reviewed `fipDashboard` handle and `knav` ID. `[[infrastructure.operates]]`: a catalogue entry (`resource`, or `repository` by curated ID or re3data
 record) it operates and the HTTPS `evidence` that states it; the relation is recorded only where a source states it.
 
 The three relations stay distinct: being the national node of a European infrastructure, membership of an ERIC, and
@@ -978,7 +994,7 @@ of a record, and a `#…` name is one of the crate's own nodes.
 | Repository | `schema:DataCatalog` | `id/repositories/<id>` | `schema:name`, `schema:alternateName`, `schema:url`, `guide:repositoryKind`, `schema:identifier`, `schema:sameAs`, `schema:isBasedOn` (the Guide's selection where the Guide describes it, and each registry record about it) |
 | Glossary term | `schema:DefinedTerm` | `id/glossary/<id>` | `schema:identifier`, `schema:name`, `schema:url`, `schema:termCode` (Heslář's number), `schema:license`, `schema:inDefinedTermSet` |
 | Callout | `schema:CreativeWork` | `id/callouts/<id>` | `schema:headline`, `schema:text`, `schema:hasPart`, `guide:lensOrder` |
-| Registry record | `dcat:CatalogRecord`, beside the registry's own type | `<thing>#<scheme>`: `#re3data`, `#fip-dashboard`, `#knav`, `#nkr`, `#fairsharing` or `#datacite` under the thing it describes | `foaf:primaryTopic` (the thing), the registry's own `schema:name`, `schema:description`, `schema:license` and identifier (a FAIRsharing record its DOI, a DataCite record its repository ID), `schema:isPartOf` and `schema:isBasedOn` (its snapshot). Every thing rests on each of its records (`schema:isBasedOn`), beside the Guide's selection where the Guide describes it. A thing that rests on nothing but registry records is one only registries know: the first of its records, in the order re3data, FIP Dashboard, KNAV, NKR, founds it, and the thing keeps its identity, name, address and filter facts. The thing carries the winning values: what the curated entry states, then NKR's name, kind, dated status, keywords and address, then the first registry that states a fact, in that order and then FAIRsharing and DataCite |
+| Registry record | `dcat:CatalogRecord`, beside the registry's own type | `<thing>#<scheme>`: `#re3data`, `#fip-dashboard`, `#fip-dashboard-organization`, `#knav`, `#nkr`, `#fairsharing` or `#datacite` under the thing it describes | `foaf:primaryTopic` (the thing), the registry's own `schema:name`, `schema:description`, `schema:license` and identifier (a FAIRsharing record its DOI, a DataCite record its repository ID), `schema:isPartOf` and `schema:isBasedOn` (its snapshot). Every thing rests on each of its records (`schema:isBasedOn`), beside the Guide's selection where the Guide describes it. A thing that rests on nothing but registry records is one only registries know: the first of its records, in the order re3data, FIP Dashboard (its resource, then its organisation record), KNAV, NKR, founds it, and the thing keeps its identity, name, address and filter facts. The thing carries the winning values: what the curated entry states, then NKR's name, kind, dated status, keywords and address, then the first registry that states a fact, in that order and then FAIRsharing and DataCite |
 | FER (FIP Dashboard snapshot) | `schema:CreativeWork` with a FIP class as `schema:additionalType` | `<thing>#fip-dashboard` under the thing it describes, or `id/resources/<id>` for one only the dashboard knows | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `guide:catalogueType`, `schema:about`, `schema:provider`, `schema:review` (verifications as `schema:Review`), `schema:sameAs`, `schema:isBasedOn` |
 | FIP (FIP Dashboard snapshot) | `schema:CreativeWork` with `schema:additionalType` `fip:FAIR-Implementation-Profile` | `id/fips/<id>`; a declaration `<fip>#<declaration>` | `schema:name`, `schema:abstract`, `schema:version`, `schema:dateModified`, `schema:creativeWorkStatus`, `schema:author`, `schema:review`, `schema:hasPart` (declarations), `schema:isBasedOn` |
 | Local criterion | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `id/tests/guide/<id>` | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `sio:SIO_000233`, `schema:about`, `schema:citation`, `schema:hasPart`, `schema:subjectOf`, `schema:additionalProperty` |
