@@ -5,9 +5,26 @@
 See proposal.md, *Why*, for the problem. The figures in this design were measured on a build of `1ec02bd`
 (`polish-nkr-integration`) and on the published `1.0.0-alpha.5`. That change merged as `07a1d4a`
 ([dsw-nrp/eosc-fair-guide#170](https://github.com/dsw-nrp/eosc-fair-guide/pull/170)) after two more review rounds.
-Content is unchanged between the two commits, `main` holds no NKR snapshot yet, and the page's 213 fragment-prefix
-literals recount the same on `07a1d4a`. Task 1.1 recounts the build figures. The approach is bound by these
-constraints:
+Content is unchanged between the two commits, and `main` holds no NKR snapshot yet.
+
+**Recount (task 1.1, 2026-11-06, builds of `07a1d4a` and `1ec02bd` with one script).** No figure changed with the
+rebase: both builds give the same counts.
+
+- **The build:** 1,522 OpenAPI paths, two of them templated (the published `1.0.0-alpha.5` has 1,521).
+- **The page:** 213 fragment-prefix literals in 10 scripts.
+- **The graph:**
+  - 17 `sameAs` pairs between Guide nodes;
+  - organisations in five `@id` families (`org`, `fd-org`, `infrastructure`, `european-ri`, `eric`);
+  - 272 advice items, 214 questions and 52 authored steps.
+- **Counted differently from before:**
+  - **Names:** 930 entities have a `name` equal to their identifier in some language (first counted as 925).
+  - **Restating questions:** 71 questions publish a cited clause's text as their own. The 16 CoreTrustSeal
+    questions already take it from their `requirement` clause (`build_crate.py`, `item.setdefault("statement", ...)`).
+    The other 55 hold a copy, two of them differing only by reference markup or punctuation. 51 of the 55 copy their
+    `requirement` clause, and four (`gate.01`, `gate.08`, `gate.10`, `maturity.14`) copy a clause they cite only in
+    `sources`.
+
+The approach is bound by these constraints:
 
 - **Static hosting.** GitHub Pages serves files only and ignores query strings. Anything that filters or shapes a
   response has to be a file, or has to run in the consumer's engine. Review facts stay as they are: no database, no
@@ -35,7 +52,7 @@ constraints:
 
 - A query runtime of any kind (B and C in the exploration), SQL or tabular distributions, and an in-browser query
   console.
-- Changing what any advice, question or requirement says, except the 71 statements merged into their clauses.
+- Changing what any advice, question or requirement says, except the 55 statements merged into their clauses.
 - Re-shaping the page beyond addressing, the identifier chip, the `#/id/` entry route and the record landing pages
   (decision 19).
 
@@ -218,12 +235,18 @@ The API publishes them on the question record. `prefillLevel` and `championEvide
 
 ### 10. Questions that restate their clause
 
-- **Authoring.** A question names its text's clause with `statementClause = "<clause id>"` instead of `statement`.
-  It must be one of the question's `sources`; this is needed because 3 of the 71 cite more than one clause.
+- **Authoring.** A question names its text's clause with `requirement`, the existing field the 16 CoreTrustSeal
+  questions already use. A question with a `requirement` and no `statement` takes that clause's text, and the clause
+  becomes its first source (`build_crate.py`, documented under `checks/<id>.toml`). The migration:
+  - the 51 questions that copy their `requirement` clause drop their `statement`;
+  - `gate.01`, `gate.08`, `gate.10` and `maturity.14` gain `requirement` for the clause they copy and drop theirs;
+  - their other cited clauses stay in `sources`, which covers the three that cite more than one.
 - **Output.** The build writes the clause's text as the question's `text` in every output, linking the clause as its
   basis. Readers and FTR consumers see a text, and the sources hold it once.
-- **The content check** rejects a `statement` identical to the text of a cited clause in either language.
+- **The content check** rejects a `statement` identical to the text of a cited clause in either language, once
+  reference markup and final punctuation are ignored, and names the question and the clause.
 - **`maturity.14`** takes `A.I3.R2`'s text. Its ORCID and ROR references move into that clause.
+- **Alternative rejected:** a new `statementClause` field. It would restate what `requirement` already means.
 
 ### 11. API v1
 
@@ -340,7 +363,7 @@ openapi.json                          one list and one record operation per kind
   - prose references: about 260 address forms plus the word forms;
   - `content/identifiers.toml` kind names (`requirements` becomes `clauses`, and the rest follow the kind table);
   - provenance `results` (`test:`, `provider:`, `infrastructure:` and other prefixes become addresses);
-  - the 71 `statementClause` merges.
+  - the 55 statement merges through `requirement` (decision 10).
 - **Snapshots** are generated files, so their `guideRoute` (219 records plus the glossary when measured) is rewritten
   by a new `refresh_snapshots.py --renormalise` mode. It covers every snapshot that carries `guideRoute`, including
   `snapshots/nkr.toml` once its first harvest merges. A harvest made before M1 still mints `repo/<subtype>` and one
@@ -439,8 +462,8 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=30
   remaining prefix test. The full browser suite runs in both languages, at phone width and in print.
 - [Saved results from alpha releases point at the old host path] → `api/tests/<question>.json` keeps being generated
   at the same relative path, and the loader maps them.
-- [The build figures were measured on `1ec02bd`, before its last review rounds] → Content and the page's prefix
-  literals are unchanged on `07a1d4a`; task 1.1 recounts the build figures and corrects them here.
+- [The build figures were measured on `1ec02bd`, before its last review rounds] → Task 1.1 recounted both builds
+  with one script and found no change (*Context*). Later tasks verify their counts against the actual build.
 
 ## Migration Plan
 

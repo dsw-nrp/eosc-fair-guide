@@ -13,12 +13,13 @@ model behind it:
   (17 pairs), or are not joined at all. Examples: `#org-knav` and `#fd-org-knav`; two addresses for the CESNET
   ownCloud service. Organisations sit in five entity families.
 - An entity carries up to four identity forms: a fragment `@id` whose prefix encodes its type, `schema:identifier`,
-  `dcterms:identifier` and `termCode`. On 925 entities the `name` is the identifier itself. Some IDs end in a
+  `dcterms:identifier` and `termCode`. On 930 entities the `name` is the identifier itself. Some IDs end in a
   collision counter (`#fd-org-nrp-2`).
 - The crate and the API are two models. The API renames properties, adds the FTR types and creates the 214 manual
   tests, none of which exist in the crate.
-- Controlled vocabularies are modelled three ways, and statuses seven ways (strings and concepts). 71 check questions
-  repeat a ledger clause word for word, each written out twice in the sources.
+- Controlled vocabularies are modelled three ways, and statuses seven ways (strings and concepts). 55 check questions
+  copy a ledger clause word for word, so the text is written out twice in the sources. The 16 CoreTrustSeal
+  questions already take theirs from the clause.
 
 The Guide's own term and profile IRIs name a hosting address (`content/guide.toml:26`), and record IRIs depend on
 where the crate was read. The first official release fixes identifiers for good
@@ -49,7 +50,7 @@ submission.
   - FTR benchmarks, metrics and manual tests become part of the graph.
   - Pre-fill mappings become typed statements.
   - Names that only repeat an identifier are dropped.
-  - A question that repeats its clause takes the clause's text instead of copying it (71 questions).
+  - A question that repeats its clause takes the clause's text instead of copying it (55 questions).
 - **BREAKING. API v1** under `/api/v1/`:
   - `<kind>.json` lists whose entries carry the fields a client filters on;
   - `<kind>/<id>.json` records, with vocabularies published once and referenced from records;
@@ -112,7 +113,7 @@ None. The changed behaviour belongs to the existing capabilities below.
   - `guideRoute` in the snapshots;
   - `content/identifiers.toml`;
   - provenance result IDs;
-  - the 71 merged question statements in `content/checks/`.
+  - the 55 merged question statements in `content/checks/`.
 - **Tests:** Python, page and API tests, and fixtures.
 - **Documentation and tooling:**
   - `docs/content-model.md`, `docs/design.md`, `docs/deployment.md` and `docs/ci-reference.md`;
@@ -127,7 +128,7 @@ None. The changed behaviour belongs to the existing capabilities below.
   - a Dataspecer view of the vocabulary
     ([dsw-nrp/eosc-fair-guide#33](https://github.com/dsw-nrp/eosc-fair-guide/issues/33));
   - a query service, precomputed query views, SQL or tabular distributions, and an in-browser query console;
-  - content wording beyond the 71 merged question statements.
+  - content wording beyond the 55 merged question statements.
 - **Validation:**
   - `npm run openspec:validate` and `python scripts/check_all.py`;
   - the new RDF, recipe and template-coverage checks;
