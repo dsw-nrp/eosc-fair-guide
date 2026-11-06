@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import register_ids
+from check_content import content_addresses
 
 if TYPE_CHECKING:
     from check_duplicates import Suggestion
@@ -97,12 +98,15 @@ def local_action_id(suggestions: list[Suggestion]) -> str:
 
 
 def action_block(identifier: str, person: str, suggestions: list[Suggestion], content: dict[str, Any]) -> str:
-    results = sorted({suggestion.entry.split(":", 1)[1] for suggestion in suggestions})
+    # Provenance names each linked entry by its address (`resources/service`).
+    addresses = content_addresses(content)
+    linked = sorted({suggestion.entry.split(":", 1)[1] for suggestion in suggestions})
+    results = [addresses.get(entry, entry) for entry in linked]
     sources = sorted(
         {source for suggestion in suggestions if (source := cited_source(content, suggestion.record)) is not None}
     )
     description = (
-        f"Linked {', '.join(results)} to the registry record(s) the duplicate check named as a shared identity."
+        f"Linked {', '.join(linked)} to the registry record(s) the duplicate check named as a shared identity."
     )
     rows = [
         "[[action]]",

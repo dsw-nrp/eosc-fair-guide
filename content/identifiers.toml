@@ -625,7 +625,7 @@ tests = [
   "guide-software-15",
   "guide-software-16",
 ]
-requirements = [
+clauses = [
   "A.F1.N1",
   "A.F1.N2",
   "A.F1.N3",
@@ -1313,7 +1313,7 @@ actions = [
   "2026-11-02-nkr-integration",
   "2026-11-06-identity-migration",
 ]
-model = [
+models = [
   "model:layers-seams",
   "model:worked-example",
   "layer.policy",
@@ -1355,7 +1355,7 @@ model = [
   "context:assessment:SR",
   "context:assessment:K",
 ]
-lifecycle = [
+lifecycles = [
   "lifecycle:rdmkit",
   "rdmkit.plan",
   "rdmkit.collect",

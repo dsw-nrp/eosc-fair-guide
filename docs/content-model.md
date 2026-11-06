@@ -378,8 +378,9 @@ One action per pull request is the default, covering all changed entities and th
 instruments and consulted sources. Separately attributable work may use finer actions. The initial public state
 consolidates unreleased preparation into one action; quoted and imported records retain their original attribution.
 
-Callouts use `callout:<id>` and their items use `callout.<id>.<item>` in the identifier register and provenance
-results. Page results use `page:<id>`; curated repositories and sources keep their content IDs. The retrospective
+Callouts use `callout:<id>` and their items use `callout.<id>.<item>` in the identifier register. Provenance results
+name every item by its address: a callout `callouts/<id>`, its item `callouts/<id>#<item>`, a page `pages/<id>`, a
+question `questions/<id>`, a criterion `tests/<provider>/<metric>`, and `guide` for the Guide's metadata. The retrospective
 coverage records review of existing records without attributing their original authorship to that review.
 
 The health JSON/API, dashboard and summary expose `missing_links`: ranked, specific name matches in authored prose that
@@ -681,8 +682,8 @@ the repository's own site (the `url` where the record's own address differs), an
 records of the same thing across registries.
 They create no new entry and do not edit source snapshots. The content check refuses missing or repeated records,
 unknown functions and missing evidence; the duplicate check uses these identity links too. Similar names or hosts
-alone never join entries. Both borrowed identifiers still open the same visible entry. Provenance results can
-name annotated records by those borrowed identifiers.
+alone never join entries. Both borrowed identifiers still open the same visible entry. Provenance results name
+an annotated record by its address.
 
 `[[re3dataInclude]]` in `repositories.toml` names a repository hosted in the Czech Republic that re3data does not
 tag with the country: `re3data` (its r3d identifier) and `reason` (why it belongs, with the evidence). The re3data
@@ -832,13 +833,14 @@ named value). `[[provider.metric]]`: `id` and `name` exactly as the provider pub
 `partial`) and a bilingual `note` saying what the criterion covers. Reviewed whole coverage suggests Yes, Partly or No
 from the provider's native result; partial coverage suggests Partly when its part is met and No when it fails.
 Unavailable, unestablished or unreviewed results suggest nothing. A metric without a mapping stays listed. Each criterion is a
-provenance item, `provider:<provider>.<metric>`, together with its mappings and the reviewed versions.
+provenance item, `tests/<provider>/<metric>`, together with its mappings and the reviewed versions.
 
 ### `provenance.toml`
 
 `[[action]]`: `id`, `type` (`create`, `update`), `name`, `description`, `agent` (person ID), `instruments`
-(instrument IDs), `objects` (clause and source IDs consulted), `results` (item IDs; a trailing `*` matches every
-ID with that prefix), `endTime` (date-time with offset).
+(instrument IDs), `objects` (clause and source IDs consulted), `results` (the addresses of the items created or
+changed, such as `advice/plan.05`, or `guide`; a trailing `*` matches every address with that prefix, such as
+`tests/f-uji/*`, and `*` alone every item), `endTime` (date-time with offset).
 
 ### `icons.toml`
 
@@ -1137,8 +1139,8 @@ language once and preserves answers; bilingual JSON export explicitly loads comp
 Compact search aliases preserve cross-language matching without loading the other display texts.
 
 A page section with `details = true` renders as native details/summary and remains closed initially.
-Text references can name a lifecycle station as `[[station:<id>|phrase]]`, with the same target in both
-languages. Pages can be named in provenance results as `page:<id>`.
+Text references name a station as `[[stations/<id>|phrase]]`, with the same target in both languages. Provenance
+results name a page as `pages/<id>`.
 
 The initial knowledge base keeps check descriptions and structural links. Question entities load from
 `_site/assets/data/kb-questions.js` for checks, the catalogue, the explorer, a station or a search; returning visitors with

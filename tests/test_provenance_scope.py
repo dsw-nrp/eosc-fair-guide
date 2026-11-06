@@ -22,12 +22,12 @@ class ProvenanceScopeTests(unittest.TestCase):
         patterns = [p for action in content["provenance"] for p in action["results"]]
         items = cc.provenance_items(content)
         for key in (
-            "page:software",
-            "datahub-cuni",
-            "genasis",
-            "analyza-fair-1.2",
-            "callout:sensitive-data",
-            "callout.sensitive-data.rights",
+            "pages/software",
+            "repositories/datahub-cuni",
+            "repositories/genasis",
+            "resources/analyza-fair-1.2",
+            "callouts/sensitive-data",
+            "callouts/sensitive-data#rights",
         ):
             self.assertIn(key, items)
             self.assertTrue(any(cc.covered(p, key) for p in patterns), key)
@@ -39,23 +39,23 @@ class ProvenanceScopeTests(unittest.TestCase):
         before = copy.deepcopy(self.content)
         for key, mutate in (
             (
-                "page:software",
+                "pages/software",
                 lambda c: c["pages"][next(i for i, p in enumerate(c["pages"]) if p["id"] == "software")].update(
                     description={"cs": "Jiný text", "en": "Changed text"}
                 ),
             ),
             (
-                "datahub-cuni",
+                "repositories/datahub-cuni",
                 lambda c: next(r for r in c["repositories"] if r["id"] == "datahub-cuni").update(
                     name="Changed repository"
                 ),
             ),
             (
-                "analyza-fair-1.2",
+                "resources/analyza-fair-1.2",
                 lambda c: next(s for s in c["sources"] if s["id"] == "analyza-fair-1.2").update(title="Changed source"),
             ),
             (
-                "callout.sensitive-data.rights",
+                "callouts/sensitive-data#rights",
                 lambda c: c["callouts"][0]["item"][-1].update(text={"cs": "Jiný text", "en": "Changed text"}),
             ),
         ):

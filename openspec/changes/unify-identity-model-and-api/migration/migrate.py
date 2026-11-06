@@ -18,7 +18,13 @@ Rewrites the authored TOML files under content/; the generated snapshots are ren
 - in-page links: an ``href`` that opened an entity by its build key (``#station-plan``) or a crate-local list
   (``#repositories?function=...``) names the record by its address (``stations/plan``) or the list by its kind;
 - link reviews: each reviewed missing-link decision names its target by address, and a decision that was current
-  before the migration stays current: its text hash follows the field, whose only change is the reference markup.
+  before the migration stays current: its text hash follows the field, whose only change is the reference markup;
+- the identifier register: the kinds that name records under another word take the kind vocabulary
+  (``requirements`` becomes ``clauses``, ``model`` ``models`` and ``lifecycle`` ``lifecycles``); its other categories
+  (lenses, modes, profiles, callout items, sources) are named sets of their own and keep their names;
+- provenance results: each content ID or prefix pattern (``test:x``, ``provider:*``, ``plan.*``) becomes the addresses
+  that name the same published records and parts (``tests/guide/x``, ``tests/f-uji/*``, ``advice/plan.*``), read from
+  the build of the migrated copy; ``guide`` and ``*`` stay.
 
 The steps run on a temporary copy of the content, so the whole result is checked before anything is written.
 Idempotent: a second run changes nothing. ``--dry-run`` prints the unified diff and writes nothing. Uses only the
@@ -42,7 +48,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from build_crate import load_content  # noqa: E402
+from build_crate import Graph, build_crate, load_content, result_covers  # noqa: E402
 from catalogue_identity import KINDS, parse_route, translate_routes  # noqa: E402
 from check_content import walk  # noqa: E402
 
@@ -229,6 +235,100 @@ def rename(work: Path) -> None:
         )
 
 
+# The register's kinds that name records under another word than the kind vocabulary's.
+REGISTER_KINDS = {"requirements": "clauses", "model": "models", "lifecycle": "lifecycles"}
+REGISTER_KEY = re.compile(r"(?m)^(" + "|".join(REGISTER_KINDS) + r") = \[")
+RESULTS = re.compile(r"(?ms)^results = \[(?P<body>[^\]]*)\]$")
+# The family words of the content IDs that provenance results used, before an item's own ID.
+FAMILIES = (
+    "callout:",
+    "callout.",
+    "test:",
+    "provider:",
+    "organization:",
+    "model:",
+    "layer.",
+    "seam.",
+    "example.",
+    "context:",
+    "lifecycle:",
+    "crosswalk:",
+    "infrastructure:",
+    "node:",
+    "page:",
+    "term:",
+    "action:",
+    "knav.",
+)
+
+
+def rename_register_kinds(text: str) -> str:
+    return REGISTER_KEY.sub(lambda match: f"{REGISTER_KINDS[match[1]]} = [", text)
+
+
+def is_address(pattern: str) -> bool:
+    """A result that already names an address or an address prefix (`stations/plan`, `advice/plan.*`)."""
+    return "/" in pattern and pattern.split("/", maxsplit=1)[0] in KINDS
+
+
+def compress(pattern: str, targets: set[str], universe: list[str]) -> list[str]:
+    """The fewest address patterns that name exactly `targets` among the published addresses: the old prefix within
+    each kind, then a whole kind, then a record's scope or parts, then the addresses themselves."""
+    if not pattern.endswith("*"):
+        return sorted(targets)
+    remaining, chosen = set(targets), []
+
+    def take(candidate: str) -> None:
+        members = {address for address in universe if result_covers(candidate, address)}
+        # A part of a record the result names, such as an advice item's step, changes with it.
+        extra = {address for address in members - targets if address.split("#")[0] not in targets}
+        if members and not extra and members & remaining:
+            chosen.append(candidate)
+            remaining.difference_update(members)
+
+    stem = pattern[:-1]
+    for family in FAMILIES:
+        stem = stem.removeprefix(family)
+    for kind in sorted({address.split("/")[0] for address in targets}):
+        take(f"{kind}/{stem}*")
+    for kind in sorted({address.split("/")[0] for address in remaining}):
+        take(f"{kind}/*")
+    for parent in sorted({a.split("#")[0] + "#" if "#" in a else a.rsplit("/", 1)[0] + "/" for a in remaining}):
+        take(parent + "*")
+    return chosen + sorted(remaining)
+
+
+def migrate_results(work: Path) -> None:
+    """Name every provenance result by address, matching the same published records and parts as before."""
+    path = work / "content" / "provenance.toml"
+    content = load_content(work / "content")
+    graph = Graph()
+    build_crate(content, graph)
+    base = content["guide"]["guide"]["recordBase"]
+    # Once the identities are published, the build's index names each content ID's entities by their IRIs.
+    universe = sorted({key.removeprefix(base) for key in graph.entities if key.startswith(base)})
+
+    def translate(pattern: str) -> list[str]:
+        if pattern in ("guide", "*") or is_address(pattern):
+            return [pattern]
+        keys = [key for key in graph.resolve([pattern]) if not key.startswith("#unresolved-")]
+        if not keys or any(not key.startswith(base) and key != "./" for key in keys):
+            raise ValueError(f"provenance result '{pattern}' names no published item")
+        targets = {key.removeprefix(base) for key in keys if key != "./"}
+        return (["guide"] if "./" in keys else []) + compress(pattern, targets, universe)
+
+    def replace(match: re.Match[str]) -> str:
+        values = json.loads("[" + match["body"].strip().rstrip(",") + "]")
+        new = list(dict.fromkeys(value for pattern in values for value in translate(pattern)))
+        if "\n" not in match["body"]:
+            return f"results = {json.dumps(new, ensure_ascii=False)}"
+        return "results = [\n" + "".join(f"  {json.dumps(value, ensure_ascii=False)},\n" for value in new) + "]"
+
+    text = RESULTS.sub(replace, path.read_text(encoding="utf-8"))
+    tomllib.loads(text)
+    path.write_text(text, encoding="utf-8", newline="\n")
+
+
 def run(work: Path) -> None:
     """Apply every step to the content copy under `work`."""
     if reassign(work):
@@ -245,6 +345,10 @@ def run(work: Path) -> None:
         text = migrate_reviews(reviews.read_text(encoding="utf-8"), before, field_texts(work))
         tomllib.loads(text)
         reviews.write_text(text, encoding="utf-8", newline="\n")
+    register = work / "content" / "identifiers.toml"
+    if register.exists():
+        register.write_text(rename_register_kinds(register.read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
+    migrate_results(work)
 
 
 def copy_checkout(root: Path, work: Path) -> None:

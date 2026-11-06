@@ -73,7 +73,9 @@ class ProviderCase(FixtureCase):
     def setUp(self) -> None:
         super().setUp()
         self.append("live.toml", EVALUATOR)
-        self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "provider:*"]')
+        self.edit(
+            "provenance.toml", '"tests/fair-champion/test_one"]', '"tests/fair-champion/test_one", "tests/evaluator/*"]'
+        )
         script = self.root / "assets" / "js" / "providers.js"
         script.parent.mkdir(parents=True, exist_ok=True)
         script.write_text("/* fixture */\n", encoding="utf-8")
@@ -124,8 +126,8 @@ class ProviderContentTests(ProviderCase):
         self.assertError("name is the provider's own wording")
 
     def test_every_criterion_needs_paradata(self) -> None:
-        self.edit("provenance.toml", ', "provider:*"]', "]")
-        self.assertError("criterion:provider:evaluator.M1: no provenance action covers this item")
+        self.edit("provenance.toml", ', "tests/evaluator/*"]', "]")
+        self.assertError("criterion:tests/evaluator/M1: no provenance action covers this item")
 
 
 class ProviderCrateTests(ProviderCase):

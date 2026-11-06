@@ -17,7 +17,7 @@ is that address under the Guide's namespace; the crate, the API, the routes and 
 
 - Texts and data live in `content/*.toml`. Each authored entry has a locally owned identifier: a station
   `repository`, an advice item `repository.03`, a check `dataset`, a question `dataset.04`, a clause `A.F1.R2`,
-  a local test `guide-dataset-01`, an evaluator criterion `provider:f-uji.FsF-F1-02MD`. Identifiers become
+  a local test `guide-dataset-01`, an evaluator criterion `FsF-F1-02MD` (`tests/f-uji/FsF-F1-02MD`). Identifiers become
   issued at the first official release; before that they may change in place. Issued IDs are never renamed or
   reused; `scripts/register_ids.py` registers new ones and a retired one stays under `[retired]`.
 - Search by identifier or by a phrase from the page. Never edit what the build makes: everything in `_site/`
@@ -150,7 +150,8 @@ state consolidates unreleased preparation actions without changing source attrib
 - `agent`: the person responsible, from `[[person]]` in `content/guide.toml`;
 - `instruments`: the tools used, naming the AI model as an instrument when one was used (never as an author);
 - `objects`: the ledger clauses and sources consulted;
-- `results`: the IDs of the items created or changed (a trailing `*` matches a prefix, such as `provider:*`);
+- `results`: the addresses of the items created or changed (`advice/plan.05`, `guide` for the Guide's metadata; a
+  trailing `*` matches a prefix, such as `tests/f-uji/*`);
 - `endTime`: when the change was finished, with its offset.
 
 Every compared kind needs paradata: Guide metadata, clauses, advice, questions, resources, tests, evaluator

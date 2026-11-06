@@ -169,10 +169,10 @@ class ModelTests(unittest.TestCase):
         before = check_content.item_fingerprints(self.content)
         self.content["model"]["association"][0]["layers"] = ["community"]
         after = check_content.item_fingerprints(self.content)
-        self.assertNotEqual(before["service"], after["service"])
-        self.assertEqual(before["gate.01"], after["gate.01"])
-        self.assertIn("context:one:V", after)
-        self.assertIn("seam.repository-nma", check_content.issued_ids(self.content)["model"])
+        self.assertNotEqual(before["resources/service"], after["resources/service"])
+        self.assertEqual(before["questions/gate.01"], after["questions/gate.01"])
+        self.assertIn("stations/one#context-V", after)
+        self.assertIn("seam.repository-nma", check_content.issued_ids(self.content)["models"])
 
     def test_unknown_publisher_produces_a_clear_content_error(self) -> None:
         self.content["guide"]["guide"]["publisher"] = "missing-publisher"

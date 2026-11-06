@@ -92,8 +92,8 @@ class FixtureCase(unittest.TestCase):
             (self.root / "content" / relative).write_text(text, encoding="utf-8")
         self.edit(
             "provenance.toml",
-            '"test:test_one"]',
-            '"test:test_one", "lifecycle:*", "rdmkit.*", "other.*", "crosswalk:*"]',
+            '"tests/fair-champion/test_one"]',
+            '"tests/fair-champion/test_one", "lifecycles/*", "crosswalks/*"]',
         )
         self.edit("stations/01-one.toml", "position = 1\n", 'position = 1\nlifecycleStage = "plan"\n')
 
@@ -182,7 +182,11 @@ class GeneratorTests(FixtureCase):
             'stateDate = 2026-01-01\nsources = ["report"]\nchecked = 2026-01-02\n\n[[member]]\n' + member,
             encoding="utf-8",
         )
-        self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "infrastructure:*", "node:eosc-cz-node"]')
+        self.edit(
+            "provenance.toml",
+            '"tests/fair-champion/test_one"]',
+            '"tests/fair-champion/test_one", "infrastructures/*", "organizations/eosc-cz-node"]',
+        )
 
     def test_infrastructure_names_keep_their_own_sources(self) -> None:
         self.add_infrastructures()
@@ -551,7 +555,11 @@ class GeneratorTests(FixtureCase):
             self.assertNotIn(retired, targets)
 
     def test_a_repository_reference_resolves_and_an_unknown_one_fails(self) -> None:
-        self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "zenodo"]')
+        self.edit(
+            "provenance.toml",
+            '"tests/fair-champion/test_one"]',
+            '"tests/fair-champion/test_one", "repositories/zenodo"]',
+        )
         (self.root / "content" / "repositories.toml").write_text(
             '[[repository]]\nid = "zenodo"\nname = "Zenodo"\nurl = "https://zenodo.org/"\nkind = "general"\n'
             'status = "pilot"\nasOf = 2026-01-01\n',
@@ -961,8 +969,8 @@ class ContentCheckTests(FixtureCase):
 
     def test_lifecycle_change_needs_provenance(self) -> None:
         self.add_lifecycles()
-        self.edit("provenance.toml", ', "crosswalk:*"]', "]")
-        self.assertError("crosswalk:rdmkit-plan-other-fund: no provenance action covers this item")
+        self.edit("provenance.toml", ', "crosswalks/*"]', "]")
+        self.assertError("crosswalks/lifecycle-stages/rdmkit-plan-other-fund: no provenance action covers this item")
 
     def test_the_guide_is_named_with_a_capital_letter(self) -> None:
         self.edit(
@@ -983,8 +991,8 @@ class ContentCheckTests(FixtureCase):
         self.assertFalse(any("D-177" in error for error in self.errors()))
 
     def test_item_without_provenance(self) -> None:
-        self.edit("provenance.toml", '"gate.01", ', "")
-        self.assertError("item:gate.01: no provenance action covers this item")
+        self.edit("provenance.toml", '"questions/gate.01", ', "")
+        self.assertError("item:questions/gate.01: no provenance action covers this item")
 
     def test_scores_are_forbidden(self) -> None:
         self.append("checks/gate.toml", "\n[check.score]\nmax = 10\n")
@@ -1007,9 +1015,9 @@ class ContentCheckTests(FixtureCase):
     def test_champion_selection_has_fresh_provenance(self) -> None:
         content = build_crate.load_content(self.root / "content")
         self.assertEqual(check_content.content_index(content)["test:test_one"], "test")
-        self.assertIn("test:test_one", check_content.item_fingerprints(content))
-        self.edit("provenance.toml", ', "test:test_one"', "")
-        self.assertError("test:test_one: no provenance action covers this item")
+        self.assertIn("tests/fair-champion/test_one", check_content.item_fingerprints(content))
+        self.edit("provenance.toml", ', "tests/fair-champion/test_one"', "")
+        self.assertError("tests/fair-champion/test_one: no provenance action covers this item")
 
     def test_guide_metadata_has_its_actual_crate_identity(self) -> None:
         content = build_crate.load_content(self.root / "content")
@@ -1203,7 +1211,11 @@ class ContentCheckTests(FixtureCase):
             'type = "registry"\nstatus = "pilot"\nasOf = 2026-01-01\nstations = ["one"]\n'
             '\n[resource.repository]\nkind = "general"\n',
         )
-        self.edit("provenance.toml", '"service", "A.*"', '"service", "repo", "A.*"')
+        self.edit(
+            "provenance.toml",
+            '"resources/service", "clauses/A.*"',
+            '"resources/service", "resources/repo", "clauses/A.*"',
+        )
         self.assertEqual(self.errors(), [])
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
         graph = {entity["@id"]: entity for entity in crate["@graph"]}
@@ -1226,7 +1238,7 @@ class ContentCheckTests(FixtureCase):
         self.assertError("a tools page names its group")
         grouped = described + 'group = "guidance"\n'
         pages.write_text('[[page]]\nid = "tool"\nmenu = "tools"\n' + grouped + title, encoding="utf-8")
-        self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "page:tool"]')
+        self.edit("provenance.toml", '"tests/fair-champion/test_one"]', '"tests/fair-champion/test_one", "pages/tool"]')
         self.assertFalse(any(error.startswith("page:") for error in self.errors()), self.errors())
 
     def test_base_url_must_use_https(self) -> None:
@@ -1910,7 +1922,7 @@ class FreshnessTests(FixtureCase):
         self.append(
             "provenance.toml",
             '\n[[action]]\nid = "edit"\ntype = "update"\nname = "Edit"\nagent = "tester"\ninstruments = ["model"]\n'
-            'results = ["one.03"]\nendTime = 2099-01-01T00:00:00+00:00\n',
+            'results = ["advice/one.03"]\nendTime = 2099-01-01T00:00:00+00:00\n',
         )
         content = build_crate.load_content(self.root / "content")
         report = check_content.Report()
@@ -1937,7 +1949,7 @@ class FreshnessTests(FixtureCase):
             self.assertEqual(check_content.merge_base(self.root, base), fork, base)
             report = check_content.Report()
             check_content.check_freshness(report, content, self.root, base)
-            self.assertTrue(any(error.startswith("one.03:") for error in report.errors), (base, report.errors))
+            self.assertTrue(any(error.startswith("advice/one.03:") for error in report.errors), (base, report.errors))
         # Comparing with the branch's own last commit, as the old local default did, hides the committed edit.
         report = check_content.Report()
         check_content.check_freshness(report, content, self.root, "HEAD")
@@ -1964,7 +1976,9 @@ class FreshnessTests(FixtureCase):
         self.commit("base")
         self.git("checkout", "-q", "-b", "topic")
         self.edit("stations/01-one.toml", "Postup.", "Upravený postup.")
-        self.append("provenance.toml", self.ACTION.format(id="edit", results='"one.03"', end="2000-01-01T00:00:00Z"))
+        self.append(
+            "provenance.toml", self.ACTION.format(id="edit", results='"advice/one.03"', end="2000-01-01T00:00:00Z")
+        )
         self.commit("edit whose work ended long before the base moved on")
         self.git("checkout", "-q", "main")
         self.append("ledger.toml", "\n# a later change on the base branch\n")
@@ -1974,12 +1988,16 @@ class FreshnessTests(FixtureCase):
 
     def test_an_extended_action_needs_a_later_end_time(self) -> None:
         self.git("init", "-q", "-b", "main")
-        self.append("provenance.toml", self.ACTION.format(id="earlier", results='"one.01"', end="2026-02-01T12:00:00Z"))
+        self.append(
+            "provenance.toml", self.ACTION.format(id="earlier", results='"advice/one.01"', end="2026-02-01T12:00:00Z")
+        )
         base = self.commit("base with an earlier action")
         self.edit("stations/01-one.toml", "Postup.", "Upravený postup.")
-        self.edit("provenance.toml", 'results = ["one.01"]', 'results = ["one.01", "one.03"]')
+        self.edit("provenance.toml", 'results = ["advice/one.01"]', 'results = ["advice/one.01", "advice/one.03"]')
         errors = self.freshness_errors(base)
-        self.assertTrue(any(error.startswith("one.03:") and "later endTime" in error for error in errors), errors)
+        self.assertTrue(
+            any(error.startswith("advice/one.03:") and "later endTime" in error for error in errors), errors
+        )
         self.edit("provenance.toml", "endTime = 2026-02-01T12:00:00Z", "endTime = 2026-02-02T12:00:00Z")
         self.assertEqual(self.freshness_errors(base), [])
 
@@ -1988,7 +2006,9 @@ class FreshnessTests(FixtureCase):
         base = self.commit("base")
         self.git("checkout", "-q", "-b", "first")
         self.edit("stations/01-one.toml", "Postup.", "Upravený postup.")
-        self.append("provenance.toml", self.ACTION.format(id="first", results='"one.03"', end="2026-03-01T12:00:00Z"))
+        self.append(
+            "provenance.toml", self.ACTION.format(id="first", results='"advice/one.03"', end="2026-03-01T12:00:00Z")
+        )
         self.commit("first entry with its action")
         self.git("checkout", "-q", "-b", "second", "main")
         self.edit("stations/01-one.toml", "Hlavní myšlenka.", "Upravená hlavní myšlenka.")
@@ -1997,14 +2017,16 @@ class FreshnessTests(FixtureCase):
         self.merge("first")
         self.merge("second")
         errors = self.freshness_errors(base)
-        self.assertEqual([error.split(":", 1)[0] for error in errors], ["one.02"], errors)
-        self.append("provenance.toml", self.ACTION.format(id="second", results='"one.02"', end="2026-03-01T12:00:00Z"))
+        self.assertEqual([error.split(":", 1)[0] for error in errors], ["advice/one.02"], errors)
+        self.append(
+            "provenance.toml", self.ACTION.format(id="second", results='"advice/one.02"', end="2026-03-01T12:00:00Z")
+        )
         self.assertEqual(self.freshness_errors(base), [])
 
     def test_every_compared_kind_needs_an_action(self) -> None:
         content = build_crate.load_content(self.root / "content")
         compared = set(check_content.item_fingerprints(content))
-        self.assertTrue({"guide", "organization:org", "test:test_one"} <= compared)
+        self.assertTrue({"guide", "organizations/org", "tests/fair-champion/test_one"} <= compared)
         content["provenance"][0]["results"] = []
         errors = check_content.check(content, self.root, today=TODAY).errors
         for item_id in compared:
@@ -2012,7 +2034,7 @@ class FreshnessTests(FixtureCase):
 
     def test_an_organisation_needs_paradata(self) -> None:
         self.append("guide.toml", '\n[[organization]]\nid = "new-org"\nname = "New Organisation"\n')
-        self.assertError("organization:new-org: no provenance action covers this item")
+        self.assertError("organization:organizations/new-org: no provenance action covers this item")
 
 
 class AlphaThreeQueueTests(unittest.TestCase):
@@ -2058,7 +2080,7 @@ class ExactBaseTests(unittest.TestCase):
         return [
             error
             for error in report.errors
-            if error.removeprefix("organization:").split(":", 1)[0] in self.ORGANISATIONS
+            if error.split(":", 1)[0].removeprefix("organizations/") in self.ORGANISATIONS
         ]
 
     def test_the_eight_organisations_are_covered_against_the_reported_base(self) -> None:
@@ -2069,10 +2091,10 @@ class ExactBaseTests(unittest.TestCase):
                 result
                 for result in action.get("results", [])
                 # The structural identity migration covers every item; it is not the coverage this test reports.
-                if result.removeprefix("organization:") not in self.ORGANISATIONS and result != "*"
+                if result.removeprefix("organizations/") not in self.ORGANISATIONS and result != "*"
             ]
         self.assertEqual(
-            sorted(error.removeprefix("organization:").split(":", 1)[0] for error in self.errors(content)),
+            sorted(error.split(":", 1)[0].removeprefix("organizations/") for error in self.errors(content)),
             sorted(self.ORGANISATIONS),
         )
 
@@ -2153,7 +2175,11 @@ class DuplicateTests(FixtureCase):
         self.assertError("knav names no tool of the KNAV catalogue snapshot ('ghost')")
 
     def test_a_datacite_repository_id_is_well_formed_and_names_one_entry(self) -> None:
-        self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "repo-first"]')
+        self.edit(
+            "provenance.toml",
+            '"tests/fair-champion/test_one"]',
+            '"tests/fair-champion/test_one", "repositories/repo-first"]',
+        )
         repositories = self.root / "content" / "repositories.toml"
         entry = (
             '[[repository]]\nid = "{id}"\nname = "Repo"\nurl = "https://{id}.example.org/"\nkind = "general"\n'
@@ -3006,7 +3032,7 @@ class FixDuplicateCommandTests(FixtureCase):
         provenance = (self.root / "content" / "provenance.toml").read_text(encoding="utf-8")
         self.assertIn('agent = "tester"', provenance)
         self.assertIn('instruments = ["duplicate-fix"]', provenance)
-        self.assertIn('results = ["service"]', provenance)
+        self.assertIn('results = ["resources/service"]', provenance)
         self.assertEqual(self.errors(), [])
         self.assertEqual(self.duplicates(), [])
 

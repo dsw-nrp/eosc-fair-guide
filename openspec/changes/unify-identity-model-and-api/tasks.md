@@ -46,7 +46,7 @@ complete only when `python scripts/check_all.py` passes in full.
   from the recorded snapshot, without a new observation, for every snapshot that carries it, NKR's included
   (decision 17). Verify: a unit test rewrites an NKR record's `repo/dom` route, a second run changes nothing, and
   `retrieved` dates are unchanged.
-- [ ] 2.6 Write `openspec/changes/unify-identity-model-and-api/migration/migrate.py` (decision 17), covering prose
+- [x] 2.6 Write `openspec/changes/unify-identity-model-and-api/migration/migrate.py` (decision 17), covering prose
   references, register kind names and provenance result IDs, with a dry-run diff and its own unit test. Run it,
   `--renormalise` and one provenance action with `results = ["*"]`. Verify: a second run changes nothing, and
   `python scripts/check_all.py --only content duplicates` passes.

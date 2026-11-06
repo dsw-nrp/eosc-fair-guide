@@ -665,6 +665,8 @@ class Graph:
         # build key's published identifier, for build-time readers of the content rows; neither is serialized.
         self.addresses: dict[str, str] = {}
         self.published: dict[str, str] = {}
+        # Each provenance action's results as authored, by address, until the identities are published.
+        self.results: dict[str, list[str]] = {}
 
     def add(self, entity: dict[str, Any], content_id: str | None = None) -> str:
         entity = prune(entity)
@@ -2471,13 +2473,35 @@ def build_actions(graph: Graph, actions: list[dict[str, Any]], people: dict[str,
                 "agent": ref(people.get(action["agent"], f"#person-{action['agent']}")),
                 "instrument": refs([f"#instrument-{instrument}" for instrument in action.get("instruments", [])]),
                 "object": refs(graph.resolve(action.get("objects", []))),
-                "result": refs(graph.resolve(action.get("results", []))),
                 "endTime": iso(action["endTime"]),
                 "actionStatus": ref("http://schema.org/CompletedActionStatus"),
             },
             f"action:{action['id']}",
         )
+        graph.results[action_id] = list(action.get("results", []))
     return action_ids
+
+
+def attach_results(graph: Graph, base: str) -> None:
+    """Each provenance action's results, which name items by address (`stations/plan`, `advice/plan.*`,
+    `callouts/sensitive-data#steward`), `guide` for the Guide or `*` for everything, as the published records and
+    parts they match (design.md, decision 17)."""
+    addresses = {entity_id: entity_id.removeprefix(base) for entity_id in graph.entities if entity_id.startswith(base)}
+    for action_key, patterns in graph.results.items():
+        matched: list[str] = []
+        for pattern in patterns:
+            if pattern in ("guide", "*"):
+                matched.append("./")
+            if pattern != "guide":
+                matched += [entity_id for entity_id, address in addresses.items() if result_covers(pattern, address)]
+        action = graph.entities[graph.published.get(action_key, action_key)]
+        if matched:
+            action["result"] = refs(list(dict.fromkeys(matched)))
+
+
+def result_covers(pattern: str, address: str) -> bool:
+    """Whether a provenance result names an address: exactly, or as a prefix with a trailing `*`."""
+    return address.startswith(pattern[:-1]) if pattern.endswith("*") else address == pattern
 
 
 def build_model(graph: Graph, data: dict[str, Any]) -> list[str]:
@@ -2992,6 +3016,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     placements = identity_projection(graph, content)
     link_texts(graph, reference_targets(content, graph, placements))
     publish_identities(graph, placements, guide["recordBase"])
+    attach_results(graph, guide["recordBase"])
 
     context: dict[str, Any] = {
         term: ESTABLISHED_TERMS.get(term, vocabulary_base + term) for term in [*ESTABLISHED_TERMS, *GUIDE_TERMS]

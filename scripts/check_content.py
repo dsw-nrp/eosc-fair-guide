@@ -27,6 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from build_crate import (  # noqa: E402
     BLOCK,
+    CHAMPION_SCOPE,
+    CROSSWALK_ID,
     LANGS,
     PAGE_FILE,
     PATH_LIFECYCLE,
@@ -1469,6 +1471,89 @@ def covered(pattern: str, item_id: str) -> bool:
     return item_id.startswith(pattern[:-1]) if pattern.endswith("*") else item_id == pattern
 
 
+# The kinds of the model's own records, by the family word of their content IDs (`layer.policy`).
+MODEL_FAMILIES = {"layer": "layers", "seam": "seams", "example": "model-examples"}
+
+
+def content_addresses(content: dict[str, Any]) -> dict[str, str]:
+    """The address the build publishes for each content ID provenance can name (design.md, decision 17): a record's
+    `<kind>/<id>` or `<kind>/<scope>/<id>`, a part's `<record>#<fragment>`, and `guide` for the Guide itself.
+    Provenance results and the freshness check name items by these addresses."""
+    found: dict[str, str] = {"guide": "guide"}
+
+    def put(content_id: str, address: str) -> None:
+        found.setdefault(content_id, address)
+
+    def kind_of(row: dict[str, Any], default: str) -> str:
+        try:
+            return parse_route(row.get("guideRoute") or default)[0]
+        except ValueError:  # a route of an earlier format, as in the merge base the freshness check reads
+            return default
+
+    for clause in content["ledger"]:
+        put(clause["id"], f"clauses/{clause['id']}")
+    for source in content["sources"]:
+        put(source["id"], f"{kind_of(source, 'resources')}/{source['id']}")
+    for data in content["stations"]:
+        put(data["station"]["id"], f"stations/{data['station']['id']}")
+        for advice in data.get("advice", []):
+            put(advice["id"], f"advice/{advice['id']}")
+    for data in content["checks"]:
+        put(f"check:{data['check']['id']}", f"checks/{data['check']['id']}")
+        for item in data.get("item", []):
+            put(item["id"], f"questions/{item['id']}")
+    for page in content["pages"]:
+        put(f"page:{page['id']}", f"pages/{page['id']}")
+    for callout in content["callouts"]:
+        put(f"callout:{callout['id']}", f"callouts/{callout['id']}")
+        for item in callout.get("item", []):
+            put(f"callout.{callout['id']}.{item['id']}", f"callouts/{callout['id']}#{item['id']}")
+    for term in content["glossary"].get("term", []):
+        put(f"term:{term['id']}", f"glossary/{term['id']}")
+    for test in content["live"].get("test", []):
+        put(f"test:{test['id']}", f"tests/guide/{test['id']}")
+    for test in content["live"].get("champion", {}).get("test", []):
+        put(f"test:{test['id']}", f"tests/{CHAMPION_SCOPE}/{test['id']}")
+    for provider in content["live"].get("provider", []):
+        for metric in provider.get("metric", []):
+            put(f"provider:{provider['id']}.{metric['id']}", f"tests/{provider['id']}/{metric['id']}")
+    for resource in content["resources"]:
+        # As the build issues it (record_route): a repository the Guide recommends is a repository, a registry a
+        # resource; a frozen guideRoute decides for an issued record.
+        listed = "repositories" if resource.get("repository") and resource.get("type") != "registry" else "resources"
+        put(resource["id"], f"{kind_of(resource, listed)}/{resource['id']}")
+    for repository in content["repositories"]:
+        put(repository["id"], f"repositories/{repository['id']}")
+    for organization in content["guide"].get("organization", []):
+        put("organization:" + organization["id"], f"organizations/{organization['id']}")
+    for action in content["provenance"]:
+        if action.get("id"):
+            put(f"action:{action['id']}", f"actions/{action['id']}")
+    model = (content.get("model") or {}).get("model") or {}
+    for key in model_items(content):
+        family, _, rest = key.partition(":") if ":" in key.split(".")[0] else key.partition(".")
+        if family == "model":
+            put(key, f"models/{model.get('id')}#worked-example" if rest == "worked-example" else f"models/{rest}")
+        elif family == "context":
+            station, lens = rest.split(":", 1)
+            put(key, f"stations/{station}#context-{lens}")
+        else:
+            put(key, f"{MODEL_FAMILIES[family]}/{rest}")
+    for key in lifecycle_items(content):
+        if key.startswith("lifecycle:"):
+            put(key, f"lifecycles/{key.removeprefix('lifecycle:')}")
+        elif key.startswith("crosswalk:"):
+            put(key, f"crosswalks/{CROSSWALK_ID}/{key.removeprefix('crosswalk:')}")
+        else:
+            model_id, _, stage = key.partition(".")
+            put(key, f"lifecycles/{model_id}/{stage}")
+    for item in (content.get("infrastructures") or {}).get("infrastructure", []):
+        put(f"infrastructure:{item['id']}", f"infrastructures/{item['id']}")
+    if (content.get("node") or {}).get("node"):
+        put("node:eosc-cz-node", "organizations/eosc-cz-node")
+    return found
+
+
 def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
     """Every identifier the guide issues, by kind, in content order. Terms, FIPs, FIP Dashboard records and external
     tests carry their registries' identifiers. Local tests have guide-issued IDs (docs/content-model.md)."""
@@ -1495,13 +1580,13 @@ def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
         "advice": [advice["id"] for data in content["stations"] for advice in data.get("advice", [])],
         "questions": [item["id"] for data in content["checks"] for item in data.get("item", [])],
         "tests": [test["id"] for test in content["live"].get("test", [])],
-        "requirements": [clause["id"] for clause in content["ledger"]],
+        "clauses": [clause["id"] for clause in content["ledger"]],
         "sources": [source["id"] for source in content["sources"]],
         "resources": [resource["id"] for resource in content["resources"]],
         "repositories": [repository["id"] for repository in content["repositories"]],
         "actions": [action["id"] for action in content["provenance"]],
-        "model": list(model_items(content)),
-        "lifecycle": list(lifecycle_items(content)),
+        "models": list(model_items(content)),
+        "lifecycles": list(lifecycle_items(content)),
     }
 
 
@@ -1533,6 +1618,7 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
     actions = content["provenance"]
     unique(report, "provenance", [action.get("id", "") for action in actions], "action")
     index = content_index(content)
+    addresses = content_addresses(content)
     cited = cited_ids(content)
     for action in actions:
         where = f"action:{action.get('id')}"
@@ -1549,8 +1635,10 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
             if index.get(obj) != "clause" and obj not in cited:
                 report.error(where, f"object '{obj}' is not a clause or source")
         for pattern in action.get("results", []):
-            if not any(covered(pattern, item_id) for item_id in index):
-                report.error(where, f"result '{pattern}' matches no item")
+            if not any(covered(pattern, address) for address in addresses.values()):
+                hint = addresses.get(pattern.removesuffix("*"))
+                form = f"write '{hint}'" if hint else "such as 'stations/plan' or 'advice/plan.*'"
+                report.error(where, f"result '{pattern}' matches no item; results name items by address, {form}")
         end_time = action.get("endTime")
         if not isinstance(end_time, datetime) or end_time.tzinfo is None:
             report.error(where, "endTime must be a date-time with a time zone")
@@ -2093,7 +2181,8 @@ def provider_criteria(content: dict[str, Any]) -> dict[str, Any]:
 
 
 def provenance_items(content: dict[str, Any]) -> dict[str, tuple[str, Any]]:
-    """Every item provenance must cover, with its kind and content: the guide's metadata, clauses, advice, questions,
+    """Every item provenance must cover, by its address, with its kind and content: the guide's metadata, clauses,
+    advice, questions,
     resources, sources, pages, curated repositories, callouts and their items, tests, external evaluators' criteria,
     organisations, infrastructures, the node, the model and the life-cycle models. Mandatory
     coverage and freshness both read this one list, so a kind whose changes are compared is never a kind no action has
@@ -2137,7 +2226,8 @@ def provenance_items(content: dict[str, Any]) -> dict[str, tuple[str, Any]]:
         if base is None:
             kind, base = "source", next((item for item in content["sources"] if item["id"] == target), None)
         items[target] = (kind, {"item": base, "modelAssociation": association})
-    return items
+    addresses = content_addresses(content)
+    return {addresses.get(key, key): value for key, value in items.items()}
 
 
 def item_fingerprints(content: dict[str, Any]) -> dict[str, str]:

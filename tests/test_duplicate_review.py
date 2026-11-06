@@ -113,7 +113,8 @@ class LocalRepairTests(fixtures.FixtureCase):
         provenance = (self.root / "content/provenance.toml").read_text(encoding="utf-8")
         action = tomllib.loads(provenance)["action"][-1]
         self.assertEqual(
-            (action["agent"], action["instruments"], action["results"]), ("tester", ["duplicate-fix"], ["service"])
+            (action["agent"], action["instruments"], action["results"]),
+            ("tester", ["duplicate-fix"], ["resources/service"]),
         )
         register = tomllib.loads((self.root / "content/identifiers.toml").read_text(encoding="utf-8"))
         self.assertIn(action["id"], register["issued"]["actions"])
