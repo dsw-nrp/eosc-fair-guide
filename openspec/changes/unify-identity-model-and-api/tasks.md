@@ -78,7 +78,7 @@ its head in CI.
   `python scripts/check_all.py --only docs agent-generation agent-ownership` passes.
 - [x] 2.11 Add the `[Unreleased]` breaking lines to `CHANGELOG.md` for addresses, routes, the reference syntax and
   the namespace. Verify: `python scripts/check_all.py --only changelog` passes.
-- [ ] 2.12 Validate the content's `baseUrl` also when `FAIR_GUIDE_BASE_URL` gives the build its publication
+- [x] 2.12 Validate the content's `baseUrl` also when `FAIR_GUIDE_BASE_URL` gives the build its publication
   location. Verify: `tests/test_scripts.py`'s HTTPS test passes with the variable set, as in CI, and without it.
 - [ ] 2.13 Publish re3data's repository rows and the FAIRsharing and DataCite annotations as `#re3data`,
   `#fairsharing` and `#datacite` records, with the winning values on the thing in the documented order, a repository

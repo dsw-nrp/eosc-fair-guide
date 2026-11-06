@@ -491,14 +491,16 @@ def apply_base_url(guide: dict[str, Any]) -> None:
     publication location instead of the content's `baseUrl`; nothing overrides the namespace. Content from before the
     setting existed named its terms under its own `baseUrl`, so that value, never the environment, is its namespace."""
 
-    def resolved(key: str, value: str | None) -> str:
+    def resolved(label: str, value: str | None) -> str:
         try:
             return publication_base(value or "")
         except ValueError as error:
-            raise ContentError(f"guide.{key}: {error}") from error
+            raise ContentError(f"{label}: {error}") from error
 
-    namespace = resolved("namespace", guide.get("namespace") or guide.get("baseUrl"))
-    guide["pageUrl"] = resolved("baseUrl", os.environ.get(BASE_URL_ENV) or guide.get("baseUrl"))
+    namespace = resolved("guide.namespace", guide.get("namespace") or guide.get("baseUrl"))
+    content_base = resolved("guide.baseUrl", guide.get("baseUrl"))
+    environment_base = os.environ.get(BASE_URL_ENV)
+    guide["pageUrl"] = resolved(BASE_URL_ENV, environment_base) if environment_base else content_base
     guide["vocabularyBase"] = namespace + "terms#"
     guide["recordBase"] = namespace + "id/"
     guide["profile"] = f"{namespace}profile/{guide.get('profileVersion', '')}"
