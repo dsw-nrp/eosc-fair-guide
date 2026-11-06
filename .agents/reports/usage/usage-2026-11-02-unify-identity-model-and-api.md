@@ -117,7 +117,7 @@
 
 ## Claude Code session (M1 review follow-up)
 
-- **When:** 2026-11-06 (+01:00)
+- **When:** 2026-11-06 to 2026-11-07 (+01:00)
 - **Agent / runtime:** Claude Code (VS Code extension)
 - **Model / backend:** claude-opus-5-5
 - **Subagents used:** none
@@ -127,7 +127,8 @@
   `openspec-apply-change unify-identity-model-and-api`; delivered `aiscr-planning-core`,
   `aiscr-quality-first-execution`, `aiscr-usage-logging` and `aiscr-model-logging` rules; the native
   `fair-guide-content` and `fair-guide-surfaces` rules; `scripts/generate_agent_surfaces.py`; the change's own
-  `migration/migrate.py`; local Playwright checks; `gh pr checks` and `gh run view` for the PR's CI.
+  `migration/migrate.py`; local Playwright checks and inspection screenshots; `gh pr view`, `gh pr checks` and
+  `gh run view` for the PR's CI; `git push` of the branch after the maintainer approved it.
 - **What:**
   - Folded the review into the change (`05e6bed`): every registry alike, named agents, registries as resources,
     unlabelled chips and credited sources, address fields, a kind-keyed register, no compatibility names, no
@@ -144,20 +145,28 @@
       registries among the resources and the family "Repozitáře" / "Repositories";
     - citations of the change removed from code and tests, with a check in `check_docs.py`; docs, the native
       rule and its mirrors, and the changelog.
+  - Task 2.15 in `4ec293f`, after the maintainer chose a fragment of its own for the FIP Dashboard's
+    organisation records: named agents resolve to the one thing of that name; organisation records join only by
+    ROR or a reviewed handle, as `#fip-dashboard-organization`; eLTER RI's KNAV record joins its infrastructure;
+    the duplicate check reports shared names outside a `[[distinct]]` group (CNC, CSDA, DSW). The design,
+    the knowledge-base delta and task 2.15 record the decision.
+  - Task 2.24 in `e9088f2`: inspected the catalogue, records of nine kinds and the identifier page in Czech and
+    English at 390 and 1280 pixels and in print; fixed the credited catalogues running together and chips
+    printing their address twice; the migration's action now describes the whole pull request.
 - **Impacted:** `assets/` (`js/core.js`, `js/views.js`, `js/catalogue.js`, `js/catalogue-view.js`,
   `css/app.css`), `content/` (`guide.toml`, `identifiers.toml`, `model.toml`, `pages.toml`, `provenance.toml`,
-  `ui.toml`), `scripts/` (`build_crate.py`, `catalogue_identity.py`, `check_content.py`, `check_docs.py`,
+  `ui.toml`, `infrastructures.toml`, `resources.toml`, `duplicates.toml`), `scripts/` (`build_crate.py`,
+  `catalogue_identity.py`, `check_content.py`, `check_docs.py`,
   `check_duplicates.py`, `duplicate_repairs.py`, `refresh_snapshots.py`), `tests/`, `docs/` (`content-model.md`,
   `design.md`), `CHANGELOG.md`, `.agents/guide/rules/fair-guide-content.md` and its generated mirrors and
   `CODEX.md` region, `openspec/changes/unify-identity-model-and-api/` (all artifacts, `migration/`); this entry.
-- **Verification:** `python scripts/check_all.py` passes 36 of 36 checks on `cc12724`; the live checks were not
-  run. `migration/test_migrate.py` passes 10 of 10, including the guard that no script, test or page script names
-  an earlier form, and a second migration run changes nothing. `npx openspec validate
-  unify-identity-model-and-api --strict` passes. The unit lane passes locally with CI's `FAIR_GUIDE_BASE_URL`.
-- **Close-out:** 23 of 55 tasks are complete. Task 2.15 (named agents) waits for a maintainer decision: an
-  organisation and its eponymous service are one node, and four of them (DataCite, FAIRsharing, ORCID, Creative
-  Commons) would hold two FIP Dashboard records under one fragment. Task 2.24 needs CI on the PR's head; nothing
-  is pushed yet.
+- **Verification:** `python scripts/check_all.py` passes 36 of 36 checks on `e9088f2`; the live checks were not
+  run. CI passes in full on the PR's head `4ec293f` (and on `06bacfe` before it). `migration/test_migrate.py`
+  passes 10 of 10, including the guard that no script, test or page script names an earlier form, and a second
+  migration run changes nothing. `npx openspec validate unify-identity-model-and-api --strict` passes. The
+  inspection found no page error and no horizontal overflow in 48 views.
+- **Close-out:** M1 is complete (25 of 55 tasks); its last commits are pushed to the PR, whose head CI checks.
+  M2 (tasks 3.1 to 3.9) is next.
 - **Corrections:** the maintainer's review asked to drop the migration instrument, to keep change-specific
   references out of durable prose, to keep one pull request, to name register entries by kind instead of keeping
   names for share links, and to credit every catalogue that supplied an entry.

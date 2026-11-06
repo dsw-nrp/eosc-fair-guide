@@ -127,7 +127,7 @@ its head in CI.
 - [x] 2.23 Update `docs/content-model.md`, `docs/design.md`, the native content rule (regenerated) and
   `CHANGELOG.md` for tasks 2.13 to 2.22. Verify: `python scripts/check_all.py --only docs agent-generation
   agent-ownership changelog` passes.
-- [ ] 2.24 Inspect the catalogue, a record of each kind and the identifier input in Czech and English, at phone width
+- [x] 2.24 Inspect the catalogue, a record of each kind and the identifier input in Czech and English, at phone width
   and in print. Then run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull
   request's head.
 
