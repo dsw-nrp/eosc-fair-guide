@@ -147,7 +147,7 @@ its head in CI.
 
 ## 3. One graph model (M2)
 
-- [ ] 3.1 Model every controlled term as a `DefinedTerm` in one `DefinedTermSet`, with membership stated once.
+- [x] 3.1 Model every controlled term as a `DefinedTerm` in one `DefinedTermSet`, with membership stated once.
   Publish the SKOS alignment once in `terms/fair-guide.ttl`, and update `GUIDE_TERMS` with shapes or reasons
   (decision 6). Verify: a unit test finds no `skos:inScheme` on any instance and finds the alignment axioms in the
   vocabulary document; `python scripts/check_all.py --only content` passes.

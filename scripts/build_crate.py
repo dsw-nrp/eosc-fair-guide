@@ -791,28 +791,20 @@ def link_texts(graph: Graph, targets: dict[str, str]) -> None:
 
 
 def defined_terms(graph: Graph, set_id: str, set_name: str, prefix: str, items: list[dict[str, Any]]) -> list[str]:
-    """Add a named term set and its terms; return the term IDs. A set names its scheme both as a schema.org
-    DefinedTermSet and as a SKOS ConceptScheme, and each term is a DefinedTerm and a SKOS Concept, so the typing
-    sets are one vocabulary over named schemes."""
+    """Add a named term set and its terms; return the term IDs. Every term is a DefinedTerm in exactly one
+    DefinedTermSet, which it names with `inDefinedTermSet`; the set lists its terms in order. Their SKOS reading is
+    stated once, in the vocabulary document, so no instance carries a second type or membership."""
     term_ids = [f"#{prefix}-{item['id']}" for item in items]
-    graph.add(
-        {
-            "@id": f"#{set_id}",
-            "@type": ["DefinedTermSet", "skos:ConceptScheme"],
-            "name": set_name,
-            "hasDefinedTerm": refs(term_ids),
-        }
-    )
+    graph.add({"@id": f"#{set_id}", "@type": "DefinedTermSet", "name": set_name, "hasDefinedTerm": refs(term_ids)})
     for item, term_id in zip(items, term_ids, strict=True):
         graph.add(
             {
                 "@id": term_id,
-                "@type": ["DefinedTerm", "skos:Concept"],
+                "@type": "DefinedTerm",
                 "termCode": item["id"],
                 "name": text(item.get("name") or item.get("label")),
                 "description": text(item.get("description")),
                 "inDefinedTermSet": ref(f"#{set_id}"),
-                "skos:inScheme": ref(f"#{set_id}"),
             }
         )
     return term_ids
@@ -1008,14 +1000,26 @@ def build_instruments(graph: Graph, guide: dict[str, Any]) -> None:
 
 
 def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
-    for lens in guide.get("lens", []):
+    # A lens is a term of the lens set like any other controlled term, and also an Audience, which `audience` needs.
+    lenses = guide.get("lens", [])
+    graph.add(
+        {
+            "@id": "#lenses",
+            "@type": "DefinedTermSet",
+            "name": "Reader lenses",
+            "hasDefinedTerm": refs([f"#lens-{lens['id']}" for lens in lenses]),
+        }
+    )
+    for lens in lenses:
         graph.add(
             {
                 "@id": f"#lens-{lens['id']}",
-                "@type": "Audience",
+                "@type": ["DefinedTerm", "Audience"],
+                "termCode": lens["id"],
                 "name": text(lens["name"]),
                 "audienceType": lens["id"],
                 "description": text(lens.get("description")),
+                "inDefinedTermSet": ref("#lenses"),
             },
             f"lens:{lens['id']}",
         )
@@ -3299,10 +3303,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         term: ESTABLISHED_TERMS.get(term, vocabulary_base + term) for term in [*ESTABLISHED_TERMS, *GUIDE_TERMS]
     }
     context["isImplementationOf"] = "https://semanticscience.org/resource/SIO_000233"
-    context["skos:Concept"] = SKOS + "Concept"
     context[CATALOG_RECORD] = DCAT + "CatalogRecord"
-    context["skos:ConceptScheme"] = SKOS + "ConceptScheme"
-    context["skos:inScheme"] = {"@id": SKOS + "inScheme", "@type": "@id"}
     context["publisher"] = DCTERMS + "publisher"
     context["attributedTo"] = PROV + "wasAttributedTo"
     return {"@context": [f"{RO_CRATE}/context", context], "@graph": list(graph.entities.values())}
@@ -4804,6 +4805,15 @@ def outputs(
 
 PROFILE_PAGE = re.compile(r"^profile/[^/]+/index\.html$")
 VOCABULARY_FILE = "terms/fair-guide.ttl"
+# How the Guide's controlled vocabularies read in SKOS, stated once for every term and set rather than on each
+# instance. These are subclass and subproperty axioms in the Guide's own document, never equivalences.
+SKOS_ALIGNMENT = (
+    "# Every controlled term of the Guide is a schema:DefinedTerm in one schema:DefinedTermSet. These axioms let a",
+    "# SKOS consumer read them as concepts in schemes; they state no equivalence between the two vocabularies.",
+    "schema:DefinedTerm rdfs:subClassOf skos:Concept .",
+    "schema:DefinedTermSet rdfs:subClassOf skos:ConceptScheme .",
+    "schema:inDefinedTermSet rdfs:subPropertyOf skos:inScheme .",
+)
 
 
 def turtle_text(value: str) -> str:
@@ -4828,10 +4838,14 @@ def vocabulary_document(guide: dict[str, Any]) -> str:
         "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
         "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .",
         "@prefix owl: <http://www.w3.org/2002/07/owl#> .",
+        f"@prefix schema: <{SCHEMA}> .",
+        f"@prefix skos: <{SKOS}> .",
         "",
         f"<{base.rstrip('#')}> a owl:Ontology ;",
         '    rdfs:label "EOSC CZ FAIR guide vocabulary"@en ;',
         '    rdfs:comment "The guide\'s own terms, with the established term each specializes."@en .',
+        "",
+        *SKOS_ALIGNMENT,
         "",
     ]
     for term, definition in GUIDE_TERMS.items():
@@ -4982,7 +4996,9 @@ def vocabulary_page(root: Path, guide: dict[str, Any]) -> dict[str, str]:
       terms below are the ones it introduces itself. Each has its own address here —
       <code>&lt;address&gt;terms#&lt;term&gt;</code> — which opens its entry, and declares the broader established
       term it specializes (or why none exists), the domain it is used on and its range. Machine readers use the
-      <a href="{VOCABULARY_FILE}" type="text/turtle">Turtle document</a>.</p>{"".join(sections)}
+      <a href="{VOCABULARY_FILE}" type="text/turtle">Turtle document</a>. Every controlled term the guide publishes
+      is a <code>schema:DefinedTerm</code> in one <code>schema:DefinedTermSet</code>; the Turtle document also states,
+      once, how they read as SKOS concepts in schemes.</p>{"".join(sections)}
       <p><a href="../">The FAIR Data Guide</a></p>
     </main>
   </body>

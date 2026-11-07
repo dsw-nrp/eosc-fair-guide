@@ -63,7 +63,7 @@ const cataloguePath = (kind, id) => {
 const uiStrings = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).ui;
 const isUiKey = (token) => token.split(".").reduce((node, part) => (node && typeof node === "object" ? node[part] : undefined), uiStrings) !== undefined;
 const stations =graph.filter((e) => e["@type"] === "HowToSection").map((e) => e.identifier);
-const lenses = graph.filter((e) => e["@type"] === "Audience" && String(address(e)).startsWith("vocabularies/lenses/")).map((e) => e.audienceType);
+const lenses = graph.filter((e) => [].concat(e["@type"]).includes("Audience") && String(address(e)).startsWith("vocabularies/lenses/")).map((e) => e.audienceType);
 /** The result so far must stay short and never scroll on its own. */
 const panelFits = (page) =>
   page.evaluate(() => {

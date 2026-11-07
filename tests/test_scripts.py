@@ -557,6 +557,28 @@ class GeneratorTests(FixtureCase):
         for target in targets:
             self.assertIn(target.split("/", 1)[0], KINDS, target)
 
+    def test_every_controlled_term_is_in_one_set_and_its_skos_reading_is_stated_once(self) -> None:
+        content = build_crate.load_content()
+        crate = build_crate.build_crate(content)
+        entities = {entity["@id"]: entity for entity in crate["@graph"]}
+        self.assertFalse([key for key in crate["@context"][1] if key.startswith("skos:")])
+        terms = [entity for entity in entities.values() if "DefinedTerm" in build_crate.as_list(entity.get("@type"))]
+        self.assertGreater(len(terms), 100)
+        for entity in entities.values():
+            self.assertNotIn("skos:inScheme", entity, entity["@id"])
+            self.assertFalse([kind for kind in build_crate.as_list(entity.get("@type")) if kind.startswith("skos:")])
+        for term in terms:
+            sets = build_crate.as_list(term.get("inDefinedTermSet"))
+            self.assertEqual(len(sets), 1, f"{term['@id']} belongs to one set")
+            self.assertIn("DefinedTermSet", build_crate.as_list(entities[sets[0]["@id"]]["@type"]), term["@id"])
+        # A lens is a term of the lens set, and an Audience as `audience` requires.
+        lens = entities[iri("vocabularies/lenses/V")]
+        self.assertEqual(set(build_crate.as_list(lens["@type"])), {"DefinedTerm", "Audience"})
+        self.assertEqual(lens["inDefinedTermSet"], {"@id": iri("vocabularies/lenses")})
+        document = build_crate.vocabulary_document(content["guide"]["guide"])
+        self.assertIn("schema:DefinedTerm rdfs:subClassOf skos:Concept .", document)
+        self.assertIn("schema:inDefinedTermSet rdfs:subPropertyOf skos:inScheme .", document)
+
     def test_a_page_section_is_named_by_its_own_id_never_by_its_position(self) -> None:
         """Reordering a page moves no section's IRI, reference or shared link: its fragment is the id it carries."""
         content = build_crate.load_content()
