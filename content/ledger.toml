@@ -883,7 +883,7 @@ locator = "kap. 3, I3, Požadavky na repozitáře"
 principles = ["I3"]
 actor = "repository"
 kind = "requirement"
-text = { cs = "Metadata uvádějí ORCID a ROR.", en = "Metadata include ORCID and ROR." }
+text = { cs = "Metadata uvádějí [[resources/orcid|ORCID]] a [[resources/ror|ROR]].", en = "Metadata include [[resources/orcid|ORCID]] and [[resources/ror|ROR]]." }
 guidance = "Podpora autoritních identifikátorů: Metadata musí umožňovat propojení na ORCID, ROR."
 guidanceLanguage = "cs"
 
@@ -1733,7 +1733,7 @@ locator = "Version 3.4, section 4.1"
 principles = ["F4"]
 actor = "repository"
 kind = "requirement"
-text = { cs = "Metadata se sklízejí do NMA podle CCMM.", en = "Metadata are harvested into NMA according to CCMM." }
+text = { cs = "Metadata se sklízejí do [[resources/nma|NMA]] podle [[resources/ccmm|CCMM]].", en = "Metadata are harvested into [[resources/nma|NMA]] according to [[resources/ccmm|CCMM]]." }
 guidance = "Technical setup of metadata harvesting into the NMD, in accordance with the Czech Core Metadata Model."
 guidanceLanguage = "en"
 

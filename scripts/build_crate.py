@@ -609,7 +609,10 @@ def resolve_requirements(content: dict[str, Any]) -> None:
             clause = clauses.get(item.get("requirement"))
             if clause is None:
                 continue
-            item.setdefault("statement", clause.get("text"))
+            if "statement" not in item:
+                # The content checks tell a question that takes its clause's text from one that copies it.
+                item["statement"] = clause.get("text")
+                item["statementFromRequirement"] = True
             item["sources"] = [clause["id"]] + [source for source in item.get("sources", []) if source != clause["id"]]
             item.setdefault("principles", linked.get(clause["id"], []))
 

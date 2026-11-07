@@ -161,6 +161,36 @@ class MigrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "section 1 of 'p' has no id and no reviewed one"):
             migrate.name_sections(self.root)
 
+    def test_a_question_that_copies_a_clause_takes_its_text_once(self) -> None:
+        gate = self.root / "content" / "checks" / "gate.toml"
+        text = gate.read_text(encoding="utf-8")
+        own = next(line for line in text.splitlines() if line.startswith("statement = "))
+        copy = (
+            'statement = { cs = "Repozitář přiděluje [[resources/report|PID]]", en = "The repository assigns PIDs." }'
+        )
+        gate.write_text(text.replace(own, copy), encoding="utf-8")
+        row = {"question": "gate.01", "clause": "A.F1.R1", "clauseText": {"cs": "Nový.", "en": "New."}}
+        reviewed = {"requirement": [row]}
+        with mock.patch.dict(migrate.STATEMENTS, reviewed):
+            migrate.merge_statements(self.root)
+            item = tomllib.loads(gate.read_text(encoding="utf-8"))["item"][0]
+            self.assertEqual(item["requirement"], "A.F1.R1")
+            self.assertNotIn("statement", item)
+            ledger = tomllib.loads((self.root / "content" / "ledger.toml").read_text(encoding="utf-8"))
+            self.assertEqual(ledger["clause"][0]["text"], {"cs": "Nový.", "en": "New."})
+            once = gate.read_text(encoding="utf-8")
+            migrate.merge_statements(self.root)
+            self.assertEqual(gate.read_text(encoding="utf-8"), once)
+        # Without a reviewed entry, a question drops only a copy of its own requirement in both languages; a copy in
+        # one language stays, for the content check to report.
+        shutil.copy2(FIXTURE / "content" / "ledger.toml", self.root / "content" / "ledger.toml")
+        partial = 'statement = { cs = "Repozitář přiděluje PID.", en = "Records receive identifiers." }'
+        with mock.patch.dict(migrate.STATEMENTS, {"requirement": []}):
+            for statement, kept in ((partial, True), (copy, False)):
+                gate.write_text(once.replace('requirement = "A.F1.R1"\n', f'requirement = "A.F1.R1"\n{statement}\n'))
+                migrate.merge_statements(self.root)
+                self.assertEqual(statement in gate.read_text(encoding="utf-8"), kept, statement)
+
     def test_references_name_records_by_address(self) -> None:
         bare = {"service": "resources"}
         text = "Use [[service|the service]], [[term:data|data]] and [[res/tool/github|GitHub]]."

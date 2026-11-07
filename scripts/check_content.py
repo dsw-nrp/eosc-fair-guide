@@ -911,7 +911,32 @@ def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set
 MAX_ACTIONS = 2
 
 
+def plain_statement(value: str) -> str:
+    """A statement as a reader compares it with a clause: its reference markup read as its phrase, without its final
+    punctuation."""
+    return REFERENCE.sub(lambda match: match["phrase"], value).strip().rstrip(".!?:;…").strip()
+
+
+def copied_clause(item: dict[str, Any], clauses: dict[str, dict[str, Any]]) -> tuple[str, list[str]] | None:
+    """The clause an authored statement copies, among those the question cites, with the languages it copies it in;
+    None for a statement of its own, or one the question takes from its requirement."""
+    statement = item.get("statement")
+    if item.get("statementFromRequirement") or not is_text(statement):
+        return None
+    cited = [item["requirement"]] if item.get("requirement") else []
+    cited += [source for source in item.get("sources", []) if source not in cited]
+    for clause_id in cited:
+        text = (clauses.get(clause_id) or {}).get("text")
+        if not is_text(text):
+            continue
+        same = [lang for lang in LANGS if plain_statement(str(statement[lang])) == plain_statement(str(text[lang]))]
+        if same:
+            return clause_id, same
+    return None
+
+
 def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], clause_ids: set[str]) -> None:
+    clauses = {clause.get("id"): clause for clause in content["ledger"]}
     item_ids: list[str] = []
     check_ids = [data["check"]["id"] for data in content["checks"]]
     unique(report, "checks", check_ids, "check")
@@ -962,6 +987,14 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
             if "requirement" in item and item["requirement"] not in clause_ids:
                 report.error(here, f"requirement names unknown clause '{item['requirement']}'")
             require_text(report, here, item.get("statement"), "statement")
+            # A question that asks what a clause it cites says takes that clause's text, so the text is written once.
+            copied = copied_clause(item, clauses)
+            if copied:
+                report.error(
+                    here,
+                    f"the statement copies clause {copied[0]} ({', '.join(copied[1])}); "
+                    "name the clause as its requirement and drop the statement",
+                )
             if item.get("help") is not None:
                 require_text(report, here, item.get("help"), "help")
             for principle in item.get("principles", []):

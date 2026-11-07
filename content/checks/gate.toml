@@ -25,7 +25,7 @@ label = { cs = "Samostatně provozovaný existující repozitář", en = "Indepe
 id = "gate.01"
 tier = "required"
 principles = ["F1"]
-statement = { cs = "Záznamy jsou citovatelné, mají PID a repozitář popisuje záruku jejich neměnnosti.", en = "Records are citable and have PIDs, and the repository describes how their immutability is guaranteed." }
+requirement = "NRP.M1"
 sources = ["NRP.M1"]
 fixAt = "publication"
 owner = ["repository-admin"]
@@ -103,7 +103,7 @@ prefill = { nkr = ["pidType"] }
 id = "gate.08"
 tier = "required"
 principles = ["F4"]
-statement = { cs = "Metadata se sklízejí do [[resources/nma|NMA]] podle [[resources/ccmm|CCMM]].", en = "Metadata are harvested into [[resources/nma|NMA]] according to [[resources/ccmm|CCMM]]." }
+requirement = "NRP.M8"
 sources = ["NRP.M8", "NMA-EXPORT-DOCS.01"]
 fixAt = "findability"
 owner = ["repository-admin"]
@@ -126,7 +126,7 @@ providedByNrp = ["core-system"]
 id = "gate.10"
 tier = "required"
 principles = []
-statement = { cs = "Systém loguje do centrálního logování.", en = "The system logs to central logging." }
+requirement = "NRP.M10"
 sources = ["NRP.M10", "NRP.EXT", "OS2-KB1.03"]
 fixAt = "repository"
 owner = ["repository-admin"]

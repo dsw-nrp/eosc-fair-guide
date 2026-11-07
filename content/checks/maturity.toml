@@ -146,7 +146,7 @@ prefill = { nkr = ["controlledVocabulary"], champion = ["fc_metadata_uses_fair_v
 id = "maturity.14"
 tier = "recommended"
 principles = ["I2", "I3"]
-statement = { cs = "Metadata obsahují [[resources/orcid|ORCID]] a [[resources/ror|ROR]].", en = "Metadata include [[resources/orcid|ORCID]] and [[resources/ror|ROR]]." }
+requirement = "A.I3.R2"
 sources = ["A.I2.R2", "A.I3.R2"]
 fixAt = "metadata"
 owner = ["repository-admin"]

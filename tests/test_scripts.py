@@ -1180,6 +1180,23 @@ class ContentCheckTests(FixtureCase):
         build_crate.build_crate(content, graph)
         self.assertEqual(graph.resolve(["guide"]), ["./"])
 
+    def test_a_statement_that_copies_a_cited_clause_is_refused(self) -> None:
+        own = (
+            'statement = { cs = "Záznamy dostávají trvalé identifikátory.", '
+            'en = "Records receive persistent identifiers." }'
+        )
+        # The copy differs from the clause only by its final punctuation and reference markup, in one language.
+        self.edit("checks/gate.toml", own, 'statement = { cs = "Repozitář přiděluje PID", en = "Records get IDs." }')
+        self.assertError("item:gate.01: the statement copies clause A.F1.R1 (cs); name the clause as its requirement")
+        # Named as its requirement, the clause gives the question its text and its first source.
+        self.edit("checks/gate.toml", 'statement = { cs = "Repozitář přiděluje PID", en = "Records get IDs." }\n', "")
+        self.edit("checks/gate.toml", 'principles = ["F1"]\n', 'principles = ["F1"]\nrequirement = "A.F1.R1"\n')
+        self.assertFalse([error for error in self.errors() if error.startswith("item:gate.01")], self.errors())
+        crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
+        question = next(entity for entity in crate["@graph"] if entity["@id"] == iri("questions/gate.01"))
+        self.assertIn({"@value": "The repository assigns PIDs.", "@language": "en"}, question["text"])
+        self.assertEqual(build_crate.as_list(question["citation"])[0], {"@id": iri("clauses/A.F1.R1")})
+
     def test_champion_evidence_only_contract(self) -> None:
         self.edit(
             "checks/gate.toml", 'champion = ["test_one"] }', 'champion = ["test_one"] }\nchampionEvidenceOnly = true'
@@ -2549,7 +2566,8 @@ class DuplicateTests(FixtureCase):
         self.append(
             "checks/gate.toml",
             '\n[[item]]\nid = "gate.02"\ntier = "required"\nprinciples = ["F1"]\n'
-            'statement = { cs = "Repozitář přiděluje PID.", en = "The repository assigns PIDs." }\n'
+            'statement = { cs = "Záznamy dostávají trvalé identifikátory.", '
+            'en = "Records receive persistent identifiers." }\n'
             'sources = ["A.F1.R1"]\n',
         )
         self.assertDuplicate("item:gate.01: describes one thing with item:gate.02")

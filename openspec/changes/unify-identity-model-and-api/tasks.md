@@ -163,7 +163,7 @@ its head in CI.
 - [x] 3.5 Publish pre-fill mappings as `fg:PrefillMapping` and read them on the page (decision 9). Verify: a unit test
   finds `dataset.01`'s DataCite mapping with field and coverage; the catalogue scenario *A check question shows how it
   is answered* passes in `npm run check:page`.
-- [ ] 3.6 Make the content check reject copied statements. Migrate the 55 questions through `requirement`: the 51 that
+- [x] 3.6 Make the content check reject copied statements. Migrate the 55 questions through `requirement`: the 51 that
   copy their `requirement` clause drop `statement`, and `gate.01`, `gate.08`, `gate.10` and `maturity.14` gain
   `requirement` and drop theirs. Move `maturity.14`'s references into `A.I3.R2` (decision 10). Verify:
   - unit tests cover the rejection and the build output for a question without a `statement`;

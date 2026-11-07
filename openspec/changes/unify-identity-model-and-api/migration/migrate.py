@@ -15,6 +15,9 @@ with the same script. Steps:
 - page sections: a section without an ``id`` took its position as its fragment, which moved whenever its page was
   reordered; each takes its reviewed ``id`` from ``ids.toml``, found by its page, its position and its English
   heading, and a section that has an ``id`` keeps it;
+- question statements: a question that copies its requirement clause in both languages drops its copy and takes the
+  clause's text; one that copies a clause among its sources names it as its requirement first (``statements.toml``),
+  and a clause takes the references the copy carried where that table says so;
 - routes: stored ``guideRoute`` values, through the reviewed ``[routes]`` table in ``routes.toml``;
 - references: every prose reference ``[[target|phrase]]`` to its one form, ``[[<kind>/<id>|phrase]]``. The word
   forms (``term:``, ``page:``, ``station:``, ``clause:``, ``infrastructure:``), the code addresses (``res/srv/``,
@@ -59,9 +62,9 @@ ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import register_ids  # noqa: E402
-from build_crate import Graph, build_crate, load_content, result_covers  # noqa: E402
+from build_crate import LANGS, Graph, build_crate, load_content, result_covers  # noqa: E402
 from catalogue_identity import KINDS, RECORD_KINDS, parse_route, source_scheme, validate_identity  # noqa: E402
-from check_content import content_addresses, walk  # noqa: E402
+from check_content import content_addresses, copied_clause, walk  # noqa: E402
 
 TABLES = tomllib.loads((HERE / "routes.toml").read_text(encoding="utf-8"))
 ROUTES: dict[str, str] = TABLES["routes"]
@@ -248,6 +251,64 @@ def rename(work: Path) -> None:
         path.write_text(
             pattern.sub(lambda match, names=names: names[match[0]], path.read_text(encoding="utf-8")), encoding="utf-8"
         )
+
+
+STATEMENTS = tomllib.loads((HERE / "statements.toml").read_text(encoding="utf-8"))
+ITEM = re.compile(r"(?m)(?=^\[\[item\]\]\s*$)")
+STATEMENT_LINE = re.compile(r"(?m)^statement = \{[^\n]*\}\n")
+
+
+def inline_text(value: dict[str, str]) -> str:
+    """A bilingual text as the content writes it, on one line."""
+    return "{ " + ", ".join(f"{lang} = {json.dumps(value[lang], ensure_ascii=False)}" for lang in ("cs", "en")) + " }"
+
+
+def merge_statements(work: Path) -> None:
+    """A question that copies a clause it cites takes that clause's text instead: one that copies its requirement
+    drops its copy, and one that copies a clause among its sources (``statements.toml``) names it as its requirement
+    first. A clause takes the references a question's copy carried where the table says so."""
+    reviewed = {row["question"]: row for row in STATEMENTS.get("requirement", [])}
+    ledger_path = work / "content" / "ledger.toml"
+    if not ledger_path.exists():
+        return
+    ledger = ledger_path.read_text(encoding="utf-8")
+    for row in reviewed.values():
+        if "clauseText" not in row:
+            continue
+        blocks = ROW.split(ledger)
+        for index, block in enumerate(blocks):
+            if block.startswith("[[clause]]") and tomllib.loads(block)["clause"][0]["id"] == row["clause"]:
+                blocks[index] = re.sub(
+                    r"(?m)^text = \{[^\n]*\}$",
+                    lambda _match, row=row: "text = " + inline_text(row["clauseText"]),
+                    block,
+                    count=1,
+                )
+        ledger = "".join(blocks)
+    tomllib.loads(ledger)
+    ledger_path.write_text(ledger, encoding="utf-8", newline="\n")
+    clauses = {clause["id"]: clause for clause in tomllib.loads(ledger).get("clause", [])}
+    for path in sorted((work / "content" / "checks").glob("*.toml")):
+        blocks = ITEM.split(path.read_text(encoding="utf-8"))
+        for index, original in enumerate(blocks):
+            if not original.startswith("[[item]]"):
+                continue
+            block = original
+            item = tomllib.loads(block)["item"][0]
+            # A reviewed entry applies where its clause exists; a content fixture may hold neither.
+            row = reviewed.get(item.get("id")) if reviewed.get(item.get("id"), {}).get("clause") in clauses else None
+            if row and "requirement" not in item:
+                anchor = re.search(r"(?m)^principles = [^\n]*\n", block) or re.search(r"(?m)^id = [^\n]*\n", block)
+                block = block[: anchor.end()] + f"requirement = {json.dumps(row['clause'])}\n" + block[anchor.end() :]
+                item["requirement"] = row["clause"]
+            if item.get("statement") and item.get("requirement"):
+                copied = copied_clause(dict(item, sources=[]), clauses)
+                if row or (copied and copied[1] == list(LANGS)):
+                    block = STATEMENT_LINE.sub("", block, count=1)
+            blocks[index] = block
+        text = "".join(blocks)
+        tomllib.loads(text)  # the result stays valid TOML
+        path.write_text(text, encoding="utf-8", newline="\n")
 
 
 PAGE = re.compile(r"(?m)(?=^\[\[page\]\]\s*$)")
@@ -514,6 +575,7 @@ def run(work: Path) -> None:
         rename(work)
     renormalise_snapshots(work)
     name_sections(work)
+    merge_statements(work)
     before = field_texts(work)
     bare = bare_kinds(work)
     for path in authored_files(work):

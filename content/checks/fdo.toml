@@ -30,7 +30,6 @@ icon = "server"
 id = "fdo.01"
 principles = ["F1", "A1"]
 requirement = "FDO.FDOR-GR1"
-statement = { cs = "Každý posuzovaný FDO má jeden nebo více celosvětově jednoznačných, trvalých a resolvovatelných identifikátorů (PID).", en = "Each assessed FDO has one or more globally unique, persistent and resolvable identifiers (PIDs)." }
 tier = "basic"
 block = "general"
 fixAt = "metadata"
@@ -42,7 +41,6 @@ help = { cs = "Ověřte, který objekt PID označuje a zda jej lze resolvovat. S
 id = "fdo.02"
 principles = ["A1", "I1"]
 requirement = "FDO.FDOR-GR2"
-statement = { cs = "PID vede na strukturovaný záznam podle určeného profilu PID, který umožňuje programu dohledat FDO a jeho prvky.", en = "The PID resolves to a structured record conforming to a specified PID profile, enabling a program to locate the FDO and its elements." }
 tier = "basic"
 block = "general"
 fixAt = "metadata"
@@ -54,7 +52,6 @@ help = { cs = "Vyžádejte si záznam PID a jeho profil. Běžná webová strán
 id = "fdo.03"
 principles = ["A1", "I3"]
 requirement = "FDO.FDOR-GR3"
-statement = { cs = "Obsahuje-li FDO strukturovanou posloupnost bitů, záznam PID odkazuje na místo jejího zpřístupnění a na definici typu FDO.", en = "If the FDO contains a structured bit-sequence, its PID record references the content’s access location and the FDO type definition." }
 tier = "basic"
 block = "general"
 fixAt = "metadata"
@@ -66,7 +63,6 @@ help = { cs = "Posloupností bitů může být soubor s daty, metadaty nebo kód
 id = "fdo.04"
 principles = ["I1"]
 requirement = "FDO.FDO-GR4"
-statement = { cs = "Záznam PID obsahuje povinné atributy FDO; profil PID nebo definice atributu v registru určuje, které hodnoty jsou vložené a které odkazované.", en = "The PID record contains mandatory FDO attributes; the PID profile or registry attribute definition specifies which values are embedded and which are referenced." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -78,7 +74,6 @@ help = { cs = "Porovnejte záznam s profilem a definicemi atributů. Volitelné 
 id = "fdo.05"
 principles = ["A1"]
 requirement = "FDO.FDO-GR5"
-statement = { cs = "K FDO lze přistoupit nebo nad ním provést operaci protokolem rozhraní, který přijímá PID registrované podporované operace.", en = "An interface protocol allows access to or operation on the FDO by specifying the PID of a registered supported operation." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -90,7 +85,6 @@ help = { cs = "V dokumentaci rozhraní rozlište PID objektu a PID operace. Odka
 id = "fdo.06"
 principles = ["A1"]
 requirement = "FDO.FDO-GR6"
-statement = { cs = "Základní rozhraní FDO nabízí standardní operace vytvoření, čtení, změny a smazání (CRUD) a možnost využít rozšířené či oborové operace.", en = "The basic FDO interface offers standard create, read, update and delete (CRUD) operations and a way to use extended or domain operations." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -102,7 +96,6 @@ help = { cs = "Ověřte specifikaci rozhraní a doklady poskytovatele; kvůli t�
 id = "fdo.07"
 principles = ["I3"]
 requirement = "FDO.FDO-GR7"
-statement = { cs = "Vztahy mezi typy FDO a podporovanými operacemi jsou udržovány v samostatných registrech.", en = "Relationships between FDO types and supported operations are maintained in separate registries." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -114,7 +107,6 @@ help = { cs = "Požádejte poskytovatele o záznamy registrů, které spojují k
 id = "fdo.08"
 principles = ["I1", "I2"]
 requirement = "FDO.FDO-GR8"
-statement = { cs = "Jsou-li metadata sama FDO, jejich registrované schéma odkazuje na definované a registrované metadatové kategorie.", en = "If metadata are themselves FDOs, their registered schema refers to defined and registered metadata categories." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -125,7 +117,6 @@ help = { cs = "Specifikace připouští metadata jako samostatné FDO; netvrdí,
 [[item]]
 id = "fdo.09"
 requirement = "FDO.FDO-GR9"
-statement = { cs = "Metadata mohou mít různé druhy, například popisná, oborová, provenienční nebo metadata o přístupových právech.", en = "Metadata may be of different kinds, such as descriptive, domain-specific, provenance or access-permission metadata." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -138,7 +129,6 @@ context = true
 id = "fdo.10"
 principles = ["I2", "R1.3"]
 requirement = "FDO.FDO-GR10"
-statement = { cs = "Komunita spravuje metadatová schémata jako FDO; doporučení očekává, že i tato schémata naplňují principy FAIR.", en = "The community maintains metadata schemas as FDOs; the recommendation expects these schemas themselves to follow the FAIR principles." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -150,7 +140,6 @@ help = { cs = "Zjistěte, kdo schéma spravuje, jak je identifikováno a zpřís
 id = "fdo.11"
 principles = ["I1", "I3"]
 requirement = "FDO.FDO-GR11"
-statement = { cs = "Kolekce FDO je sama FDO a její obsah popisuje skladbu a vztahy členů dohodnutým formálním jazykem.", en = "An FDO collection is itself an FDO, and its content describes its construction and member relationships using an agreed formal language." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -162,7 +151,6 @@ help = { cs = "U kolekce prohlédněte formální popis členství a vztahů; je
 id = "fdo.12"
 principles = ["A2"]
 requirement = "FDO.FDO-GR12"
-statement = { cs = "Po smazání FDO zůstává jeho PID a standardizované, strojově interpretovatelné záznamy o smazání v metadatech i záznamu PID.", en = "After an FDO is deleted, its PID remains, with standardised, machine-interpretable tombstone notes in both metadata and PID records." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -174,7 +162,6 @@ help = { cs = "Prohlédněte pravidla mazání a existující nebo testovací z�
 id = "fdo.13"
 principles = ["I1"]
 requirement = "FDO.FDO-GR13"
-statement = { cs = "Výsledek resoluce PID a informace vrstvy FDO jsou strojově interpretovatelné a náležejí k typu, jehož operace jsou popsány symbolickou gramatikou.", en = "PID resolution results and FDO-layer information are machine-interpretable and belong to a type whose operations are specified in symbolic grammar." }
 tier = "basic"
 block = "general"
 fixAt = "metadata"
@@ -185,7 +172,6 @@ help = { cs = "Ověřte společně záznam, definici typu a formální specifika
 [[item]]
 id = "fdo.14"
 requirement = "FDO.FDO-GR14"
-statement = { cs = "Zvolená konfigurace FDO je v souladu se specifikacemi FDO; přípustné jsou různé konfigurace.", en = "The selected FDO configuration conforms to the FDO specifications; different configurations are permitted." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -197,7 +183,6 @@ help = { cs = "Porovnejte vlastnosti konfigurace s příslušnou specifikací. Z
 id = "fdo.15"
 principles = ["F1"]
 requirement = "FDO.FDO-GR15"
-statement = { cs = "Komunita určuje podrobnost samostatně identifikovaných FDO podle užitečnosti v daném oboru.", en = "The community determines the granularity of independently identified FDOs according to usefulness in its field." }
 tier = "advanced"
 block = "general"
 fixAt = "metadata"
@@ -209,7 +194,6 @@ help = { cs = "Zjistěte, co komunita považuje za užitečnou samostatnou jedno
 id = "fdo.16"
 principles = ["A1.1"]
 requirement = "FDO.FDO-PIDR1"
-statement = { cs = "Protokoly pro resoluci PID na užitečné informace jsou standardizované, volně přístupné a veřejně použitelné.", en = "Protocols resolving a PID to useful information are standardised, freely accessible and publicly usable." }
 tier = "advanced"
 block = "pid"
 fixAt = "metadata"
@@ -221,7 +205,6 @@ help = { cs = "Vyžádejte si specifikaci protokolu a podmínky jeho použití. 
 id = "fdo.17"
 principles = ["A1", "I1"]
 requirement = "FDO.FDO-PIDR2"
-statement = { cs = "Resoluce PID poskytuje předvídatelný výsledek určený strojově zpracovatelným profilem FDO.", en = "PID resolution yields predictable results specified by a machine-actionable FDO profile." }
 tier = "advanced"
 block = "pid"
 fixAt = "metadata"
@@ -233,7 +216,6 @@ help = { cs = "Porovnejte vrácený záznam s profilem, který určuje jeho stru
 id = "fdo.18"
 principles = ["I1", "I2"]
 requirement = "FDO.FDO-PIDR3"
-statement = { cs = "PID vede na páry atribut–hodnota podle profilu FDO; všechny atributy mají definice v otevřených registrech odpovídajících standardům FDO nebo komunity.", en = "The PID resolves to attribute–value pairs defined by the FDO profile; all attributes have definitions in open registries conforming to FDO or community standards." }
 tier = "advanced"
 block = "pid"
 fixAt = "metadata"
@@ -245,7 +227,6 @@ help = { cs = "Zkontrolujte nejen názvy polí, ale také jejich registrované d
 id = "fdo.19"
 principles = ["F1"]
 requirement = "FDO.FDO-PIDR4"
-statement = { cs = "Používaný systém PID je globální, robustní a škálovatelný a dokládá trvalost identifikátorů.", en = "The PID system in use is global, robust and scalable and demonstrates persistence." }
 tier = "advanced"
 block = "pid"
 fixAt = "metadata"
@@ -257,7 +238,6 @@ help = { cs = "Požádejte poskytovatele o doklady k provozu, kapacitě a závaz
 id = "fdo.20"
 principles = ["A1.2"]
 requirement = "FDO.FDO-PIDR5"
-statement = { cs = "Systém PID poskytuje vysokou úroveň zabezpečení; jen vlastník PID nebo jeho pověřený zástupce může měnit záznam, určit přístup k jeho hodnotám a požádat o šifrování.", en = "The PID system provides high security; only the PID owner or owner-delegated agent may change the record, define access to its values and request encryption." }
 tier = "advanced"
 block = "pid"
 fixAt = "metadata"
@@ -268,7 +248,6 @@ help = { cs = "Vyžádejte si pravidla oprávnění a popis bezpečnostních fun
 [[item]]
 id = "fdo.21"
 requirement = "FDO.FDO-PIDR6"
-statement = { cs = "Správa systému PID je zabezpečena infrastrukturou veřejných klíčů a v případě potřeby umožňuje použití standardizovaných certifikátů.", en = "PID-system management is secured by public-key infrastructure and supports standardised certificates where necessary." }
 tier = "advanced"
 block = "pid"
 fixAt = "metadata"
@@ -280,7 +259,6 @@ help = { cs = "Ověřte architekturu správy a zabezpečení u poskytovatele. Z�
 id = "fdo.22"
 principles = ["I1", "R1.3"]
 requirement = "FDO.FDO-FDOR1"
-statement = { cs = "Obsah každého záznamu FDO odpovídá profilu FDO a jeho schématu registrovanému v uznávaném registru.", en = "Each FDO record’s content conforms to an FDO profile and its schema registered in a recognised registry." }
 tier = "basic"
 block = "object"
 fixAt = "metadata"
@@ -292,7 +270,6 @@ help = { cs = "Prohlédněte záznam, odkaz na profil a registraci jeho schémat
 id = "fdo.23"
 principles = ["I1", "I2"]
 requirement = "FDO.FDO-FDOR2"
-statement = { cs = "Záznam FDO tvoří páry atribut–hodnota podle profilu; všechny použité atributy jsou definované a registrované podle schématu specifikace typů.", en = "The FDO record consists of profile-defined attribute–value pairs; every attribute in use is defined and registered according to the type specification schema." }
 tier = "advanced"
 block = "object"
 fixAt = "metadata"
@@ -304,7 +281,6 @@ help = { cs = "Porovnejte použité atributy s profilem a s jejich registrovaný
 id = "fdo.24"
 principles = ["I1"]
 requirement = "FDO.FDO-FDOR3"
-statement = { cs = "Záznam FDO obsahuje všechny povinné základní atributy profilu, včetně typu FDO.", en = "The FDO record contains all mandatory profile kernel attributes, including the FDO type." }
 tier = "basic"
 block = "object"
 fixAt = "metadata"
@@ -316,7 +292,6 @@ help = { cs = "Povinnou sadu určuje použitý profil. Ověřte její přítomno
 id = "fdo.25"
 principles = ["I1", "I2"]
 requirement = "FDO.FDO-FDOR4"
-statement = { cs = "Pokud záznam používá volitelné základní nebo další komunitní atributy, vychází z definic FDO Forum nebo registrovaných komunitních definic a zaručuje jejich strojové zpracování.", en = "If the record uses optional kernel or additional community attributes, it follows FDO Forum definitions or registered community definitions and guarantees machine actionability." }
 tier = "advanced"
 block = "object"
 fixAt = "metadata"
@@ -328,7 +303,6 @@ help = { cs = "Volitelné atributy nejsou povinnou částí každého záznamu. 
 id = "fdo.26"
 principles = ["F2", "A1"]
 requirement = "FDO.FDO-FDOR5"
-statement = { cs = "Pokud FDO zahrnuje bitové sekvence kódující jeho obsah, jeho atributy obsahují odkazy na tento obsah a bohatý metadatový popis.", en = "If the FDO includes bit-sequences encoding its content, its attributes contain references to the content and a rich metadata description." }
 tier = "advanced"
 block = "object"
 fixAt = "metadata"
@@ -340,7 +314,6 @@ help = { cs = "Prohlédněte obsah záznamu FDO a jeho odkazy; samotný odkaz ke
 id = "fdo.27"
 principles = ["I1"]
 requirement = "FDO.FDO-FDOR6"
-statement = { cs = "Každý FDO má typ FDO, který umožňuje automatickou validaci a zpracování.", en = "Each FDO has an FDO type facilitating automated validation and processing." }
 tier = "advanced"
 block = "object"
 fixAt = "metadata"
@@ -352,7 +325,6 @@ help = { cs = "Ověřte definici typu a jeho použití programem. MIME typ, př�
 id = "fdo.28"
 principles = ["I1"]
 requirement = "FDO.FDO-FDOR7"
-statement = { cs = "Každá zahrnutá posloupnost bitů, ať jde o data, metadata, software či jiný obsah, má typ uvedený párem typ–hodnota.", en = "Each included bit-sequence, whether data, metadata, software or other content, is typed using a type–value pair." }
 tier = "advanced"
 block = "object"
 fixAt = "metadata"
@@ -363,7 +335,6 @@ help = { cs = "Zkontrolujte typy jednotlivých zahrnutých částí, nejen ozna�
 [[item]]
 id = "fdo.29"
 requirement = "FDO.FDO-FDOR8"
-statement = { cs = "FDO může používat existující typ, typ odvozený z existujícího nebo zcela nově definovaný typ.", en = "An FDO may use an existing type, a type derived from an existing one or a completely newly defined type." }
 tier = "advanced"
 block = "object"
 fixAt = "metadata"
@@ -376,7 +347,6 @@ context = true
 id = "fdo.30"
 principles = ["I1", "I2"]
 requirement = "FDO.FDO-FDO9"
-statement = { cs = "Definice typu FDO používá dohodnutý syntaktický popis a sama je FDO v souladu s FAIR.", en = "The FDO type definition uses an agreed syntactic description and is itself a FAIR-compliant FDO." }
 tier = "advanced"
 block = "object"
 fixAt = "metadata"
@@ -388,7 +358,6 @@ help = { cs = "Prohlédněte formální definici typu. Může být strukturovan�
 id = "fdo.31"
 principles = ["F1", "A1"]
 requirement = "FDO.FDO-FDO10"
-statement = { cs = "Typ má PID, který vede na FDO obsahující jeho definici.", en = "The type has a PID resolving to the FDO containing its definition." }
 tier = "advanced"
 block = "object"
 fixAt = "metadata"
@@ -400,7 +369,6 @@ help = { cs = "Resolvujte PID typu a ověřte, že cílem je jeho definice. Iden
 id = "fdo.32"
 principles = ["I1"]
 requirement = "FDO.FDO-FDO11"
-statement = { cs = "Rámec typů FDO stanovuje metody pro definování typů a jejich přiřazování k FDO.", en = "The FDO Type Framework specifies methods for defining types and attaching them to FDOs." }
 tier = "advanced"
 block = "object"
 fixAt = "metadata"
@@ -413,7 +381,6 @@ context = true
 id = "fdo.33"
 principles = ["I3"]
 requirement = "FDO.FDO-RESR1"
-statement = { cs = "Všechny zdroje, na které FDO odkazuje, naplňují příslušné principy FAIR.", en = "All resources referenced by the FDO follow the applicable FAIR principles." }
 tier = "advanced"
 block = "resources"
 fixAt = "publication"
@@ -424,7 +391,6 @@ help = { cs = "Zahrňte odkazovaná data, metadata, definice i další zdroje. P
 [[item]]
 id = "fdo.34"
 requirement = "FDO.FDO-RESR2"
-statement = { cs = "Poskytovatelé zdrojů a služeb dokládají důvěryhodnost pravidelným posuzováním kvality postupů podle standardů, například CoreTrustSeal.", en = "Resource and service providers demonstrate trustworthiness by regularly assessing procedural quality against standards such as CoreTrustSeal." }
 tier = "advanced"
 block = "resources"
 fixAt = "publication"
