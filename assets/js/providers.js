@@ -761,7 +761,7 @@
     /** The questions of this check a criterion relates to, each leading to the question. */
     function questionLinks(check, st, assessment, metric) {
       const rows = P.mappings(P.provider(assessment.provider)).filter((row) => row.metric === metric);
-      const items = FG.refs(check, "hasPart");
+      const items = FG.questionsOf(check);
       const linked = rows.map((row) => ({ row, item: items.find((item) => item.identifier === row.question) })).filter((entry) => entry.item);
       if (!linked.length) return h("p", { class: "small muted criterion-questions" }, FG.t("selfcheck.providers.unmapped"));
       return h("p", { class: "small criterion-questions" }, FG.t("selfcheck.providers.relates") + ": ",

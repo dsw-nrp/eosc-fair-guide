@@ -102,7 +102,8 @@ class LocalTestRecords(unittest.TestCase):
                 self.assertTrue(codes, "current local tests have applicable existing principle links")
                 self.assertTrue(set(codes) <= known)
                 entity = self.entities[iri("tests/guide/" + test["id"])]
-                self.assertEqual(entity.get("about"), self.entities[iri("questions/") + test["question"]].get("about"))
+                question_entity = self.entities[iri("questions/") + test["question"]]
+                self.assertEqual(entity.get("about"), question_entity.get("inDimension"))
                 record = json.loads(self.files[f"api/tests/guide/{test['id']}.json"])
                 self.assertEqual(
                     build_crate.as_list(record["about"]),

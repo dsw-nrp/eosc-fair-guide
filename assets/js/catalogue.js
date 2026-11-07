@@ -135,7 +135,7 @@
     };
     const holders = FG.stations()
       .map((station) => [station, FG.refs(station, "itemListElement")])
-      .concat(FG.ofType("Quiz").map((check) => [check, FG.refs(check, "hasPart")]));
+      .concat(FG.ofType("Quiz").map((check) => [check, FG.questionsOf(check)]));
     for (const [holder, items] of holders) {
       for (const item of items) {
         for (const clause of FG.refs(item, "citation")) {
@@ -158,7 +158,7 @@
   /* The record fields each row draws, unless a card names its own: the catalogue's completeness test reads them from
      the row's `data-field`. */
   const ROW_FIELDS = {
-    principles: "about",
+    principles: "about inDimension",
     audience: "audience",
     fixedBy: "fixedBy",
     applies: "appliesTo allowsNotApplicable",
@@ -235,7 +235,7 @@
     }
     /* The Guide's own tests and the external evaluators' criteria, read from the question's end. */
     const prefilledBy = new Map();
-    for (const test of FG.graph.filter((entity) => FG.isRecord(entity, "tests") && entity.isImplementationOf)) {
+    for (const test of FG.graph.filter((entity) => FG.isRecord(entity, "tests") && !FG.isManualTest(entity) && entity.isImplementationOf)) {
       add(prefilledBy, FG.id(test.isImplementationOf), { entity: test });
     }
     for (const criterion of FG.graph.filter((entity) => FG.isCriterion(entity) && entity.hasPart)) {

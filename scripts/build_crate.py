@@ -254,6 +254,7 @@ SCHEMA = "http://schema.org/"
 DCTERMS = "http://purl.org/dc/terms/"
 DCAT = "http://www.w3.org/ns/dcat#"
 FOAF = "http://xmlns.com/foaf/0.1/"
+DQV = "http://www.w3.org/ns/dqv#"
 # A registry's record about one thing.
 CATALOG_RECORD = "dcat:CatalogRecord"
 ADMS = "http://www.w3.org/ns/adms#"
@@ -273,6 +274,10 @@ ESTABLISHED_TERMS: dict[str, str] = {
     "roadmapLocator": DCTERMS + "references",
     "abbreviation": SCHEMA + "alternateName",
     "primaryTopic": FOAF + "primaryTopic",
+    # A check is an FTR benchmark of its questions, each an FTR metric of the principles it measures.
+    "hasAssociatedMetric": FTR + "hasAssociatedMetric",
+    "hasBenchmark": FTR + "hasBenchmark",
+    "inDimension": DQV + "inDimension",
 }
 
 # The guide's own vocabulary: the terms the guide keeps in its namespace. Each declares the broader established
@@ -1404,12 +1409,13 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
             graph.add(
                 {
                     "@id": item_id,
-                    "@type": "Question",
+                    # A question is the FTR metric its manual test and any automated tests implement.
+                    "@type": ["Question", "ftr:Metric"],
                     "identifier": item["id"],
                     "text": text(item["statement"]),
                     "description": text(item.get("help")),
                     "position": order,
-                    "about": refs([principle_iri(principle) for principle in item.get("principles", [])]),
+                    "inDimension": refs([principle_iri(principle) for principle in item.get("principles", [])]),
                     "citation": refs(graph.resolve(item.get("sources", []))),
                     "tier": ref(f"#tier-{item['tier']}"),
                     "block": ref(f"#block-{check['id']}-{item['block']}") if item.get("block") else None,
@@ -1424,25 +1430,49 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
                     "prefillLevel": item.get("prefillLevel"),
                     "championEvidenceOnly": True if item.get("championEvidenceOnly") else None,
                     "lookup": ref(links[item["lookup"]]) if item.get("lookup") else None,
-                    "isPartOf": ref(check_id),
+                    "hasBenchmark": ref(check_id),
                 },
                 item["id"],
             )
         graph.add(
             {
                 "@id": check_id,
-                "@type": "Quiz",
+                # A check is the FTR benchmark its questions are the metrics of.
+                "@type": ["Quiz", "ftr:Benchmark"],
                 "identifier": check["id"],
                 "name": text(check["name"]),
                 "description": text(check.get("description")),
                 "audience": refs([f"#lens-{lens}" for lens in check.get("lenses", [])]),
                 "timeRequired": f"PT{check['minutes']}M" if check.get("minutes") else None,
                 "defaultProfile": ref(f"#profile-{check['defaultProfile']}") if check.get("defaultProfile") else None,
-                "hasPart": refs(item_ids),
+                "hasAssociatedMetric": refs(item_ids),
             },
             f"check:{check['id']}",
         )
     return check_ids
+
+
+def build_manual_tests(graph: Graph, checks: list[dict[str, Any]], strings: dict[str, Any]) -> list[str]:
+    """Each check question's manual test, an FTR test a person carries out by answering the question in the
+    self-check: `tests/self-check/<question>`, implementing the question as its metric."""
+    test_ids = []
+    for data in checks:
+        for item in data.get("item", []):
+            test_id = f"#selfcheck-test-{item['id']}"
+            description = strings["contextDescription"] if item.get("context") else strings["description"]
+            graph.add(
+                {
+                    "@id": test_id,
+                    "@type": "CreativeWork",
+                    "additionalType": FTR_TEST,
+                    "identifier": item["id"],
+                    "name": text({lang: template.format(id=item["id"]) for lang, template in strings["name"].items()}),
+                    "description": text(description),
+                    "isImplementationOf": ref(f"#item-{item['id']}"),
+                }
+            )
+            test_ids.append(test_id)
+    return test_ids
 
 
 def build_resources(
@@ -2546,7 +2576,8 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
                 "description": text(test["description"]),
                 "url": test["script"],
                 "isImplementationOf": ref(question_id),
-                "about": question.get("about"),
+                # A local test is about the principles its question measures.
+                "about": question.get("inDimension"),
                 "citation": question.get("citation"),
                 "hasPart": refs(files),
                 "subjectOf": ref(doc_id),
@@ -3164,6 +3195,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         graph.entities["#path"]["isBasedOn"] = ref(f"#lifecycle-{PATH_LIFECYCLE}")
     link_resources(graph, content["resources"])
     check_ids = build_checks(graph, content["checks"], content["live"].get("links", {}))
+    build_manual_tests(graph, content["checks"], content["ui"]["api"]["test"])
     snapshot_ids = build_snapshots(graph, content["snapshots"])
     catalogue_ids = build_fip_dashboard(graph, content["snapshots"], crosswalk)
     build_repositories(
@@ -3371,6 +3403,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         term: ESTABLISHED_TERMS.get(term, vocabulary_base + term) for term in [*ESTABLISHED_TERMS, *GUIDE_TERMS]
     }
     context.update((name, vocabulary_base + name) for name in GUIDE_CLASSES)
+    context["ftr"] = FTR
     context["isImplementationOf"] = "https://semanticscience.org/resource/SIO_000233"
     context[CATALOG_RECORD] = DCAT + "CatalogRecord"
     context["publisher"] = DCTERMS + "publisher"
@@ -3476,7 +3509,7 @@ def catalogue_record_keys(
             pass
         elif entity_id.startswith("#principle-") and entity.get("termCode"):
             collection, record = "principles", entity["termCode"]
-        elif entity_id.startswith("#item-") and entity.get("@type") == "Question":
+        elif entity_id.startswith("#item-") and "Question" in as_list(entity.get("@type")):
             collection = "metrics"
         elif (entity_id.startswith("#resource-") and entity.get("resourceType")) or entity_id in fers:
             collection = "resources"
@@ -3572,6 +3605,8 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
             collection is None
             or (kind == "organizations" and identifier not in own_organizations)
             or (kind == "infrastructures" and identifier not in roadmap)
+            # A question's manual test is published as `api/tests/<question>.json`, which saved results name.
+            or (kind == "tests" and scope == SELF_CHECK_SCOPE)
         ):
             continue
         if kind == "resources" and entity_id in sources and not entity.get("resourceType"):
@@ -3652,6 +3687,8 @@ def catalogue_records(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
 CROSSWALK_ID = "lifecycle-stages"
 # The scope of the FAIR Champion tests the Guide curates, beside the external evaluators' own resource IDs.
 CHAMPION_SCOPE = "fair-champion"
+# The scope of each check question's manual test: a person answers the question in the self-check.
+SELF_CHECK_SCOPE = "self-check"
 # A published API collection's record kind, where the collection is named by a role rather than by its kind.
 COLLECTION_KINDS = {"sources": "resources", "metrics": "questions", "changes": "actions", "terms": "glossary"}
 
@@ -3779,6 +3816,9 @@ def identity_projection(graph: Graph, content: dict[str, Any]) -> dict[str, Plac
             thing(f"#advice-{advice['id']}", "advice", advice["id"])
     for page in content["pages"]:
         thing(f"#page-{page['id']}", "pages", page["id"])
+    for data in content["checks"]:
+        for item in data.get("item", []):
+            thing(f"#selfcheck-test-{item['id']}", "tests", item["id"], SELF_CHECK_SCOPE)
     for callout in content["callouts"]:
         thing(f"#callout-{callout['id']}", "callouts", callout["id"])
 

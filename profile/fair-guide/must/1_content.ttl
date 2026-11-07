@@ -1,6 +1,7 @@
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix fg: <https://fair.eosc.cz/terms#> .
 @prefix fair-guide: <https://fair.eosc.cz/profile/fair-guide/> .
+@prefix ftr: <https://w3id.org/ftr#> .
 @prefix schema: <http://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
@@ -211,10 +212,11 @@ fair-guide:CheckItem a sh:NodeShape ;
     ] ;
     sh:property [
         sh:name "Item check" ;
-        sh:path schema:isPartOf ;
+        sh:path ftr:hasBenchmark ;
         sh:class schema:Quiz ;
         sh:minCount 1 ;
-        sh:message "A self-check item MUST belong to a check" ;
+        sh:maxCount 1 ;
+        sh:message "A self-check item MUST belong to a check, its FTR benchmark" ;
     ] .
 
 fair-guide:Resource a sh:NodeShape ;

@@ -25,7 +25,7 @@ const model = (address) => iri(address, namespace);
 const terms = graph.filter((entry) => ["layer", "seam"].includes(entry.modelKind));
 const refs = (entry, property) => [].concat(entry?.[property] || []).map((reference) => reference["@id"]);
 const get = (id) => graph.find((entry) => entry["@id"] === id);
-const questionEntries = graph.filter((entry) => entry["@type"] === "Question");
+const questionEntries = graph.filter((entry) => [].concat(entry["@type"]).includes("Question"));
 const {state, problems: errors, external} = installGuards(page, {
   allowed: (url) => /^(?:file|data):/.test(url),
 });

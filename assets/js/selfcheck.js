@@ -43,7 +43,7 @@
   /* ---------------------------------------------------------------- knowledge base */
 
   SC.checks = () => FG.ofType("Quiz");
-  const itemsOf = (check) => FG.refs(check, "hasPart").sort(FG.byPosition);
+  const itemsOf = (check) => FG.questionsOf(check).sort(FG.byPosition);
   /* A question's ID is its check's ID and its number (dataset.04): inside its check it shows by its number, and the
      page's elements are keyed by the ID with a hyphen for the dot, so selectors need no escaping. */
   const numberOf = (item) => String(item.identifier).split(".").pop();
@@ -1824,7 +1824,7 @@
   function handover(st, item) {
     if (!FG.refIds(item, "implementationSeams").length) return null;
     const ask = whom(item);
-    const check = FG.get(item.isPartOf) || SC.checks().find((candidate) => FG.hasRef(candidate, "hasPart", item["@id"]));
+    const check = FG.checkOf(item) || SC.checks().find((candidate) => FG.hasRef(candidate, "hasAssociatedMetric", item["@id"]));
     const pid = st.target && FG.live.parsePid(st.target);
     const targetUrl = webUrl(st.target) || (pid ? FG.live.pidUrl(pid) : null);
     const targetName = st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher);

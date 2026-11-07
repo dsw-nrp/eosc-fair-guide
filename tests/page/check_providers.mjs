@@ -573,7 +573,7 @@ try {
   await page.evaluate(() => {
     const FG = window.FairGuide, st = FG.state.answers.dataset;
     st.items = {}; st.extended = false;
-    const items = FG.refs(FG.get("checks/dataset"), "hasPart").filter((entry) => ["vocabularies/tiers/minimum", "vocabularies/tiers/required"].includes(FG.id(entry.tier)) && FG.refIds(entry, "appliesTo").includes("vocabularies/modes-dataset/after"));
+    const items = FG.questionsOf(FG.get("checks/dataset")).filter((entry) => ["vocabularies/tiers/minimum", "vocabularies/tiers/required"].includes(FG.id(entry.tier)) && FG.refIds(entry, "appliesTo").includes("vocabularies/modes-dataset/after"));
     items.forEach((entry, index) => { st.items[entry.identifier] = { value: index ? "yes" : "unknown", origin: "user" }; });
     FG.saveState(); FG.rerender();
   });

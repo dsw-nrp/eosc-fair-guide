@@ -157,7 +157,7 @@ its head in CI.
 - [x] 3.3 Give advice items the class `fg:AdviceItem` and an `adviceKind` term, with steps and actions as parts
   (decision 7). Verify: the profile shape targets the class, pyshacl passes, and a unit test counts every authored
   advice item once.
-- [ ] 3.4 Type checks and questions as FTR benchmarks and metrics. Generate the manual tests at `tests/self-check/`,
+- [x] 3.4 Type checks and questions as FTR benchmarks and metrics. Generate the manual tests at `tests/self-check/`,
   state the FTR relations and drop their schema.org duplicates (decision 8). Verify: a unit test finds one manual test
   per question and every FTR relation; `npm run check:assessment` passes.
 - [ ] 3.5 Publish pre-fill mappings as `fg:PrefillMapping` and read them on the page (decision 9). Verify: a unit test

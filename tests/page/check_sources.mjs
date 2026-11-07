@@ -10,7 +10,7 @@ import { isRecord } from "./addresses.mjs";
 const root = resolve(import.meta.dirname, "../..");
 const { chromium } = await import("./browser.mjs");
 const graph = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"))["@graph"];
-const checks = graph.filter((entity) => entity["@type"] === "Quiz");
+const checks = graph.filter((entity) => [].concat(entity["@type"]).includes("Quiz"));
 const principles = graph.filter((entity) => isRecord(entity, "principles") && entity.termCode);
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -86,7 +86,7 @@ try {
         result.missing.forEach((identifier) => withoutOriginal.add(identifier));
       }
     }
-    const expected = graph.filter((entity) => entity["@type"] === "Question").map((entity) => entity.identifier);
+    const expected = graph.filter((entity) => [].concat(entity["@type"]).includes("Question")).map((entity) => entity.identifier);
     assert.deepEqual([...seen].sort(), expected.sort(), "every question rendered, including profile and mode variants");
     assert.deepEqual([...withoutOriginal].sort(), ["institution.24", "maturity.18"]);
 

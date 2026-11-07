@@ -53,7 +53,7 @@ class ResearchPracticeTests(unittest.TestCase):
 
     def test_lazy_questions_preserve_complete_crate_and_path_metadata(self) -> None:
         core, parts = build_crate.split_crate(self.crate)
-        self.assertFalse(any(entity["@type"] == "Question" for entity in core["@graph"]))
+        self.assertFalse(any("Question" in build_crate.as_list(entity["@type"]) for entity in core["@graph"]))
         questions = {entity["@id"]: entity for entity in parts["questions"]["entities"]}
         for item_id in (iri("questions/software.01"), iri("questions/fdo.01"), iri("questions/dataset.01")):
             self.assertEqual(questions[item_id], self.entities[item_id])

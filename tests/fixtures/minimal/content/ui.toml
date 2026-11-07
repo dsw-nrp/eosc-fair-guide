@@ -1,2 +1,7 @@
 [app]
 title = { cs = "Test", en = "Test" }
+
+[api.test]
+name = { cs = "Ruční test otázky {id}", en = "Manual test of question {id}" }
+description = { cs = "Test provádí člověk v sebehodnocení.", en = "A person runs the test in the self-check." }
+contextDescription = { cs = "Položka vysvětluje kontext.", en = "The item explains the context." }

@@ -206,6 +206,8 @@
       the Guide's own. */
   FG.isCriterion = (value) => FG.isRecord(value, "tests")
     && FG.list(FG.config.providers && FG.config.providers.list).some((provider) => FG.localId(value).startsWith(provider.id + "/"));
+  /** A question's manual test, `tests/self-check/<question>`: the reader answering it, which no catalogue lists. */
+  FG.isManualTest = (value) => FG.isRecord(value, "tests") && FG.localId(value).startsWith("self-check/");
   /** The Guide's own test of a question (`guide-dataset-01`), and a FAIR Champion test, by their IDs. */
   FG.localTest = (id) => FG.get(FG.address("tests", id, "guide"));
   FG.championTest = (id) => FG.get(FG.address("tests", id, "fair-champion"));
@@ -974,7 +976,11 @@
   };
 
   /** The principles an entity is about, in the fixed order. */
-  FG.principlesOf = (entity) => FG.refs(entity, "about").filter((ref) => ref.termCode).sort(FG.principleOrder);
+  /** The principles something is about; a check question measures them as its FTR dimensions. */
+  FG.principlesOf = (entity) => FG.refs(entity, "about").concat(FG.refs(entity, "inDimension")).filter((ref) => ref.termCode).sort(FG.principleOrder);
+  /** A check's questions, its FTR metrics, and the check a question belongs to, its benchmark. */
+  FG.questionsOf = (check) => FG.refs(check, "hasAssociatedMetric");
+  FG.checkOf = (question) => FG.get(question && question.hasBenchmark);
   FG.principles = () => FG.principlesOf(FG.root);
   FG.termName = (id) => FG.text(FG.get(id) && FG.get(id).name);
 })();

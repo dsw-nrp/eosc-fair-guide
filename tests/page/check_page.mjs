@@ -76,7 +76,7 @@ const lensShown = (page, lens) => page.waitForFunction((expected) => {
 }, lens);
 const pages = graph.filter((e) => isRecord(e, "pages", namespace) && e.identifier).map((e) => e.identifier);
 const principles = graph.filter((e) => isRecord(e, "principles", namespace) && e.termCode).map((e) => e.termCode);
-const checks = graph.filter((e) => e["@type"] === "Quiz").map((e) => ({ id: e.identifier, lens: String([].concat(e.audience)[0]["@id"]).split("/").pop() }));
+const checks = graph.filter((e) => [].concat(e["@type"]).includes("Quiz")).map((e) => ({ id: e.identifier, lens: String([].concat(e.audience)[0]["@id"]).split("/").pop() }));
 const failures = [];
 // The question numbers a list of gaps or tasks shows: a question shows by its number inside its check.
 const numbersIn = (list) => list.locator(".item-id").allTextContents();
@@ -1910,7 +1910,7 @@ sections.push(["funded output", async () => {
   await gotoView(page, pageUrl + "#/cs/V/check/dataset");
   await rendered(page);
   await page.waitForSelector("#mode-after");
-  const programmeItems = graph.filter((e) => e["@type"] === "Question" && [].concat(e.appliesTo || []).some((ref) => String(addressOf(ref["@id"], namespace)).startsWith("vocabularies/profiles-"))).map((e) => e.identifier.replace(".", "-"));
+  const programmeItems = graph.filter((e) => [].concat(e["@type"]).includes("Question") && [].concat(e.appliesTo || []).some((ref) => String(addressOf(ref["@id"], namespace)).startsWith("vocabularies/profiles-"))).map((e) => e.identifier.replace(".", "-"));
   const outputItems = async () => (await page.locator("fieldset.item").evaluateAll((items) => items.map((item) => item.id.replace("item-", "")))).filter((id) => programmeItems.includes(id)).sort().join(",");
   await page.locator("#mode-before").check();
   if (await page.locator('input[name="profile"]').count()) fail("dataset check: the programme question shows before publication");

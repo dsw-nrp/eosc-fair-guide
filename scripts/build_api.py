@@ -54,12 +54,9 @@ SIO = "https://semanticscience.org/resource/"
 
 # Entities small enough to repeat in full inside the records that name them.
 EMBEDDED_TYPES = {"DefinedTerm", "Audience", "Action", "EntryPoint", "Person", "Organization", "PropertyValue"}
-# What a record adds to its crate entity or names differently, per collection.
-FTR_TYPES = {"checks": "Benchmark", "metrics": "Metric", "tests": "Test"}
-RENAMED = {
-    "checks": {"hasPart": "hasAssociatedMetric"},
-    "metrics": {"about": "inDimension", "isPartOf": "hasBenchmark"},
-}
+# What a record adds to its crate entity, per collection: the crate types checks and questions as FTR benchmarks and
+# metrics itself, and an automated test carries ftr:Test as its additional type.
+FTR_TYPES = {"tests": "Test"}
 DROPPED = {"metrics": {"additionalProperty", "name"}}  # the page's pre-fill settings; a name repeating the identifier
 TERMS: dict[str, Any] = {
     "@vocab": SCHEMA_ORG,
@@ -214,12 +211,11 @@ class Api:
         entity_id = entity["@id"]
         path = self.paths.get(entity_id)
         own = self.relative(here, path) if path else self.iri(entity_id, here)
-        renamed = RENAMED.get(collection, {})
         node: dict[str, Any] = {"@id": own, "@type": entity["@type"]}
         for key, value in entity.items():
             if key in ("@id", "@type") or key in DROPPED.get(collection, ()):
                 continue
-            name = renamed.get(key, key)
+            name = key
             if (
                 key == "url"
                 and isinstance(value, str)
@@ -264,7 +260,8 @@ class Api:
             return [entity_id for _, entity_id in self.records[collection]]
 
         def about(entity_id: str) -> bool:
-            return principle in ids(self.entities[entity_id].get("about"))
+            entity = self.entities[entity_id]
+            return principle in ids(entity.get("about")) + ids(entity.get("inDimension"))
 
         clauses = [entity_id for entity_id in members("clauses") if about(entity_id)]
         cited = set(clauses)
@@ -289,7 +286,7 @@ class Api:
     def manual_test(self, record: str, entity_id: str) -> dict[str, Any]:
         """The FTR test of a check question: a person answers it in the guide's self-check."""
         here = self.tests[entity_id]
-        check = self.entities[ids(self.entities[entity_id].get("isPartOf"))[0]]
+        check = self.entities[ids(self.entities[entity_id].get("hasBenchmark"))[0]]
         lens = ids(check.get("audience"))[0].rsplit("/", 1)[-1]
         strings = self.strings["test"]
         context = self.entities[entity_id].get("assessmentContext", False)

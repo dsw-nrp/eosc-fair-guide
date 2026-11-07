@@ -222,7 +222,7 @@ try {
   assert(probes.members.every((entry, index) => entry.target.endsWith("/" + index) && entry.log.includes("observation " + index)));
   const bounded = await page.evaluate(() => {
     const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("checks/maturity"), st = structuredClone(FG.state.answers.maturity);
-    for (const item of FG.refs(check, "hasPart")) {
+    for (const item of FG.questionsOf(check)) {
       const observations = Array.from({ length: 8 }, (_, index) => ({ source: "landing", date: "2026-10-11", value: "partly", notes: [], list: [], record: "https://archive.example/" + index,
         subject: "https://archive.example/" + index, representation: "application/ld+json", fields: [{ path: "description", values: ["長".repeat(2000)] }] }));
       st.items[item.identifier] = { value: "no", origin: "user", observations, prefill: observations[7] };
@@ -230,7 +230,7 @@ try {
     for (const entry of Object.values(st.champion.verdicts)) entry.log = "長".repeat(5000);
     const saved = SC.portableState(check, st), ftr = SC.ftrCrate(check, st);
     return { bytes: new TextEncoder().encode(JSON.stringify(ftr)).length, restored: SC.readPortable(saved).error || null,
-      shortened: Object.values(saved.items).some((entry) => entry.prefill.truncated), original: st.items[FG.refs(check, "hasPart")[0].identifier].observations.length,
+      shortened: Object.values(saved.items).some((entry) => entry.prefill.truncated), original: st.items[FG.questionsOf(check)[0].identifier].observations.length,
       answers: Object.values(saved.items).every((entry) => entry.value === "no" && entry.origin === "user") };
   });
   assert(bounded.bytes < 2 * 1024 * 1024, "a large multibyte evidence export remains loadable within the file limit");

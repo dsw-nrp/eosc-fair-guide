@@ -624,6 +624,37 @@ class GeneratorTests(FixtureCase):
         shapes = (build_crate.ROOT / "profile/fair-guide/must/1_content.ttl").read_text(encoding="utf-8")
         self.assertIn("sh:targetClass fg:AdviceItem", shapes)
 
+    def test_checks_and_questions_are_ftr_benchmarks_and_metrics_each_with_a_manual_test(self) -> None:
+        content = build_crate.load_content()
+        crate = build_crate.build_crate(content)
+        graph = {entity["@id"]: entity for entity in crate["@graph"]}
+        context = crate["@context"][1]
+        self.assertEqual(context["hasAssociatedMetric"], build_crate.FTR + "hasAssociatedMetric")
+        self.assertEqual(context["hasBenchmark"], build_crate.FTR + "hasBenchmark")
+        self.assertEqual(context["inDimension"], build_crate.DQV + "inDimension")
+        authored = [item for data in content["checks"] for item in data.get("item", [])]
+        questions = [entity for entity in graph.values() if "Question" in build_crate.as_list(entity["@type"])]
+        self.assertEqual(sorted(question["identifier"] for question in questions), sorted(i["id"] for i in authored))
+        for question in questions:
+            self.assertIn("ftr:Metric", build_crate.as_list(question["@type"]))
+            # The FTR relation replaces its schema.org duplicate.
+            self.assertNotIn("isPartOf", question)
+            self.assertNotIn("about", question)
+            check = graph[question["hasBenchmark"]["@id"]]
+            self.assertIn("ftr:Benchmark", build_crate.as_list(check["@type"]))
+            self.assertNotIn("hasPart", check)
+            self.assertIn({"@id": question["@id"]}, build_crate.as_list(check["hasAssociatedMetric"]))
+            manual = graph[iri("tests/self-check/" + question["identifier"])]
+            self.assertEqual(manual["additionalType"], build_crate.FTR_TEST)
+            self.assertEqual(manual["isImplementationOf"], {"@id": question["@id"]})
+        manual_tests = [key for key in graph if key.startswith(iri("tests/self-check/"))]
+        self.assertEqual(len(manual_tests), len(authored), "one manual test per question")
+        principles = {item["id"]: item.get("principles", []) for item in authored}
+        measured = {q["identifier"]: build_crate.as_list(q.get("inDimension")) for q in questions}
+        self.assertEqual(
+            {key: len(value) for key, value in measured.items()}, {k: len(v) for k, v in principles.items()}
+        )
+
     def test_a_page_section_is_named_by_its_own_id_never_by_its_position(self) -> None:
         """Reordering a page moves no section's IRI, reference or shared link: its fragment is the id it carries."""
         content = build_crate.load_content()
@@ -2984,11 +3015,12 @@ class ApiTests(unittest.TestCase):
         checks = [path for path in self.docs if path.startswith("api/checks/")]
         self.assertTrue(checks)
         for path in checks:
-            self.assertIn("Benchmark", self.docs[path]["@type"])
+            # The API uses the graph's FTR types as they are.
+            self.assertIn("ftr:Benchmark", self.docs[path]["@type"])
             for link in build_crate.as_list(self.docs[path]["hasAssociatedMetric"]):
                 metric_path = self.target(path, link)
                 metric = self.docs[metric_path]
-                self.assertIn("Metric", metric["@type"])
+                self.assertIn("ftr:Metric", metric["@type"])
                 implementations = [
                     self.target(metric_path, implementation)
                     for implementation in build_crate.as_list(metric["hasImplementation"])

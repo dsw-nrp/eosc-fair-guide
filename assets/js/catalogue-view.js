@@ -44,7 +44,7 @@
       defaults: { clauseStatus: { values: ["current", "refresh"], reason: "a current requirement shows no badge, and a refresh is an editorial task; only a superseded one is marked" } },
     },
     questions: {
-      shown: ["about", "additionalProperty", "allowsNotApplicable", "appliesTo", "assessmentContext", "block", "championEvidenceOnly", "citation", "description", "fixAt", "fixedBy", "isPartOf", "lookup", "mentions", "name", "note", "prefillLevel", "providedByNrpFor", "text", "tier"],
+      shown: ["additionalProperty", "allowsNotApplicable", "appliesTo", "assessmentContext", "block", "championEvidenceOnly", "citation", "description", "fixAt", "fixedBy", "hasBenchmark", "inDimension", "lookup", "mentions", "name", "note", "prefillLevel", "providedByNrpFor", "text", "tier"],
       excluded: { position: ORDER },
     },
     glossary: {
@@ -531,7 +531,7 @@
 
   function questionEntries() {
     return FG.ofType("Quiz").flatMap((check, checkIndex) =>
-      FG.refs(check, "hasPart")
+      FG.questionsOf(check)
         .sort(FG.byPosition)
         .map((item) => {
           const clauses = FG.refs(item, "citation").filter((clause) => FG.isRecord(clause, "clauses"));
@@ -560,7 +560,7 @@
                   item.lookup ? h("p", { class: "small", "data-field": "lookup" }, FG.t("catalogue.lookup") + ": ", FG.external(FG.id(item.lookup), FG.id(item.lookup))) : null,
                   item.note ? h("p", { class: "small", "data-field": "note" }, FG.span(item.note)) : null,
                 ],
-                fields: { basedOn: "citation", inGuide: "isPartOf fixAt" },
+                fields: { basedOn: "citation", inGuide: "hasBenchmark fixAt" },
                 relations: {
                   principles: tiles(FG.principlesOf(item)),
                   fixedBy: FG.refIds(item, "fixedBy").length ? [FG.refIds(item, "fixedBy").map(FG.termName).join(", "), item.fixAt ? [h("span", { class: "muted" }, " · "), h("a", { href: FG.href("path", station) }, FG.span(FG.get(item.fixAt).name))] : null] : [],
@@ -726,7 +726,7 @@
   function testQuestions() {
     const byTest = new Map();
     for (const check of FG.ofType("Quiz")) {
-      for (const item of FG.refs(check, "hasPart").sort(FG.byPosition)) {
+      for (const item of FG.questionsOf(check).sort(FG.byPosition)) {
         for (const entry of FG.refs(item, "additionalProperty").filter((property) => property.propertyID === "prefill:champion")) {
           for (const test of FG.list(entry.value).map(String)) byTest.set(test, (byTest.get(test) || []).concat(item));
         }
@@ -797,7 +797,7 @@
   function testEntries() {
     const questions = testQuestions();
     return FG.graph
-      .filter((entity) => FG.isRecord(entity, "tests") && !FG.isCriterion(entity))
+      .filter((entity) => FG.isRecord(entity, "tests") && !FG.isCriterion(entity) && !FG.isManualTest(entity))
       .map((test) => {
         const principles = FG.principlesOf(test);
         const local = String(test.identifier).startsWith("guide-");
