@@ -166,7 +166,7 @@ MODEL_TERMS = {
 }
 TERMS = MODEL_TERMS | {
     "disclosureLevel": "Disclosure level (L0 to L3) at which an advice item is shown.",
-    "adviceKind": "Kind of an advice item that is not ordinary advice, such as the AI-in-FAIRification overlay.",
+    "adviceKind": "What an advice item is: a direction to act, a tip, a station's key point or an AI tip.",
     "checkAfter": "What to check after following an AI tip, so that its output is verified before it is used.",
     "promptSample": "A short prompt to copy for an AI tip; the parts in brackets are filled in by the user.",
     "block": "Block of a self-check that a question belongs to; a check's blocks are a defined term set in order.",
@@ -280,6 +280,15 @@ ESTABLISHED_TERMS: dict[str, str] = {
 # The typing and status slots specialize their established parent rather than replacing it, because they are
 # several distinct slots over one property that the profile targets individually.
 GUIDE_TERMS: dict[str, str] = {term: definition for term, definition in TERMS.items() if term not in ESTABLISHED_TERMS}
+# The guide's own classes, each with its definition, the established class it specializes and why that class is not
+# used as it stands.
+GUIDE_CLASSES: dict[str, tuple[str, str, str]] = {
+    "AdviceItem": (
+        "Advice the guide gives at a station, addressed to a reader's lens at a disclosure level.",
+        SCHEMA + "CreativeWork",
+        "schema.org's HowTo types describe the steps of one procedure, not advice addressed by lens and level.",
+    ),
+}
 GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
     "preparationStatus": (ADMS + "status", SCHEMA + "ScholarlyArticle", SCHEMA + "DefinedTerm"),
     "modelKind": ("", SCHEMA + "CreativeWork", XSD + "string"),
@@ -295,7 +304,7 @@ GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
     "maintainers": ("", SCHEMA + "DefinedTerm", RDF_LANG),
     "scope": ("", SCHEMA + "CreativeWork", RDF_LANG),
     "disclosureLevel": (SCHEMA + "position", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
-    "adviceKind": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "adviceKind": ("", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "checkAfter": ("", SCHEMA + "CreativeWork", RDF_LANG),
     "promptSample": ("", SCHEMA + "CreativeWork", RDF_LANG),
     "block": ("", SCHEMA + "Question", SCHEMA + "DefinedTermSet"),
@@ -808,13 +817,19 @@ STATUS_SCHEMES: dict[str, tuple[str, str, str]] = {
     "releaseStatus": ("release-statuses", "Release statuses", "release"),
     "nodeState": ("node-states", "EOSC CZ Node states", "node-state"),
 }
+# Every scheme whose terms a property names by code: the statuses, and what kind of advice an item is.
+TERM_SCHEMES: dict[str, tuple[str, str, str]] = {
+    **STATUS_SCHEMES,
+    "adviceKind": ("advice-kinds", "Advice kinds", "advicekind"),
+}
 
 
 def status_term(graph: Graph, prop: str, code: Any) -> dict[str, str] | None:
-    """A status as the term of its scheme. A code the scheme lacks is refused, so no status stays a string."""
+    """A status, or another coded value, as the term of its scheme. A code the scheme lacks is refused, so no status
+    stays a string."""
     if code in (None, ""):
         return None
-    set_id, _, prefix = STATUS_SCHEMES[prop]
+    set_id, _, prefix = TERM_SCHEMES[prop]
     term_id = f"#{prefix}-{code}"
     if term_id not in graph.entities:
         raise ContentError(f"{prop}: '{code}' is no term of the {set_id} scheme in guide.toml")
@@ -1082,7 +1097,7 @@ def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
     )
     defined_terms(graph, "esfri-statuses", "ESFRI statuses", "esfri", guide.get("esfriStatus", []))
     defined_terms(graph, "node-roles", "EOSC CZ Node roles", "noderole", guide.get("nodeRole", []))
-    for prop, (set_id, set_name, prefix) in STATUS_SCHEMES.items():
+    for prop, (set_id, set_name, prefix) in TERM_SCHEMES.items():
         defined_terms(graph, set_id, set_name, prefix, guide.get(prop, []))
     for help_route in guide.get("help", []):
         graph.add(
@@ -1099,7 +1114,8 @@ def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
 
 def build_terms(graph: Graph, vocabulary_base: str) -> None:
     """The guide's own vocabulary: one rdf:Property per term, each declaring the broader established term it
-    specializes where one exists, its domain and its range."""
+    specializes where one exists, its domain and its range, and one rdfs:Class per class with the class it
+    specializes."""
     for term, definition in GUIDE_TERMS.items():
         broader, domain, range_ = GUIDE_TERM_SHAPES.get(term, ("", "", ""))
         entity: dict[str, Any] = {
@@ -1115,6 +1131,16 @@ def build_terms(graph: Graph, vocabulary_base: str) -> None:
         if range_:
             entity["rdfs:range"] = {"@id": range_}
         graph.add(entity)
+    for name, (definition, broader, _) in GUIDE_CLASSES.items():
+        graph.add(
+            {
+                "@id": vocabulary_base + name,
+                "@type": "rdfs:Class",
+                "rdfs:label": name,
+                "rdfs:comment": definition,
+                "rdfs:subClassOf": {"@id": broader},
+            }
+        )
 
 
 def build_principles(graph: Graph, principles: list[dict[str, Any]]) -> None:
@@ -1255,7 +1281,9 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
             advice_id = f"#advice-{advice['id']}"
             advice_ids.append(advice_id)
             level = advice["level"]
-            is_tip = level == "L2" or advice.get("kind") in ("ai", "key")
+            # What the item is: an AI tip or a station's key point as the content says, a tip at the Why level, and
+            # otherwise a direction to act.
+            kind = advice.get("kind") or ("tip" if level == "L2" else "direction")
             step_ids = [f"{advice_id}-step-{number}" for number in range(1, len(advice.get("steps", [])) + 1)]
             # The next step first, then at most one related tool.
             actions = as_list(advice.get("action"))
@@ -1265,13 +1293,13 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
             graph.add(
                 {
                     "@id": advice_id,
-                    "@type": "HowToTip" if is_tip else "HowToDirection",
+                    "@type": "AdviceItem",
                     "identifier": advice["id"],
                     "text": text(advice["text"]),
                     "position": advice.get("position", order),
                     "audience": lens_refs(advice["lens"], all_lenses),
                     "disclosureLevel": ref(f"#level-{level}"),
-                    "adviceKind": advice.get("kind"),
+                    "adviceKind": status_term(graph, "adviceKind", kind),
                     "checkAfter": text(advice.get("check")),
                     "promptSample": text(advice.get("prompt")),
                     "citation": refs(graph.resolve(advice.get("sources", []))),
@@ -3342,6 +3370,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     context: dict[str, Any] = {
         term: ESTABLISHED_TERMS.get(term, vocabulary_base + term) for term in [*ESTABLISHED_TERMS, *GUIDE_TERMS]
     }
+    context.update((name, vocabulary_base + name) for name in GUIDE_CLASSES)
     context["isImplementationOf"] = "https://semanticscience.org/resource/SIO_000233"
     context[CATALOG_RECORD] = DCAT + "CatalogRecord"
     context["publisher"] = DCTERMS + "publisher"
@@ -4504,7 +4533,7 @@ def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[st
             }
             parts["standards"]["properties"][entity["@id"]] = detail
             core.append({key: value for key, value in entity.items() if key not in detail})
-        elif entity.get("adviceKind") == "ai" and ("promptSample" in entity or "checkAfter" in entity):
+        elif status_code(entity.get("adviceKind")) == "ai" and ("promptSample" in entity or "checkAfter" in entity):
             # An AI tip's prompt and what to check afterwards show on its station and the AI page, which load this.
             detail = {key: entity[key] for key in ("promptSample", "checkAfter") if key in entity}
             parts["standards"]["properties"][entity["@id"]] = detail
@@ -4888,6 +4917,12 @@ def vocabulary_document(guide: dict[str, Any]) -> str:
         *SKOS_ALIGNMENT,
         "",
     ]
+    for name, (definition, broader, _) in GUIDE_CLASSES.items():
+        lines.append(f"<{base}{name}> a rdfs:Class ;")
+        lines.append(f'    rdfs:label "{name}"@en ;')
+        lines.append(f'    rdfs:comment "{turtle_text(definition)}"@en ;')
+        lines.append(f"    rdfs:subClassOf <{broader}> .")
+        lines.append("")
     for term, definition in GUIDE_TERMS.items():
         broader, domain, range_ = GUIDE_TERM_SHAPES.get(term, ("", "", ""))
         lines.append(f"<{base}{term}> a rdf:Property ;")
@@ -5004,7 +5039,14 @@ def vocabulary_page(root: Path, guide: dict[str, Any]) -> dict[str, str]:
     def link(iri: str) -> str:
         return f'<a href="{escape(iri, quote=True)}"><code>{escape(iri)}</code></a>' if iri else ""
 
-    sections = []
+    classes = [
+        f'\n      <article class="detail-entry" id="{escape(name, quote=True)}">'
+        f'<h3><a href="#{escape(name, quote=True)}"><code>{escape(name)}</code></a></h3>'
+        f"<p>{escape(definition)}</p>"
+        f'<p class="detail-meta">specializes {link(broader)}: {escape(reason)}</p></article>'
+        for name, (definition, broader, reason) in GUIDE_CLASSES.items()
+    ]
+    sections = [f'\n    <section class="detail-group">\n      <h2>Classes</h2>{"".join(classes)}\n    </section>']
     for heading, terms in GUIDE_TERM_GROUPS:
         blocks = []
         for term in terms:
@@ -5073,6 +5115,9 @@ def vocabulary_errors(
             errors.append(f"guide term '{term}' is not in a vocabulary-page group")
         if f"<{base}{term}>" not in document:
             errors.append(f"published guide term '{term}' is absent from the vocabulary document")
+    for name in GUIDE_CLASSES:
+        if f"<{base}{name}> a rdfs:Class" not in document:
+            errors.append(f"guide class '{name}' is absent from the vocabulary document")
     return errors
 
 

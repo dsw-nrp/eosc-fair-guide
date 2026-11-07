@@ -464,6 +464,27 @@ name = { cs = "kandidátský uzel", en = "candidate node" }
 id = "operational"
 name = { cs = "v produkčním provozu", en = "in production operations" }
 
+# What an advice item is: a direction to act, a tip that explains, a station's key point or an AI tip.
+[[adviceKind]]
+id = "direction"
+name = { cs = "doporučení", en = "direction" }
+description = { cs = "Krok, který doporučení radí udělat.", en = "A step the advice recommends taking." }
+
+[[adviceKind]]
+id = "tip"
+name = { cs = "tip", en = "tip" }
+description = { cs = "Vysvětlení nebo souvislost na úrovni Proč.", en = "An explanation or context at the Why level." }
+
+[[adviceKind]]
+id = "key"
+name = { cs = "klíčová myšlenka", en = "key point" }
+description = { cs = "Hlavní myšlenka zastávky pro jeden pohled.", en = "The station's one core idea for a lens." }
+
+[[adviceKind]]
+id = "ai"
+name = { cs = "tip k AI", en = "AI tip" }
+description = { cs = "Kde při FAIRifikaci pomůže AI a co ověřit.", en = "Where AI helps in FAIRification and what to check." }
+
 [[tier]]
 id = "minimum"
 name = { cs = "Minimum", en = "Minimum" }

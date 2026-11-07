@@ -557,7 +557,7 @@ sections.push(["page", async () => {
     if ((await view.locator("#main h1").textContent()).trim() !== "Data pro stroje" || !(await view.locator(".machine-tasks").count())) fail("machines: the crate preview does not open the machine-readable data");
     // The vocabulary page anchors every term, so its IRI (<address>terms#<term>) opens its own row, and lists them all.
     const turtle = readFileSync(resolve(site, "terms/fair-guide.ttl"), "utf8");
-    const termCount = (turtle.match(/ a rdf:Property ;/g) || []).length;
+    const termCount = (turtle.match(/ a (rdf:Property|rdfs:Class) ;/g) || []).length;
     await view.goto(new URL("terms/index.html", pageUrl).href);
     await view.waitForSelector("main .detail-entry");
     const anchors = await view.locator("main .detail-entry[id]").evaluateAll((rows) => rows.map((row) => row.id));
@@ -684,7 +684,7 @@ sections.push(["page", async () => {
     if (headings.indexOf("When an AI agent does the work") !== headings.indexOf("Three rules") + 1) fail("ai page: the practice for agents does not follow the rules: " + headings.join(" | "));
     const gathered = await view.evaluate(() => {
       const FG = window.FairGuide;
-      const all = FG.stations().flatMap((station) => FG.refs(station, "itemListElement").filter((item) => item.adviceKind === "ai"));
+      const all = FG.stations().flatMap((station) => FG.refs(station, "itemListElement").filter((item) => FG.isAdviceKind(item, "ai")));
       const forOne = all.filter((item) => FG.refIds(item, "audience").length < FG.lenses().length).length;
       const shown = [...document.querySelectorAll(".ai-station-tips .ai-tip")];
       return { all: all.length, forOne, shown: shown.length, tagged: shown.filter((tip) => tip.querySelector(".orientation .lens-tag")).length, prompts: shown.filter((tip) => tip.querySelector(".ai-prompt pre")).length };

@@ -856,7 +856,7 @@
   }
 
   function whyContent(station, items) {
-    const notes = items.filter((item) => FG.id(item.disclosureLevel) === FG.term("levels", "L2") && item.adviceKind !== "ai").sort(FG.byPosition);
+    const notes = items.filter((item) => FG.id(item.disclosureLevel) === FG.term("levels", "L2") && !FG.isAdviceKind(item, "ai")).sort(FG.byPosition);
     const clauses = [];
     for (const item of items) {
       for (const clause of FG.refs(item, "citation")) if (!clauses.includes(clause)) clauses.push(clause);
@@ -1030,7 +1030,7 @@
       levelName("L1"),
       steps.flatMap((item, index) => [index + 1 + ". " + mdLine(item.text)].concat(FG.refs(item, "hasPart").sort(FG.byPosition).map((step) => "   - " + mdLine(step.text))))
     );
-    const notes = items.filter((item) => FG.id(item.disclosureLevel) === FG.term("levels", "L2") && item.adviceKind !== "ai").sort(FG.byPosition);
+    const notes = items.filter((item) => FG.id(item.disclosureLevel) === FG.term("levels", "L2") && !FG.isAdviceKind(item, "ai")).sort(FG.byPosition);
     const clauses = [...new Set(items.flatMap((item) => FG.refs(item, "citation")))];
     const clauseLine = (clause) => {
       const source = FG.get(clause.isPartOf);
@@ -1112,7 +1112,7 @@
       "div",
       { class: "ai-station-tips" },
       FG.stations().map((station) => {
-        const tips = FG.refs(station, "itemListElement").filter((item) => item.adviceKind === "ai").sort(FG.byPosition);
+        const tips = FG.refs(station, "itemListElement").filter((item) => FG.isAdviceKind(item, "ai")).sort(FG.byPosition);
         if (!tips.length) return null;
         return h(
           "section",
@@ -1129,12 +1129,12 @@
     const stations = FG.stations();
     const index = stations.indexOf(entity);
     const items = FG.refs(entity, "itemListElement").filter((item) => lensOf(item, route.lens));
-    const level = (code) => items.filter((item) => FG.id(item.disclosureLevel) === FG.term("levels", code) && item.adviceKind !== "ai").sort(FG.byPosition);
+    const level = (code) => items.filter((item) => FG.id(item.disclosureLevel) === FG.term("levels", code) && !FG.isAdviceKind(item, "ai")).sort(FG.byPosition);
     const now = level("L0")[0];
     /* The station's core idea opens its how-to, above the steps. */
-    const key = level("L1").find((item) => item.adviceKind === "key");
+    const key = level("L1").find((item) => FG.isAdviceKind(item, "key"));
     const steps = level("L1").filter((item) => item !== key);
-    const ai = items.filter((item) => item.adviceKind === "ai").sort(FG.byPosition);
+    const ai = items.filter((item) => FG.isAdviceKind(item, "ai")).sort(FG.byPosition);
     const mentioned = FG.refs(entity, "mentions").filter((item) => item.resourceType && lensOf(item, route.lens));
     const courses = mentioned.filter((item) => FG.id(item.resourceType) === FG.term("resource-types", "course"));
     const resources = mentioned.filter((item) => !courses.includes(item));

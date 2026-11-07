@@ -109,7 +109,10 @@ class PublicationLocationTests(unittest.TestCase):
                         owned = {iri for iri in iris if iri.startswith(semantic)} - records
                         # Every Guide term plus the profile: the probe exercises the actual semantic IRIs, whatever
                         # their number in this content tree.
-                        expected = {semantic + "terms#" + term for term in build_crate.GUIDE_TERMS}
+                        expected = {
+                            semantic + "terms#" + term
+                            for term in [*build_crate.GUIDE_TERMS, *build_crate.GUIDE_CLASSES]
+                        }
                         self.assertEqual(owned, expected | {semantic + "profile/0.1"})
                         # The records move with the namespace and keep their addresses; everything else stays.
                         logical = {iri.removeprefix(semantic + "id/") for iri in records}

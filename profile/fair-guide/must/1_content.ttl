@@ -94,8 +94,24 @@ fair-guide:Station a sh:NodeShape ;
 
 fair-guide:AdviceItem a sh:NodeShape ;
     sh:name "Advice item" ;
-    sh:description "An advice item has Czech and English text, a lens, a disclosure level and at least one cited clause" ;
-    sh:targetSubjectsOf fg:disclosureLevel ;
+    sh:description "An advice item has Czech and English text, a lens, a disclosure level, its kind and at least one cited clause" ;
+    sh:targetClass fg:AdviceItem ;
+    sh:property [
+        sh:name "Advice level" ;
+        sh:path fg:disclosureLevel ;
+        sh:class schema:DefinedTerm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "An advice item MUST have exactly one disclosure level" ;
+    ] ;
+    sh:property [
+        sh:name "Advice kind" ;
+        sh:path fg:adviceKind ;
+        sh:class schema:DefinedTerm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "An advice item MUST name its kind: a direction, a tip, a key point or an AI tip" ;
+    ] ;
     sh:property [
         sh:name "Advice text in Czech" ;
         sh:path schema:text ;

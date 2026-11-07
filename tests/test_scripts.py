@@ -599,6 +599,31 @@ class GeneratorTests(FixtureCase):
         root = next(entity for entity in crate["@graph"] if entity["@id"] == "./")
         self.assertIn(build_crate.status_code(root["releaseStatus"]), ("testing", "production"))
 
+    def test_every_authored_advice_item_is_one_advice_item_with_its_kind(self) -> None:
+        content = build_crate.load_content()
+        crate = build_crate.build_crate(content)
+        graph = {entity["@id"]: entity for entity in crate["@graph"]}
+        authored = [advice["id"] for data in content["stations"] for advice in data.get("advice", [])]
+        items = [entity for entity in graph.values() if entity.get("@type") == "AdviceItem"]
+        self.assertEqual(sorted(item["identifier"] for item in items), sorted(authored))
+        self.assertEqual(len(set(authored)), len(authored), "every advice item is counted once")
+        self.assertTrue(crate["@context"][1]["AdviceItem"].endswith("terms#AdviceItem"))
+        self.assertEqual(
+            {build_crate.status_code(item["adviceKind"]) for item in items}, {"direction", "tip", "key", "ai"}
+        )
+        # Steps and actions stay parts under their advice item.
+        steps = [entity for key, entity in graph.items() if "#step-" in key]
+        self.assertTrue(steps)
+        for step in steps:
+            self.assertEqual(step["@type"], "HowToDirection")
+            self.assertEqual(graph[step["isPartOf"]["@id"]]["@type"], "AdviceItem")
+        # The class specializes schema:CreativeWork, with the reason schema.org's own types are not used.
+        definition, broader, reason = build_crate.GUIDE_CLASSES["AdviceItem"]
+        self.assertEqual(broader, build_crate.SCHEMA + "CreativeWork")
+        self.assertIn("HowTo", reason)
+        shapes = (build_crate.ROOT / "profile/fair-guide/must/1_content.ttl").read_text(encoding="utf-8")
+        self.assertIn("sh:targetClass fg:AdviceItem", shapes)
+
     def test_a_page_section_is_named_by_its_own_id_never_by_its_position(self) -> None:
         """Reordering a page moves no section's IRI, reference or shared link: its fragment is the id it carries."""
         content = build_crate.load_content()

@@ -181,6 +181,8 @@
      form of an identifier. */
   FG.address = (kind, id, scope) => [kind, scope, id].filter((part) => part != null && part !== "").join("/");
   FG.term = (set, code) => "vocabularies/" + set + "/" + code;
+  /** Whether an advice item is of a kind: a direction, a tip, a station's key point or an AI tip. */
+  FG.isAdviceKind = (item, code) => FG.id(item && item.adviceKind) === FG.term("advice-kinds", code);
   FG.kind = function (value) {
     const id = String(FG.id(value) || "");
     const kind = id.split("/")[0];

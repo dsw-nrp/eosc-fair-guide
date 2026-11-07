@@ -154,7 +154,7 @@ its head in CI.
 - [x] 3.2 Make every status a term of its scheme, through properties that specialise `adms:status`, and remove
   `creativeWorkStatus` strings. Verify: a unit test finds no status literal, and the stale-status test in
   `tests/test_health.py` still reports an expired `asOf`.
-- [ ] 3.3 Give advice items the class `fg:AdviceItem` and an `adviceKind` term, with steps and actions as parts
+- [x] 3.3 Give advice items the class `fg:AdviceItem` and an `adviceKind` term, with steps and actions as parts
   (decision 7). Verify: the profile shape targets the class, pyshacl passes, and a unit test counts every authored
   advice item once.
 - [ ] 3.4 Type checks and questions as FTR benchmarks and metrics. Generate the manual tests at `tests/self-check/`,

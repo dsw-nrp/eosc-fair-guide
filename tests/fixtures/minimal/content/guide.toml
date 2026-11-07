@@ -111,6 +111,22 @@ name = { cs = "produkční verze", en = "production version" }
 id = "candidate"
 name = { cs = "kandidátský uzel", en = "candidate node" }
 
+[[adviceKind]]
+id = "direction"
+name = { cs = "doporučení", en = "direction" }
+
+[[adviceKind]]
+id = "tip"
+name = { cs = "tip", en = "tip" }
+
+[[adviceKind]]
+id = "key"
+name = { cs = "klíčová myšlenka", en = "key point" }
+
+[[adviceKind]]
+id = "ai"
+name = { cs = "tip k AI", en = "AI tip" }
+
 [[tier]]
 id = "required"
 name = { cs = "Povinné", en = "Required" }
