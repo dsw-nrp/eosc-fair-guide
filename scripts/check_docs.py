@@ -21,7 +21,21 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from build_crate import ADMS, DCAT, DCTERMS, FIP_TERMS, FTR, PROV, SCHEMA, SKOS, XSD, build_crate, load_content
+from build_crate import (
+    ADMS,
+    DCAT,
+    DCTERMS,
+    DQV,
+    FIP_TERMS,
+    FOAF,
+    FTR,
+    PROV,
+    SCHEMA,
+    SKOS,
+    XSD,
+    build_crate,
+    load_content,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = ("landing", "how-to", "reference", "explanation", "tutorial")
@@ -306,6 +320,8 @@ def semantic_mapping(text: str, crate: dict, base_context: dict) -> list[str]:
         "skos": SKOS,
         "dcat": DCAT,
         "adms": ADMS,
+        "foaf": FOAF,
+        "dqv": DQV,
         "xsd": XSD,
         "guide": guide_base,
     }
@@ -335,12 +351,17 @@ def semantic_mapping(text: str, crate: dict, base_context: dict) -> list[str]:
         return definition if isinstance(definition, str) else ""
 
     known = {expand(key) for key in context}
-    # additionalType values name external classes rather than serialized property/type keys.
+    # additionalType values name external classes rather than serialized property/type keys, and a compact type
+    # (`ftr:Benchmark`) names its class through a prefix of the context.
     for entity in crate["@graph"]:
         values = entity.get("additionalType", [])
         for value in values if isinstance(values, list) else [values]:
             if isinstance(value, str):
                 known.add(value)
+        types = entity.get("@type", [])
+        for value in types if isinstance(types, list) else [types]:
+            if isinstance(value, str) and ":" in value:
+                known.add(expand(value))
 
     def documented(term: str) -> str:
         prefix, _, local = term.partition(":")
@@ -442,9 +463,64 @@ def publication_flow(text: str) -> list[str]:
     return found
 
 
+# A citation of a change, in every form one has used: a numbered decision of its design or of one of its capability
+# deltas ("decision <n>", "decision D<n>", "design D<n>", "D-<n>", "(D<n>)"), a grouping of its design ("design:"
+# and the group, in parentheses) or one of its tasks ("task <n>.<n>").
+CHANGE_CITATION = re.compile(
+    r"\bdecisions? D?\d+\b"
+    r"|\bdesign D\d+\b"
+    r"|\bD-\d{2,3}\b"
+    r"|\(D\d+\)"
+    r"|\(design:\s[^)]*\)"
+    r"|\btasks? \d+\.\d+\b"
+)
+# The files that outlive a change: code, tests, content, the page's scripts and styles, the CI workflows, their
+# scripts and the repository's settings, and the human documents. Recorded external data under tests/fixtures/ is
+# quoted as it was received.
+DURABLE = (
+    "scripts/**/*.py",
+    "tests/**/*.py",
+    "tests/**/*.mjs",
+    "assets/js/**/*.js",
+    "assets/css/**/*.css",
+    "content/**/*.toml",
+    ".github/workflows/*.yml",
+    ".github/scripts/*.cjs",
+    ".github/repository.toml",
+    "docs/**/*.md",
+    "README.md",
+    "README_en.md",
+    "CONTRIBUTING.md",
+    ".agents/guide/**/*.md",
+)
+
+
+def change_citations(root: Path = ROOT) -> list[str]:
+    """Durable files explain a rule in their own words and cite no part of any change, this one or an earlier one:
+    neither a numbered decision, a design grouping or a task, nor an active change by name. A change's reasons stay
+    with the change, which is archived when it is done; a citation of it would lead nowhere."""
+    changes = root / "openspec/changes"
+    names = (
+        sorted(path.name for path in changes.iterdir() if path.is_dir() and path.name != "archive")
+        if changes.is_dir()
+        else []
+    )
+    named = re.compile(r"\b(?:" + "|".join(map(re.escape, names)) + r")\b") if names else None
+    found = []
+    for pattern in DURABLE:
+        for path in sorted(root.glob(pattern)):
+            relative = path.relative_to(root).as_posix()
+            if relative.startswith("tests/fixtures/") or "__pycache__" in relative or not path.is_file():
+                continue
+            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                if CHANGE_CITATION.search(line) or (named and named.search(line)):
+                    found.append(f"{relative}:{number}: explain the rule in its own words; cite no change")
+    return found
+
+
 def problems(root: Path = ROOT) -> list[str]:
     npm = scripts(root)
-    found = []
+    found = change_citations(root)
     readme = (root / "README.md").read_text("utf-8") if (root / "README.md").is_file() else ""
     has_concept_doi = bool(re.search(r"https://doi\.org/10\.5281/zenodo\.\d+", readme))
     for name in documents(root):

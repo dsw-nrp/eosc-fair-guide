@@ -1,5 +1,7 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix fg: <https://fair.eosc.cz/terms#> .
 @prefix fair-guide: <https://fair.eosc.cz/profile/fair-guide/> .
+@prefix ftr: <https://w3id.org/ftr#> .
 @prefix schema: <http://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
@@ -51,7 +53,8 @@ fair-guide:ApprovedModelManuscript a sh:NodeShape ;
     sh:targetSubjectsOf fg:preparationStatus ;
     sh:class schema:ScholarlyArticle ;
     sh:property [ sh:path schema:identifier ; sh:hasValue "layers-seams-manuscript" ] ;
-    sh:property [ sh:path fg:preparationStatus ; sh:hasValue "in-preparation" ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:preparationStatus ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:node [ sh:property [ sh:path schema:termCode ; sh:hasValue "in-preparation" ] ] ] ;
     sh:property [ sh:path schema:datePublished ; sh:maxCount 0 ] ;
     sh:property [ sh:path schema:publisher ; sh:maxCount 0 ] ;
     sh:property [ sh:path schema:license ; sh:maxCount 0 ] .
@@ -92,8 +95,24 @@ fair-guide:Station a sh:NodeShape ;
 
 fair-guide:AdviceItem a sh:NodeShape ;
     sh:name "Advice item" ;
-    sh:description "An advice item has Czech and English text, a lens, a disclosure level and at least one cited clause" ;
-    sh:targetSubjectsOf fg:disclosureLevel ;
+    sh:description "An advice item has Czech and English text, a lens, a disclosure level, its kind and at least one cited clause" ;
+    sh:targetClass fg:AdviceItem ;
+    sh:property [
+        sh:name "Advice level" ;
+        sh:path fg:disclosureLevel ;
+        sh:class schema:DefinedTerm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "An advice item MUST have exactly one disclosure level" ;
+    ] ;
+    sh:property [
+        sh:name "Advice kind" ;
+        sh:path fg:adviceKind ;
+        sh:class schema:DefinedTerm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "An advice item MUST name its kind: a direction, a tip, a key point or an AI tip" ;
+    ] ;
     sh:property [
         sh:name "Advice text in Czech" ;
         sh:path schema:text ;
@@ -193,10 +212,11 @@ fair-guide:CheckItem a sh:NodeShape ;
     ] ;
     sh:property [
         sh:name "Item check" ;
-        sh:path schema:isPartOf ;
+        sh:path ftr:hasBenchmark ;
         sh:class schema:Quiz ;
         sh:minCount 1 ;
-        sh:message "A self-check item MUST belong to a check" ;
+        sh:maxCount 1 ;
+        sh:message "A self-check item MUST belong to a check, its FTR benchmark" ;
     ] .
 
 fair-guide:Resource a sh:NodeShape ;
@@ -237,6 +257,8 @@ fair-guide:Repository a sh:NodeShape ;
     sh:description "A repository has an HTTPS address, or is not yet public with planned/development status and an NKR record" ;
     sh:targetSubjectsOf fg:repositoryKind ;
     sh:or (
+        # A registry's record of a repository, such as NKR's, keeps the registry's own values; it is no repository.
+        [ sh:class dcat:CatalogRecord ]
         [ sh:property [ sh:path schema:url ; sh:minCount 1 ; sh:pattern "^https://" ] ]
         [
             sh:property [

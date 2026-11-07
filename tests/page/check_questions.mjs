@@ -108,7 +108,7 @@ try {
     await part("answers");
     assert(await page.locator("#answer-software-04-no").isChecked(), "a refresh cannot replace the authored answer");
     const roundTrip = await page.evaluate(() => {
-      const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("#check-software"), st = FG.state.answers.software;
+      const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("checks/software"), st = FG.state.answers.software;
       const saved = SC.portableState(check, st), loaded = SC.readPortable(saved);
       const old = structuredClone(saved); old.v = 1; delete old.inspection; delete old.champion; for (const entry of Object.values(old.items)) delete entry.observations;
       return { v: saved.v, manual: loaded.state.items["software.04"].origin, value: loaded.state.items["software.04"].value,
@@ -123,7 +123,7 @@ try {
     const longValue = "Complete retained evidence\n".repeat(650);
     await page.evaluate((value) => {
       const FG = window.FairGuide, SC = FG.selfcheck;
-      const saved = SC.portableState(FG.get("#check-software"), FG.state.answers.software);
+      const saved = SC.portableState(FG.get("checks/software"), FG.state.answers.software);
       const entry = saved.items["software.04"];
       entry.observations[0].fields = [{ path: "description", values: [value] }];
       entry.prefill = entry.observations[0];
@@ -211,7 +211,7 @@ try {
   assert.equal(await page.locator("#tests-maturity-03 .probe-record").count(), 5);
   assert((await page.locator("#tests-maturity-03").textContent()).includes("Request unavailable"));
   const probes = await page.evaluate(() => {
-    const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("#check-maturity"), st = FG.state.answers.maturity;
+    const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("checks/maturity"), st = FG.state.answers.maturity;
     const portable = SC.portableState(check, st), loaded = SC.readPortable(portable);
     return { restored: Object.keys(loaded.state.champion.verdicts).length,
       members: SC.ftrCrate(check, st)["@graph"].filter((entry) => entry["ftr:outputFromTest"] && entry["@id"].startsWith("#result-fc_structured_metadata")).map((entry) => ({ target: entry["ftr:assessmentTarget"]["@id"], log: entry["ftr:log"] })) };
@@ -221,8 +221,8 @@ try {
   assert(await page.locator('#tests-maturity-03 .test-invocation a').count() >= 2, "question links external test documentation too");
   assert(probes.members.every((entry, index) => entry.target.endsWith("/" + index) && entry.log.includes("observation " + index)));
   const bounded = await page.evaluate(() => {
-    const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("#check-maturity"), st = structuredClone(FG.state.answers.maturity);
-    for (const item of FG.refs(check, "hasPart")) {
+    const FG = window.FairGuide, SC = FG.selfcheck, check = FG.get("checks/maturity"), st = structuredClone(FG.state.answers.maturity);
+    for (const item of FG.questionsOf(check)) {
       const observations = Array.from({ length: 8 }, (_, index) => ({ source: "landing", date: "2026-10-11", value: "partly", notes: [], list: [], record: "https://archive.example/" + index,
         subject: "https://archive.example/" + index, representation: "application/ld+json", fields: [{ path: "description", values: ["長".repeat(2000)] }] }));
       st.items[item.identifier] = { value: "no", origin: "user", observations, prefill: observations[7] };
@@ -230,7 +230,7 @@ try {
     for (const entry of Object.values(st.champion.verdicts)) entry.log = "長".repeat(5000);
     const saved = SC.portableState(check, st), ftr = SC.ftrCrate(check, st);
     return { bytes: new TextEncoder().encode(JSON.stringify(ftr)).length, restored: SC.readPortable(saved).error || null,
-      shortened: Object.values(saved.items).some((entry) => entry.prefill.truncated), original: st.items[FG.refs(check, "hasPart")[0].identifier].observations.length,
+      shortened: Object.values(saved.items).some((entry) => entry.prefill.truncated), original: st.items[FG.questionsOf(check)[0].identifier].observations.length,
       answers: Object.values(saved.items).every((entry) => entry.value === "no" && entry.origin === "user") };
   });
   assert(bounded.bytes < 2 * 1024 * 1024, "a large multibyte evidence export remains loadable within the file limit");

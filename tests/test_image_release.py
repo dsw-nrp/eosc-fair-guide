@@ -49,8 +49,9 @@ class ImageReleaseTests(unittest.TestCase):
         evidence = publication_files(self.publication_url, built=self.built, version=TAG[1:])
         self.config = evidence["assets/data/ui.js"].decode("utf-8")
         crate = json.loads(evidence["ro-crate-metadata.json"])
-        crate["@graph"][0]["creativeWorkStatus"] = "production"
-        crate["@graph"].append({"@id": "#guide-software", "creativeWorkStatus": "production"})
+        production = {"@id": "https://published.example/guide/id/vocabularies/release-statuses/production"}
+        crate["@graph"][0]["releaseStatus"] = production
+        crate["@graph"].append({"@id": "#guide-software", "releaseStatus": production})
         files = {
             "index.html": "<!doctype html><title>Release fixture</title>",
             "assets/data/ui.js": self.config,

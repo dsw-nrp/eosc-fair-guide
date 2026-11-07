@@ -210,7 +210,7 @@ def assemble(
                 "production and preview were built for different publication roots; rerun the deployment so that "
                 "both are built for the current one"
             )
-        # The namespace is a reviewed setting that changes before the release that carries it (decision 28).
+        # The namespace is a reviewed setting that changes before the release that carries it.
         if (active["vocabulary_base"], active["profile"]) != (preview["vocabulary_base"], preview["profile"]):
             notices.append(
                 f"The preview names the Guide vocabulary `{preview['vocabulary_base']}` and profile "

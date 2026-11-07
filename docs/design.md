@@ -157,8 +157,11 @@ keep the same meaning across stations, requirements, questions and catalogue ent
 The landing leads with local search, the RDMkit life-cycle journey, role-specific task shortcuts and
 resume. Local results appear while typing; nothing is sent externally. Identifiers route by what they
 denote: repositories to maturity, FIPs to their check, institutions to the institution check, ORCID to
-verification. A generic DOI or Handle offers an explicit lookup that names its object and source;
-other suitable helpers remain available. The catalogue is the complete search-results view. Source
+verification, a Guide IRI or address to its catalogue entry. A generic DOI or Handle offers an explicit lookup
+that names its object and source; other suitable helpers remain available. The catalogue is the complete
+search-results view. Every route names the reader's language and lens (`#/<lang>/<lens>/catalogue/<kind>/<id>`),
+so a shared link opens as its sender saw it; the one route without them, `#/id/<address>`, is how a record's
+landing page links into the Guide, and it becomes the full route in the reader's saved language and lens. Source
 and privacy information remain visible without dominating entry.
 
 The journey draws seven life-cycle stages as a cycle, reuse returning to planning, with a numbered
@@ -193,11 +196,28 @@ FAIR links relate topics without renaming FAIR4RS or FDO requirements as FAIR-da
 **One entry per thing, locally owned identities.** Records declare short Guide IDs. Imported rows retain
 one primary `id` and the issued `guideRoute` across refresh independently of source IDs, names and URLs.
 Genuine source identifiers live in typed `alternateIds`; obsolete Guide IDs are discarded before release. One build
-projection emits compact catalogue/API addresses for all consumers; there is no parallel full-address register.
-Chips display the compact record ID. Published source labels and authoritative IRIs remain metadata with their
-actual roles. Before the first official release, IDs may change in place without compatibility routes or duplicate
+projection gives every record one address, `<kind>/<id>` in a plain-word kind vocabulary, and one IRI under the
+Guide's namespace; the crate, the API, the page's routes and references all use it, and there is no parallel
+full-address register. A part of a record takes a fragment under it, as a registry's record about the thing it
+describes does; a page's section takes its own id, never its place, so reordering a page moves no address. Every registry's row is such a record, and the thing rests on each of its records and, where the
+Guide describes it, on the Guide's selection, so a consumer reads from the graph which catalogues supplied a thing,
+and the page credits them from the same statements. A thing that rests on nothing but its records is one only
+registries know. Chips display the record ID, and an entry's identifiers start with its own IRI; no identifier
+chip carries a label, because an identifier says what issued it. Published source labels and authoritative IRIs
+remain metadata with their actual roles. Before the first official release, IDs may change in place without compatibility routes or duplicate
 API documents. After issue, names/classification may change while the address remains fixed. Reviewed joins
 identify one described thing; ambiguous changes require review. Duplicate checks retain their current reasons.
+
+**One graph model.** A controlled vocabulary is modelled once: every term is a `schema:DefinedTerm` in exactly one
+term set, and its SKOS reading is stated once, as subclass and subproperty axioms in the Guide's own vocabulary
+document, so no membership is stated twice. Every status is a term of its own scheme, named through a property that
+specializes `adms:status`, so `planned` exists once and a status is never a string. Advice is a class of its own,
+`guide:AdviceItem`, with its kind as a term, because schema.org's HowTo types describe one procedure's steps, not
+advice by lens and level. A check is an FTR benchmark and its questions FTR metrics, each implemented by a manual
+test the build writes, and the graph states the FTR relations instead of their schema.org duplicates; a pre-fill is
+a typed mapping that names its source, what it reads and how much of its question it covers. A question that asks
+what a clause says names the clause as its requirement and takes its text, so the text is written once. The
+profile states these rules as shapes, each proved by a planted violation it refuses.
 
 **Originals and translations have separate purposes.** Permitted originals are attributed once on
 clauses, with language, version, locator and reuse terms, and reused by stations, checks and catalogue.
@@ -245,7 +265,7 @@ uses Dashboard profiles first and published nanopublications as fallback, preser
 use/planning/replacement status. No declaration leaves a question open, not a proven gap.
 
 Repository discovery combines curated entries with NKR, re3data, FAIRsharing and DataCite snapshots,
-deduplicated through reviewed links. NKR additionally joins by exact normalized repository address, while a
+deduplicated through reviewed links; a registry is a resource, listed with the resources. NKR additionally joins by exact normalized repository address, while a
 record without an address needs a reviewed NKR handle to join an existing entry. Ambiguous joins fail for review.
 NKR's non-empty published names, kind, status, keywords and address take precedence; Guide-owned functions and
 operator facts remain, and empty NKR values remove nothing. Status dates record the harvest observation, while
@@ -499,7 +519,8 @@ partial, complete, expanded and imported states in both languages at desktop/pho
 
 **The static API is a crate view.** `build_api.py` emits collection/entity JSON with language maps,
 JSON-LD context, OpenAPI 3.1 and pinned local Swagger UI. Records link relatively. Checks are FTR
-benchmarks, questions metrics, and named manual tests link exports to definitions. Paths align with
+benchmarks, questions metrics, and named manual tests link exports to definitions; the API uses the graph's types
+and relations as they are, without renaming them. Paths align with
 the Dashboard's published vocabulary. Data for machines teaches from real task-to-data links, FAIR
 Signposting, profile, licensing, paradata and result examples. Head and linkset share one discovery list.
 Views offer their own data, cards their record, checks their result; filtered exports retain order/filters.
@@ -624,7 +645,10 @@ written to `duplicates.json` under `CHECK_REPORT_DIR` or `--report`. `--fix` app
 the working tree with the same provenance action and registration as the trusted command, shared through
 `duplicate_repairs.py`. It records a reviewed person from `--person` or the `commitNames`/`github` match of the
 local Git identity, refuses before writing when none is unique, and rejects a repair that adds a content error.
-Neither path edits `content/duplicates.toml` or accepts a lookalike group.
+Neither path edits `content/duplicates.toml` or accepts a lookalike group. Every registry record attaches to
+exactly one thing: a registry record and a curated thing with no key joining them but the same registrable domain
+and a distinctive name word, or the same name and provider, are listed as reviews in the report and the output.
+A review is never an error, a suggestion or a join; a person links the record or accepts the pair.
 Safe ownership is checked across the full catalogue and suggestion set. Exact placement rules are shared by
 Python consumers and checked for parity with the independent Node validator. The local batch validates TOML,
 replaces targets atomically and rechecks duplicates before reporting success. Handled failures restore

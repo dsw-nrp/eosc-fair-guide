@@ -8,11 +8,13 @@ import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const { chromium } = await import("./browser.mjs");
-const config = { api: { records: {} }, helpers: { maxCharacters: 100000, maxItems: 40 }, links: { fipDashboard: "https://fip-dashboard.dmp.eosc.cz/", nkr: "https://nkr.example/" } };
+const config = { namespace: "https://w3id.org/eosc-cz/fair-guide/", kinds: ["resources", "stations"], api: { records: { "stations/licence": "stations/licence" } }, helpers: { maxCharacters: 100000, maxItems: 40 }, links: { fipDashboard: "https://fip-dashboard.dmp.eosc.cz/", nkr: "https://nkr.example/" } };
 const FG = { config, list: (value) => value == null ? [] : Array.isArray(value) ? value : [value], graph: [], get: () => null, refs: () => [] };
 const sharedCore = {};
 runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window: { FairGuide: sharedCore }, URL });
-FG.bareUrl = sharedCore.bareUrl;
+sharedCore.config = config;
+// The record identity helpers read the page configuration's kinds and namespace.
+for (const name of ["bareUrl", "address", "kind", "recordOf", "fragment", "localId", "isRecord", "termKey"]) FG[name] = sharedCore[name];
 for (const script of ["live.js", "helpers.js", "search.js"]) runInNewContext(readFileSync(resolve(root, "assets/js", script), "utf8"), { window: { FairGuide: FG }, URL });
 const H = FG.helpers;
 const plain = (value) => JSON.parse(JSON.stringify(value)); // values from the script context, compared by content
@@ -51,6 +53,10 @@ for (const input of ["r3d10001046", "r3d1000104680", "xr3d100010468", "see r3d10
 assert.deepEqual(plain(FG.search.classify("10.17616/R3D1D0")), { type: "re3data", value: "10.17616/R3D1D0" }, "a re3data DOI routes to the maturity check");
 assert.equal(await FG.live.re3dataRecord("https://doi.org/10.17616/R3D1D0"), "r3d100010468", "the check follows a re3data DOI to its record");
 assert.notEqual(FG.search.classify("xr3d100010468").type, "re3data");
+// A Guide IRI or a record's address opens its catalogue entry without a request (guide-experience).
+for (const input of ["https://w3id.org/eosc-cz/fair-guide/id/stations/licence", "stations/licence"]) {
+  assert.deepEqual(plain(FG.search.classify(input)), { type: "guide", kind: "stations", value: "licence" }, "search: " + input);
+}
 FG.live.resolvePid = resolvePid;
 // Reviewed discovery looks connectors up through the live owner rather than its own copy.
 const ownConnector = FG.live.connector, looked = [];

@@ -157,7 +157,7 @@ class ReleaseVersions(unittest.TestCase):
         nodes[0]["datePublished"] = released
         built = build_identity.identity(self.root)
         for node in nodes:
-            node["creativeWorkStatus"] = built["status"]
+            node["releaseStatus"] = {"@id": "https://x.example/id/vocabularies/release-statuses/" + built["status"]}
         ui = site / release.BUILD_UI
         ui.parent.mkdir(parents=True)
         ui.write_text("window.FairGuideData.ui = " + json.dumps({"config": {"build": built}}) + ";\n")

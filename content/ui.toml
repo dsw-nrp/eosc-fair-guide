@@ -138,18 +138,7 @@ page = { cs = "Stránky", en = "Pages" }
 clause = { cs = "Požadavky analýzy", en = "Requirements of the analysis" }
 
 [pid]
-doi = { cs = "DOI", en = "DOI" }
-handle = { cs = "Handle", en = "Handle" }
-nanopub = { cs = "Nanopublikace", en = "Nanopublication" }
-ror = { cs = "ROR", en = "ROR" }
 orcid = { cs = "ORCID", en = "ORCID" }
-re3data = { cs = "re3data", en = "re3data" }
-fairsharing = { cs = "FAIRsharing", en = "FAIRsharing" }
-nkr = { cs = "NKR", en = "NKR" }
-ark = { cs = "ARK", en = "ARK" }
-iri = { cs = "Trvalé IRI", en = "Persistent IRI" }
-dashboard = { cs = "FIP Dashboard", en = "FIP Dashboard" }
-address = { cs = "Adresa", en = "Address" }
 
 [station]
 stage = { cs = "Fáze {n} · {name}", en = "Stage {n} · {name}" }
@@ -983,23 +972,23 @@ statement = { cs = "zjištění", en = "finding" }
 
 [catalogue.tab]
 resources = { cs = "Zdroje", en = "Resources" }
-repositories = { cs = "Repozitáře a registry", en = "Repositories and registries" }
+repositories = { cs = "Repozitáře", en = "Repositories" }
 clauses = { cs = "Požadavky a doporučení", en = "Requirements and recommendations" }
-terms = { cs = "Pojmy", en = "Glossary" }
+glossary = { cs = "Pojmy", en = "Glossary" }
 fips = { cs = "Profily FIP", en = "FIP profiles" }
 tests = { cs = "Testy FAIR", en = "FAIR tests" }
 questions = { cs = "Otázky kontrol", en = "Check questions" }
 actions = { cs = "Změny obsahu", en = "Content changes" }
-lifecycle = { cs = "Životní cyklus dat", en = "Data life cycle" }
-model = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
+lifecycles = { cs = "Životní cyklus dat", en = "Data life cycle" }
+models = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
 infrastructures = { cs = "Velké výzkumné infrastruktury", en = "Large research infrastructures" }
 
 [catalogue.intro]
 infrastructures = { cs = "Velké výzkumné infrastruktury z Cestovní mapy velkých výzkumných infrastruktur ČR na léta 2023–2026: obor, fáze, hostitelská instituce, národní uzly evropských výzkumných infrastruktur a členství v ERIC, jak je mapa uvádí, a repozitáře, které provozují, kde to uvádí zdroj.", en = "The large research infrastructures of the Czech Roadmap of Large Research Infrastructures for 2023–2026: field, phase, hosting institution, national nodes of European research infrastructures and ERIC memberships as the roadmap states them, and the repositories they operate where a source says so." }
-lifecycle = { cs = "Fáze životního cyklu výzkumných dat podle RDMkit, MaLDReTH a katalogu nástrojů KNAV, jak je zdroje publikují, a jak si navzájem odpovídají. Cesta Průvodce sleduje fáze RDMkit.", en = "Stages of the research data life cycle in RDMkit, MaLDReTH and the KNAV tools catalogue, as their sources publish them, and how they correspond. The Guide's path follows the RDMkit stages." }
-model = { cs = "Funkce a předání informací v modelu Layers and Seams. Odkazy propojují model s konkrétními zdroji, požadavky a otázkami Průvodce.", en = "Functions and information hand-offs in the Layers-and-Seams Model. Links connect the model to specific resources, requirements and questions in the Guide." }
+lifecycles = { cs = "Fáze životního cyklu výzkumných dat podle RDMkit, MaLDReTH a katalogu nástrojů KNAV, jak je zdroje publikují, a jak si navzájem odpovídají. Cesta Průvodce sleduje fáze RDMkit.", en = "Stages of the research data life cycle in RDMkit, MaLDReTH and the KNAV tools catalogue, as their sources publish them, and how they correspond. The Guide's path follows the RDMkit stages." }
+models = { cs = "Funkce a předání informací v modelu Layers and Seams. Odkazy propojují model s konkrétními zdroji, požadavky a otázkami Průvodce.", en = "Functions and information hand-offs in the Layers-and-Seams Model. Links connect the model to specific resources, requirements and questions in the Guide." }
 all = { cs = "Vše, z čeho Průvodce vychází a co doporučuje, v jednom katalogu.", en = "Everything the Guide builds on and recommends, in one catalogue." }
-terms = { cs = "Pojmy otevřené vědy, na které Průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the Guide links to, taken from Heslář." }
+glossary = { cs = "Pojmy otevřené vědy, na které Průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the Guide links to, taken from Heslář." }
 fips = { cs = "Profily FAIR implementace (FIP) komunit ze snímku FIP Dashboardu; kontrola úplnosti FIP z nich umí odpovědi předvyplnit.", en = "Communities' FAIR Implementation Profiles (FIPs) from the FIP Dashboard snapshot; the FIP completeness check can fill in its answers from them." }
 tests = { cs = "Automatické testy pro předvyplnění kontrol, s popisy, souvisejícími otázkami a principy, kódem nebo adresou služby a dokumentací.", en = "Automated tests used to prefill the checks, with descriptions, related questions and principles, code or service endpoints, and documentation." }
 clauses = { cs = "Požadavky, doporučení a zjištění z publikovaných podkladů, na kterých stojí rady a otázky Průvodce; hlavním podkladem je Analýza FAIR pro NRP/NDI. Identifikátor jako A.F1.N1 uvádí podklad, princip a pořadí.", en = "The requirements, recommendations and findings from published sources that the Guide's advice and questions rest on; the main source is the FAIR analysis for NRP/NDI. An identifier such as A.F1.N1 gives the source, the principle and the order." }
@@ -1013,15 +1002,15 @@ entry = { cs = "Celý záznam v katalogu", en = "The whole entry in the catalogu
 
 [catalogue.kindOne]
 resources = { cs = "Zdroj", en = "Resource" }
-repositories = { cs = "Repozitář nebo registr", en = "Repository or registry" }
+repositories = { cs = "Repozitář", en = "Repository" }
 clauses = { cs = "Požadavek nebo doporučení", en = "Requirement or recommendation" }
-terms = { cs = "Pojem", en = "Glossary term" }
+glossary = { cs = "Pojem", en = "Glossary term" }
 fips = { cs = "Profil FIP", en = "FIP profile" }
 tests = { cs = "Test FAIR", en = "FAIR test" }
 questions = { cs = "Otázka kontroly", en = "Check question" }
 actions = { cs = "Změna obsahu", en = "Content change" }
-lifecycle = { cs = "Životní cyklus dat", en = "Data life cycle" }
-model = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
+lifecycles = { cs = "Životní cyklus dat", en = "Data life cycle" }
+models = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
 infrastructures = { cs = "Velká výzkumná infrastruktura", en = "Large research infrastructure" }
 
 # What DataCite reports about a repository in the finder, read on the reader's request.
@@ -1629,7 +1618,7 @@ description = { cs = "Modely životního cyklu výzkumných dat (RDMkit, MaLDReT
 record = { cs = "Jeden model, fáze nebo shoda mezi fázemi", en = "One model, stage or correspondence between stages" }
 parameter = { cs = "Identifikátor modelu, fáze nebo shody", en = "The model, stage or correspondence identifier" }
 
-# A large research infrastructure in the catalogue (content/infrastructures.toml, D-174).
+# A large research infrastructure in the catalogue (content/infrastructures.toml).
 [infrastructure]
 since = { cs = "na cestovní mapě od roku {year}", en = "on the roadmap since {year}" }
 ericSince = { cs = "{name}, ČR členem od roku {year}", en = "{name}, the Czech Republic a member since {year}" }
@@ -1637,7 +1626,7 @@ ericExpected = { cs = "{name}, ČR zakládajícím členem po jeho založení", 
 source = { cs = "Cestovní mapa VVI 2023–2026, {locator}", en = "Roadmap of Large Research Infrastructures 2023–2026, {locator}" }
 operatorSource = { cs = "podle zdroje", en = "as stated by the source" }
 
-# What an entry is in the EOSC CZ Node, as the node's charter says (D-172); the node's own state names the label.
+# What an entry is in the EOSC CZ Node, as the node's charter says; the node's own state names the label.
 [node]
 service = { cs = "služba uzlu", en = "node service" }
 repository = { cs = "zapojení plánováno do {milestone}", en = "integration planned by {milestone}" }

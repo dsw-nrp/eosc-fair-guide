@@ -83,7 +83,10 @@ def missing_links(content: dict[str, Any], graph: build_crate.Graph | None = Non
         build_crate.build_crate(content, graph)
     targets = build_crate.reference_targets(content, graph)
     addresses = {
-        key: entity["catalogueAddress"] for key, entity in graph.entities.items() if entity.get("catalogueAddress")
+        entity_id: address
+        for members in build_crate.api_records(graph.entities, content).values()
+        for _, entity_id in members
+        if (address := build_crate.record_address(entity_id, content["guide"]["guide"]["recordBase"]))
     }
     generic = {
         "data",
@@ -162,7 +165,20 @@ def missing_links(content: dict[str, Any], graph: build_crate.Graph | None = Non
         # A criterion, model layer, stage or profile name often describes the subject of ordinary prose.
         # "NRP" does not by itself name the NRP FIP, nor "rich metadata" the F2 catalogue entry.
         if (
-            addresses[entity_id].split("/")[0] in {"cl", "pr", "model", "life", "check", "fip", "test"}
+            addresses[entity_id].split("/")[0]
+            in {
+                "clauses",
+                "principles",
+                "models",
+                "layers",
+                "seams",
+                "model-examples",
+                "lifecycles",
+                "crosswalks",
+                "checks",
+                "fips",
+                "tests",
+            }
             and len(label.split()) < 3
         ):
             return
@@ -170,7 +186,7 @@ def missing_links(content: dict[str, Any], graph: build_crate.Graph | None = Non
             return  # Linked common phrases are not aliases for the named tool or service everywhere else.
         names[(entity_id, label, language)] = basis
 
-    rows = build_crate.catalogue_records(content)
+    rows = {graph.published.get(key, key): row for key, row in build_crate.catalogue_records(content).items()}
     for entity_id in addresses:
         entity = graph.entities[entity_id]
         for field in ("name", "alternateName"):
@@ -249,7 +265,7 @@ def missing_links(content: dict[str, Any], graph: build_crate.Graph | None = Non
                 continue
             for match in pattern.finditer(unlinked):
                 score = 85 if basis != "catalogue name" else 80
-                if addresses[entity_id].startswith("term/"):
+                if addresses[entity_id].startswith("glossary/"):
                     score -= 10
                 if entity_id in related:
                     score += 15

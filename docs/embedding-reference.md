@@ -23,7 +23,8 @@ only its parent and an origin configured in its script; the host accepts only th
 origin. Replies name the accepted parent origin. The protocol sends no answers, stored evidence or credentials.
 A view explicitly containing a shared result remains a shared address; avoid including private information in it.
 Views are bounded to 2 MiB of characters (including encoded shared results) and height to 24–1000000 pixels.
-Invalid messages have no effect.
+Invalid messages have no effect. An init view may also be a record's entry route, `#/id/<address>`; the Guide
+replaces it with the full route, so every state message carries a view with its language and lens.
 
 Height is updated after content, navigation, disclosure, font/image loading and width changes. Measuring body
 content lets a short view shrink after a long one, without an iframe scrollbar or a resize feedback loop. Messages

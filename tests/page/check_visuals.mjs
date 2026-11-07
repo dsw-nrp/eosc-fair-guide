@@ -8,6 +8,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
 import { installGuards } from "./guards.mjs";
+import { iri } from "./addresses.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const { chromium } = await import("./browser.mjs");
@@ -15,7 +16,7 @@ const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
 const base = pathToFileURL(resolve(root, "_site/index.html")).href;
 const graph = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"))["@graph"];
-const seam = (id) => graph.find((entity) => entity["@id"] === "#seam-" + id);
+const seam = (id) => graph.find((entity) => entity["@id"] === iri("seams/" + id));
 const {state, problems, external} = installGuards(page, {
   allowed: (url) => /^(?:file|data):/.test(url),
   consoleErrors: true,

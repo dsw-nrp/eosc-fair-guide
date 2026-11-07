@@ -99,7 +99,7 @@ async function available({ github, context }) {
 
 /** Which requested moving aliases a published release takes, rechecked by the serialized image publisher just before
     it moves them: `latest` while it is the newest approved release, `stable` while it is the newest approved
-    non-prerelease. A superseded release still gets its own tag and draft (decision 30); `kept` names the release
+    non-prerelease. A superseded release still gets its own tag and draft; `kept` names the release
     holding an alias it does not take, whose own Release run moves it, so no alias moves back. */
 async function promotion({ github, context }, wanted = { latest: true, stable: true }) {
   const { tag } = tagOf(context);

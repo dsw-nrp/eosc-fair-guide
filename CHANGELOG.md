@@ -8,6 +8,36 @@ All notable changes to this guide are recorded here. The format follows
 ## [Unreleased]
 
 - Breaking: repository API records may omit `url` while planned or in development when they link an NKR record.
+- Breaking: every record is addressed `<kind>/<id>` in plain kind words (`resources/github`, `stations/licence`)
+  instead of the code addresses (`res/tool/github`, `step/licence`); API record files, catalogue routes and
+  `guideRoute` values follow, and the catalogue's groups are `glossary`, `lifecycles` and `models`.
+- Breaking: every record's `@id` is its IRI under the namespace `https://w3id.org/eosc-cz/fair-guide/`
+  (`…/id/stations/licence`), not a crate fragment; the crate drops `catalogueAddress`.
+- Breaking: a registry's record of a thing is a `dcat:CatalogRecord` under it (`#re3data`, `#fip-dashboard`,
+  `#knav`, `#nkr`, `#fairsharing`, `#datacite`) naming the thing by `foaf:primaryTopic`; the thing rests on each of
+  its records, and on the Guide's selection where the Guide describes it, instead of on their snapshots; a snapshot
+  lists its records, and the crate's `#knav-tools` and `#fers` lists are gone. A thing only registries know keeps its
+  identity, name, address and filter facts, and its description stays on the record. A registry is a resource and
+  is no longer in `#repositories`. A named agent is the one thing of that name, and a FIP Dashboard organisation
+  record joins a thing only by a reviewed handle or ROR, as `#fip-dashboard-organization`.
+- Breaking: references in text are `[[<kind>/<id>|phrase]]`, with a part as `<address>#<fragment>` and a kind word
+  for its list; the Guide's profile is `[[pages/machines#tasks|…]]`, and anything else is refused.
+- Breaking: provenance `objects`, model association `target` and the worked example's `steps` name records by
+  address; a result `*` records the Guide as an action's result; `content/identifiers.toml` lists each identifier
+  under the kind of its record, as the address without the kind (`vocabularies = ["lenses/V", …]`).
+- Breaking: every controlled term is a `schema:DefinedTerm` in one term set and carries no `skos:` type or
+  `skos:inScheme`; the vocabulary document states their SKOS reading once. Every status is a term of its scheme:
+  `creativeWorkStatus` gives way to `clauseStatus`, `fipStatus`, `declarationStatus` and `releaseStatus`, and
+  `healthStatus`, `preparationStatus` and `nodeState` name terms instead of strings.
+- Breaking: an advice item is a `guide:AdviceItem` with an `adviceKind` term, not a `HowToTip` or `HowToDirection`;
+  a check is also an `ftr:Benchmark` naming its questions by `ftr:hasAssociatedMetric` instead of `hasPart`, a
+  question an `ftr:Metric` naming its check by `ftr:hasBenchmark` and its principles by `dqv:inDimension` instead
+  of `isPartOf` and `about`, and each question's manual test is in the crate at `tests/self-check/<question>`.
+- Breaking: a question's pre-fill is a `guide:PrefillMapping` part (`prefillSource`, `prefillField`,
+  `prefillCoverage`) instead of `additionalProperty` values, `prefillLevel` and `championEvidenceOnly`.
+- Breaking: the Guide's profile is `0.2`, with shapes for the graph model.
+- Required step: a question that asks what a cited clause says names it as its `requirement` and states no
+  `statement`; the content check refuses a statement that copies a cited clause.
 - Security: render source-controlled refresh diagnostics as bounded literal text in logs, reports and workflow summaries.
 
 ## [1.0.0-alpha.5] - 2026-11-01

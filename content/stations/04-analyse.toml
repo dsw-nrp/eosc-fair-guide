@@ -24,28 +24,28 @@ id = "analyse.02"
 lens = "V"
 level = "L0"
 text = { cs = "Analýzu pište jako skript nebo výpočetní notebook a ukládejte ho s verzí softwaru a parametry, se kterými jste výsledky získali.", en = "Write your analysis as a script or computational notebook and keep it with the software version and parameters that produced the results." }
-action = [{ label = { cs = "Skripty a výzkumný software", en = "Scripts and research software" }, href = "#page-software" }, { label = { cs = "Výpočty v e-INFRA CZ", en = "Computing in e-INFRA CZ" }, href = "https://docs.e-infra.cz/" }]
+action = [{ label = { cs = "Skripty a výzkumný software", en = "Scripts and research software" }, href = "pages/software" }, { label = { cs = "Výpočty v e-INFRA CZ", en = "Computing in e-INFRA CZ" }, href = "https://docs.e-infra.cz/" }]
 sources = ["RDMKIT.analyse.02", "CODE.01"]
 
 [[advice]]
 id = "analyse.03"
 lens = "V"
 level = "L1"
-text = { cs = "Píšete-li [[page:software|skript nebo výpočetní notebook]] pro zpracování dat, uložte použitou verzi spolu s návodem ke spuštění a seznamem závislostí. Přidejte malý příklad se vstupy a očekávaným výsledkem, na kterém lze postup ověřit.", en = "If you write a [[page:software|script or computational notebook]] to process data, retain the version used, execution instructions and dependencies. Include a small example with inputs and expected results so the procedure can be checked." }
+text = { cs = "Píšete-li [[pages/software|skript nebo výpočetní notebook]] pro zpracování dat, uložte použitou verzi spolu s návodem ke spuštění a seznamem závislostí. Přidejte malý příklad se vstupy a očekávaným výsledkem, na kterém lze postup ověřit.", en = "If you write a [[pages/software|script or computational notebook]] to process data, retain the version used, execution instructions and dependencies. Include a small example with inputs and expected results so the procedure can be checked." }
 sources = ["FRSM.FRSM-13", "CODE.01"]
 
 [[advice]]
 id = "analyse.04"
 lens = "V"
 level = "L1"
-text = { cs = "Počítejte blízko dat: velká data analyzujte ve výpočetním prostředí [[term/e-infra-cz|e-INFRA CZ]], abyste je nemuseli přenášet, a s kolegy sdílejte jedno pracovní prostředí s řízeným přístupem.", en = "Compute close to the data: analyse large data in the [[term/e-infra-cz|e-INFRA CZ]] computing environment so that you need not transfer them, and share one working environment with controlled access with your colleagues." }
+text = { cs = "Počítejte blízko dat: velká data analyzujte ve výpočetním prostředí [[glossary/e-infra-cz|e-INFRA CZ]], abyste je nemuseli přenášet, a s kolegy sdílejte jedno pracovní prostředí s řízeným přístupem.", en = "Compute close to the data: analyse large data in the [[glossary/e-infra-cz|e-INFRA CZ]] computing environment so that you need not transfer them, and share one working environment with controlled access with your colleagues." }
 sources = ["RDMKIT.analyse.02", "EINFRA-DOCS.01"]
 
 [[advice]]
 id = "analyse.05"
 lens = "DS"
 level = "L0"
-text = { cs = "Upozorněte na výpočetní prostředí [[term/e-infra-cz|e-INFRA CZ]], které lze propojit s daty v NRP.", en = "Point out the [[term/e-infra-cz|e-INFRA CZ]] computing environment, which can connect to data in NRP." }
+text = { cs = "Upozorněte na výpočetní prostředí [[glossary/e-infra-cz|e-INFRA CZ]], které lze propojit s daty v NRP.", en = "Point out the [[glossary/e-infra-cz|e-INFRA CZ]] computing environment, which can connect to data in NRP." }
 action = [{ label = { cs = "Výpočty s daty z NRP", en = "Computing with NRP data" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/compute/support-for-computing" }]
 sources = ["NRP-COMPUTE.01"]
 
@@ -77,7 +77,7 @@ id = "analyse.09"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "Asistent pro programování vám pomůže převést analýzu z tabulkového procesoru nebo z ručních kroků do skriptu, který jde spustit opakovaně. V [[cerit-aiaas|prostředí CERIT]] zůstanou nepublikovaná data v infrastruktuře.", en = "A coding assistant can help you turn an analysis done in a spreadsheet or by hand into a script that can be run again. In [[cerit-aiaas|the CERIT environment]], unpublished data stay within the infrastructure." }
+text = { cs = "Asistent pro programování vám pomůže převést analýzu z tabulkového procesoru nebo z ručních kroků do skriptu, který jde spustit opakovaně. V [[resources/cerit-aiaas|prostředí CERIT]] zůstanou nepublikovaná data v infrastruktuře.", en = "A coding assistant can help you turn an analysis done in a spreadsheet or by hand into a script that can be run again. In [[resources/cerit-aiaas|the CERIT environment]], unpublished data stay within the infrastructure." }
 check = { cs = "Výsledky skriptu porovnejte krok po kroku s dosavadní analýzou na stejných datech. Zapište verze použitého softwaru a balíčků a uveďte, že jste skript připravili s pomocí AI.", en = "Compare the script's results step by step with your existing analysis on the same data. Record the versions of the software and packages used, and state that you prepared the script with AI assistance." }
 prompt = { cs = "Převeď níže popsaný postup analýzy na skript v Pythonu (nebo v R). Každý krok okomentuj, parametry dej na začátek skriptu, na konci vypiš verze použitých balíčků a nic nepočítej odhadem.\n\nPostup: […]", en = "Turn the analysis procedure described below into a Python (or R) script. Comment every step, put the parameters at the top of the script, print the versions of the packages used at the end, and do not estimate anything.\n\nProcedure: […]" }
 sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.03"]
@@ -86,33 +86,33 @@ sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.03"]
 id = "analyse.10"
 lens = "V"
 level = "L1"
-text = { cs = "Ujasněte si odpovědnosti s [[rdmkit-rse|vývojářem výzkumného softwaru]] a zaznamenejte [[rdmkit-provenance|původ vstupů a postup zpracování]]. Odkazy [[res/doc/rdmkit|RDMkit]] na školení v [[tess|TeSS]] u jednotlivých nástrojů pomohou zvolit praktický kurz.", en = "Agree responsibilities with a [[rdmkit-rse|research software engineer]] and record [[rdmkit-provenance|the origin of inputs and the processing steps]]. [[res/doc/rdmkit|RDMkit]]'s [[tess|TeSS]] links on the tool entries help you find practical training." }
+text = { cs = "Ujasněte si odpovědnosti s [[resources/rdmkit-rse|vývojářem výzkumného softwaru]] a zaznamenejte [[resources/rdmkit-provenance|původ vstupů a postup zpracování]]. Odkazy [[resources/rdmkit|RDMkit]] na školení v [[resources/tess|TeSS]] u jednotlivých nástrojů pomohou zvolit praktický kurz.", en = "Agree responsibilities with a [[resources/rdmkit-rse|research software engineer]] and record [[resources/rdmkit-provenance|the origin of inputs and the processing steps]]. [[resources/rdmkit|RDMkit]]'s [[resources/tess|TeSS]] links on the tool entries help you find practical training." }
 sources = ["RDMKIT.tasks.01"]
 
 [[advice]]
 id = "analyse.11"
 lens = "V"
 level = "L1"
-text = { cs = "K analýze přiložte definici prostředí [[conda|Conda]] a postup jeho [[conda-environments|exportu a obnovy]], případně recept kontejneru s [[container-images|digestem obrazu]]. Vícekrokový postup popište například v [[cwl|CWL]], [[nextflow|Nextflow]] nebo [[snakemake|Snakemake]]; v ČR lze využít [[galaxy-cz|Galaxy]], [[jupyterhub-cerit|JupyterHub CERIT]] nebo [[lexis|LEXIS]]. Zveřejnění kódu shrnuje stránka [[page:software|Výzkumný software]].", en = "Keep a [[conda|Conda]] environment definition with the analysis and describe how to [[conda-environments|export and recreate it]], or provide a container recipe and [[container-images|image digest]]. Describe multi-step workflows in, for example, [[cwl|CWL]], [[nextflow|Nextflow]] or [[snakemake|Snakemake]]; Czech options include [[galaxy-cz|Galaxy]], [[jupyterhub-cerit|JupyterHub CERIT]] and [[lexis|LEXIS]]. See [[page:software|Research software]] for publishing the code." }
+text = { cs = "K analýze přiložte definici prostředí [[resources/conda|Conda]] a postup jeho [[resources/conda-environments|exportu a obnovy]], případně recept kontejneru s [[resources/container-images|digestem obrazu]]. Vícekrokový postup popište například v [[resources/cwl|CWL]], [[resources/nextflow|Nextflow]] nebo [[resources/snakemake|Snakemake]]; v ČR lze využít [[resources/galaxy-cz|Galaxy]], [[resources/jupyterhub-cerit|JupyterHub CERIT]] nebo [[resources/lexis|LEXIS]]. Zveřejnění kódu shrnuje stránka [[pages/software|Výzkumný software]].", en = "Keep a [[resources/conda|Conda]] environment definition with the analysis and describe how to [[resources/conda-environments|export and recreate it]], or provide a container recipe and [[resources/container-images|image digest]]. Describe multi-step workflows in, for example, [[resources/cwl|CWL]], [[resources/nextflow|Nextflow]] or [[resources/snakemake|Snakemake]]; Czech options include [[resources/galaxy-cz|Galaxy]], [[resources/jupyterhub-cerit|JupyterHub CERIT]] and [[resources/lexis|LEXIS]]. See [[pages/software|Research software]] for publishing the code." }
 sources = ["CONDAENV.01", "WFCRATE.01", "CONTAINER.01"]
 
 [[advice]]
 id = "analyse.12"
 lens = "DS"
 level = "L1"
-text = { cs = "S výzkumníkem zkuste postup obnovit z [[conda-environments|definice prostředí]] nebo [[container-images|konkrétního obrazu kontejneru]] a ukázkových vstupů. Ověřte, že jsou zachyceny verze, parametry, závislosti a podmínky přístupu k datům. Pomozte zvolit [[galaxy-cz|Galaxy]], [[jupyterhub-cerit|JupyterHub CERIT]] nebo [[lexis|LEXIS]]; pro zveřejnění postupu slouží [[workflowhub|WorkflowHub]] s popisem [[workflow-ro-crate|Workflow RO-Crate]]. Podrobnosti shrnuje stránka [[page:software|Výzkumný software]].", en = "Try recreating the workflow with the researcher from its [[conda-environments|environment definition]] or [[container-images|specific container image]] and example inputs. Check recorded versions, parameters, dependencies and data-access conditions. Help choose [[galaxy-cz|Galaxy]], [[jupyterhub-cerit|JupyterHub CERIT]] or [[lexis|LEXIS]]; [[workflowhub|WorkflowHub]] supports publishing the workflow with a [[workflow-ro-crate|Workflow RO-Crate]] description. See [[page:software|Research software]] for details." }
+text = { cs = "S výzkumníkem zkuste postup obnovit z [[resources/conda-environments|definice prostředí]] nebo [[resources/container-images|konkrétního obrazu kontejneru]] a ukázkových vstupů. Ověřte, že jsou zachyceny verze, parametry, závislosti a podmínky přístupu k datům. Pomozte zvolit [[resources/galaxy-cz|Galaxy]], [[resources/jupyterhub-cerit|JupyterHub CERIT]] nebo [[resources/lexis|LEXIS]]; pro zveřejnění postupu slouží [[resources/workflowhub|WorkflowHub]] s popisem [[resources/workflow-ro-crate|Workflow RO-Crate]]. Podrobnosti shrnuje stránka [[pages/software|Výzkumný software]].", en = "Try recreating the workflow with the researcher from its [[resources/conda-environments|environment definition]] or [[resources/container-images|specific container image]] and example inputs. Check recorded versions, parameters, dependencies and data-access conditions. Help choose [[resources/galaxy-cz|Galaxy]], [[resources/jupyterhub-cerit|JupyterHub CERIT]] or [[resources/lexis|LEXIS]]; [[resources/workflowhub|WorkflowHub]] supports publishing the workflow with a [[resources/workflow-ro-crate|Workflow RO-Crate]] description. See [[pages/software|Research software]] for details." }
 sources = ["CONDAENV.01", "WFCRATE.01", "CONTAINER.01"]
 
 [[advice]]
 id = "analyse.13"
 lens = "SR"
 level = "L1"
-text = { cs = "U ukládaného postupu zachovejte zdrojový kód, definici prostředí, parametry a ukázkové vstupy vedle dat. [[workflow-ro-crate|Workflow RO-Crate]] propojí hlavní workflow se souvisejícími soubory; [[workflowhub|WorkflowHub]] pomůže s jeho dohledáním. Podporovaný běhový systém, limity a podmínky pro chráněná data popište ve službě odděleně: samotný kontejner ani záznam workflow nejsou zárukou opakovatelného běhu. Podrobnosti shrnuje stránka [[page:software|Výzkumný software]].", en = "Preserve source code, environment definitions, parameters and example inputs alongside the data. [[workflow-ro-crate|Workflow RO-Crate]] links the main workflow to related files; [[workflowhub|WorkflowHub]] supports discovery. Document supported runtimes, limits and protected-data conditions separately in the service: a container or workflow record alone does not guarantee a reproducible run. See [[page:software|Research software]] for details." }
+text = { cs = "U ukládaného postupu zachovejte zdrojový kód, definici prostředí, parametry a ukázkové vstupy vedle dat. [[resources/workflow-ro-crate|Workflow RO-Crate]] propojí hlavní workflow se souvisejícími soubory; [[resources/workflowhub|WorkflowHub]] pomůže s jeho dohledáním. Podporovaný běhový systém, limity a podmínky pro chráněná data popište ve službě odděleně: samotný kontejner ani záznam workflow nejsou zárukou opakovatelného běhu. Podrobnosti shrnuje stránka [[pages/software|Výzkumný software]].", en = "Preserve source code, environment definitions, parameters and example inputs alongside the data. [[resources/workflow-ro-crate|Workflow RO-Crate]] links the main workflow to related files; [[resources/workflowhub|WorkflowHub]] supports discovery. Document supported runtimes, limits and protected-data conditions separately in the service: a container or workflow record alone does not guarantee a reproducible run. See [[pages/software|Research software]] for details." }
 sources = ["CONDAENV.01", "WFCRATE.01", "CONTAINER.01"]
 
 [[advice]]
 id = "analyse.14"
 lens = "K"
 level = "L1"
-text = { cs = "Domluvte společný popis vstupů, výstupů a verzí postupu. Porovnejte přístup [[cwl|CWL]], [[nextflow|Nextflow]], [[snakemake|Snakemake]] a [[galaxy-cz|Galaxy]] s potřebami komunity; žádný z nich není obecně předepsaný. Vybraný postup popište pomocí [[workflow-ro-crate|Workflow RO-Crate]], zveřejněte ve [[workflowhub|WorkflowHub]] a spojte s komunitními standardy. Pravidla pro [[page:software|výzkumný software]] platí i pro kód workflow.", en = "Agree common descriptions of workflow inputs, outputs and versions. Compare [[cwl|CWL]], [[nextflow|Nextflow]], [[snakemake|Snakemake]] and [[galaxy-cz|Galaxy]] against the community's needs; none is universally prescribed. Describe the chosen workflow with [[workflow-ro-crate|Workflow RO-Crate]], publish it in [[workflowhub|WorkflowHub]] and link its community standards. The [[page:software|research-software guidance]] also applies to workflow code." }
+text = { cs = "Domluvte společný popis vstupů, výstupů a verzí postupu. Porovnejte přístup [[resources/cwl|CWL]], [[resources/nextflow|Nextflow]], [[resources/snakemake|Snakemake]] a [[resources/galaxy-cz|Galaxy]] s potřebami komunity; žádný z nich není obecně předepsaný. Vybraný postup popište pomocí [[resources/workflow-ro-crate|Workflow RO-Crate]], zveřejněte ve [[resources/workflowhub|WorkflowHub]] a spojte s komunitními standardy. Pravidla pro [[pages/software|výzkumný software]] platí i pro kód workflow.", en = "Agree common descriptions of workflow inputs, outputs and versions. Compare [[resources/cwl|CWL]], [[resources/nextflow|Nextflow]], [[resources/snakemake|Snakemake]] and [[resources/galaxy-cz|Galaxy]] against the community's needs; none is universally prescribed. Describe the chosen workflow with [[resources/workflow-ro-crate|Workflow RO-Crate]], publish it in [[resources/workflowhub|WorkflowHub]] and link its community standards. The [[pages/software|research-software guidance]] also applies to workflow code." }
 sources = ["CONDAENV.01", "WFCRATE.01", "CONTAINER.01"]

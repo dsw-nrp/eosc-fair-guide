@@ -5,7 +5,7 @@
 
   const FG = window.FairGuide;
   const live = (FG.live = FG.live || {});
-  const NKR_KIND = { disciplinary: "#rkind-domain", institutional: "#rkind-institutional", generic: "#rkind-general" };
+  const NKR_KIND = { disciplinary: "vocabularies/repository-kinds/domain", institutional: "vocabularies/repository-kinds/institutional", generic: "vocabularies/repository-kinds/general" };
   const NANOPUB_CODE = /(?:^|[^A-Za-z0-9_-])(RA[A-Za-z0-9_-]{43})(?![A-Za-z0-9_-])/;
 
   /** The allowlisted connector with this ID; every connector call, including reviewed discovery, looks it up here. */
@@ -273,7 +273,7 @@
     const champion = FG.config.champion;
     const endpoint = new URL(champion.endpoint);
     const path = endpoint.pathname.replace(/\/$/, "") + "/" + encodeURIComponent(testId);
-    const test = typeof FG.get === "function" ? FG.get("#test-" + testId) : null;
+    const test = typeof FG.championTest === "function" ? FG.championTest(testId) : null;
     return { url: test && test.url || new URL(path, endpoint.origin).href, method: "POST", body: { resource_identifier: identifier } };
   };
 
@@ -378,8 +378,8 @@
       schemaVersions: counts(meta.schemaVersions) };
   };
 
-  /** Records drawn at random from all a repository's DOIs, of every type it publishes, each with its title and type
-      (D-185). A record that is part of another (a file Dataverse registers within its dataset) is left out, so the
+  /** Records drawn at random from all a repository's DOIs, of every type it publishes, each with its title and
+      type. A record that is part of another (a file Dataverse registers within its dataset) is left out, so the
       sample holds what the repository publishes. */
   live.dataciteSample = async function (repositoryId, size) {
     const data = await live.fetchJson("datacite", "dois?client-id=" + enc(repositoryId) +

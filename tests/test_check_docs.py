@@ -28,6 +28,8 @@ RUNBOOK = (
     "Readers then get the reviewed Guide.\n\n" + STEP.format(number=1) + "\n" + STEP.format(number=2)
 )
 README = "<!-- type: landing -->\n# {title}\n\nIntro [tools](docs/agent-tooling.md).\n\n## Use\n\nText.\n"
+# A step of a change, put together here, so this file cites none.
+QUEUE_TASK = "task " + "4.8"
 
 
 class SemanticMappingTests(unittest.TestCase):
@@ -121,8 +123,8 @@ class DocsTests(unittest.TestCase):
 
     def test_contextual_rollout_narration_is_rejected(self) -> None:
         cases = (
-            "Once the merge queue is on (task 4.8 of the CI change), queue the PR.",
-            "After task 13.2 of this change, request the token.",
+            f"Once the merge queue is on ({QUEUE_TASK} of the CI change), queue the PR.",
+            "After task " + "13.2 of this change, request the token.",
             "Batch evaluation is explicitly deferred follow-up work.",
             "Put the issue in Project #1.",
             "Once the real concept DOI is issued, add its badge to both READMEs.",
@@ -130,6 +132,40 @@ class DocsTests(unittest.TestCase):
         for text in cases:
             with self.subTest(text=text):
                 self.assertTrue(durable_prose("docs/example.md", text, has_concept_doi=True))
+
+    def test_a_durable_file_that_cites_a_change_is_named(self) -> None:
+        # The citations are put together here, so this file is no citation itself.
+        decision = "design" + ".md, decision " + "4"
+        self.write("openspec/changes/" + "add-a-thing/proposal.md", "# Proposal\n")
+        self.write("scripts/tool.py", f"# A registry's record about one thing ({decision}).\n")
+        self.write("tests/test_tool.py", '"""Kinds are plural words (design decision ' + '2)."""\n')
+        self.write("assets/js/view.js", "// Routes keep the lens (guide-experience, decision " + "15).\n")
+        self.write("content/guide.toml", "# Moved by add-a-" + "thing.\n")
+        self.write("docs/notes.md", "<!-- type: reference -->\n# Notes\n\nSee docs/design.md for the reasons.\n")
+        found = [problem.split(":", 2)[0] for problem in problems(self.root)]
+        self.assertEqual(
+            sorted(found), ["assets/js/view.js", "content/guide.toml", "scripts/tool.py", "tests/test_tool.py"]
+        )
+        self.assertEqual(problems(ROOT), [])
+
+    def test_every_form_of_a_change_citation_is_named_in_every_durable_folder(self) -> None:
+        # Each citation is put together here, so this file is no citation itself.
+        planted = {
+            ".github/workflows/deploy.yml": "# A dispatch elsewhere fails before checkout (decision " + "30).\n",
+            ".github/scripts/handoff.cjs": "// The badge claims no more than the charter (D-" + "172).\n",
+            ".github/repository.toml": "# The queue waits for the merge-group report (task " + "4.1).\n",
+            "assets/css/app.css": "/* The row scrolls within itself (design D" + "8). */\n",
+            "scripts/build.py": "# One vocabulary over named schemes (design" + ": group 21).\n",
+            "tests/check.mjs": "// One page check per view (D" + "9).\n",
+            "content/live.toml": "# Joined only by its reviewed handle (decision D" + "1).\n",
+        }
+        for name, text in planted.items():
+            self.write(name, text)
+        found = sorted({problem.split(":", 2)[0] for problem in problems(self.root)})
+        self.assertEqual(found, sorted(planted))
+        for name in planted:
+            self.write(name, "# The rule in its own words.\n")
+        self.assertEqual(problems(self.root), [])
 
     def test_a_renderable_false_publication_arrow_is_rejected(self) -> None:
         text = (ROOT / "docs/design.md").read_text("utf-8")
@@ -157,7 +193,7 @@ class DocsTests(unittest.TestCase):
                 )
 
     def test_dated_evidence_stable_conditions_and_unambiguous_references_are_retained(self) -> None:
-        text = """The 24 October 2026 measurement for PR #107 completed in 274 seconds.
+        text = f"""The 24 October 2026 measurement for PR #107 completed in 274 seconds.
 
 If the queue run expires, run the partitioned checks again. Planned is a service status.
 
@@ -170,7 +206,7 @@ The [EOSC CZ FAIR Guide Project](https://github.com/orgs/dsw-nrp/projects/1) tra
 The literal `Project #1` is an ambiguous label; use a named URL.
 
 ```text
-Once the merge queue is on (task 4.8 of the CI change), queue the PR.
+Once the merge queue is on ({QUEUE_TASK} of the CI change), queue the PR.
 ```
 """
         self.assertEqual(durable_prose("docs/example.md", text, has_concept_doi=True), [])

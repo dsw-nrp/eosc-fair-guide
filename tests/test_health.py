@@ -18,9 +18,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_api  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_crate  # noqa: E402
 import check_all  # noqa: E402
 import check_health  # noqa: E402
+from addresses import iri  # noqa: E402
 
 TODAY = date(2026, 10, 11)
 
@@ -43,7 +46,7 @@ class HealthTests(unittest.TestCase):
         self.assertFalse(reviewed["stale"])
         for field, replacement in [
             ("text", row["text"] + " Changed context."),
-            ("address", "res/tool/github"),
+            ("address", "resources/github"),
             ("path", "pages[new].body.en"),
         ]:
             with self.subTest(field=field):
@@ -161,22 +164,24 @@ class HealthTests(unittest.TestCase):
         matches = [
             item
             for item in unlinked
-            if "[software]" in item["path"] and "[version]" in item["path"] and item["entry"] == "#knav-github"
+            if "[software]" in item["path"] and "[version]" in item["path"] and item["entry"] == iri("resources/github")
         ]
         self.assertEqual({item["language"] for item in matches}, {"cs", "en"})
-        self.assertTrue(all(item["address"] == "res/tool/github" for item in matches))
-        section["body"] = {"cs": "Použijte [[res/tool/github|GitHub]].", "en": "Use [[res/tool/github|GitHub]]."}
+        self.assertTrue(all(item["address"] == "resources/github" for item in matches))
+        section["body"] = {"cs": "Použijte [[resources/github|GitHub]].", "en": "Use [[resources/github|GitHub]]."}
         linked = check_health.missing_links(content)
         self.assertFalse(
             any(
-                item["entry"] == "#knav-github" and "[software]" in item["path"] and "[version]" in item["path"]
+                item["entry"] == iri("resources/github")
+                and "[software]" in item["path"]
+                and "[version]" in item["path"]
                 for item in linked
             )
         )
         section["body"] = {"cs": "GitHubby", "en": "GitHubby"}
         self.assertFalse(
             any(
-                item["entry"] == "#knav-github" and "[version]" in item["path"]
+                item["entry"] == iri("resources/github") and "[version]" in item["path"]
                 for item in check_health.missing_links(content)
             )
         )
@@ -442,15 +447,15 @@ class HealthTests(unittest.TestCase):
         coverage = linked["original_coverage"]
         self.assertEqual(
             next(item for item in coverage["questions"] if item["id"] == "software.20")["api_record"],
-            "q/software.20.json",
+            "questions/software.20.json",
         )
         self.assertEqual(
             next(item for item in coverage["clauses"] if item["id"] == "OPENSSF.01")["api_record"],
-            "cl/OPENSSF.01.json",
+            "clauses/OPENSSF.01.json",
         )
         self.assertEqual(
             next(item for item in coverage["advice"] if item["id"] == "plan.01")["api_record"],
-            "step/plan.json#advice-plan.01",
+            "stations/plan.json#advice-plan.01",
         )
         self.assertEqual(linked["generated_at"], report["generated_at"])
         self.assertEqual(report, original)
@@ -458,7 +463,7 @@ class HealthTests(unittest.TestCase):
     def test_automated_api_test_embeds_documentation_with_site_relative_urls(self) -> None:
         api = build_api.Api(build_crate.build_crate(self.content), self.content)
         test = next(item for item in self.content["live"]["test"] if item["id"] == "guide-cdif-01")
-        record = api.record("tests", test["id"], "#test-" + test["id"])
+        record = api.record("tests", test["id"], iri("tests/guide/" + test["id"]))
         self.assertEqual(record["url"], "../../../" + test["script"])
         self.assertIsInstance(record["subjectOf"], dict)
         self.assertEqual(record["subjectOf"]["url"], "../../../" + test["documentation"])

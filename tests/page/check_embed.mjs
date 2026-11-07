@@ -16,9 +16,11 @@ function serve(request, response) {
   const address = new URL(request.url, "http://localhost");
   if (address.pathname === "/host") {
     const target = address.searchParams.get("guideRoot") || guideOrigin + "/";
+    // The frame's own start, such as a record's entry route `#/id/<address>`.
+    const start = address.searchParams.get("frameView") || "#/cs/DS/path/start";
     response.setHeader("Content-Type", "text/html");
     response.end(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Local embed test</title></head><body style="margin:0"><h1>Host</h1>
-      <iframe id="guide" title="FAIR Guide" src="${target}#/cs/DS/path/start" style="width:100%;height:800px;border:0"></iframe>
+      <iframe id="guide" title="FAIR Guide" src="${target}${start.replace(/"/g, "%22")}" style="width:100%;height:800px;border:0"></iframe>
       <script src="${guideOrigin}/assets/js/embed.js" data-guide-frame="guide" defer></script></body></html>`);
     return;
   }
@@ -122,6 +124,12 @@ try {
     await page.waitForTimeout(50);
     assert.equal(hostView(), current, "invalid state has no effect");
   }
+  // A host that starts its frame at a record's entry route receives the full route, with language and lens, in the
+  // form the protocol accepts; the entry route itself is never published.
+  await page.goto(hostOrigin + "/host?frameView=" + encodeURIComponent("#/id/resources/dmp-eosc"));
+  await page.waitForFunction(() => /^#\/(cs|en)\/(V|DS|SR|K)\/catalogue\/resources\/dmp-eosc$/.test(new URL(location.href).searchParams.get("fair-guide-view") || ""));
+  assert.equal(await frame().evaluate(() => location.hash), hostView(), "the frame shows the full route it published");
+  await page.frameLocator("#guide").locator('.catalogue-results [id="item-dmp-eosc"]').waitFor();
   // An unconfigured parent origin cannot handshake or read any state, despite loading the host snippet.
   await page.goto(foreign.origin + "/host?fair-guide-view=" + encodeURIComponent(initial));
   await page.frameLocator("#guide").locator('#main details[data-key="L1"]').waitFor();

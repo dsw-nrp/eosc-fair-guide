@@ -8,6 +8,8 @@ name = { cs = "Test", en = "Test" }
 description = { cs = "Testovací obsah.", en = "Test content." }
 url = "https://example.org/guide"
 baseUrl = "https://example.org/guide/"
+# The Guide's own namespace: records and terms keep it wherever the fixture is published.
+namespace = "https://w3id.org/eosc-cz/fair-guide/"
 profileVersion = "0.1"
 freshnessDays = 180
 editors = ["tester"]
@@ -68,6 +70,74 @@ role = "owner"
 [[status]]
 id = "pilot"
 name = { cs = "pilotní", en = "pilot" }
+
+[[clauseStatus]]
+id = "current"
+name = { cs = "platné", en = "current" }
+
+[[clauseStatus]]
+id = "superseded"
+name = { cs = "nahrazené", en = "superseded" }
+
+[[fipStatus]]
+id = "published"
+name = { cs = "zveřejněný profil", en = "published profile" }
+
+[[declarationStatus]]
+id = "in-use"
+name = { cs = "používá se", en = "in use" }
+
+[[healthStatus]]
+id = "available"
+name = { cs = "funguje", en = "available" }
+
+[[healthStatus]]
+id = "degraded"
+name = { cs = "funguje omezeně", en = "degraded" }
+
+[[preparationStatus]]
+id = "in-preparation"
+name = { cs = "v přípravě", en = "in preparation" }
+
+[[releaseStatus]]
+id = "testing"
+name = { cs = "testovací verze", en = "testing version" }
+
+[[releaseStatus]]
+id = "production"
+name = { cs = "produkční verze", en = "production version" }
+
+[[nodeState]]
+id = "candidate"
+name = { cs = "kandidátský uzel", en = "candidate node" }
+
+[[prefillCoverage]]
+id = "whole"
+name = { cs = "celá otázka", en = "the whole question" }
+
+[[prefillCoverage]]
+id = "partly"
+name = { cs = "část otázky", en = "part of the question" }
+
+[[prefillCoverage]]
+id = "champion-evidence-only"
+name = { cs = "jen podklad z FAIR Champion", en = "FAIR Champion evidence only" }
+
+[[adviceKind]]
+id = "direction"
+name = { cs = "doporučení", en = "direction" }
+
+[[adviceKind]]
+id = "tip"
+name = { cs = "tip", en = "tip" }
+
+[[adviceKind]]
+id = "key"
+name = { cs = "klíčová myšlenka", en = "key point" }
+
+[[adviceKind]]
+id = "ai"
+name = { cs = "tip k AI", en = "AI tip" }
 
 [[tier]]
 id = "required"

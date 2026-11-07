@@ -2,7 +2,7 @@
 
 Usage: python scripts/vendor_favicons.py [--check | --infrastructures] [--prune] [--input DIR] [--date YYYY-MM-DD]
 
-A tool or service is shown beside its name with its own favicon wherever one can be obtained (D-183). The page
+A tool or service is shown beside its name with its own favicon wherever one can be obtained. The page
 requests nothing from other sites when it loads, so each favicon is taken from its site here and normalised once to a
 square PNG of SIZE pixels (scripts/normalise_favicons.mjs, in the Playwright Chromium the page checks use); the
 original is not kept. `assets/favicons/sources.toml` records, for each host, the file, the address the icon was taken

@@ -27,6 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from build_crate import (  # noqa: E402
     BLOCK,
+    CHAMPION_SCOPE,
+    CROSSWALK_ID,
     LANGS,
     PAGE_FILE,
     PATH_LIFECYCLE,
@@ -41,9 +43,10 @@ from build_crate import (  # noqa: E402
     is_generated,
     load_content,
     reference_targets,
+    result_covers,
     vocabulary_errors,
 )
-from catalogue_identity import alternate_id
+from catalogue_identity import address_hint, addresses_ending_in, alternate_id, parse_route
 from corrections import validate_fields
 from registry_identifiers import DATACITE_REPOSITORY, FAIRSHARING_DOI, canonical_fairsharing_doi
 
@@ -224,7 +227,7 @@ def check_texts(report: Report, content: dict[str, Any]) -> None:
 
 
 def topic_target_error(value: str, topics: dict[str, dict[str, set[str]]]) -> str | None:
-    """Why a topic target such as `#resources?type=standard,vocabulary` is invalid, or None when it is valid."""
+    """Why a topic target such as `resources?type=standard,vocabulary` is invalid, or None when it is valid."""
     base, _, query = value.partition("?")
     facets = topics.get(base)
     if facets is None:
@@ -251,16 +254,17 @@ def check_links(
                 continue
             if key == "url" and not (value.startswith("https://") or value.startswith("mailto:")):
                 report.error(where, f"link must use HTTPS: {value}")
-            elif key == "href":
-                if value.startswith("#") and "?" in value:
+            elif key == "href" and not value.startswith("https://"):
+                # An in-page target is a record's address or a kind's list, which a topic may narrow.
+                if "?" in value:
                     error = topic_target_error(value, topics or {})
                     if error:
                         report.error(where, f"topic target '{value}': {error}")
-                elif value.startswith("#"):
-                    if value not in targets:
-                        report.error(where, f"in-page target '{value}' does not exist")
-                elif not value.startswith("https://"):
-                    report.error(where, f"link must use HTTPS or an in-page target: {value}")
+                elif value not in targets:
+                    report.error(
+                        where,
+                        f"link must use HTTPS or name an in-page target, a record's address or a kind's list: {value}",
+                    )
             elif key in ("origin", "endpoint") and not value.startswith("https://"):
                 report.error(where, f"{key} must use HTTPS: {value}")
         for path, key, value in walk(data, name):
@@ -584,8 +588,10 @@ def check_model(report: Report, content: dict[str, Any], vocab: dict[str, Any], 
         worked = model["workedExample"]
         for field in ("name", "description"):
             require_text(report, "model:worked-example", worked.get(field), field)
-        if not worked.get("steps") or set(worked["steps"]) - set(content_index(content)):
-            report.error("model:worked-example", "worked example must link existing content identities in order")
+        if not worked.get("steps"):
+            report.error("model:worked-example", "worked example must link existing records in order")
+        for step in worked.get("steps", []):
+            named_record(report, "model:worked-example", "step", step, record_addresses(content))
     for kind in ("layer", "seam", "example"):
         unique(report, f"model:{kind}", [item.get("id", "") for item in data.get(kind, [])], kind)
         for item in data.get(kind, []):
@@ -624,13 +630,12 @@ def check_model(report: Report, content: dict[str, Any], vocab: dict[str, Any], 
             report.error(where, "example needs an actual YYYY-MM or ISO date observation, not in the future")
         if not item.get("evidence") or set(item["evidence"]) - cited_ids(content):
             report.error(where, "example must cite identifiable evidence for its scope, status and date")
-    targets = content_index(content)
+    targets = record_addresses(content)
     seen = set()
     for item in data.get("association", []):
         where = f"model:association.{item.get('target')}"
         target = item.get("target")
-        if target not in targets:
-            report.error(where, "association names an unknown content target")
+        named_record(report, where, "target", target, targets)
         if target in seen:
             report.error(where, "one explicit association per content target; merge its layer and seam references")
         seen.add(target)
@@ -681,9 +686,8 @@ GUIDE_NAME_SKIPPED = {"snapshots", "glossary", "identifiers"}
 
 
 def check_guide_name(report: Report, content: dict[str, Any]) -> None:
-    """The Guide is named with a capital letter wherever the word means it: Průvodce, the Guide (D-177). A
-    lower-case form is accepted only inside a reviewed generic use (`genericGuideUses` in guide.toml), such as a
-    licence selector."""
+    """The Guide is named with a capital letter wherever the word means it: Průvodce, the Guide. A lower-case form is
+    accepted only inside a reviewed generic use (`genericGuideUses` in guide.toml), such as a licence selector."""
     generic = [phrase.lower() for phrase in content["guide"]["guide"].get("genericGuideUses", [])]
 
     def accepted(text: str, start: int, end: int) -> bool:
@@ -703,14 +707,14 @@ def check_guide_name(report: Report, content: dict[str, Any]) -> None:
             pattern = GUIDE_ENGLISH if key == "en" or (key != "cs" and not GUIDE_CZECH.search(value)) else GUIDE_CZECH
             for match in pattern.finditer(value):
                 if not accepted(value, match.start(), match.end()):
-                    report.error(f"{path}.{key}", f"name the Guide with a capital letter: '{match.group(0)}' (D-177)")
+                    report.error(f"{path}.{key}", f"name the Guide with a capital letter: '{match.group(0)}'")
 
 
 def check_lifecycles(report: Report, content: dict[str, Any]) -> None:
     """Each life-cycle model cites its source, and each stage keeps its published name and definition: a name the
-    guide translated is marked, a definition is quoted, and a path stage adds the Průvodce's Czech translation of it
-    (D-176). Each correspondence links a stage of the path's
-    model to another model's stage and states its basis; a source's correspondence cites where it is published, the
+    guide translated is marked, a definition is quoted, and a path stage adds the Průvodce's Czech translation of it.
+    Each correspondence links a stage of the path's model to another model's stage and states its basis; a source's
+    correspondence cites where it is published, the
     guide's own and an unconfirmed one say why. Every path stage corresponds to a stage of each other model, and a
     station's stage is one of the path's."""
     lifecycles = content.get("lifecycles", [])
@@ -795,7 +799,7 @@ def check_lifecycles(report: Report, content: dict[str, Any]) -> None:
                 f"lifecycle:{key}", "corresponds to no stage of " + ", ".join(sorted(others - linked.get(key, set())))
             )
     # The path follows the cycle: each stage holds its steps in the cycle's order, and no step stands outside it; the
-    # assessment, a form of reuse, belongs to the reuse stage (D-175).
+    # assessment, a form of reuse, belongs to the reuse stage.
     path_stages = [
         stage["id"]
         for data in lifecycles
@@ -907,7 +911,32 @@ def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set
 MAX_ACTIONS = 2
 
 
+def plain_statement(value: str) -> str:
+    """A statement as a reader compares it with a clause: its reference markup read as its phrase, without its final
+    punctuation."""
+    return REFERENCE.sub(lambda match: match["phrase"], value).strip().rstrip(".!?:;…").strip()
+
+
+def copied_clause(item: dict[str, Any], clauses: dict[str, dict[str, Any]]) -> tuple[str, list[str]] | None:
+    """The clause an authored statement copies, among those the question cites, with the languages it copies it in;
+    None for a statement of its own, or one the question takes from its requirement."""
+    statement = item.get("statement")
+    if item.get("statementFromRequirement") or not is_text(statement):
+        return None
+    cited = [item["requirement"]] if item.get("requirement") else []
+    cited += [source for source in item.get("sources", []) if source not in cited]
+    for clause_id in cited:
+        text = (clauses.get(clause_id) or {}).get("text")
+        if not is_text(text):
+            continue
+        same = [lang for lang in LANGS if plain_statement(str(statement[lang])) == plain_statement(str(text[lang]))]
+        if same:
+            return clause_id, same
+    return None
+
+
 def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], clause_ids: set[str]) -> None:
+    clauses = {clause.get("id"): clause for clause in content["ledger"]}
     item_ids: list[str] = []
     check_ids = [data["check"]["id"] for data in content["checks"]]
     unique(report, "checks", check_ids, "check")
@@ -958,6 +987,14 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
             if "requirement" in item and item["requirement"] not in clause_ids:
                 report.error(here, f"requirement names unknown clause '{item['requirement']}'")
             require_text(report, here, item.get("statement"), "statement")
+            # A question that asks what a clause it cites says takes that clause's text, so the text is written once.
+            copied = copied_clause(item, clauses)
+            if copied:
+                report.error(
+                    here,
+                    f"the statement copies clause {copied[0]} ({', '.join(copied[1])}); "
+                    "name the clause as its requirement and drop the statement",
+                )
             if item.get("help") is not None:
                 require_text(report, here, item.get("help"), "help")
             for principle in item.get("principles", []):
@@ -1413,95 +1450,134 @@ def check_providers(
                 report.error(here, "note needs Czech and English text stating what the criterion covers")
 
 
-def content_index(content: dict[str, Any]) -> dict[str, str]:
-    """Map content IDs that provenance actions can name to their kind."""
-    index: dict[str, str] = {"guide": "guide"}
-    for clause in content["ledger"]:
-        index[clause["id"]] = "clause"
-    for source in content["sources"]:
-        index.setdefault(source["id"], "source")
-    for data in content["stations"]:
-        index.setdefault(data["station"]["id"], "station")
-        for advice in data.get("advice", []):
-            index[advice["id"]] = "advice"
-    for data in content["checks"]:
-        for item in data.get("item", []):
-            index[item["id"]] = "item"
-    for page in content["pages"]:
-        index[f"page:{page['id']}"] = "page"
-    for callout in content["callouts"]:
-        index[f"callout:{callout['id']}"] = "callout"
-        for item in callout.get("item", []):
-            index[f"callout.{callout['id']}.{item['id']}"] = "callout item"
-    for term in content["glossary"].get("term", []):
-        index[f"term:{term['id']}"] = "term"
-    for test in content["live"].get("test", []) + content["live"].get("champion", {}).get("test", []):
-        index[f"test:{test['id']}"] = "test"
-    for key in provider_criteria(content):
-        index[key] = "criterion"
-    for resource in content["resources"]:
-        index.setdefault(resource["id"], "resource")
-    for repository in content["repositories"]:
-        index.setdefault(repository["id"], "repository")
-    for organization in content["guide"].get("organization", []):
-        index.setdefault("organization:" + organization["id"], "organization")
-    for action in content["provenance"]:
-        index.setdefault(f"action:{action['id']}", "action")
-    for record in content.get("repository_records", []):
-        for key, prefix in (("re3data", "re3data"), ("fipDashboard", "fip-dashboard")):
-            if record.get(key):
-                index.setdefault(f"{prefix}.{record[key]}", "repository record")
-    index |= {key: "model" for key in model_items(content)}
-    index |= {key: "lifecycle" for key in lifecycle_items(content)}
-    index |= {
-        f"infrastructure:{item['id']}": "infrastructure"
-        for item in (content.get("infrastructures") or {}).get("infrastructure", [])
-    }
-    if (content.get("node") or {}).get("node"):
-        index["node:eosc-cz-node"] = "node"
-    for snapshot in content["snapshots"]:
-        index |= {f"knav.{tool['id']}": "catalogue tool" for tool in snapshot.get("tool", [])}
-    return index
-
-
 def covered(pattern: str, item_id: str) -> bool:
-    return item_id.startswith(pattern[:-1]) if pattern.endswith("*") else item_id == pattern
+    """Whether a provenance result covers an item, as the crate records it (result_covers)."""
+    return result_covers(pattern, item_id)
+
+
+# The kinds of the model's own records, by the family word of their content IDs (`layer.policy`).
+MODEL_FAMILIES = {"layer": "layers", "seam": "seams", "example": "model-examples"}
+
+
+def content_addresses(content: dict[str, Any]) -> dict[str, str]:
+    """The address the build publishes for each content ID provenance can name: a record's
+    `<kind>/<id>` or `<kind>/<scope>/<id>`, a part's `<record>#<fragment>`, and `guide` for the Guide itself.
+    Provenance results and the freshness check name items by these addresses."""
+    found: dict[str, str] = {"guide": "guide"}
+
+    def put(content_id: str, address: str) -> None:
+        found.setdefault(content_id, address)
+
+    def kind_of(row: dict[str, Any], default: str) -> str:
+        try:
+            return parse_route(row.get("guideRoute") or default)[0]
+        except ValueError:  # a route of an earlier format, as in the merge base the freshness check reads
+            return default
+
+    for clause in content["ledger"]:
+        put(clause["id"], f"clauses/{clause['id']}")
+    for source in content["sources"]:
+        put(source["id"], f"{kind_of(source, 'resources')}/{source['id']}")
+    for data in content["stations"]:
+        put(data["station"]["id"], f"stations/{data['station']['id']}")
+        for advice in data.get("advice", []):
+            put(advice["id"], f"advice/{advice['id']}")
+    for data in content["checks"]:
+        put(f"check:{data['check']['id']}", f"checks/{data['check']['id']}")
+        for item in data.get("item", []):
+            put(item["id"], f"questions/{item['id']}")
+    for page in content["pages"]:
+        put(f"page:{page['id']}", f"pages/{page['id']}")
+    for callout in content["callouts"]:
+        put(f"callout:{callout['id']}", f"callouts/{callout['id']}")
+        for item in callout.get("item", []):
+            put(f"callout.{callout['id']}.{item['id']}", f"callouts/{callout['id']}#{item['id']}")
+    for term in content["glossary"].get("term", []):
+        put(f"term:{term['id']}", f"glossary/{term['id']}")
+    for test in content["live"].get("test", []):
+        put(f"test:{test['id']}", f"tests/guide/{test['id']}")
+    for test in content["live"].get("champion", {}).get("test", []):
+        put(f"test:{test['id']}", f"tests/{CHAMPION_SCOPE}/{test['id']}")
+    for provider in content["live"].get("provider", []):
+        for metric in provider.get("metric", []):
+            put(f"provider:{provider['id']}.{metric['id']}", f"tests/{provider['id']}/{metric['id']}")
+    for resource in content["resources"]:
+        # As the build issues it (record_route): a repository the Guide recommends is a repository, a registry a
+        # resource; a frozen guideRoute decides for an issued record.
+        listed = "repositories" if resource.get("repository") and resource.get("type") != "registry" else "resources"
+        put(resource["id"], f"{kind_of(resource, listed)}/{resource['id']}")
+    for repository in content["repositories"]:
+        put(repository["id"], f"repositories/{repository['id']}")
+    for organization in content["guide"].get("organization", []):
+        put("organization:" + organization["id"], f"organizations/{organization['id']}")
+    for action in content["provenance"]:
+        if action.get("id"):
+            put(f"action:{action['id']}", f"actions/{action['id']}")
+    model = (content.get("model") or {}).get("model") or {}
+    for key in model_items(content):
+        family, _, rest = key.partition(":") if ":" in key.split(".")[0] else key.partition(".")
+        if family == "model":
+            put(key, f"models/{model.get('id')}#worked-example" if rest == "worked-example" else f"models/{rest}")
+        elif family == "context":
+            station, lens = rest.split(":", 1)
+            put(key, f"stations/{station}#context-{lens}")
+        else:
+            put(key, f"{MODEL_FAMILIES[family]}/{rest}")
+    for key in lifecycle_items(content):
+        if key.startswith("lifecycle:"):
+            put(key, f"lifecycles/{key.removeprefix('lifecycle:')}")
+        elif key.startswith("crosswalk:"):
+            put(key, f"crosswalks/{CROSSWALK_ID}/{key.removeprefix('crosswalk:')}")
+        else:
+            model_id, _, stage = key.partition(".")
+            put(key, f"lifecycles/{model_id}/{stage}")
+    for item in (content.get("infrastructures") or {}).get("infrastructure", []):
+        put(f"infrastructure:{item['id']}", f"infrastructures/{item['id']}")
+    if (content.get("node") or {}).get("node"):
+        put("node:eosc-cz-node", "organizations/eosc-cz-node")
+    return found
+
+
+# The kinds of the records the Guide's content issues identifiers for. Glossary terms, organisations and
+# infrastructures carry their sources' identifiers, as FIPs, registry records and external evaluators' tests do.
+ISSUED_KINDS = (
+    "vocabularies",
+    "stations",
+    "advice",
+    "checks",
+    "questions",
+    "pages",
+    "callouts",
+    "tests",
+    "clauses",
+    "resources",
+    "repositories",
+    "actions",
+    "models",
+    "layers",
+    "seams",
+    "model-examples",
+    "lifecycles",
+    "crosswalks",
+)
 
 
 def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
-    """Every identifier the guide issues, by kind, in content order. Terms, FIPs, FIP Dashboard records and external
-    tests carry their registries' identifiers. Local tests have guide-issued IDs (docs/content-model.md)."""
-    return {
-        "lenses": [lens["id"] for lens in content["guide"].get("lens", [])],
-        "stations": [data["station"]["id"] for data in content["stations"]],
-        "checks": [data["check"]["id"] for data in content["checks"]],
-        # A check's modes and profiles are named within their check, and share links carry them.
-        "modes": [
-            f"{data['check']['id']}.{mode}" for data in content["checks"] for mode in data["check"].get("modes", [])
-        ],
-        "profiles": [
-            f"{data['check']['id']}.{profile['id']}"
-            for data in content["checks"]
-            for profile in data["check"].get("profile", [])
-        ],
-        "pages": [page["id"] for page in content["pages"]],
-        "callouts": [f"callout:{callout['id']}" for callout in content["callouts"]],
-        "callout_items": [
-            f"callout.{callout['id']}.{item['id']}"
-            for callout in content["callouts"]
-            for item in callout.get("item", [])
-        ],
-        "advice": [advice["id"] for data in content["stations"] for advice in data.get("advice", [])],
-        "questions": [item["id"] for data in content["checks"] for item in data.get("item", [])],
-        "tests": [test["id"] for test in content["live"].get("test", [])],
-        "requirements": [clause["id"] for clause in content["ledger"]],
-        "sources": [source["id"] for source in content["sources"]],
-        "resources": [resource["id"] for resource in content["resources"]],
-        "repositories": [repository["id"] for repository in content["repositories"]],
-        "actions": [action["id"] for action in content["provenance"]],
-        "model": list(model_items(content)),
-        "lifecycle": list(lifecycle_items(content)),
-    }
+    """Every identifier the Guide issues, by the kind of its record, in content order: the record's address without
+    its kind (`lenses/V`, `sensitive-data#steward`, `guide/guide-dataset-01`). Sources and resources share one ID
+    space; a local test is the Guide's own, other tests carry their providers' identifiers (docs/content-model.md)."""
+    issued: dict[str, list[str]] = {kind: [] for kind in ISSUED_KINDS}
+    # The terms share links carry: lenses, and each check's modes and profiles, as their vocabularies' terms.
+    issued["vocabularies"] += [f"lenses/{lens['id']}" for lens in content["guide"].get("lens", [])]
+    for data in content["checks"]:
+        check = data["check"]
+        issued["vocabularies"] += [f"modes-{check['id']}/{mode}" for mode in check.get("modes", [])]
+        issued["vocabularies"] += [f"profiles-{check['id']}/{profile['id']}" for profile in check.get("profile", [])]
+    for address in content_addresses(content).values():
+        kind, _, identifier = address.partition("/")
+        if kind in issued and (kind != "tests" or identifier.startswith("guide/")) and identifier not in issued[kind]:
+            issued[kind].append(identifier)
+    return issued
 
 
 def check_identifiers(report: Report, content: dict[str, Any]) -> None:
@@ -1528,10 +1604,33 @@ def check_identifiers(report: Report, content: dict[str, Any]) -> None:
             report.error(where, f"'{value}' is retired but was never registered")
 
 
+def named_record(report: Report, where: str, field: str, value: Any, known: set[str]) -> bool:
+    """Whether a field that can name records of several kinds names one by its address (`clauses/A.F1.R1`,
+    `tests/guide/guide-dataset-01`). A value that names no record is refused with the address it most likely meant."""
+    if value in known:
+        return True
+    candidates = addresses_ending_in(str(value), known)
+    form = (
+        f"write '{candidates[0]}'"
+        if len(candidates) == 1
+        else "one of " + ", ".join(f"'{item}'" for item in candidates)
+        if candidates
+        else "'<kind>/<id>'"
+    )
+    report.error(where, f"{field} '{value}' names no record; name a record by its address, {form}")
+    return False
+
+
+def record_addresses(content: dict[str, Any]) -> set[str]:
+    """The addresses of the records and parts the Guide's content describes, as the build issues them."""
+    return set(content_addresses(content).values()) - {"guide"}
+
+
 def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, set[str]]) -> None:
     actions = content["provenance"]
     unique(report, "provenance", [action.get("id", "") for action in actions], "action")
-    index = content_index(content)
+    addresses = content_addresses(content)
+    known = record_addresses(content)
     cited = cited_ids(content)
     for action in actions:
         where = f"action:{action.get('id')}"
@@ -1545,11 +1644,15 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
             if instrument not in vocab["instruments"]:
                 report.error(where, f"unknown instrument '{instrument}'")
         for obj in action.get("objects", []):
-            if index.get(obj) != "clause" and obj not in cited:
+            if not named_record(report, where, "object", obj, known):
+                continue
+            if not obj.startswith("clauses/") and obj.rsplit("/", 1)[-1] not in cited:
                 report.error(where, f"object '{obj}' is not a clause or source")
         for pattern in action.get("results", []):
-            if not any(covered(pattern, item_id) for item_id in index):
-                report.error(where, f"result '{pattern}' matches no item")
+            if not any(covered(pattern, address) for address in addresses.values()):
+                hint = addresses.get(pattern.removesuffix("*"))
+                form = f"write '{hint}'" if hint else "such as 'stations/plan' or 'advice/plan.*'"
+                report.error(where, f"result '{pattern}' matches no item; results name items by address, {form}")
         end_time = action.get("endTime")
         if not isinstance(end_time, datetime) or end_time.tzinfo is None:
             report.error(where, "endTime must be a date-time with a time zone")
@@ -1594,11 +1697,32 @@ def check_coherence(report: Report, content: dict[str, Any], graph: Graph, build
     # R4, references to snapshot records resolve (one entry per thing is scripts/check_duplicates.py)
     dashboard = next((item for item in content["snapshots"] if item.get("fip") or item.get("resource")), {})
     org_ids = {alternate_id(org, "fip-dashboard") for org in dashboard.get("organization", [])}
-    for organization in content["guide"].get("organization", []):
-        if organization.get("fipDashboard") and organization["fipDashboard"] not in org_ids:
+    # The reviewed handles and keys by which a registry's record names a thing the Guide describes.
+    tools = {alternate_id(item, "knav") for snapshot in content["snapshots"] for item in snapshot.get("tool", [])}
+    handles = [
+        (f"organization:{row['id']}", row.get("fipDashboard")) for row in content["guide"].get("organization", [])
+    ]
+    handles += [(f"resource:{row['id']}", row.get("fipDashboardOrganization")) for row in content["resources"]]
+    keys = []
+    for item in (content.get("infrastructures") or {}).get("infrastructure", []):
+        for row in [item, *item.get("nodeOf", []), *item.get("eric", [])]:
+            where = f"infrastructure:{item['id']}" + (f" ({row['name']})" if row is not item else "")
+            handles.append((where, row.get("fipDashboard")))
+            keys.append((where, row.get("knav")))
+    for where, handle in handles:
+        if handle and handle not in org_ids:
+            report.error(where, f"FIP Dashboard has no organisation '{handle}'")
+    for where, key in keys:
+        if key and key not in tools:
+            report.error(where, f"knav names no tool of the KNAV catalogue snapshot ('{key}')")
+    claimed: dict[str, list[str]] = {}
+    for where, handle in handles:
+        if handle:
+            claimed.setdefault(handle, []).append(where)
+    for handle, holders in sorted(claimed.items()):
+        if len(holders) > 1:
             report.error(
-                f"organization:{organization['id']}",
-                f"FIP Dashboard has no organisation '{organization['fipDashboard']}'",
+                holders[0], f"names the FIP Dashboard organisation '{handle}' as {', '.join(holders[1:])} does"
             )
 
     # R5, entries nothing uses
@@ -1608,7 +1732,7 @@ def check_coherence(report: Report, content: dict[str, Any], graph: Graph, build
     cited |= {
         source for example in content.get("model", {}).get("example", []) for source in example.get("evidence", [])
     }
-    cited |= {obj for action in content["provenance"] for obj in action.get("objects", [])}
+    cited |= {obj.rsplit("/", 1)[-1] for action in content["provenance"] for obj in action.get("objects", [])}
     cited |= {
         source
         for item in [data["lifecycle"] for data in content.get("lifecycles", [])] + content.get("crosswalk", [])
@@ -1634,13 +1758,17 @@ def check_coherence(report: Report, content: dict[str, Any], graph: Graph, build
 
 
 def referenced(content: dict[str, Any]) -> set[str]:
-    """Every entry a text refers to with [[id|phrase]]."""
-    return {
+    """Every entry a text refers to with [[<kind>/<id>|phrase]]: its address, and a resource's or repository's own ID,
+    which is how resources and sources are cited elsewhere."""
+    found = {
         match["id"]
         for name, data in content.items()
         for _, _, value in walk(data, name)
         if isinstance(value, str)
         for match in REFERENCE.finditer(value)
+    }
+    return found | {
+        target.split("/", 1)[1] for target in found if target.split("/", 1)[0] in ("resources", "repositories")
     }
 
 
@@ -1653,11 +1781,11 @@ def check_references(report: Report, content: dict[str, Any], targets: dict[str,
 
     def entries(where: str, text: str) -> set[str]:
         if "[[" in REFERENCE.sub("", text) or "]]" in REFERENCE.sub("", text):
-            report.error(where, "a reference is not well formed; write [[id|phrase]]")
+            report.error(where, "a reference is not well formed; write [[<kind>/<id>|phrase]]")
         found = {match["id"] for match in REFERENCE.finditer(text)}
         if known is not None:
             for entry in sorted(found - known):
-                report.error(where, f"refers to an unknown entry '{entry}'")
+                report.error(where, f"refers to an unknown entry '{entry}'" + address_hint(entry, known))
         return found
 
     for name, data in content.items():
@@ -1673,7 +1801,7 @@ def check_references(report: Report, content: dict[str, Any], targets: dict[str,
 
 
 def check_infrastructures(report: Report, content: dict[str, Any]) -> None:
-    """The large research infrastructures and the EOSC CZ Node (D-172, D-174): known vocabularies and sources, unique
+    """The large research infrastructures and the EOSC CZ Node: known vocabularies and sources, unique
     IDs, an operator relation only with its evidence and to a catalogue entry, and node members that name catalogue
     entries with a known role; a planned repository names its milestone."""
     guide = content["guide"]
@@ -1778,7 +1906,7 @@ def check_names(report: Report, content: dict[str, Any]) -> None:
             report.error(where, f"'{name}' is a Czech name with no English form; give it as a table with 'cs' and 'en'")
 
     # R6a, and where a Czech form exists, a curated name carries it: re3data tags a Czech name for the record, so the
-    # entry or record annotation that names the repository gives its Czech name too (D-173).
+    # entry or record annotation that names the repository gives its Czech name too.
     czech = {
         item["re3data"]: item["namesCs"]
         for snapshot in content["snapshots"]
@@ -1843,7 +1971,15 @@ def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
             require_text(report, where, page.get("description"), "description")
             if page.get("group") not in TOOL_GROUPS:
                 report.error(where, f"a tools page names its group, one of {', '.join(TOOL_GROUPS)}")
-        for number, section in enumerate(page.get("section", []), start=1):
+        sections = page.get("section", [])
+        unique(report, where, [section["id"] for section in sections if section.get("id")], "section")
+        for number, section in enumerate(sections, start=1):
+            # A section's id is its fragment in the page's IRI, in references and in shared links; a position would
+            # move all of them whenever the page is reordered.
+            if not section.get("id"):
+                report.error(f"{where}[{number}]", "a section needs an id that names its subject, as its fragment")
+            elif not SLUG.match(str(section["id"])) or str(section["id"]).isdigit():
+                report.error(f"{where}[{number}]", f"section id '{section['id']}' is a lowercase word, never a number")
             require_text(report, f"{where}[{number}]", section.get("body"), "body")
             if not isinstance(section.get("details", False), bool):
                 report.error(f"{where}[{number}]", "details must be true or false")
@@ -1945,7 +2081,7 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
                 if not prefix.endswith("/terms#"):
                     report.error(str(shape.relative_to(root)), f"fg: prefix {prefix} is not <address>terms#")
     # Every guide-specific term declares a broader established term or a recorded reason, and every published
-    # guide term is defined in the vocabulary document served at the guide's address (design: group 21).
+    # guide term is defined in the vocabulary document served at the guide's address.
     for error in vocabulary_errors(guide):
         report.error("vocabulary", error)
 
@@ -1988,11 +2124,16 @@ def vocabularies(content: dict[str, Any]) -> dict[str, Any]:
 
 
 def in_page_targets(content: dict[str, Any]) -> set[str]:
-    targets = {"#path", "#ledger", "#repositories", "#resources", "#tests"}
-    targets |= {f"#station-{data['station']['id']}" for data in content["stations"]}
-    targets |= {f"#check-{data['check']['id']}" for data in content["checks"]}
-    targets |= {f"#page-{page['id']}" for page in content["pages"]}
-    targets |= {f"#resource-{resource['id']}" for resource in content["resources"]}
+    """What a link may open in the page: the lists of the kinds the catalogue shows, and stations, checks, pages and
+    curated resources by their addresses."""
+    targets = {"stations", "clauses", "repositories", "resources", "tests"}
+    targets |= {f"stations/{data['station']['id']}" for data in content["stations"]}
+    targets |= {f"checks/{data['check']['id']}" for data in content["checks"]}
+    targets |= {f"pages/{page['id']}" for page in content["pages"]}
+    targets |= {
+        "/".join((parse_route(resource.get("guideRoute") or "resources")[0], resource["id"]))
+        for resource in content["resources"]
+    }
     return targets
 
 
@@ -2000,8 +2141,8 @@ def topic_targets(vocab: dict[str, Any]) -> dict[str, dict[str, set[str]]]:
     """The catalogue kinds a link may open narrowed to a topic, with the facets and values each accepts."""
     stations = set(vocab["stations"])
     return {
-        "#resources": {"type": set(vocab["resource_types"]), "station": stations},
-        "#repositories": {"function": set(vocab["repository_functions"]), "station": stations},
+        "resources": {"type": set(vocab["resource_types"]), "station": stations},
+        "repositories": {"function": set(vocab["repository_functions"]), "station": stations},
     }
 
 
@@ -2083,7 +2224,8 @@ def provider_criteria(content: dict[str, Any]) -> dict[str, Any]:
 
 
 def provenance_items(content: dict[str, Any]) -> dict[str, tuple[str, Any]]:
-    """Every item provenance must cover, with its kind and content: the guide's metadata, clauses, advice, questions,
+    """Every item provenance must cover, by its address, with its kind and content: the guide's metadata, clauses,
+    advice, questions,
     resources, sources, pages, curated repositories, callouts and their items, tests, external evaluators' criteria,
     organisations, infrastructures, the node, the model and the life-cycle models. Mandatory
     coverage and freshness both read this one list, so a kind whose changes are compared is never a kind no action has
@@ -2120,14 +2262,17 @@ def provenance_items(content: dict[str, Any]) -> dict[str, tuple[str, Any]]:
         items[f"infrastructure:{item['id']}"] = ("infrastructure", item)
     if (content.get("node") or {}).get("node"):
         items["node:eosc-cz-node"] = ("node", content["node"])
-    # Association changes alter the meaning of the mapped item and need that item's fresh paradata too.
+    addresses = content_addresses(content)
+    by_address = {addresses.get(key, key): value for key, value in items.items()}
+    sources = {addresses[source["id"]]: source for source in content["sources"]}
+    # Association changes alter the meaning of the mapped item and need that item's fresh paradata too. A target
+    # names its item by address; the content a freshness check compares with may name it by its content ID.
     for association in content.get("model", {}).get("association", []):
         target = association["target"]
-        kind, base = items.get(target, (None, None))
-        if base is None:
-            kind, base = "source", next((item for item in content["sources"] if item["id"] == target), None)
-        items[target] = (kind, {"item": base, "modelAssociation": association})
-    return items
+        address = target if target in by_address or target in sources else addresses.get(target, target)
+        kind, base = by_address.get(address) or ("source", sources.get(address))
+        by_address[address] = (kind, {"item": base, "modelAssociation": association})
+    return by_address
 
 
 def item_fingerprints(content: dict[str, Any]) -> dict[str, str]:

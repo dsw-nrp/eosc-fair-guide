@@ -12,9 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_api  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_crate  # noqa: E402
 import check_content  # noqa: E402
 import check_health  # noqa: E402
+from addresses import iri  # noqa: E402
 
 
 def bilingual(value: str) -> dict[str, str]:
@@ -67,7 +70,7 @@ class ModelTests(unittest.TestCase):
                     "evidence": ["layers-seams-manuscript"],
                 }
             ],
-            "association": [{"target": "service", "layers": ["infrastructure"], "seams": ["repository-nma"]}],
+            "association": [{"target": "resources/service", "layers": ["infrastructure"], "seams": ["repository-nma"]}],
             "context": [
                 {
                     "station": "one",
@@ -91,17 +94,17 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(self.content)
         graph = {item["@id"]: item for item in crate["@graph"]}
-        seam = graph["#seam-repository-nma"]
-        self.assertEqual(seam["implementationLayers"], {"@id": "#layer-infrastructure"})
+        seam = graph[iri("seams/repository-nma")]
+        self.assertEqual(seam["implementationLayers"], {"@id": iri("layers/infrastructure")})
         self.assertNotIn("serviceStatus", seam)
-        self.assertEqual(graph["#model-example-pilot"]["statusAsOf"], "2026-09")
-        self.assertEqual(graph["#resource-service"]["implementationSeams"], {"@id": "#seam-repository-nma"})
-        self.assertNotIn("implementationSeams", graph["#item-gate.01"])
+        self.assertEqual(graph[iri("model-examples/pilot")]["statusAsOf"], "2026-09")
+        self.assertEqual(graph[iri("resources/service")]["implementationSeams"], {"@id": iri("seams/repository-nma")})
+        self.assertNotIn("implementationSeams", graph[iri("questions/gate.01")])
 
     def test_unknown_association_target_or_model_term_is_rejected(self) -> None:
-        self.content["model"]["association"][0]["target"] = "missing"
+        self.content["model"]["association"][0]["target"] = "resources/missing"
         self.content["model"]["association"][0]["seams"] = ["made-up"]
-        self.assertTrue(any("unknown content target" in error for error in self.errors()))
+        self.assertTrue(any("target 'resources/missing' names no record" in error for error in self.errors()))
         self.assertTrue(any("unknown layer or seam" in error for error in self.errors()))
         with self.assertRaises(build_crate.ContentError):
             build_crate.build_crate(self.content)
@@ -127,8 +130,8 @@ class ModelTests(unittest.TestCase):
         crate = build_crate.build_crate(self.content)
         core, parts = build_crate.split_crate(crate)
         restored = {item["@id"]: copy.deepcopy(item) for item in core["@graph"]}
-        self.assertNotIn("#seam-repository-nma", restored)
-        self.assertNotIn("#model-example-pilot", restored)
+        self.assertNotIn(iri("seams/repository-nma"), restored)
+        self.assertNotIn(iri("model-examples/pilot"), restored)
         deferred_ids = {item["@id"] for item in parts["model"]["entities"]}
         for term in build_crate.MODEL_TERMS:
             term_iri = crate["@context"][1][term]
@@ -148,16 +151,16 @@ class ModelTests(unittest.TestCase):
             for collection, members in api.records.items()
             for record, entity_id in members
         }
-        self.assertIn("api/model/repository-nma.json", docs)
-        self.assertEqual(docs["api/model/pilot.json"]["statusAsOf"], "2026-09")
+        self.assertIn("api/seams/repository-nma.json", docs)
+        self.assertEqual(docs["api/model-examples/pilot.json"]["statusAsOf"], "2026-09")
         self.assertEqual(build_api.PARAMETERS["model"], "model_id")
-        record = docs["api/res/srv/service.json"]
-        self.assertEqual(record["implementationSeams"], "../../model/repository-nma.json")
+        record = docs["api/resources/service.json"]
+        self.assertEqual(record["implementationSeams"], "../seams/repository-nma.json")
         health = api.health(check_health.make_report(self.content, today=date(2026, 10, 11)))
         model = next(group for group in health["integrity"] if group["type"] == "implementation model")
         self.assertEqual(model["failed"], 0)
         example = next(item for item in model["items"] if item["id"] == "example.pilot")
-        self.assertEqual(example["api_record"], "model/pilot.json")
+        self.assertEqual(example["api_record"], "model-examples/pilot.json")
         self.content["model"]["example"][0]["evidence"] = ["missing"]
         broken = check_health.integrity(self.content, ROOT, date(2026, 10, 11))
         self.assertGreater(next(group for group in broken if group["type"] == "implementation model")["failed"], 0)
@@ -166,10 +169,33 @@ class ModelTests(unittest.TestCase):
         before = check_content.item_fingerprints(self.content)
         self.content["model"]["association"][0]["layers"] = ["community"]
         after = check_content.item_fingerprints(self.content)
-        self.assertNotEqual(before["service"], after["service"])
-        self.assertEqual(before["gate.01"], after["gate.01"])
-        self.assertIn("context:one:V", after)
-        self.assertIn("seam.repository-nma", check_content.issued_ids(self.content)["model"])
+        self.assertNotEqual(before["resources/service"], after["resources/service"])
+        self.assertEqual(before["questions/gate.01"], after["questions/gate.01"])
+        self.assertIn("stations/one#context-V", after)
+        self.assertIn("repository-nma", check_content.issued_ids(self.content)["seams"])
+
+    def test_fields_that_can_name_several_kinds_refuse_a_bare_id(self) -> None:
+        self.content["model"]["association"][0]["target"] = "service"
+        self.content["model"]["model"]["workedExample"] = {
+            "name": bilingual("A revision"),
+            "description": bilingual("Links content"),
+            "steps": ["gate.01"],
+        }
+        self.content["provenance"][0]["objects"] = ["report"]
+        errors = self.errors()
+        report = check_content.Report()
+        check_content.check_provenance(report, self.content, check_content.vocabularies(self.content))
+        for fragment in (
+            "target 'service' names no record; name a record by its address, write 'resources/service'",
+            "step 'gate.01' names no record; name a record by its address, write 'questions/gate.01'",
+        ):
+            self.assertTrue(any(fragment in error for error in errors), errors)
+        self.assertTrue(
+            any(
+                "object 'report' names no record" in error and "'resources/report'" in error for error in report.errors
+            ),
+            report.errors,
+        )
 
     def test_unknown_publisher_produces_a_clear_content_error(self) -> None:
         self.content["guide"]["guide"]["publisher"] = "missing-publisher"
@@ -181,18 +207,21 @@ class ModelTests(unittest.TestCase):
         self.content["model"]["model"]["workedExample"] = {
             "name": bilingual("An inspectable revision"),
             "description": bilingual("Links actual content without claiming a live result"),
-            "steps": ["A.F1.R1", "gate.01", f"action:{action}"],
+            "steps": ["clauses/A.F1.R1", "questions/gate.01", f"actions/{action}"],
         }
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(self.content)
         graph = {item["@id"]: item for item in crate["@graph"]}
-        worked = graph["#model-worked-example"]
+        worked = graph[iri("models/layers-seams#worked-example")]
         self.assertEqual(
-            worked["hasPart"], [{"@id": "#clause-A.F1.R1"}, {"@id": "#item-gate.01"}, {"@id": f"#action-{action}"}]
+            worked["hasPart"],
+            [{"@id": iri("clauses/A.F1.R1")}, {"@id": iri("questions/gate.01")}, {"@id": iri(f"actions/{action}")}],
         )
-        self.assertEqual(graph["#implementation-model"]["workExample"], {"@id": "#model-worked-example"})
+        self.assertEqual(
+            graph[iri("models/layers-seams")]["workExample"], {"@id": iri("models/layers-seams#worked-example")}
+        )
         api = build_api.Api(crate, self.content)
-        record = api.record("model", "layers-seams", "#implementation-model")
+        record = api.record("model", "layers-seams", iri("models/layers-seams"))
         self.assertTrue(
             any(
                 isinstance(item, dict) and item.get("identifier") == "model-worked-example"
@@ -203,10 +232,10 @@ class ModelTests(unittest.TestCase):
     def test_seam_association_reuses_endpoint_layers_without_citation_inheritance(self) -> None:
         self.content["model"]["association"][0].pop("layers")
         graph = {item["@id"]: item for item in build_crate.build_crate(self.content)["@graph"]}
-        self.assertEqual(graph["#resource-service"]["implementationLayers"], {"@id": "#layer-infrastructure"})
-        self.assertNotIn("implementationLayers", graph["#item-gate.01"])
+        self.assertEqual(graph[iri("resources/service")]["implementationLayers"], {"@id": iri("layers/infrastructure")})
+        self.assertNotIn("implementationLayers", graph[iri("questions/gate.01")])
         api = build_api.Api(build_crate.build_crate(self.content), self.content)
-        station = api.record("stations", "one", "#station-one")
+        station = api.record("stations", "one", iri("stations/one"))
         contexts = build_crate.as_list(station["hasPart"])
         self.assertTrue(any(isinstance(item, dict) and item.get("identifier") == "context.one.V" for item in contexts))
 

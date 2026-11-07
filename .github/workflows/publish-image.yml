@@ -2,10 +2,9 @@ name: Publish the Guide image
 
 # Called from the release after the tag's deployment. It serves the exact verified release artifact — the
 # digest-checked `guide-site-<sha>.tar.gz` — as a container, signed and attested; nothing is rebuilt here beyond
-# the thin image around the artifact. The image always carries the release's version, the tag without its `v`
-# (decision 31); `latest` moves to the newest approved release and `stable` to the newest approved non-prerelease,
-# never back (decision 30). The base image is
-# Digest-pinned and Dependabot keeps it current.
+# the thin image around the artifact. The image always carries the release's version, the tag without its `v`;
+# `latest` moves to the newest approved release and `stable` to the newest approved non-prerelease, never back, so a
+# superseded release keeps its own tag. The base image is digest-pinned and Dependabot keeps it current.
 on:
   workflow_call:
     inputs:
@@ -196,7 +195,7 @@ jobs:
           digest_of() {
             docker buildx imagetools inspect --raw "$1" | sha256sum | cut -d' ' -f1
           }
-          # The image carries the version, the release tag without its v (decision 31). The version tag must point at
+          # The image carries the version, the release tag without its v. The version tag must point at
           # the audited index before any moving alias is touched.
           VERSION="${RELEASE_TAG#v}"
           docker buildx imagetools create --tag "$IMAGE:$VERSION" "$IMAGE@$DIGEST"

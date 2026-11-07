@@ -53,14 +53,19 @@ DCAT = "http://www.w3.org/ns/dcat#"
 SIO = "https://semanticscience.org/resource/"
 
 # Entities small enough to repeat in full inside the records that name them.
-EMBEDDED_TYPES = {"DefinedTerm", "Audience", "Action", "EntryPoint", "Person", "Organization", "PropertyValue"}
-# What a record adds to its crate entity or names differently, per collection.
-FTR_TYPES = {"checks": "Benchmark", "metrics": "Metric", "tests": "Test"}
-RENAMED = {
-    "checks": {"hasPart": "hasAssociatedMetric"},
-    "metrics": {"about": "inDimension", "isPartOf": "hasBenchmark"},
+EMBEDDED_TYPES = {
+    "DefinedTerm",
+    "Audience",
+    "Action",
+    "EntryPoint",
+    "Person",
+    "Organization",
+    "PropertyValue",
+    "PrefillMapping",
 }
-DROPPED = {"metrics": {"additionalProperty", "name"}}  # the page's pre-fill settings; a name repeating the identifier
+# What a record adds to its crate entity, per collection: the crate types checks and questions as FTR benchmarks and
+# metrics itself, and an automated test carries ftr:Test as its additional type.
+FTR_TYPES = {"tests": "Test"}
 TERMS: dict[str, Any] = {
     "@vocab": SCHEMA_ORG,
     "ftr": kb.FTR,
@@ -111,9 +116,10 @@ class Api:
         self.content = content
         self.strings = content["ui"]["api"]
         self.entities = {entity["@id"]: entity for entity in crate["@graph"]}
+        self.base = content["guide"]["guide"]["recordBase"]
         self.records = kb.api_records(self.entities, content)
         self.paths = {
-            entity_id: kb.API_FILES["record"].format(record=self.entities[entity_id]["catalogueAddress"])
+            entity_id: kb.API_FILES["record"].format(record=kb.record_address(entity_id, self.base))
             for name, members in self.records.items()
             for record, entity_id in members
         }
@@ -124,17 +130,19 @@ class Api:
         clash = {record for record, _ in self.records["tests"]} & {record for record, _ in self.records["metrics"]}
         if clash:
             raise kb.ContentError(f"a check question and an automated test share the API record tests/{min(clash)}")
-        # Parts without a record of their own (advice and its steps, callouts, FIP declarations) live in the record
-        # of what they are part of, under their own fragment.
+        # Entities without a record of their own in this API (advice and its steps, callouts, FIP declarations) live
+        # in the record of what they are part of, under a fragment their address names.
         placed = True
         while placed:
             placed = False
             for entity_id, entity in self.entities.items():
-                if entity_id in self.paths or not entity_id.startswith("#"):
+                address = kb.guide_address(entity_id, self.base)
+                if entity_id in self.paths or address is None:
                     continue
                 whole = next((whole for whole in ids(entity.get("isPartOf")) if whole in self.paths), None)
                 if whole:
-                    self.paths[entity_id] = self.paths[whole].split("#")[0] + entity_id
+                    fragment = address.replace("/", "-").replace("#", "-")
+                    self.paths[entity_id] = self.paths[whole].split("#")[0] + "#" + fragment
                     placed = True
         self.language_keys: set[str] = set()
         self.reference_keys: set[str] = {"sameAs", "additionalType"}
@@ -211,12 +219,11 @@ class Api:
         entity_id = entity["@id"]
         path = self.paths.get(entity_id)
         own = self.relative(here, path) if path else self.iri(entity_id, here)
-        renamed = RENAMED.get(collection, {})
         node: dict[str, Any] = {"@id": own, "@type": entity["@type"]}
         for key, value in entity.items():
-            if key in ("@id", "@type") or key in DROPPED.get(collection, ()):
+            if key in ("@id", "@type"):
                 continue
-            name = renamed.get(key, key)
+            name = key
             if (
                 key == "url"
                 and isinstance(value, str)
@@ -261,14 +268,17 @@ class Api:
             return [entity_id for _, entity_id in self.records[collection]]
 
         def about(entity_id: str) -> bool:
-            return principle in ids(self.entities[entity_id].get("about"))
+            entity = self.entities[entity_id]
+            return principle in ids(entity.get("about")) + ids(entity.get("inDimension"))
 
         clauses = [entity_id for entity_id in members("clauses") if about(entity_id)]
         cited = set(clauses)
         advice = [
             entity_id
             for entity_id, entity in self.entities.items()
-            if entity_id.startswith("#advice-") and cited & set(ids(entity.get("citation")))
+            if kb.kind_of(entity_id, self.base) == "advice"
+            and "#" not in entity_id
+            and cited & set(ids(entity.get("citation")))
         ]
         return {
             "clauses": [self.relative(here, self.paths[entity_id]) for entity_id in clauses],
@@ -284,8 +294,8 @@ class Api:
     def manual_test(self, record: str, entity_id: str) -> dict[str, Any]:
         """The FTR test of a check question: a person answers it in the guide's self-check."""
         here = self.tests[entity_id]
-        check = self.entities[ids(self.entities[entity_id].get("isPartOf"))[0]]
-        lens = ids(check.get("audience"))[0].removeprefix("#lens-")
+        check = self.entities[ids(self.entities[entity_id].get("hasBenchmark"))[0]]
+        lens = ids(check.get("audience"))[0].rsplit("/", 1)[-1]
         strings = self.strings["test"]
         context = self.entities[entity_id].get("assessmentContext", False)
         self.language_keys.update(("name", "description"))
@@ -365,7 +375,7 @@ class Api:
         }
 
         def link(item: dict[str, Any], collections: tuple[str, ...], prefix: str = "") -> None:
-            target = self.paths.get(prefix + item["id"]) if prefix else None
+            target = self.paths.get(self.base + prefix + item["id"]) if prefix else None
             if not target:
                 target = next(
                     (record_paths[name][item["id"]] for name in collections if item["id"] in record_paths[name]), None
@@ -392,38 +402,48 @@ class Api:
             "implementation model": ("model",),
             "model associations": tuple(kb.API_COLLECTIONS),
         }
+        model = ((self.content.get("model") or {}).get("model") or {}).get("id", "")
         for group in result["integrity"]:
             collections = ("resources",) if group["type"].startswith("resources:") else groups.get(group["type"], ())
             for item in group["items"]:
                 if group["type"] == "implementation model" and item["id"].startswith(("layer.", "seam.", "example.")):
                     kind, identifier = item["id"].split(".", 1)
-                    prefix = "#model-example-" if kind == "example" else "#" + kind + "-"
-                    target = self.paths.get(prefix + identifier)
+                    target = self.paths.get(f"{self.base}{MODEL_KINDS[kind]}/{identifier}")
                     if target:
                         item["api_record"] = self.relative(HEALTH_FILE, target)
                     continue
                 if group["type"] == "implementation model" and item["id"].startswith("context:"):
-                    context_id = "#model-context-" + item["id"].removeprefix("context:").replace(":", "-")
-                    if self.paths.get(context_id):
-                        item["api_record"] = self.relative(HEALTH_FILE, self.paths[context_id])
+                    _, station, lens = item["id"].split(":")
+                    target = self.paths.get(f"{self.base}stations/{station}#context-{lens}")
+                    if target:
+                        item["api_record"] = self.relative(HEALTH_FILE, target)
                     continue
                 if group["type"] == "implementation model" and item["id"] == "model:worked-example":
-                    item["api_record"] = self.relative(HEALTH_FILE, self.paths["#model-worked-example"])
-                    continue
-                if group["type"] == "model associations" and item["id"].startswith("test:"):
                     item["api_record"] = self.relative(
-                        HEALTH_FILE, self.paths.get("#test-" + item["id"][5:], HEALTH_FILE)
+                        HEALTH_FILE, self.paths[f"{self.base}models/{model}#worked-example"]
                     )
                     continue
-                if group["type"] == "model associations" and "#advice-" + item["id"] in self.paths:
-                    link(item, (), "#advice-")
+                if group["type"] == "model associations" and item["id"].startswith("test:"):
+                    test = item["id"][5:]
+                    target = next(
+                        (
+                            self.paths[f"{self.base}tests/{scope}/{test}"]
+                            for scope in ("guide", kb.CHAMPION_SCOPE)
+                            if f"{self.base}tests/{scope}/{test}" in self.paths
+                        ),
+                        HEALTH_FILE,
+                    )
+                    item["api_record"] = self.relative(HEALTH_FILE, target)
                     continue
-                link(item, collections, "#advice-" if group["type"] == "station advice" else "")
+                if group["type"] == "model associations" and f"{self.base}advice/{item['id']}" in self.paths:
+                    link(item, (), "advice/")
+                    continue
+                link(item, collections, "advice/" if group["type"] == "station advice" else "")
         coverage = result["original_coverage"]
         for kind, collections, prefix in (
             ("clauses", ("clauses",), ""),
             ("questions", ("metrics",), ""),
-            ("advice", (), "#advice-"),
+            ("advice", (), "advice/"),
             ("by_source", ("sources", "resources"), ""),
         ):
             for item in coverage[kind]:
@@ -532,6 +552,8 @@ class Api:
         }
 
 
+# The record kind of the implementation model's items, by the prefix their content IDs carry.
+MODEL_KINDS = {"layer": "layers", "seam": "seams", "example": "model-examples"}
 # The path parameter of each collection, named like the FIP Dashboard's (`resource_id`, `fip_id`), and its schema.
 PARAMETERS = {
     "principles": "principle_id",
@@ -625,10 +647,6 @@ def schemas(language_keys: set[str], reference_keys: set[str]) -> dict[str, Any]
     """The schemas of the records, a list and the context; `Text` and `Links` cover what every record may hold."""
 
     def property_schema(key: str) -> dict[str, Any]:
-        if key == "championEvidenceOnly":
-            return {"type": "boolean"}
-        if key == "prefillLevel":
-            return {"type": "string", "enum": ["partly"]}
         if key in language_keys:
             return ref("Text")
         if key in reference_keys or key in TERMS:

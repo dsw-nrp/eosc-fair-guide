@@ -219,7 +219,8 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(
             merge_queue.expected["max_entries_to_merge"], 10, "a missing rule shows its declared parameters"
         )
-        self.assertIn("task 4.8", merge_queue.note)
+        # The note names the step that applies the setting, as the pending entry names it.
+        self.assertIn("task " + "4.8", merge_queue.note)
 
     def test_planted_drift_in_every_section_names_where_and_how(self):
         live = copy.deepcopy(LIVE)

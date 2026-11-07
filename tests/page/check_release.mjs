@@ -251,7 +251,7 @@ await assert.rejects(draftRelease({ github, context: context(), core }, files({ 
 console.log("check_release: partial drafts recover, verified tags reuse bytes, complete releases are idempotent and conflicts are refused");
 
 // Moving aliases follow precedence and never move back; a superseded published release still gets its own tag and
-// draft, because the image job no longer fails (decision 30).
+// draft, because the image job does not fail when a newer release supersedes it.
 {
   const approved = new Set();
   ({ github } = fake());

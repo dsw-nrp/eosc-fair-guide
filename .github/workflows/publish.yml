@@ -126,7 +126,7 @@ jobs:
             args+=(--production .cache/release --production-tag "$PRODUCTION_TAG" --production-commit "$PRODUCTION_SHA")
           fi
           python scripts/assemble_pages.py "${args[@]}" --notes .cache/assembly-notes.md --root-out .cache/publication-root.txt
-          # Notices such as a preview namespace that production does not carry yet (decision 28).
+          # Notices such as a preview namespace that production does not carry yet.
           if [ -s .cache/assembly-notes.md ]; then
             { echo ""; cat .cache/assembly-notes.md; } >> "$GITHUB_STEP_SUMMARY"
           fi

@@ -821,7 +821,7 @@ RUN_URL = re.compile(r"https://github\.com/[\w.-]+/[\w.-]+/actions/runs/\d+")
 
 def refresh_findings(refresh: dict[str, Any]) -> list[dict]:
     """The sources the latest scheduled refresh did not refresh, as findings with stable keys. A run whose report
-    cannot be read, or no run at all, is one finding saying that the sources' state is unknown (decision 29)."""
+    cannot be read, or no run at all, is one finding saying that the sources' state is unknown."""
     url = refresh.get("run_url") or ""
     run = f"[run]({url})" if RUN_URL.fullmatch(url) else ""
     outcomes = refresh.get("outcomes")

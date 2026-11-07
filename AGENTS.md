@@ -124,7 +124,7 @@ Structure checks use `requirements-dev.txt` and validate the built crate, agains
 ```bash
 rocrate-validator validate -p ro-crate-1.2 --skip-availability-check _site
 rocrate-validator validate -p process-run-crate-0.5 -nh --skip-availability-check _site
-rocrate-validator validate --extra-profiles-path _site/profile -p fair-guide-0.1 -nh --skip-availability-check _site
+rocrate-validator validate --extra-profiles-path _site/profile -p fair-guide-0.2 -nh --skip-availability-check _site
 ```
 
 Page checks need Node.js and Chromium (installed into the gitignored `.cache/`) and run on the built site; their

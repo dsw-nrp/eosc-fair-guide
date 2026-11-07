@@ -124,7 +124,7 @@ class AssemblyTests(unittest.TestCase):
 
     def test_a_preview_with_the_next_namespace_is_published_beside_production_with_a_notice(self):
         # The reviewed namespace changed after the release: production keeps its own, unchanged bytes until the next
-        # release, and the summary says that the two channels differ (decision 28).
+        # release, and the summary says that the two channels differ.
         self.stage_files(publication_files("https://actual.example/", semantic="https://actual.example/"))
         notices = self.assemble()
         self.assertEqual((self.out / "ro-crate-metadata.json").read_bytes(), self.files["ro-crate-metadata.json"])

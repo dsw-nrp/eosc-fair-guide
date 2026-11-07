@@ -64,7 +64,7 @@ try {
         await inspect("sources");
       }
 
-      await visit("catalogue/k!terms~f.lens!", ".term-definition");
+      await visit("catalogue/k!glossary~f.lens!", ".term-definition");
       const definition = page.locator(".term-definition").first();
       assert.equal(await definition.evaluate((node) => node.open), false);
       assert.match(await definition.locator("summary").innerText(), /Heslář(?:i)? Open Science/, "glossary definitions identify their actual source");

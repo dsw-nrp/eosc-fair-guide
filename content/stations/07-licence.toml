@@ -24,21 +24,21 @@ id = "licence.02"
 lens = "V"
 level = "L0"
 text = { cs = "Zvolte licenci, aby ostatní věděli, co s daty smějí dělat. Pro otevřená data se nejčastěji používá CC BY 4.0 nebo CC0. Pokud data otevřít nelze, nastavte omezený přístup nebo embargo; popis dat může být veřejný i tak.", en = "Choose a licence so that others know what they may do with the data. Open data most often use CC BY 4.0 or CC0. If the data cannot be open, set restricted access or an embargo; the description of the data can still be public." }
-action = [{ label = { cs = "Průvodce licencemi v DMP.eosc.cz", en = "Licence selector in DMP.eosc.cz" }, href = "https://dmp.eosc.cz/" }, { label = { cs = "Slučitelnost licencí Creative Commons", en = "Creative Commons licence compatibility" }, href = "#page-licence-compatibility" }]
+action = [{ label = { cs = "Průvodce licencemi v DMP.eosc.cz", en = "Licence selector in DMP.eosc.cz" }, href = "https://dmp.eosc.cz/" }, { label = { cs = "Slučitelnost licencí Creative Commons", en = "Creative Commons licence compatibility" }, href = "pages/licence-compatibility" }]
 sources = ["A.R1.1.R1", "A.A1.2.R2", "DSW-NRP.01", "COPYRIGHT-LICENCES.01", "COPYRIGHT-LICENCES.05"]
 
 [[advice]]
 id = "licence.03"
 lens = "V"
 level = "L1"
-text = { cs = "Než licenci připojíte, ověřte podle příručky [[copyright-licences|Autorská práva a licence]], kdo smí rozhodnout o užití: jiný režim má zaměstnanecké dílo, databáze a její jednotlivé prvky. Osobní údaje, obchodní tajemství, utajované informace a smlouvy posuzujte zvlášť; při spojování chráněného obsahu použijte [[page:licence-compatibility|tabulku slučitelnosti CC licencí]] a pro kód [[nrp-license-selector|NRP License Selector]].", en = "Before attaching a licence, check with the [[copyright-licences|handbook on copyright and licences]] who may authorize use: employee works, databases and their individual elements follow different regimes. Assess personal data, trade secrets, classified information and contracts separately; when combining protected content, use the [[page:licence-compatibility|CC compatibility table]], and for code use the [[nrp-license-selector|NRP License Selector]]." }
+text = { cs = "Než licenci připojíte, ověřte podle příručky [[resources/copyright-licences|Autorská práva a licence]], kdo smí rozhodnout o užití: jiný režim má zaměstnanecké dílo, databáze a její jednotlivé prvky. Osobní údaje, obchodní tajemství, utajované informace a smlouvy posuzujte zvlášť; při spojování chráněného obsahu použijte [[pages/licence-compatibility|tabulku slučitelnosti CC licencí]] a pro kód [[resources/nrp-license-selector|NRP License Selector]].", en = "Before attaching a licence, check with the [[resources/copyright-licences|handbook on copyright and licences]] who may authorize use: employee works, databases and their individual elements follow different regimes. Assess personal data, trade secrets, classified information and contracts separately; when combining protected content, use the [[pages/licence-compatibility|CC compatibility table]], and for code use the [[resources/nrp-license-selector|NRP License Selector]]." }
 sources = ["COPYRIGHT-LICENCES.01", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05"]
 
 [[advice]]
 id = "licence.04"
 lens = "V"
 level = "L1"
-text = { cs = "Vyberte licenci z nabídky repozitáře; s výběrem pomůže průvodce licencemi v [[dmp-eosc|DMP.eosc.cz]].", en = "Choose a licence from the repository's options; the licence selector in [[dmp-eosc|DMP.eosc.cz]] helps." }
+text = { cs = "Vyberte licenci z nabídky repozitáře; s výběrem pomůže průvodce licencemi v [[resources/dmp-eosc|DMP.eosc.cz]].", en = "Choose a licence from the repository's options; the licence selector in [[resources/dmp-eosc|DMP.eosc.cz]] helps." }
 sources = ["A.R1.1.R1", "DSW-NRP.01"]
 
 [[advice]]
@@ -52,7 +52,7 @@ sources = ["A.R1.1.X1", "A.MIN3"]
 id = "licence.26"
 lens = "V"
 level = "L1"
-text = { cs = "Přikládáte-li k datům vlastní [[page:software|skripty nebo jiný software]], uveďte licenci kódu zvlášť. Licence dat se na něj automaticky nevztahuje. U převzatého kódu a knihoven zachovejte jejich licenční údaje.", en = "If you include your own [[page:software|scripts or other software]] with the data, state the code licence separately. The data licence does not automatically cover it. Retain licence information for reused code and libraries." }
+text = { cs = "Přikládáte-li k datům vlastní [[pages/software|skripty nebo jiný software]], uveďte licenci kódu zvlášť. Licence dat se na něj automaticky nevztahuje. U převzatého kódu a knihoven zachovejte jejich licenční údaje.", en = "If you include your own [[pages/software|scripts or other software]] with the data, state the code licence separately. The data licence does not automatically cover it. Retain licence information for reused code and libraries." }
 sources = ["FRSM.FRSM-15"]
 
 [[advice]]
@@ -66,7 +66,7 @@ sources = ["A.A1.2.R2"]
 id = "licence.07"
 lens = "V"
 level = "L1"
-text = { cs = "Při vkladu udělíte repozitáři nevýhradní licenci k uložení a zpřístupnění dat tím, že přijmete jeho depoziční licenční podmínky, obvykle zaškrtnutím souhlasu; písemnou smlouvu uzavírat nemusíte. Podmínky si před vkladem přečtěte; repozitáře mohou vycházet ze [[deposit-licence|vzoru depoziční licence]].", en = "When you deposit, you grant the repository a non-exclusive licence to store and provide the data by accepting its deposit licence conditions, usually by ticking a consent box; you need not sign a written contract. Read the conditions before you deposit; repositories can base them on the [[deposit-licence|deposit licence template]]." }
+text = { cs = "Při vkladu udělíte repozitáři nevýhradní licenci k uložení a zpřístupnění dat tím, že přijmete jeho depoziční licenční podmínky, obvykle zaškrtnutím souhlasu; písemnou smlouvu uzavírat nemusíte. Podmínky si před vkladem přečtěte; repozitáře mohou vycházet ze [[resources/deposit-licence|vzoru depoziční licence]].", en = "When you deposit, you grant the repository a non-exclusive licence to store and provide the data by accepting its deposit licence conditions, usually by ticking a consent box; you need not sign a written contract. Read the conditions before you deposit; repositories can base them on the [[resources/deposit-licence|deposit licence template]]." }
 sources = ["DEPOSIT-LICENCE.01", "COPYRIGHT-LICENCES.02"]
 
 [[advice]]
@@ -81,7 +81,7 @@ sources = ["COPYRIGHT-LICENCES.01", "DSW-NRP.01"]
 id = "licence.09"
 lens = "DS"
 level = "L1"
-text = { cs = "Opřete se o příručku [[copyright-licences|Autorská práva a licence]] (včetně českého výkladu CC0) a [[deposit-licence|vzor depoziční licence]]: odlište autorské právo, zvláštní právo pořizovatele databáze, smluvní omezení a osobní údaje. [[page:licence-compatibility|Tabulka CC]] řeší spojování licencovaného obsahu, pro software použijte [[nrp-license-selector|NRP License Selector]].", en = "Rely on the [[copyright-licences|handbook on copyright and licences]] (including its Czech interpretation of CC0) and the [[deposit-licence|deposit licence template]]: distinguish copyright, database makers' rights, contractual restrictions and personal data. The [[page:licence-compatibility|CC table]] covers combining licensed content; use the [[nrp-license-selector|NRP License Selector]] for software." }
+text = { cs = "Opřete se o příručku [[resources/copyright-licences|Autorská práva a licence]] (včetně českého výkladu CC0) a [[resources/deposit-licence|vzor depoziční licence]]: odlište autorské právo, zvláštní právo pořizovatele databáze, smluvní omezení a osobní údaje. [[pages/licence-compatibility|Tabulka CC]] řeší spojování licencovaného obsahu, pro software použijte [[resources/nrp-license-selector|NRP License Selector]].", en = "Rely on the [[resources/copyright-licences|handbook on copyright and licences]] (including its Czech interpretation of CC0) and the [[resources/deposit-licence|deposit licence template]]: distinguish copyright, database makers' rights, contractual restrictions and personal data. The [[pages/licence-compatibility|CC table]] covers combining licensed content; use the [[resources/nrp-license-selector|NRP License Selector]] for software." }
 sources = ["COPYRIGHT-LICENCES.01", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05", "DEPOSIT-LICENCE.01"]
 
 [[advice]]
@@ -95,7 +95,7 @@ sources = ["NRP.M4"]
 id = "licence.11"
 lens = "DS"
 level = "L1"
-text = { cs = "Etické aspekty práce s daty shrnuje [[ethical-seven|Etické sedmero pro práci s výzkumnými daty]].", en = "[[ethical-seven|The Ethical Seven for working with research data]] summarises the ethical aspects." }
+text = { cs = "Etické aspekty práce s daty shrnuje [[resources/ethical-seven|Etické sedmero pro práci s výzkumnými daty]].", en = "[[resources/ethical-seven|The Ethical Seven for working with research data]] summarises the ethical aspects." }
 sources = ["ETHICAL-SEVEN.01"]
 
 [[advice]]
@@ -110,14 +110,14 @@ id = "licence.13"
 lens = "SR"
 level = "L0"
 text = { cs = "Nabídněte výběr z doporučených licencí, zajistěte u každé datové sady licenci uvedenou jako URI a nastavte pravidla přístupu.", en = "Offer a choice of recommended licences, make sure every dataset has a licence given as a URI, and set the access rules." }
-action = [{ label = { cs = "Vzor depoziční licence", en = "Deposit licence template" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#depo_licence" }, { label = { cs = "Podmínky NRP: přístup a AAI", en = "NRP conditions: access and AAI" }, href = "#check-gate" }]
+action = [{ label = { cs = "Vzor depoziční licence", en = "Deposit licence template" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#depo_licence" }, { label = { cs = "Podmínky NRP: přístup a AAI", en = "NRP conditions: access and AAI" }, href = "checks/gate" }]
 sources = ["A.R1.1.R1", "A.MIN3", "NRP.M11"]
 
 [[advice]]
 id = "licence.14"
 lens = "SR"
 level = "L1"
-text = { cs = "Podmínky NRP vyžadují, aby každá datová sada měla v metadatech licenci uvedenou alespoň jako URI; repozitář nabízí výběr z doporučených licencí a její přítomnost validuje. Od uživatelské licence oddělte depoziční podmínky, které repozitáři dávají oprávnění k uložení a zpřístupnění: zpřístupněte je před vkladem a zaznamenejte jejich přijetí podle [[deposit-licence|vzoru depoziční licence]] a [[copyright-licences|příručky NRP]]. Práva k databázi repozitáře neznamenají práva ke všem uloženým dílům; při spojování více licencovaných vstupů pomůže [[page:licence-compatibility|tabulka slučitelnosti CC]].", en = "NRP conditions require every dataset to carry a licence in its metadata, given at least as a URI; the repository offers a choice of recommended licences and validates that one is present. Keep the deposit conditions, which authorize the repository to store and provide the data, separate from the user licence: make them available before deposit and record their acceptance, following the [[deposit-licence|deposit licence template]] and the [[copyright-licences|NRP handbook]]. Rights in the repository's database do not confer rights in every deposited work; the [[page:licence-compatibility|CC compatibility table]] helps when combining several licensed inputs." }
+text = { cs = "Podmínky NRP vyžadují, aby každá datová sada měla v metadatech licenci uvedenou alespoň jako URI; repozitář nabízí výběr z doporučených licencí a její přítomnost validuje. Od uživatelské licence oddělte depoziční podmínky, které repozitáři dávají oprávnění k uložení a zpřístupnění: zpřístupněte je před vkladem a zaznamenejte jejich přijetí podle [[resources/deposit-licence|vzoru depoziční licence]] a [[resources/copyright-licences|příručky NRP]]. Práva k databázi repozitáře neznamenají práva ke všem uloženým dílům; při spojování více licencovaných vstupů pomůže [[pages/licence-compatibility|tabulka slučitelnosti CC]].", en = "NRP conditions require every dataset to carry a licence in its metadata, given at least as a URI; the repository offers a choice of recommended licences and validates that one is present. Keep the deposit conditions, which authorize the repository to store and provide the data, separate from the user licence: make them available before deposit and record their acceptance, following the [[resources/deposit-licence|deposit licence template]] and the [[resources/copyright-licences|NRP handbook]]. Rights in the repository's database do not confer rights in every deposited work; the [[pages/licence-compatibility|CC compatibility table]] helps when combining several licensed inputs." }
 sources = ["A.R1.1.R1", "A.R1.1.X1", "A.MIN3", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05", "DEPOSIT-LICENCE.01"]
 
 [[advice]]
@@ -138,35 +138,35 @@ sources = ["NRP.M11"]
 id = "licence.17"
 lens = "SR"
 level = "L1"
-text = { cs = "Integrujte repozitář s AAI [[term/e-infra-cz|e-INFRA CZ]] a nastavte role; podmínky NRP to vyžadují.", en = "Integrate the repository with the [[term/e-infra-cz|e-INFRA CZ]] AAI and set up roles; the NRP conditions require this." }
+text = { cs = "Integrujte repozitář s AAI [[glossary/e-infra-cz|e-INFRA CZ]] a nastavte role; podmínky NRP to vyžadují.", en = "Integrate the repository with the [[glossary/e-infra-cz|e-INFRA CZ]] AAI and set up roles; the NRP conditions require this." }
 sources = ["NRP.M6", "A.A1.2.R1"]
 
 [[advice]]
 id = "licence.18"
 lens = "SR"
 level = "L1"
-text = { cs = "Definujte úrovně oprávnění: veřejná data, data před zveřejněním a [[term/sensitive-data|citlivá data]].", en = "Define permission levels: public data, data before publication and [[term/sensitive-data|sensitive data]]." }
+text = { cs = "Definujte úrovně oprávnění: veřejná data, data před zveřejněním a [[glossary/sensitive-data|citlivá data]].", en = "Define permission levels: public data, data before publication and [[glossary/sensitive-data|sensitive data]]." }
 sources = ["A.A1.2.R2"]
 
 [[advice]]
 id = "licence.19"
 lens = "SR"
 level = "L1"
-text = { cs = "Licence a podmínky přístupu zpřístupněte strojově čitelně (URI); v [[ccmm|CCMM]] 2.0.0 se licence váží přímo ke třídám.", en = "Make licences and access conditions machine-readable (URIs); in [[ccmm|CCMM]] 2.0.0, licences are attached directly to classes." }
+text = { cs = "Licence a podmínky přístupu zpřístupněte strojově čitelně (URI); v [[resources/ccmm|CCMM]] 2.0.0 se licence váží přímo ke třídám.", en = "Make licences and access conditions machine-readable (URIs); in [[resources/ccmm|CCMM]] 2.0.0, licences are attached directly to classes." }
 sources = ["A.K2.3.2c", "CCMM-RELEASES.01"]
 
 [[advice]]
 id = "licence.20"
 lens = "SR"
 level = "L1"
-text = { cs = "Pro [[term/sensitive-data|citlivá data]] vyjděte z dokumentu [[aai-sensitive|Initial AAI architecture for sensitive data in NRP]].", en = "For [[term/sensitive-data|sensitive data]], start from the document [[aai-sensitive|Initial AAI architecture for sensitive data in NRP]]." }
+text = { cs = "Pro [[glossary/sensitive-data|citlivá data]] vyjděte z dokumentu [[resources/aai-sensitive|Initial AAI architecture for sensitive data in NRP]].", en = "For [[glossary/sensitive-data|sensitive data]], start from the document [[resources/aai-sensitive|Initial AAI architecture for sensitive data in NRP]]." }
 sources = ["A.A1.2.X1", "AAI-SENSITIVE.01"]
 
 [[advice]]
 id = "licence.21"
 lens = "SR"
 level = "L1"
-text = { cs = "Pro pokročilé vyjádření práv existují ODRL (s doporučeními v [[cdif|CDIF 1.1]]), CC REL a [[res/vocab/spdx|SPDX]].", en = "For advanced rights expression there are ODRL (with guidance in [[cdif|CDIF 1.1]]), CC REL and [[res/vocab/spdx|SPDX]]." }
+text = { cs = "Pro pokročilé vyjádření práv existují ODRL (s doporučeními v [[resources/cdif|CDIF 1.1]]), CC REL a [[resources/spdx|SPDX]].", en = "For advanced rights expression there are ODRL (with guidance in [[resources/cdif|CDIF 1.1]]), CC REL and [[resources/spdx|SPDX]]." }
 sources = ["A.R1.1.X2", "A.R1.1.X3"]
 
 [[advice]]
@@ -205,17 +205,17 @@ sources = ["CERIT-AIAAS.01", "COPYRIGHT-LICENCES.01", "EC-GENAI-GUIDELINES.01"]
 id = "licence.27"
 lens = "*"
 level = "L1"
-text = { cs = "[[rdmkit-licensing|RDMkit]] uvádí CC0 jako možnost vzdát se práv. Česká [[copyright-licences|příručka NRP]] upřesňuje, že autorských práv se podle českého práva vzdát nelze: u autorského díla se CC0 vykládá jako nejširší možné oprávnění k užití. Zvláštní právo pořizovatele databáze má odlišný režim. Nezaměňujte otevřenou licenci s oprávněním zveřejnit osobní či jinak chráněná data.", en = "[[rdmkit-licensing|RDMkit]] presents CC0 as an option for waiving rights. The Czech [[copyright-licences|NRP handbook]] clarifies that authors' rights cannot be waived under Czech law: for a copyright work, CC0 is read as the broadest permission to use it. Database makers' sui generis rights follow a different regime. An open licence does not itself authorize disclosure of personal or otherwise protected data." }
+text = { cs = "[[resources/rdmkit-licensing|RDMkit]] uvádí CC0 jako možnost vzdát se práv. Česká [[resources/copyright-licences|příručka NRP]] upřesňuje, že autorských práv se podle českého práva vzdát nelze: u autorského díla se CC0 vykládá jako nejširší možné oprávnění k užití. Zvláštní právo pořizovatele databáze má odlišný režim. Nezaměňujte otevřenou licenci s oprávněním zveřejnit osobní či jinak chráněná data.", en = "[[resources/rdmkit-licensing|RDMkit]] presents CC0 as an option for waiving rights. The Czech [[resources/copyright-licences|NRP handbook]] clarifies that authors' rights cannot be waived under Czech law: for a copyright work, CC0 is read as the broadest permission to use it. Database makers' sui generis rights follow a different regime. An open licence does not itself authorize disclosure of personal or otherwise protected data." }
 sources = ["COPYRIGHT-LICENCES.03"]
 
 [[advice]]
 id = "licence.31"
 lens = "V"
 level = "L1"
-text = { cs = "Brání-li zveřejnění dat duševní vlastnictví, například připravovaná patentová přihláška, nebo obchodní tajemství partnera, může příjemce podpory poskytnutí dat odmítnout podle [[law-328-2025|§ 83 odst. 5 zákona č. 328/2025 Sb.]] (účinný od 1. ledna 2027). Postupujte takto:", en = "If intellectual property, such as a planned patent application, or a partner's trade secret stands in the way of publishing the data, the recipient of the funding may refuse to provide them under [[law-328-2025|Section 83(5) of Act No. 328/2025 Coll.]] (in force from 1 January 2027). Proceed as follows:" }
+text = { cs = "Brání-li zveřejnění dat duševní vlastnictví, například připravovaná patentová přihláška, nebo obchodní tajemství partnera, může příjemce podpory poskytnutí dat odmítnout podle [[resources/law-328-2025|§ 83 odst. 5 zákona č. 328/2025 Sb.]] (účinný od 1. ledna 2027). Postupujte takto:", en = "If intellectual property, such as a planned patent application, or a partner's trade secret stands in the way of publishing the data, the recipient of the funding may refuse to provide them under [[resources/law-328-2025|Section 83(5) of Act No. 328/2025 Coll.]] (in force from 1 January 2027). Proceed as follows:" }
 steps = [
   { cs = "ještě před zveřejněním požádejte o radu pracoviště transferu technologií nebo právníky své instituce;", en = "before publishing, ask your institution's technology transfer office or legal team for advice;" },
-  { cs = "data, která by vynález prozradila, nezveřejňujte dřív, než podáte patentovou přihlášku: co bylo před jejím podáním zpřístupněno veřejnosti, patří podle [[law-527-1990|zákona č. 527/1990 Sb.]] ke stavu techniky a vynález pak není nový; do podání přihlášky proto nastavte [[term/embargoed-access|embargo]];", en = "do not publish data that would disclose the invention before you file the patent application: under [[law-527-1990|Act No. 527/1990 Coll.]], whatever was made available to the public before filing forms part of the state of the art, and the invention is then not new; put the data under an [[term/embargoed-access|embargo]] until the application is filed;" },
+  { cs = "data, která by vynález prozradila, nezveřejňujte dřív, než podáte patentovou přihlášku: co bylo před jejím podáním zpřístupněno veřejnosti, patří podle [[resources/law-527-1990|zákona č. 527/1990 Sb.]] ke stavu techniky a vynález pak není nový; do podání přihlášky proto nastavte [[glossary/embargoed-access|embargo]];", en = "do not publish data that would disclose the invention before you file the patent application: under [[resources/law-527-1990|Act No. 527/1990 Coll.]], whatever was made available to the public before filing forms part of the state of the art, and the invention is then not new; put the data under an [[glossary/embargoed-access|embargo]] until the application is filed;" },
   { cs = "data, která zůstanou chráněná, uložte s omezeným přístupem a zveřejněte alespoň jejich metadata s podmínkami přístupu, aby byla data dohledatelná.", en = "deposit data that stay protected with restricted access, and publish at least their metadata with the access conditions, so that the data can be found." },
 ]
 sources = ["LAW-328-2025.83.5", "LAW-527-1990.5", "RDMKIT.publication.02", "POLICY-MANUAL.05", "COPYRIGHT-LICENCES.04", "A.A1.2.R2"]

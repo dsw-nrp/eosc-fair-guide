@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
 import { installGuards } from "./guards.mjs";
+import { iri, siteNamespace } from "./addresses.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const site = resolve(root, process.env.FAIR_GUIDE_SITE || "_site");
@@ -18,10 +19,13 @@ const context = await browser.newContext({ viewport: { width: 1280, height: 900 
 const page = await context.newPage();
 const base = pathToFileURL(resolve(site, "index.html")).href;
 const graph = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"))["@graph"];
+const namespace = siteNamespace(site);
+/** A model record's IRI in the crate, from its address. */
+const model = (address) => iri(address, namespace);
 const terms = graph.filter((entry) => ["layer", "seam"].includes(entry.modelKind));
 const refs = (entry, property) => [].concat(entry?.[property] || []).map((reference) => reference["@id"]);
 const get = (id) => graph.find((entry) => entry["@id"] === id);
-const questionEntries = graph.filter((entry) => entry["@type"] === "Question");
+const questionEntries = graph.filter((entry) => [].concat(entry["@type"]).includes("Question"));
 const {state, problems: errors, external} = installGuards(page, {
   allowed: (url) => /^(?:file|data):/.test(url),
 });
@@ -74,7 +78,7 @@ try {
       assert.equal(await example.locator("ol > li").count(), 4, "direct page entry resolves all four example records");
       const test = graph.find((entry) => entry.identifier === "guide-dataset-01");
       const label = test.name.find((value) => value["@language"] === lang)["@value"];
-      assert((await example.locator('li:has(a[href*="/test/"])').textContent()).includes(label), "the test step shows its human-readable title beside its ID");
+      assert((await example.locator('li:has(a[href*="/tests/"])').textContent()).includes(label), "the test step shows its human-readable title beside its ID");
     } finally { await fresh.close(); }
   }
   for (const lang of ["cs", "en"]) {
@@ -83,30 +87,30 @@ try {
     await visit(`#/${lang}/K/tools`, ".tool-cards");
     const modelIcon = await page.locator('.tool-card:has(a[href$="/page/model"]) svg use').getAttribute("href");
     assert(modelIcon && (await page.locator('.tool-card svg use').evaluateAll((icons) => icons.map((icon) => icon.getAttribute("href")))).filter((icon) => icon === modelIcon).length === 1, "the model has its own distinct tool icon");
-    await visit(`#/${lang}/K/catalogue/k!model`, ".catalogue-results");
+    await visit(`#/${lang}/K/catalogue/k!models`, ".catalogue-results");
     assert.equal(await page.locator(".entry-card").count(), 18);
     assert.equal(await page.locator('[data-facet="seams"]').count(), 1, "model records expose the shared connection facet");
-    assert.equal(await page.locator('[for="facet-seams-seam-repository-nma"] .facet-count').textContent(), "1", "the connection definition counts itself without a self-association");
-    const infrastructureCount = terms.filter((entry) => entry["@id"] === "#layer-infrastructure" || refs(entry, "implementationLayers").includes("#layer-infrastructure")).length;
-    assert.equal(await page.locator('[for="facet-layers-layer-infrastructure"] .facet-count').textContent(), String(infrastructureCount), "layer counts include the layer definition and its connections");
-    await choose("#facet-seams-seam-repository-nma");
-    assert.deepEqual(await page.locator(".entry-card").evaluateAll((cards) => cards.map((card) => card.id)), ["item-seam/repository-nma"]);
+    assert.equal(await page.locator('[for="facet-seams-repository-nma"] .facet-count').textContent(), "1", "the connection definition counts itself without a self-association");
+    const infrastructureCount = terms.filter((entry) => entry["@id"] === model("layers/infrastructure") || refs(entry, "implementationLayers").includes(model("layers/infrastructure"))).length;
+    assert.equal(await page.locator('[for="facet-layers-infrastructure"] .facet-count').textContent(), String(infrastructureCount), "layer counts include the layer definition and its connections");
+    await choose("#facet-seams-repository-nma");
+    assert.deepEqual(await page.locator(".entry-card").evaluateAll((cards) => cards.map((card) => card.id)), ["item-repository-nma"]);
     const modelExport = JSON.parse(await download("#export-json"));
     assert.deepEqual(modelExport.itemListElement[0].implementationSeams, [], "identity filtering does not invent a self-association in exported records");
-    for (const kind of ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "model", "actions"]) {
+    for (const kind of ["resources", "repositories", "clauses", "questions", "glossary", "fips", "tests", "models", "actions"]) {
       await visit(`#/${lang}/K/catalogue/k!${kind}`, ".catalogue-results");
       const anchor = (await page.locator(".entry-card").first().getAttribute("id")).replace(/^item-/, "");
       await visit(`#/${lang}/K/catalogue/k!${kind}~q!${encodeURIComponent(anchor.toUpperCase())}`, ".catalogue-results");
       assert.equal(await page.locator(`[id="item-${anchor}"]`).count(), 1, `the ${kind} catalogue finds its displayed ID case-insensitively`);
     }
-    await visit(`#/${lang}/K/catalogue/k!model`, ".catalogue-results");
-    // The model's icon marks its kind in the facet; entries carry the kind's colour, not its icon (D-185).
-    assert.equal(await page.locator(`.facet-kinds label[for="facet-kind-model"] use[href="${modelIcon}"]`).count(), 1, "the kind facet marks model records with its icon");
+    await visit(`#/${lang}/K/catalogue/k!models`, ".catalogue-results");
+    // The model's icon marks its kind in the facet; entries carry the kind's colour, not its icon.
+    assert.equal(await page.locator(`.facet-kinds label[for="facet-kind-models"] use[href="${modelIcon}"]`).count(), 1, "the kind facet marks model records with its icon");
     assert.equal(await page.locator(".entry-card .entry-head .kind-mark").count(), 0, "model records do not repeat the kind's icon");
-    await choose("#facet-model-modelKind-layer");
+    await choose("#facet-models-modelKind-layer");
     assert.equal(await page.locator(".entry-card").count(), 6);
-    await visit(`#/${lang}/K/catalogue/k!questions~n!%23seam-repository-nma`, ".catalogue-results");
-    await expectedQuestions(["#seam-repository-nma"]);
+    await visit(`#/${lang}/K/catalogue/k!questions~n!seams%2Frepository-nma`, ".catalogue-results");
+    await expectedQuestions([model("seams/repository-nma")]);
     assert(await page.evaluate(() => {
       const kind = document.querySelector('[data-facet="kind"]');
       const layers = document.querySelector('[data-facet="layers"]');
@@ -115,18 +119,18 @@ try {
       return [layers, seams].every((facet) => Boolean(kind.compareDocumentPosition(facet) & Node.DOCUMENT_POSITION_FOLLOWING) &&
         Boolean(facet.compareDocumentPosition(own) & Node.DOCUMENT_POSITION_FOLLOWING));
     }), "Kind stays above shared model filters; type-specific filters remain below them");
-    const independentCount = questionEntries.filter((item) => refs(item, "implementationSeams").includes("#seam-community-repository")).length;
-    assert.equal(await page.locator('[for="facet-seams-seam-community-repository"] .facet-count').textContent(), String(independentCount), "connection counts exclude their own selection");
-    await choose("#facet-seams-seam-community-repository");
-    await expectedQuestions(["#seam-repository-nma", "#seam-community-repository"]);
-    await choose("#facet-layers-layer-community");
-    await expectedQuestions(["#seam-repository-nma", "#seam-community-repository"], ["#layer-community"]);
+    const independentCount = questionEntries.filter((item) => refs(item, "implementationSeams").includes(model("seams/community-repository"))).length;
+    assert.equal(await page.locator('[for="facet-seams-community-repository"] .facet-count').textContent(), String(independentCount), "connection counts exclude their own selection");
+    await choose("#facet-seams-community-repository");
+    await expectedQuestions([model("seams/repository-nma"), model("seams/community-repository")]);
+    await choose("#facet-layers-community");
+    await expectedQuestions([model("seams/repository-nma"), model("seams/community-repository")], [model("layers/community")]);
     await choose("#facet-kind-tests");
     assert.equal(await page.locator('[data-facet="seams"] input:checked').count(), 2, "connection selection survives a kind switch");
     assert.equal(await page.locator('[data-facet="layers"] input:checked').count(), 1, "layer selection survives a kind switch");
     assert(page.url().includes("n!") && page.url().includes("l!"));
     await choose("#facet-kind-questions");
-    await expectedQuestions(["#seam-repository-nma", "#seam-community-repository"], ["#layer-community"]);
+    await expectedQuestions([model("seams/repository-nma"), model("seams/community-repository")], [model("layers/community")]);
     const saved = page.url();
     await page.reload();
     await page.waitForSelector('[data-facet="seams"] input:checked');
@@ -134,19 +138,19 @@ try {
     const json = JSON.parse(await download("#export-json"));
     assert(json.itemListElement.every((item) => item.implementationLayers.length && item.implementationSeams.length), "JSON export retains the associations");
     const csv = await download("#export-csv");
-    assert(csv.includes("#seam-community-repository") && csv.includes("#layer-community"), "CSV retains stable model references");
-    await visit(`#/${lang}/K/catalogue/k!questions~n!%23seam-repository-nma`, ".catalogue-results");
+    assert(csv.includes("seams/community-repository") && csv.includes("layers/community"), "CSV retains stable model references");
+    await visit(`#/${lang}/K/catalogue/k!questions~n!seams%2Frepository-nma`, ".catalogue-results");
     // Plant a blind propagation defect: an unrelated question is wrongly classified by a broadly cited source.
-    const unrelated = questionEntries.find((item) => !refs(item, "implementationSeams").includes("#seam-repository-nma"));
+    const unrelated = questionEntries.find((item) => !refs(item, "implementationSeams").includes(model("seams/repository-nma")));
     await page.evaluate((id) => { const FG = window.FairGuide; const item = FG.get(id); window.modelSavedRefs = item.implementationSeams;
-      item.implementationSeams = [{ "@id": "#seam-repository-nma" }]; FG.invalidateData(); FG.render(); }, unrelated["@id"]);
-    await assert.rejects(() => expectedQuestions(["#seam-repository-nma"]), "the regression check rejects blind propagation");
-    await page.evaluate((id) => { const FG = window.FairGuide; FG.get(id).implementationSeams = window.modelSavedRefs; FG.invalidateData(); FG.render(); }, unrelated["@id"]);
-    await expectedQuestions(["#seam-repository-nma"]);
-    await visit(`#/${lang}/K/catalogue/model/seam/repository-nma`, ".entry-card");
+      item.implementationSeams = [{ "@id": "seams/repository-nma" }]; FG.invalidateData(); FG.render(); }, unrelated["@id"].slice(model("").length));
+    await assert.rejects(() => expectedQuestions([model("seams/repository-nma")]), "the regression check rejects blind propagation");
+    await page.evaluate((id) => { const FG = window.FairGuide; FG.get(id).implementationSeams = window.modelSavedRefs; FG.invalidateData(); FG.render(); }, unrelated["@id"].slice(model("").length));
+    await expectedQuestions([model("seams/repository-nma")]);
+    await visit(`#/${lang}/K/catalogue/seams/repository-nma`, ".entry-card");
     assert.equal(await page.locator(".entry-card").count(), 1, "a direct definition link clears unrelated filters");
-    assert.equal(await page.locator('.model-tag[href$="/model/layer/infrastructure"]').count(), 1, "within-layer transfer is represented explicitly");
-    await visit(`#/${lang}/K/catalogue/res/pub/layers-seams-manuscript`, ".entry-card");
+    assert.equal(await page.locator('.model-tag[href$="/layers/infrastructure"]').count(), 1, "within-layer transfer is represented explicitly");
+    await visit(`#/${lang}/K/catalogue/resources/layers-seams-manuscript`, ".entry-card");
     assert((await page.locator(".entry-card .card-details").textContent()).includes(lang === "cs" ? "v přípravě" : "in preparation"), "the unpublished conceptual source is labelled in its own record");
     await visit(`#/${lang}/K/page/model`, "#model-seam");
     assert.equal(await page.locator(".model-layers > li").count(), 6);
@@ -180,7 +184,7 @@ try {
     for (const lens of ["V", "DS", "SR", "K"]) {
       await visit(`#/${lang}/${lens}/path/metadata`, 'details[data-key="L2"]');
       await page.locator('details[data-key="L2"]').evaluate((element) => { element.open = true; });
-      const expected = graph.filter((entry) => String(entry["@id"]).startsWith("#model-context-") && refs(entry, "isPartOf").includes("#station-metadata") && refs(entry, "audience").includes("#lens-" + lens));
+      const expected = graph.filter((entry) => String(entry["@id"]).startsWith(model("stations/metadata#context-")) && refs(entry, "isPartOf").includes(model("stations/metadata")) && refs(entry, "audience").includes(model("vocabularies/lenses/" + lens)));
       assert.equal(await page.locator(".model-context").count(), expected.length);
       for (const entry of expected) assert((await page.locator(".model-context").textContent()).includes(entry.text.find((value) => value["@language"] === lang)["@value"]), "Proč uses the specific role context");
       const markdown = await download("#export-markdown");
@@ -189,7 +193,7 @@ try {
     await visit(`#/${lang}/K/page/machines`, ".model-worked-example");
     const example = page.locator(".model-worked-example");
     assert.equal(await example.locator("ol > li").count(), 4, "the worked example follows the actual four-record chain");
-    for (const family of ["cl", "q", "test", "act"]) assert.equal(await example.locator(`ol a[href*="/catalogue/${family}/"]`).count(), 1, "each example step opens the correct record family");
+    for (const family of ["clauses", "questions", "tests", "actions"]) assert.equal(await example.locator(`ol a[href*="/catalogue/${family}/"]`).count(), 1, "each example step opens the correct record family");
     /* The check's parts: the questions are answered on one, the hand-overs and exports are in the report, and a
        saved result is loaded among the evidence. */
     const checkPart = (name, selector) => visit(`#/${lang}/SR/check/maturity/${name}`, selector);
@@ -201,9 +205,9 @@ try {
     await checkPart("report", ".result-handover");
     await page.locator(".result-handover summary").first().click();
     assert((await page.locator(".result-handover").first().textContent()).includes(lang === "cs" ? "není uložen" : "No automatically"), "manual uncertainty does not fabricate evidence");
-    const result = await page.evaluate(() => { const FG = window.FairGuide; return FG.selfcheck.ftrCrate(FG.get("#check-maturity"), FG.state.answers.maturity); });
+    const result = await page.evaluate(() => { const FG = window.FairGuide; return FG.selfcheck.ftrCrate(FG.get("checks/maturity"), FG.state.answers.maturity); });
     const member = result["@graph"].find((entry) => entry["@id"] === "#result-maturity.09");
-    assert(member.implementationSeams.some((reference) => reference["@id"].endsWith("#seam-community-repository")), "JSON-LD results retain the source question's mappings");
+    assert(member.implementationSeams.some((reference) => reference["@id"] === model("seams/community-repository")), "JSON-LD results retain the source question's mappings");
     assert.equal(member["prov:value"], "indeterminate", "an unanswered connection is not declared broken");
     await page.locator("#export-format-jsonld").check();
     const exported = await download("#export-download");
@@ -215,7 +219,7 @@ try {
     await page.waitForSelector("#item-maturity-09");
     assert(await page.locator("#answer-maturity-09-unknown").isChecked(), "loading a mapped result retains its answer");
     assert(await page.locator("#item-maturity-09 .model-tag").count() > 0);
-    const old = await page.evaluate(() => { const FG = window.FairGuide; const data = FG.selfcheck.portableState(FG.get("#check-maturity"), FG.state.answers.maturity); data.v = 1;
+    const old = await page.evaluate(() => { const FG = window.FairGuide; const data = FG.selfcheck.portableState(FG.get("checks/maturity"), FG.state.answers.maturity); data.v = 1;
       for (const item of Object.values(data.items)) delete item.observations;
       return FG.selfcheck.readPortable(data); });
     assert(!old.error && old.state.items["maturity.09"].value === "unknown", "older saved states need no new model fields");
@@ -223,7 +227,7 @@ try {
     await checkPart("report", ".result-handover");
     assert.equal(await page.locator('.result-handover:first-of-type a.pid-chip[href="https://doi.org/10.1234/example"]').count(), 1, "a bare DOI gets its resolver link, as an identifier chip, in the hand-over");
     assert((await page.locator(".result-handover").first().textContent()).includes("Named record"), "retained target description is shown");
-    const questionText = get("#item-maturity.09").text.find((value) => value["@language"] === lang)["@value"];
+    const questionText = get(model("questions/maturity.09")).text.find((value) => value["@language"] === lang)["@value"];
     assert((await page.locator(".result-handover").first().textContent()).includes(questionText), "the hand-over retains the full criterion");
     for (const width of [1280, 390, 320]) {
       const previous = await page.$("#main");
@@ -248,7 +252,9 @@ try {
     await page.waitForFunction(() => window.FairGuide.state.answers.fip?.items?.["fip.02"]?.value);
     await visit(`#/${lang}/K/check/fip/answers`, "#answer-fip-02-partly");
     assert(await page.locator("#answer-fip-02-partly").isChecked(), "selecting an F2 resource does not establish all profile attributes");
-    assert.equal(get("#item-fip.02").prefillLevel, "partly");
+    /* The FIP profile's pre-fill covers part of the question, as its mapping states. */
+    const fipMapping = refs(get(model("questions/fip.02")), "prefillMapping").map(get).find((entry) => entry?.identifier === "fip");
+    assert(String(fipMapping?.prefillCoverage?.["@id"]).endsWith("/prefill-coverages/partly"), "the FIP pre-fill of fip.02 covers part of it");
     await page.locator("#answer-fip-02-yes").check();
     assert(await page.locator("#answer-fip-02-yes").isChecked(), "the informed user can supply complete evidence");
   }
