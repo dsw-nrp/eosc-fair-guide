@@ -21,7 +21,21 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from build_crate import ADMS, DCAT, DCTERMS, FIP_TERMS, FOAF, FTR, PROV, SCHEMA, SKOS, XSD, build_crate, load_content
+from build_crate import (
+    ADMS,
+    DCAT,
+    DCTERMS,
+    DQV,
+    FIP_TERMS,
+    FOAF,
+    FTR,
+    PROV,
+    SCHEMA,
+    SKOS,
+    XSD,
+    build_crate,
+    load_content,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = ("landing", "how-to", "reference", "explanation", "tutorial")
@@ -307,6 +321,7 @@ def semantic_mapping(text: str, crate: dict, base_context: dict) -> list[str]:
         "dcat": DCAT,
         "adms": ADMS,
         "foaf": FOAF,
+        "dqv": DQV,
         "xsd": XSD,
         "guide": guide_base,
     }
@@ -336,12 +351,17 @@ def semantic_mapping(text: str, crate: dict, base_context: dict) -> list[str]:
         return definition if isinstance(definition, str) else ""
 
     known = {expand(key) for key in context}
-    # additionalType values name external classes rather than serialized property/type keys.
+    # additionalType values name external classes rather than serialized property/type keys, and a compact type
+    # (`ftr:Benchmark`) names its class through a prefix of the context.
     for entity in crate["@graph"]:
         values = entity.get("additionalType", [])
         for value in values if isinstance(values, list) else [values]:
             if isinstance(value, str):
                 known.add(value)
+        types = entity.get("@type", [])
+        for value in types if isinstance(types, list) else [types]:
+            if isinstance(value, str) and ":" in value:
+                known.add(expand(value))
 
     def documented(term: str) -> str:
         prefix, _, local = term.partition(":")

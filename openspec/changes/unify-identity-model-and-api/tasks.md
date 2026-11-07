@@ -174,7 +174,7 @@ its head in CI.
   development with an NKR page in `sameAs`), with its status test on the decision-6 term (decision 4). Verify:
   `python scripts/check_all.py --only crate profile` passes, and the profile accepts an address-free NKR repository
   in development and rejects an operational one.
-- [ ] 3.8 Update `docs/content-model.md` (*Term classification*, *Statuses*, `checks/<id>.toml`) and `docs/design.md`.
+- [x] 3.8 Update `docs/content-model.md` (*Term classification*, *Statuses*, `checks/<id>.toml`) and `docs/design.md`.
   Verify: `python scripts/check_all.py --only docs` passes.
 - [ ] 3.9 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
   head.

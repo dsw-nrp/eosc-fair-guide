@@ -166,6 +166,20 @@ the namespace `<namespace>terms#` resolves to the production copy (see *Crate ma
 `check_content` refuses a guide-specific term without a broader term or recorded reason and a published guide
 term absent from that document.
 
+The guide's own classes are declared once too, in `GUIDE_CLASSES`, each with the established class it specializes
+and why that class is not used as it stands: `guide:AdviceItem` (an advice item addressed by lens and level, which
+schema.org's HowTo types do not describe) and `guide:PrefillMapping` (a live source that can suggest a question's
+answer). Both are `rdfs:Class` entities in the graph and in the vocabulary document.
+
+Every controlled term is a `schema:DefinedTerm` in exactly one `schema:DefinedTermSet`, named once with
+`schema:inDefinedTermSet` and listed by the set's `schema:hasDefinedTerm`; this covers levels, tiers, lenses (also
+`schema:Audience`, which `schema:audience` requires), actors, statuses, resource types, repository kinds, advice
+kinds, pre-fill coverage, glossary terms, principles, the model's layers and seams and life-cycle stages. Their SKOS
+reading is stated once, in the vocabulary document: `schema:DefinedTerm rdfs:subClassOf skos:Concept`,
+`schema:DefinedTermSet rdfs:subClassOf skos:ConceptScheme` and `schema:inDefinedTermSet rdfs:subPropertyOf
+skos:inScheme`. These are subclass and subproperty axioms in the guide's own document, never equivalences, and no
+instance carries a SKOS type or membership.
+
 The [crate mapping](#crate-mapping) defines the namespace prefixes used for semantic concepts. Authoring-file
 tables retain serialized field names; a field's spelling alone does not identify its vocabulary.
 
@@ -438,6 +452,24 @@ A service or resource status uses the five-level vocabulary and always carries a
 | `planned` | plánováno | planned |
 | `prospective` | výhledové | prospective |
 
+Every status is a term of its own scheme, never a string, and is named through a property that specializes
+`adms:status`. The schemes and their terms are authored in `guide.toml`; the build refuses a code its scheme lacks.
+
+| Property | Scheme (`id/vocabularies/<set>`) | Terms | Of |
+| --- | --- | --- | --- |
+| `guide:serviceStatus` | `statuses` | the five levels above, with `guide:statusAsOf` | a service, resource or repository |
+| `guide:clauseStatus` | `requirement-statuses` | `current`, `refresh`, `superseded` | a ledger clause |
+| `guide:fipStatus` | `fip-statuses` | `published`, `draft` | a FIP, as the FIP Dashboard records it |
+| `guide:declarationStatus` | `declaration-statuses` | `in-use`, `planned`, `under-consideration`, `to-be-replaced` | a FIP declaration |
+| `guide:healthStatus` | `health-statuses` | `available`, `degraded`, `unavailable`, with `guide:statusAsOf` | a FAIR Champion test |
+| `guide:preparationStatus` | `preparation-statuses` | `in-preparation` | the approved model manuscript |
+| `guide:releaseStatus` | `release-statuses` | `testing`, `production` | the Guide and its software |
+| `guide:nodeState` | `node-states` | `candidate`, `operational` | the EOSC CZ Node |
+| `guide:esfriStatus` | `esfri-statuses` | ESFRI Landmark, ESFRI Project | a large research infrastructure |
+
+NKR's own status stays in its snapshot; its record and its thing carry the service-status term
+`scripts/nkr_contract.py` maps it to, dated by the retrieval date.
+
 ### Links and text
 
 - Links use HTTPS, and prefer DOIs and other persistent identifiers.
@@ -507,10 +539,13 @@ publisher named like a curated organisation.
 | `[[person]]` | `id`, `name`, `orcid`, `affiliation`, `github`, `commitNames`, `orcidOptOut` | | A person; `orcid` is the full ORCID URL, `affiliation` a list of organisation IDs. `github` (account name) and `commitNames` (exact names the person commits under) are reviewed identities that `scripts/contributors.py` matches commits against; `orcidOptOut = true` records that the person asked not to list an ORCID iD, so none is stored or suggested |
 | `[[organization]]` | `id`, `name`, `url`, `ror`, `identifier`, `funder`, `fipDashboard` | | An organisation or project; all but `id` and `name` are optional; a Czech `name` is a table with its English name (from ROR where it has one); `fipDashboard` is the reviewed handle of the matching organisation of the FIP Dashboard snapshot |
 | `[[instrument]]` | `id`, `name`, `version`, `url`, `kind` | | A tool used in provenance actions; `kind` is `ai-model`, `software` or `service` |
-| `[[lens]]` | `id`, `name`, `description`, `icon` | | `V`, `DS`, `SR`, `K` |
+| `[[lens]]` | `id`, `name`, `description`, `icon` | | `V`, `DS`, `SR`, `K`: the terms of the lens set |
 | `[[level]]` | `id`, `name`, `description`, `icon` | | `L0`–`L3`; the icon leads the level's heading on a station |
 | `[[actor]]` | `id`, `name`, `role` | | Who a clause addresses (`role = "clause"`) or who fixes a gap (`role = "owner"`) |
 | `[[status]]` | `id`, `name` | | The five-level status vocabulary |
+| `[[clauseStatus]]`, `[[fipStatus]]`, `[[declarationStatus]]`, `[[healthStatus]]`, `[[preparationStatus]]`, `[[releaseStatus]]`, `[[nodeState]]` | `id`, `name` | | The other status schemes, one table per property (see Statuses) |
+| `[[adviceKind]]` | `id`, `name`, `description` | | What an advice item is: `direction`, `tip`, `key` (a station's key point) or `ai` |
+| `[[prefillCoverage]]` | `id`, `name`, `description` | | How much of its question a pre-fill mapping covers: `whole`, `partly` or `champion-evidence-only` |
 | `[[tier]]` | `id`, `name`, `description` | | Self-check tiers; the description completes the first view's sentence on what its tier means |
 | `[[resourceType]]` | `id`, `name`, `fipDashboard`, `citation` | | Resource types, one vocabulary for the catalogue: `fipDashboard` lists the FIP Dashboard types and `citation` the citation forms (`type` of a `[[source]]` or a citation) that the type covers; each of them belongs to exactly one type, and a cited source or FIP Dashboard record carries it as `guideType` |
 | `[[repositoryKind]]` | `id`, `name` | | Repository kinds: domain, institutional, general-purpose |
@@ -590,7 +625,7 @@ and on the rail), `principles`, `minutes`, `glossary` (term IDs).
 | `text` | text | The advice |
 | `steps` | list of text | Sub-steps shown as a list under the item |
 | `action` | table or list | L0 only and required there: one action, or a list of at most two (the next step and one related tool). Each has `label` (text) and `href`: an HTTPS URL, or an in-page target: a record's address (`stations/<id>`, `checks/<id>`, `pages/<id>`, `resources/<id>`) or one of the crate's lists (`repositories`, `ledger`, `resources`, `tests`), a list with a topic such as `resources?station=assessment` |
-| `kind` | string | `ai` for the AI-in-FAIRification overlay; `key` for the station's key point, its one core idea shown at the top of the how-to (an L1 item without steps, exactly one per station and lens); omitted otherwise |
+| `kind` | string | `ai` for the AI-in-FAIRification overlay; `key` for the station's key point, its one core idea shown at the top of the how-to (an L1 item without steps, exactly one per station and lens); omitted otherwise. The item's `guide:adviceKind` term is this kind, or else `tip` at L2 and `direction` at L0 and L1 |
 | `check` | text | AI items only, required: what to check after following the tip |
 | `prompt` | text | AI items only, required: a short prompt to copy; parts the reader fills in are written `[…]` |
 | `sources` | list | Clause IDs; at least one |
@@ -610,10 +645,10 @@ block instead of by principle or path step.
 | Field | Type | Meaning |
 | --- | --- | --- |
 | `id` | string | `<check>.<nn>`: the check's ID and a serial (`dataset.04`, `coretrustseal.01`; see Identifiers) |
-| `requirement` | string | A ledger clause the item asks about; it supplies the statement, the first source and the principles the item does not state |
+| `requirement` | string | A ledger clause the item asks about; it supplies the statement, the first source and the principles the item does not state. An item that asks what its clause says names it here and states no `statement` of its own, so the text is written once |
 | `tier` | string | `minimum`, `recommended`, `advanced`; the gate uses `required` and `recommended`; the checks built on a standard start with `standard` (the CoreTrustSeal check has only that tier, the CDIF check adds `recommended` and `advanced`) |
 | `principles` | list | Principle IDs; empty only for an item that serves no single principle, such as some gate and institution items |
-| `statement` | text | The statement the user answers |
+| `statement` | text | The statement the user answers, where it differs from its `requirement` clause: it names an actor, covers part of the clause or is phrased to be answerable. The content check refuses a statement identical to a cited clause in either language, once reference markup and final punctuation are ignored, and names the clause to use as the requirement |
 | `help` | text | A short explanation |
 | `context` | boolean | Source context instead of an answerable criterion; preserves the issued identifier, source, position and historical answers without including them in outcomes or pre-fill |
 | `sources` | list | Clause IDs; at least one |
@@ -624,9 +659,9 @@ block instead of by principle or path step.
 | `providedByNrp` | list | Gate check: profiles for which NRP provides the item |
 | `allowNotApplicable` | boolean | Whether "not applicable" is an allowed answer |
 | `note` | text | An extra remark shown with the item |
-| `prefill` | table | Sources that can answer the item: `datacite`, `nkr`, `re3data` (the re3data snapshot), `champion`, `fip` (lists of fields, tests or FIP questions), `resolver` (boolean). A field is `name`, `list[].name`, `list[key=value]`, `list[key=value].name`, or `name=value` for a list that contains a value (case-insensitive). `@steward` in `datacite` looks for the data steward the user names by ORCID iD among the record's creators and contributors: found answers yes, not found no; without an ORCID iD a data curator or data manager contributor answers partly |
-| `prefillLevel` | string | `partly` when the evidence can only partly prove the statement; a pre-filled answer then never exceeds "partly" |
-| `championEvidenceOnly` | boolean | With named Champion tests, treat them as covering only part of the question: they suggest Partly when that part is met and No when it fails, and other sources' evidence about the whole question outranks them. Use when the tests inspect only a narrower part of the question; explain that limit in the bilingual help. |
+| `prefill` | table | Sources that can answer the item, each published as a `guide:PrefillMapping` part of the question (`<question>#prefill-<source>`): `datacite`, `nkr`, `re3data` (the re3data snapshot), `champion`, `fip` (lists of fields, tests or FIP questions), `resolver` (boolean). A field is `name`, `list[].name`, `list[key=value]`, `list[key=value].name`, or `name=value` for a list that contains a value (case-insensitive). `@steward` in `datacite` looks for the data steward the user names by ORCID iD among the record's creators and contributors: found answers yes, not found no; without an ORCID iD a data curator or data manager contributor answers partly |
+| `prefillLevel` | string | `partly` when the evidence can only partly prove the statement; a pre-filled answer then never exceeds "partly". The item's mappings carry it as the `partly` coverage term |
+| `championEvidenceOnly` | boolean | With named Champion tests, treat them as covering only part of the question: they suggest Partly when that part is met and No when it fails, and other sources' evidence about the whole question outranks them. Use when the tests inspect only a narrower part of the question; explain that limit in the bilingual help. The FAIR Champion mapping carries it as the `champion-evidence-only` coverage term |
 | `lookup` | string | Key of a link in `[links]` of `live.toml` where the user can find out the answer; shown with a "don't know" task |
 
 ### `resources.toml`
@@ -930,7 +965,7 @@ the local name. File-field tables elsewhere retain the actual TOML/JSON keys. Gu
 recorded by each artifact's own generated context, shown here as `<namespace>terms#`; this notation chooses no
 host. Each build takes it from the reviewed `namespace` of its content, so a preview can name a newer namespace
 than the release beside it; read the namespace from the artifact rather than from a hostname. They are defined in the graph
-as `rdf:Property` entities with `rdfs:label` and `rdfs:comment`.
+as `rdf:Property` entities, and the guide's classes as `rdfs:Class` entities, with `rdfs:label` and `rdfs:comment`.
 
 <!-- namespaces:start -->
 | Prefix | Namespace IRI |
@@ -947,6 +982,7 @@ as `rdf:Property` entities with `rdfs:label` and `rdfs:comment`.
 | `dcat:` | `http://www.w3.org/ns/dcat#` |
 | `adms:` | `http://www.w3.org/ns/adms#` |
 | `foaf:` | `http://xmlns.com/foaf/0.1/` |
+| `dqv:` | `http://www.w3.org/ns/dqv#` |
 | `xsd:` | `http://www.w3.org/2001/XMLSchema#` |
 | `guide:` | `<namespace>terms#` |
 <!-- namespaces:end -->
@@ -964,6 +1000,9 @@ rename stored keys:
 | `isImplementationOf` | `sio:SIO_000233` |
 | `abbreviation` | `schema:alternateName` |
 | `primaryTopic` | `foaf:primaryTopic` |
+| `hasAssociatedMetric` | `ftr:hasAssociatedMetric` |
+| `hasBenchmark` | `ftr:hasBenchmark` |
+| `inDimension` | `dqv:inDimension` |
 | `supersededBy` | `dcterms:isReplacedBy` |
 | `relatedTo` | `dcterms:relation` |
 | `operatorSource` | `dcterms:source` |
@@ -980,17 +1019,19 @@ of a record, and a `#…` name is one of the crate's own nodes.
 
 | Content | `@type` | `@id` | Main properties |
 | --- | --- | --- | --- |
-| Guide | `schema:Dataset` (root) | `./` | `schema:name`, `schema:description`, `schema:version`, `schema:datePublished`, `schema:license`, `schema:editor` (the Guide's editors), `dcterms:publisher`, `schema:funder`, `schema:isBasedOn`, `schema:mainEntity`, `schema:about`, `schema:mentions`, `dcterms:conformsTo` |
+| Guide | `schema:Dataset` (root) | `./` | `schema:name`, `schema:description`, `schema:version`, `guide:releaseStatus`, `schema:datePublished`, `schema:license`, `schema:editor` (the Guide's editors), `dcterms:publisher`, `schema:funder`, `schema:isBasedOn`, `schema:mainEntity`, `schema:about`, `schema:mentions`, `dcterms:conformsTo` |
 | Path | `schema:HowTo` | `#path` | `schema:step`, `schema:isBasedOn` (the life-cycle model it follows) |
 | Station | `schema:HowToSection` | `id/stations/<id>` | `schema:name`, `schema:headline`, `schema:position`, `schema:about`, `schema:timeRequired`, `schema:itemListElement`, `schema:hasPart` (callouts), `schema:mentions` (resources, terms), `guide:lifecycleStage` |
-| Advice item | `schema:HowToDirection` (other L0 and L1 items), `schema:HowToTip` (L2, the AI overlay and each key point) | `id/advice/<id>`; its steps `<advice>#step-<n>`, its action `<advice>#action` | `schema:text`, `schema:position`, `schema:audience`, `guide:disclosureLevel`, `schema:citation`, `schema:isPartOf`, `schema:potentialAction`, `guide:adviceKind`, `guide:checkAfter`, `guide:promptSample` |
-| Lens | `schema:Audience` | `id/vocabularies/lenses/<id>` | `schema:name`, `schema:audienceType` |
-| Level, tier, status, actor, profile, mode | `schema:DefinedTerm` | `id/vocabularies/<set>/<id>` | `schema:name`, `schema:termCode`, `schema:inDefinedTermSet` |
+| Advice item | `guide:AdviceItem` | `id/advice/<id>`; its steps `<advice>#step-<n>` (`schema:HowToDirection`), its action `<advice>#action` | `schema:text`, `schema:position`, `schema:audience`, `guide:disclosureLevel`, `guide:adviceKind` (a term: direction, tip, key point or AI tip), `schema:citation`, `schema:isPartOf`, `schema:hasPart` (steps), `schema:potentialAction`, `guide:checkAfter`, `guide:promptSample` |
+| Lens | `schema:DefinedTerm` and `schema:Audience` | `id/vocabularies/lenses/<id>` | `schema:name`, `schema:termCode`, `schema:audienceType`, `schema:inDefinedTermSet` |
+| Level, tier, status, actor, profile, mode, advice kind, pre-fill coverage | `schema:DefinedTerm` | `id/vocabularies/<set>/<id>` | `schema:name`, `schema:termCode`, `schema:inDefinedTermSet` |
 | Principle | `schema:DefinedTerm` | `id/principles/<id>` (its published FAIR IRI is `schema:sameAs`) | `schema:termCode`, `schema:name`, `schema:description` |
 | Source | `schema:ScholarlyArticle`, `schema:Report`, `schema:WebPage`, `schema:DigitalDocument`, `schema:PresentationDigitalDocument` or `schema:CreativeWork`; a cited dataset or software is a `schema:CreativeWork` whose `schema:additionalType` is `schema:Dataset` or `schema:SoftwareSourceCode` | `id/resources/<id>` (its DOI is `schema:sameAs`) | `schema:name`, `schema:url`, `dcterms:publisher`, `schema:datePublished`, `schema:license` |
-| Clause | `schema:CreativeWork` | `id/clauses/<id>` | `schema:identifier`, `schema:name` (title), `schema:text`, `guide:guidance`, `schema:about`, `schema:audience`, `schema:isPartOf`, `guide:clauseKind`, `schema:creativeWorkStatus`, `guide:note`, `schema:citation` (note sources), `dcterms:isReplacedBy` |
-| Check | `schema:Quiz` | `id/checks/<id>` | `schema:name`, `schema:description`, `schema:audience`, `schema:hasPart` |
-| Check item | `schema:Question` | `id/questions/<id>` | `schema:text`, `schema:description`, `schema:about`, `schema:citation`, `guide:tier`, `guide:fixAt`, `guide:fixedBy`, `guide:appliesTo`, `guide:providedByNrpFor`, `guide:allowsNotApplicable`, `schema:additionalProperty` (pre-fill) |
+| Clause | `schema:CreativeWork` | `id/clauses/<id>` | `schema:identifier`, `schema:name` (title), `schema:text`, `guide:guidance`, `schema:about`, `schema:audience`, `schema:isPartOf`, `guide:clauseKind`, `guide:clauseStatus`, `guide:note`, `schema:citation` (note sources), `dcterms:isReplacedBy` |
+| Check | `schema:Quiz` and `ftr:Benchmark` | `id/checks/<id>` | `schema:name`, `schema:description`, `schema:audience`, `ftr:hasAssociatedMetric` (its questions) |
+| Check item | `schema:Question` and `ftr:Metric` | `id/questions/<id>` | `schema:text` (the statement, or its requirement clause's text), `schema:description`, `dqv:inDimension` (the principles it measures), `ftr:hasBenchmark` (its check), `schema:citation`, `guide:tier`, `guide:fixAt`, `guide:fixedBy`, `guide:appliesTo`, `guide:providedByNrpFor`, `guide:allowsNotApplicable`, `guide:prefillMapping` |
+| Manual test | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `id/tests/self-check/<question>` | `schema:identifier`, `schema:name`, `schema:description`, `sio:SIO_000233` (the question). A person carries it out by answering the question in the self-check; the API publishes it as the question's test file, which saved results name |
+| Pre-fill mapping | `guide:PrefillMapping` | `<question>#prefill-<source>` | `schema:identifier` (the source's key in the item's pre-fill table), `guide:prefillSource` (its catalogue entry; none for the DOI or Handle resolver), `guide:prefillField` (the fields, tests or FIP questions it reads), `guide:prefillCoverage` (a term) |
 | Resource | Schema.org class selected by resource type | `id/resources/<id>`, or `id/repositories/<id>` for a repository | `schema:name`, `schema:description`, `schema:url`, `schema:audience`, `schema:additionalType` (FIP class IRIs), `guide:resourceType`, `guide:serviceStatus`, `guide:statusAsOf`, `schema:inLanguage`, `schema:sameAs` |
 | Infrastructure | `schema:Organization` | `id/infrastructures/<id>` | `schema:name`, `schema:alternateName` (the acronym), `dcterms:publisher`, `guide:researchField`, `guide:infrastructurePhase`, `guide:infrastructureCharacter`, `guide:roadmapSince`, `guide:esfriStatus`, `guide:nationalNodeOf`, `schema:memberOf` (ERICs, with `guide:czechMembershipSince`), `guide:operates`, `schema:subjectOf` (its community's FIP), `dcterms:references`, `schema:isBasedOn` |
 | EOSC CZ Node | `schema:Organization` | `id/organizations/eosc-cz-node` | `schema:name`, `schema:url`, `guide:nodeState`, `guide:nodeStateSince`, `guide:operatedBy`, `schema:member` (`schema:OrganizationRole` entities with `schema:roleName`, `guide:nodeMilestone`, `guide:statusAsOf`, `schema:citation`, `schema:description`), `schema:isBasedOn`; a member entry carries `guide:nodeMembership` |
@@ -999,7 +1040,7 @@ of a record, and a `#…` name is one of the crate's own nodes.
 | Callout | `schema:CreativeWork` | `id/callouts/<id>` | `schema:headline`, `schema:text`, `schema:hasPart`, `guide:lensOrder` |
 | Registry record | `dcat:CatalogRecord`, beside the registry's own type | `<thing>#<scheme>`: `#re3data`, `#fip-dashboard`, `#fip-dashboard-organization`, `#knav`, `#nkr`, `#fairsharing` or `#datacite` under the thing it describes | `foaf:primaryTopic` (the thing), the registry's own `schema:name`, `schema:description`, `schema:license` and identifier (a FAIRsharing record its DOI, a DataCite record its repository ID), `schema:isPartOf` and `schema:isBasedOn` (its snapshot). Every thing rests on each of its records (`schema:isBasedOn`), beside the Guide's selection where the Guide describes it. A thing that rests on nothing but registry records is one only registries know: the first of its records, in the order re3data, FIP Dashboard (its resource, then its organisation record), KNAV, NKR, founds it, and the thing keeps its identity, name, address and filter facts. The thing carries the winning values: what the curated entry states, then NKR's name, kind, dated status, keywords and address, then the first registry that states a fact, in that order and then FAIRsharing and DataCite |
 | FER (FIP Dashboard snapshot) | `schema:CreativeWork` with a FIP class as `schema:additionalType` | `<thing>#fip-dashboard` under the thing it describes, or `id/resources/<id>` for one only the dashboard knows | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `guide:catalogueType`, `schema:about`, `schema:provider`, `schema:review` (verifications as `schema:Review`), `schema:sameAs`, `schema:isBasedOn` |
-| FIP (FIP Dashboard snapshot) | `schema:CreativeWork` with `schema:additionalType` `fip:FAIR-Implementation-Profile` | `id/fips/<id>`; a declaration `<fip>#<declaration>` | `schema:name`, `schema:abstract`, `schema:version`, `schema:dateModified`, `schema:creativeWorkStatus`, `schema:author`, `schema:review`, `schema:hasPart` (declarations), `schema:isBasedOn` |
+| FIP (FIP Dashboard snapshot) | `schema:CreativeWork` with `schema:additionalType` `fip:FAIR-Implementation-Profile` | `id/fips/<id>`; a declaration `<fip>#<declaration>` | `schema:name`, `schema:abstract`, `schema:version`, `schema:dateModified`, `guide:fipStatus`, `schema:author`, `schema:review`, `schema:hasPart` (declarations, each with `guide:declarationStatus`), `schema:isBasedOn` |
 | Local criterion | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `id/tests/guide/<id>` | `schema:identifier`, `schema:name`, `schema:description`, `schema:url`, `sio:SIO_000233`, `schema:about`, `schema:citation`, `schema:hasPart`, `schema:subjectOf`, `schema:additionalProperty` |
 | FAIR Champion test | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `id/tests/fair-champion/<id>` | `schema:identifier`, `schema:url`, `schema:about`, `guide:healthStatus`, `guide:statusAsOf` |
 | External evaluator criterion | `schema:CreativeWork` with `schema:additionalType` `ftr:Test` | `id/tests/<provider>/<metric>` | `schema:identifier`, `schema:name` (the provider's wording, `en`), `schema:alternateName` (the guide's label), `schema:about`, `schema:isPartOf` (the provider's resource), `schema:url` (invocation or form), `schema:subjectOf`, `guide:reviewedVersion`, `schema:hasPart` (mappings) |

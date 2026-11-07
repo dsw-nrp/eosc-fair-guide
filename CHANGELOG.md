@@ -25,6 +25,19 @@ All notable changes to this guide are recorded here. The format follows
 - Breaking: provenance `objects`, model association `target` and the worked example's `steps` name records by
   address; a result `*` records the Guide as an action's result; `content/identifiers.toml` lists each identifier
   under the kind of its record, as the address without the kind (`vocabularies = ["lenses/V", …]`).
+- Breaking: every controlled term is a `schema:DefinedTerm` in one term set and carries no `skos:` type or
+  `skos:inScheme`; the vocabulary document states their SKOS reading once. Every status is a term of its scheme:
+  `creativeWorkStatus` gives way to `clauseStatus`, `fipStatus`, `declarationStatus` and `releaseStatus`, and
+  `healthStatus`, `preparationStatus` and `nodeState` name terms instead of strings.
+- Breaking: an advice item is a `guide:AdviceItem` with an `adviceKind` term, not a `HowToTip` or `HowToDirection`;
+  a check is also an `ftr:Benchmark` naming its questions by `ftr:hasAssociatedMetric` instead of `hasPart`, a
+  question an `ftr:Metric` naming its check by `ftr:hasBenchmark` and its principles by `dqv:inDimension` instead
+  of `isPartOf` and `about`, and each question's manual test is in the crate at `tests/self-check/<question>`.
+- Breaking: a question's pre-fill is a `guide:PrefillMapping` part (`prefillSource`, `prefillField`,
+  `prefillCoverage`) instead of `additionalProperty` values, `prefillLevel` and `championEvidenceOnly`.
+- Breaking: the Guide's profile is `0.2`, with shapes for the graph model.
+- Required step: a question that asks what a cited clause says names it as its `requirement` and states no
+  `statement`; the content check refuses a statement that copies a cited clause.
 - Security: render source-controlled refresh diagnostics as bounded literal text in logs, reports and workflow summaries.
 
 ## [1.0.0-alpha.5] - 2026-11-01
