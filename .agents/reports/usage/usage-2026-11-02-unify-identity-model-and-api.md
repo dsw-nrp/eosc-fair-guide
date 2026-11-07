@@ -215,3 +215,48 @@
 - **Corrections:** the runtime's permission rules refused `git add`, and the session stopped before committing the
   implementation. The maintainer staged the work and asked the session to read the allowlist more carefully and
   carry on; the session committed what the maintainer staged.
+
+## Kilo session, continued (M2 graph model)
+
+- **When:** 2026-11-07 (+01:00)
+- **Agent / runtime:** Kilo Code (VS Code extension)
+- **Model / backend:** anthropic/claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none (GitHub was reached through the `gh` CLI)
+- **Workflow context used:** `openspec-apply-change unify-identity-model-and-api` after the maintainer approved the
+  push and asked to continue; the delivered `aiscr-planning-core`, `aiscr-quality-first-execution`,
+  `aiscr-usage-logging` and `aiscr-model-logging` rules; the native `fair-guide-content` rule; the change's
+  `migration/migrate.py`; `gh pr checks` for the PR's CI; pyshacl and the RO-Crate validator for profile 0.2.
+- **What:**
+  - Pushed `354be6c` (tasks 2.25 to 2.27); CI passed in full on it.
+  - Task 3.1: every controlled term a `DefinedTerm` in one set, lenses included; the SKOS reading stated once as
+    axioms in the vocabulary document.
+  - Task 3.2: every status a term of its scheme through an `adms:status` specialisation: requirement, FIP,
+    declaration, health, preparation, release and node state beside service and ESFRI status.
+  - Task 3.3: advice items as `guide:AdviceItem` with an advice-kind term; steps and actions stay parts.
+  - Task 3.4: checks as FTR benchmarks and questions as FTR metrics with their FTR relations, and each question's
+    manual test in the crate at `tests/self-check/<question>`; the API no longer renames anything.
+  - Task 3.5: pre-fill as typed `guide:PrefillMapping` parts with a coverage term, read by the page. The print
+    check's PDF helper now reads a stream by its declared length, which a final carriage return had broken.
+  - Task 3.6: the content check refuses a statement that copies a cited clause; 55 questions take their clause's
+    text, four through a reviewed table that also moves two copies' references into their clauses.
+  - Task 3.7: profile 0.2 with graph-model shapes, each proved by a planted violation in a new unit test; one shape
+    was inert until it targeted FIPs by type.
+  - Task 3.8: the content model, the design, the changelog and the docs check.
+- **Impacted (M2):** `assets/js/` (`catalogue.js`, `catalogue-view.js`, `core.js`, `inspection.js`,
+  `providers.js`, `selfcheck.js`, `views.js`), `content/` (`guide.toml`, `ledger.toml`, `checks/fdo.toml`,
+  `checks/gate.toml`, `checks/maturity.toml`, `checks/software.toml`, `provenance.toml`), `profile/fair-guide/`
+  (`profile.ttl`, `must/1_content.ttl`, `must/2_model.ttl`), `scripts/` (`build_api.py`, `build_crate.py`,
+  `check_all.py`, `check_content.py`, `check_docs.py`, `image_release.py`, `release_versions.py`), `tests/` (with
+  `test_profile_model.py`), `docs/` (`content-model.md`, `design.md`, `deployment.md`), `AGENTS.md` (the profile
+  version in the validator command), `CHANGELOG.md`, `openspec/changes/unify-identity-model-and-api/` (`tasks.md`,
+  `migration/`); this entry.
+- **Verification (M2):** the narrowest checks ran after each task; `python scripts/check_all.py` passes 36 of 36 on
+  the final tree with this entry; the live checks were not run. `migration/test_migrate.py` passes 12 of 12, and a
+  second migration run changes nothing. `tests/test_profile_model.py` refuses a planted violation of every new
+  shape, and the RO-Crate validator applies them.
+- **Close-out (M2):** M2 is complete (37 of 58 tasks) and pushed to the PR; task 3.9 holds once CI passes on its
+  head. Pages, callouts, crosswalks and evaluator
+  tests share `schema:CreativeWork` with other kinds, so profile 0.2 has no shape that targets them; the content
+  check keeps covering them. The native content rule in `.agents/guide/` still tells question authors to write a
+  statement; it is a governed surface outside this milestone's tasks, so it is left for an approved edit.

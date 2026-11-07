@@ -176,7 +176,7 @@ its head in CI.
   in development and rejects an operational one.
 - [x] 3.8 Update `docs/content-model.md` (*Term classification*, *Statuses*, `checks/<id>.toml`) and `docs/design.md`.
   Verify: `python scripts/check_all.py --only docs` passes.
-- [ ] 3.9 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
+- [x] 3.9 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
   head.
 
 ## 4. API v1 and graph access (M3)
