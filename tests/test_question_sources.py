@@ -79,10 +79,10 @@ class QuestionSourceTests(unittest.TestCase):
 
     def test_historical_api_test_discloses_source_context_instead_of_an_assessment(self) -> None:
         api = build_api.Api(self.crate, self.content)
-        record = api.manual_test("fdo.09", iri("questions/fdo.09"))
+        record = api.saved_result_reference("fdo.09", iri("questions/fdo.09"))
         self.assertTrue(record["assessmentContext"])
         self.assertIn("does not represent", record["description"]["en"])
-        self.assertNotIn("assessmentContext", api.manual_test("fdo.01", iri("questions/fdo.01")))
+        self.assertNotIn("assessmentContext", api.saved_result_reference("fdo.01", iri("questions/fdo.01")))
 
     def test_report_version_and_metric_set_version_are_distinct(self) -> None:
         clause = self.entities[iri("clauses/FRSM.FRSM-11")]

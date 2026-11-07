@@ -77,16 +77,17 @@ class SemanticMappingTests(unittest.TestCase):
         for iri in (
             "http://purl.org/dc/terms/publisher",
             "http://www.w3.org/ns/prov#wasAttributedTo",
-            "https://semanticscience.org/resource/SIO_000233",
+            "http://semanticscience.org/resource/SIO_000233",
             self.crate["@context"][1]["scope"],
         ):
             self.assertIn(iri, predicates)
         self.assertNotIn("http://schema.org/publisher", predicates)
-        self.assertTrue(
-            any(
-                str(value) == "https://w3id.org/ftr#Test"
-                for value in graph.objects(predicate=URIRef("http://schema.org/additionalType"))
-            )
+        self.assertIn(
+            "https://w3id.org/ftr#Test",
+            {
+                str(value)
+                for value in graph.objects(predicate=URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
+            },
         )
         self.assertTrue(
             any(

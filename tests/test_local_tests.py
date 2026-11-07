@@ -43,13 +43,7 @@ class LocalTestRecords(unittest.TestCase):
                 self.assertEqual({value["@language"] for value in entity["description"]}, {"cs", "en"})
                 self.assertEqual({value["@language"] for value in entity["name"]}, {"cs", "en"})
                 self.assertIn(test["id"], test["entryPoint"])
-                entry = next(
-                    self.entities[part["@id"]]
-                    for part in build_crate.as_list(entity["additionalProperty"])
-                    if self.entities[part["@id"]].get("propertyID") == "entryPoint"
-                )
-                self.assertEqual(entry["propertyID"], "entryPoint")
-                self.assertEqual(entry["value"], test["entryPoint"])
+                self.assertEqual(entity["entryPoint"], test["entryPoint"])
                 for part in entity["hasPart"]:
                     path = part["@id"]
                     self.assertTrue((ROOT / path).is_file(), path)
@@ -60,7 +54,10 @@ class LocalTestRecords(unittest.TestCase):
                 self.assertIn(doc["isPartOf"]["@id"], crate_parts)
                 self.assertTrue((ROOT / doc["isPartOf"]["@id"]).is_file())
 
-    def test_api_describes_automatic_and_manual_implementations_separately(self) -> None:
+    def test_api_names_a_questions_local_tests_as_its_implementations(self) -> None:
+        local = {}
+        for test in self.content["live"]["test"]:
+            local.setdefault(test["question"], []).append(f"../tests/guide/{test['id']}.json")
         for test in self.content["live"]["test"]:
             with self.subTest(test=test["id"]):
                 record = json.loads(self.files[f"api/tests/guide/{test['id']}.json"])
@@ -68,19 +65,20 @@ class LocalTestRecords(unittest.TestCase):
                 self.assertTrue(record["description"]["cs"])
                 self.assertTrue(record["description"]["en"])
                 metric = json.loads(self.files[f"api/questions/{test['question']}.json"])
+                implementations = local[test["question"]]
                 self.assertEqual(
-                    metric["hasImplementation"],
-                    [f"../tests/{test['question']}.json", f"../tests/guide/{test['id']}.json"],
+                    metric["hasImplementation"], implementations if len(implementations) > 1 else implementations[0]
                 )
-        # Manual question tests, curated Champion tests, local tests and external evaluators' criteria.
+        # Curated Champion tests, local tests and external evaluators' criteria; a person answering a question is no
+        # test.
         criteria = sum(len(provider["metric"]) for provider in self.content["live"].get("provider", []))
         self.assertEqual(criteria, 29)
-        self.assertEqual(json.loads(self.files["api/tests.json"])["numberOfItems"], 214 + 13 + 42 + criteria)
+        self.assertEqual(json.loads(self.files["api/tests.json"])["numberOfItems"], 13 + 42 + criteria)
 
     def test_external_tests_link_documentation_and_execution_separately(self) -> None:
         for test in self.content["live"]["champion"]["test"]:
             record = self.entities[iri("tests/fair-champion/" + test["id"])]
-            links = {entry["@id"] for entry in record["subjectOf"]}
+            links = set(build_crate.as_list(record["citation"]))
             self.assertIn(
                 test.get("record")
                 or self.content["live"]["champion"]["testRecord"].format(

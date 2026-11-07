@@ -49,8 +49,8 @@
   const numberOf = (item) => String(item.identifier).split(".").pop();
   const keyOf = (item) => String(item.identifier).replace(/\./g, "-");
 
-  const modesOf = (check) => FG.refs(FG.get("vocabularies/modes-" + check.identifier), "hasDefinedTerm");
-  const profilesOf = (check) => FG.refs(FG.get("vocabularies/profiles-" + check.identifier), "hasDefinedTerm");
+  const modesOf = (check) => FG.termsOf("vocabularies/modes-" + check.identifier);
+  const profilesOf = (check) => FG.termsOf("vocabularies/profiles-" + check.identifier);
   /* A check's modes and NRP profiles are terms of its own sets (`vocabularies/modes-dataset/before`), so a term's code
      names the reader's choice. */
   const inSet = (prefix) => (id) => FG.kind(id) === "vocabularies" && FG.localId(id).startsWith(prefix);
@@ -1615,7 +1615,7 @@
   /** A check's blocks in their order, when it has any. */
   const blocksOf = (items) => {
     const block = items.map((item) => FG.get(item.block)).find(Boolean);
-    return block ? FG.refs(FG.get(block.inDefinedTermSet), "hasDefinedTerm") : [];
+    return block ? FG.termsOf(block.inDefinedTermSet) : [];
   };
 
   /** Lists contain each question once; missing mappings remain in Other. FAIR report bars may overlap. */
@@ -1825,7 +1825,7 @@
   function handover(st, item) {
     if (!FG.refIds(item, "implementationSeams").length) return null;
     const ask = whom(item);
-    const check = FG.checkOf(item) || SC.checks().find((candidate) => FG.hasRef(candidate, "hasAssociatedMetric", item["@id"]));
+    const check = FG.checkOf(item) || SC.checks().find((candidate) => FG.questionsOf(candidate).some((question) => question["@id"] === item["@id"]));
     const pid = st.target && FG.live.parsePid(st.target);
     const targetUrl = webUrl(st.target) || (pid ? FG.live.pidUrl(pid) : null);
     const targetName = st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher);

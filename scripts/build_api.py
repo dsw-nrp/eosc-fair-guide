@@ -10,7 +10,8 @@ publishes. It is written into the site directory, which is not committed (``_sit
   the guide in ``sameAs``;
 - ``api/meta.json``: what the API is built from;
 - the FTR definitions of the checks: each check is a benchmark (``api/check/``) and each question a metric
-  (``api/q/``) with a manual test (``api/tests/``), which an exported result names as the test it comes from;
+  (``api/q/``); ``api/tests/<question>.json`` keeps describing its question for the results saved by earlier
+  releases, which name it;
 - ``openapi.json``: the OpenAPI 3.1 description, with a server address relative to it;
 - ``api/index.html``: the interactive documentation, the authored files in ``api/`` with the pinned Swagger UI
   package that ``npm ci`` installs.
@@ -50,7 +51,7 @@ SWAGGER_FILES = ("swagger-ui-bundle.js", "swagger-ui.css", "LICENSE", "NOTICE")
 SCHEMA_ORG = "http://schema.org/"
 DQV = "http://www.w3.org/ns/dqv#"
 DCAT = "http://www.w3.org/ns/dcat#"
-SIO = "https://semanticscience.org/resource/"
+SIO = kb.SIO
 
 # Entities small enough to repeat in full inside the records that name them.
 EMBEDDED_TYPES = {
@@ -63,20 +64,17 @@ EMBEDDED_TYPES = {
     "PropertyValue",
     "PrefillMapping",
 }
-# What a record adds to its crate entity, per collection: the crate types checks and questions as FTR benchmarks and
-# metrics itself, and an automated test carries ftr:Test as its additional type.
-FTR_TYPES = {"tests": "Test"}
 TERMS: dict[str, Any] = {
     "@vocab": SCHEMA_ORG,
     "ftr": kb.FTR,
     "dqv": DQV,
     "dcat": DCAT,
+    "foaf": kb.FOAF,
     "sio": SIO,
     "prov": kb.PROV,
     "Benchmark": "ftr:Benchmark",
     "Metric": "ftr:Metric",
     "Test": "ftr:Test",
-    "hasAssociatedMetric": {"@id": "ftr:hasAssociatedMetric", "@type": "@id"},
     "hasBenchmark": {"@id": "ftr:hasBenchmark", "@type": "@id"},
     "inDimension": {"@id": "dqv:inDimension", "@type": "@id"},
     "isImplementationOf": {"@id": "sio:SIO_000233", "@type": "@id"},
@@ -87,6 +85,9 @@ TERMS: dict[str, Any] = {
     "advice": {"@reverse": SCHEMA_ORG + "about"},
     "stations": {"@reverse": SCHEMA_ORG + "about", "@type": "@id"},
     "metrics": {"@reverse": DQV + "inDimension", "@type": "@id"},
+    # A check's record lists the questions that name it as their benchmark; registry records likewise name their thing.
+    "questions": {"@reverse": kb.FTR + "hasBenchmark", "@type": "@id"},
+    "records": {"@reverse": kb.FOAF + "primaryTopic", "@type": "@id"},
 }
 
 
@@ -123,7 +124,7 @@ class Api:
             for name, members in self.records.items()
             for record, entity_id in members
         }
-        # Each check question's manual test; the automated tests keep their own records beside them.
+        # The document each check question had as its test in earlier releases, which saved results still name.
         self.tests = {
             entity_id: kb.API_FILES["test"].format(id=record) for record, entity_id in self.records["metrics"]
         }
@@ -139,7 +140,11 @@ class Api:
                 address = kb.guide_address(entity_id, self.base)
                 if entity_id in self.paths or address is None:
                     continue
-                whole = next((whole for whole in ids(entity.get("isPartOf")) if whole in self.paths), None)
+                # A part names the record it belongs to, or is a fragment under the record that names it.
+                record = entity_id.split("#")[0]
+                whole = next((whole for whole in ids(entity.get("isPartOf")) if whole in self.paths), None) or (
+                    record if "#" in entity_id and record in self.paths else None
+                )
                 if whole:
                     fragment = address.replace("/", "-").replace("#", "-")
                     self.paths[entity_id] = self.paths[whole].split("#")[0] + "#" + fragment
@@ -241,23 +246,34 @@ class Api:
         entity = self.entities[entity_id]
         self.given = set()
         node = self.node(entity, here, 0, collection)
-        types = kb.as_list(node["@type"]) + ([FTR_TYPES[collection]] if collection in FTR_TYPES else [])
+        types = kb.as_list(node["@type"])
         same = [self.iri(entity_id, here)] + [
             link for link in kb.as_list(node.get("sameAs")) if link != self.iri(entity_id, here)
         ]
         out = {"@context": self.relative(here, CONTEXT_FILE)} | node | {"@type": types, "sameAs": same}
+        # A record names its registry records in full under their fragments, from the record side's primaryTopic.
+        registry = kb.records_by_thing(self.entities).get(entity_id, [])
+        if registry:
+            out["records"] = [self.node(self.entities[record_id], here, 0, collection) for record_id in registry]
         if collection == "principles":
             out |= self.about_principle(entity_id, here)
+        if collection == "checks":
+            questions = [
+                question
+                for _, question in self.records["metrics"]
+                if entity_id in ids(self.entities[question].get("hasBenchmark"))
+            ]
+            questions.sort(key=lambda question: self.entities[question].get("position", 0))
+            out["questions"] = [self.relative(here, self.paths[question]) for question in questions]
         if collection == "metrics":
             local = [
                 test_id
                 for _, test_id in self.records["tests"]
                 if entity_id in ids(self.entities[test_id].get("isImplementationOf"))
             ]
-            implementations = [self.relative(here, self.tests[entity_id])] + [
-                self.relative(here, self.paths[test_id]) for test_id in local
-            ]
-            out["hasImplementation"] = implementations if local else implementations[0]
+            implementations = [self.relative(here, self.paths[test_id]) for test_id in local]
+            if implementations:
+                out["hasImplementation"] = implementations if len(implementations) > 1 else implementations[0]
         return out
 
     def about_principle(self, principle: str, here: str) -> dict[str, Any]:
@@ -291,8 +307,9 @@ class Api:
             ],
         }
 
-    def manual_test(self, record: str, entity_id: str) -> dict[str, Any]:
-        """The FTR test of a check question: a person answers it in the guide's self-check."""
+    def saved_result_reference(self, record: str, entity_id: str) -> dict[str, Any]:
+        """The document a check question had as its test in earlier releases, which their saved results name. A
+        person answering a question is no FTR test, so it is no test now: it describes the question and links it."""
         here = self.tests[entity_id]
         check = self.entities[ids(self.entities[entity_id].get("hasBenchmark"))[0]]
         lens = ids(check.get("audience"))[0].rsplit("/", 1)[-1]
@@ -302,20 +319,18 @@ class Api:
         return {
             "@context": self.relative(here, CONTEXT_FILE),
             "@id": posixpath.basename(here),
-            "@type": ["Test"],
+            "@type": "CreativeWork",
             "identifier": record,
             "name": {language: text.format(id=record) for language, text in strings["name"].items()},
             "description": strings["contextDescription"] if context else strings["description"],
             **({"assessmentContext": True} if context else {}),
-            "isImplementationOf": self.relative(here, self.paths[entity_id]),
+            "about": self.relative(here, self.paths[entity_id]),
             "landingPage": f"{self.site_root(here)}#/{kb.LANGS[0]}/{lens}/check/{check['identifier']}",
         }
 
     def collection(self, collection: str, records: dict[str, dict[str, Any]]) -> dict[str, Any]:
         here = f"api/{collection}.json"
         paths = [self.paths[entity_id] for _, entity_id in self.records[collection]]
-        if collection == "tests":
-            paths += list(self.tests.values())
         summaries = []
         for path in paths:
             record = records[path]
@@ -477,7 +492,7 @@ class Api:
             for record, entity_id in members:
                 docs[self.paths[entity_id]] = self.record(collection, record, entity_id)
         for record, entity_id in self.records["metrics"]:
-            docs[self.tests[entity_id]] = self.manual_test(record, entity_id)
+            docs[self.tests[entity_id]] = self.saved_result_reference(record, entity_id)
         for collection in kb.API_COLLECTIONS:
             docs[f"api/{collection}.json"] = self.collection(collection, docs)
         docs[META_FILE] = self.meta()
@@ -595,8 +610,8 @@ SCHEMAS = {
 REQUIRED = {
     "Principle": ["termCode", "name", "description", "clauses", "advice", "stations", "metrics"],
     "Station": ["identifier", "name", "headline", "position", "about", "itemListElement"],
-    "Check": ["identifier", "name", "description", "hasAssociatedMetric"],
-    "Metric": ["identifier", "text", "tier", "hasBenchmark", "hasImplementation", "citation"],
+    "Check": ["identifier", "name", "description", "questions"],
+    "Metric": ["identifier", "text", "tier", "hasBenchmark", "citation"],
     "Test": ["identifier", "name"],
     "Resource": ["identifier", "name"],
     "Source": ["identifier", "name"],
@@ -606,7 +621,7 @@ REQUIRED = {
     "Organization": ["name"],
     "Fip": ["identifier", "name", "hasPart"],
     "Change": ["name"],
-    "Model": ["identifier", "name", "citation"],
+    "Model": ["identifier", "name"],
     "Lifecycle": ["identifier", "name"],
     "Infrastructure": ["identifier", "name", "abbreviation", "publisher", "roadmapLocator"],
     "Meta": ["name", "description", "version", "url", "isBasedOn", "hasPart"],
@@ -704,12 +719,16 @@ def schemas(language_keys: set[str], reference_keys: set[str]) -> dict[str, Any]
         },
         "Context": {"type": "object", "required": ["@context"], "properties": {"@context": {"type": "object"}}},
     }
+    alternatives = {"Model": ("source", "citation")}
     for schema, required in REQUIRED.items():
-        out[schema] = {
+        definition = {
             "allOf": [ref("Record")],
             "required": required,
             "properties": {key: property_schema(key) for key in required},
         }
+        if schema in alternatives:
+            definition["allOf"].append({"anyOf": [{"required": [key]} for key in alternatives[schema]]})
+        out[schema] = definition
     out["Repository"]["description"] = (
         "A repository requires an HTTPS address, except while planned or in development "
         "with an NKR record in sameAs, when it has no public address yet."

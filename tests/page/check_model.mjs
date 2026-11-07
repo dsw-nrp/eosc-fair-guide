@@ -22,7 +22,9 @@ const graph = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "
 const namespace = siteNamespace(site);
 /** A model record's IRI in the crate, from its address. */
 const model = (address) => iri(address, namespace);
-const terms = graph.filter((entry) => ["layer", "seam"].includes(entry.modelKind));
+/** A model record's kind, the code of its model-kind term. */
+const kindOf = (entry) => String(entry?.modelKind?.["@id"] || "").split("/").pop();
+const terms = graph.filter((entry) => ["layer", "seam"].includes(kindOf(entry)));
 const refs = (entry, property) => [].concat(entry?.[property] || []).map((reference) => reference["@id"]);
 const get = (id) => graph.find((entry) => entry["@id"] === id);
 const questionEntries = graph.filter((entry) => [].concat(entry["@type"]).includes("Question"));
@@ -63,10 +65,10 @@ async function expectedQuestions(seams, layers = []) {
 }
 
 try {
-  assert.equal(terms.filter((entry) => entry.modelKind === "layer").length, 6);
-  assert.equal(terms.filter((entry) => entry.modelKind === "seam").length, 12);
+  assert.equal(terms.filter((entry) => kindOf(entry) === "layer").length, 6);
+  assert.equal(terms.filter((entry) => kindOf(entry) === "seam").length, 12);
   assert(terms.every((entry) => !entry.serviceStatus && !entry.statusAsOf), "a generic connection definition does not claim implementation status");
-  assert.equal(graph.filter((entry) => entry.modelKind === "example").length, 3);
+  assert.equal(graph.filter((entry) => kindOf(entry) === "example").length, 3);
   // Fresh entry must resolve every step without borrowing data from an earlier catalogue or check visit.
   for (const lang of ["cs", "en"]) for (const destination of ["model", "machines"]) {
     const fresh = await browser.newContext();
@@ -184,7 +186,7 @@ try {
     for (const lens of ["V", "DS", "SR", "K"]) {
       await visit(`#/${lang}/${lens}/path/metadata`, 'details[data-key="L2"]');
       await page.locator('details[data-key="L2"]').evaluate((element) => { element.open = true; });
-      const expected = graph.filter((entry) => String(entry["@id"]).startsWith(model("stations/metadata#context-")) && refs(entry, "isPartOf").includes(model("stations/metadata")) && refs(entry, "audience").includes(model("vocabularies/lenses/" + lens)));
+      const expected = graph.filter((entry) => String(entry["@id"]).startsWith(model("stations/metadata#context-")) && refs(entry, "audience").includes(model("vocabularies/lenses/" + lens)));
       assert.equal(await page.locator(".model-context").count(), expected.length);
       for (const entry of expected) assert((await page.locator(".model-context").textContent()).includes(entry.text.find((value) => value["@language"] === lang)["@value"]), "Proč uses the specific role context");
       const markdown = await download("#export-markdown");

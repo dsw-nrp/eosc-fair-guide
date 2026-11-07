@@ -28,7 +28,7 @@ try {
         await page.evaluate(({check, mode, grouping}) => {
           const FG = window.FairGuide;
           const entry = FG.get("checks/" + check);
-          FG.state.answers[check] = { mode, profile: FG.refs(FG.get("vocabularies/profiles-" + check), "hasDefinedTerm")[0]?.termCode,
+          FG.state.answers[check] = { mode, profile: FG.termsOf("vocabularies/profiles-" + check)[0]?.termCode,
             items: Object.fromEntries(FG.questionsOf(entry).map((item) => [item.identifier, { value: "yes" }])) };
           if (grouping) FG.state.checkGroupings[check] = grouping;
           else delete FG.state.checkGroupings[check];

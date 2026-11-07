@@ -188,7 +188,7 @@ kind = "software"
 
 [[instrument]]
 id = "openai-gpt-6-runtime"
-name = "GPT-6 via OpenAI Codex (exact backend not exposed)"
+name = "GPT-6 via OpenAI Codex"
 version = "not exposed by the runtime"
 url = "https://openai.com/codex/"
 kind = "ai-model"
@@ -232,6 +232,13 @@ kind = "ai-model"
 id = "einfra-kimi-k3"
 name = "Kimi K3 (Moonshot AI)"
 version = "kimi-k3"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
+kind = "ai-model"
+
+[[instrument]]
+id = "einfra-kimi-k3-1-pro"
+name = "Kimi K3.1 Pro (Moonshot AI)"
+version = "e-infra-cz/kimi-k3.1-pro"
 url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
 kind = "ai-model"
 
@@ -478,6 +485,104 @@ description = { cs = "Zdroj navrhne nejvýš Částečně.", en = "The source su
 id = "champion-evidence-only"
 name = { cs = "jen podklad z FAIR Champion", en = "FAIR Champion evidence only" }
 description = { cs = "Splněná část navrhne Částečně, nesplněná Ne.", en = "A part met suggests Partly, a part failed No." }
+
+# What a ledger clause is: a requirement or recommendation of its source, how NRP fulfils one, or a finding.
+[[clauseKind]]
+id = "requirement"
+name = { cs = "požadavek", en = "requirement" }
+
+[[clauseKind]]
+id = "recommendation"
+name = { cs = "doporučení", en = "recommendation" }
+
+[[clauseKind]]
+id = "fulfilment"
+name = { cs = "plnění", en = "fulfilment" }
+description = { cs = "Jak požadavek plní NRP.", en = "How NRP fulfils a requirement." }
+
+[[clauseKind]]
+id = "statement"
+name = { cs = "zjištění", en = "finding" }
+description = { cs = "Co zdroj zjistil, bez požadavku.", en = "What the source found, without a requirement." }
+
+# What a record of the Layers-and-Seams model is: a layer, a seam between layers or a scoped implementation example.
+[[modelKind]]
+id = "layer"
+name = { cs = "vrstva implementace", en = "implementation layer" }
+
+[[modelKind]]
+id = "seam"
+name = { cs = "návaznost", en = "seam" }
+
+[[modelKind]]
+id = "example"
+name = { cs = "příklad implementace", en = "implementation example" }
+
+# The basis of a correspondence between life-cycle stages.
+[[mappingBasis]]
+id = "published"
+name = { cs = "uvádí zdroj", en = "published by the source" }
+
+[[mappingBasis]]
+id = "reviewed"
+name = { cs = "posoudil Průvodce", en = "reviewed by the Guide" }
+
+[[mappingBasis]]
+id = "unconfirmed"
+name = { cs = "nepotvrzeno", en = "unconfirmed" }
+
+# How much of a self-check question an external evaluator's criterion covers. Only whole coverage may suggest an
+# answer, and only from a native pass.
+[[mappingCoverage]]
+id = "whole"
+name = { cs = "celá otázka", en = "the whole question" }
+
+[[mappingCoverage]]
+id = "partial"
+name = { cs = "část otázky", en = "part of the question" }
+
+# The discipline groups the KNAV Data Management Tools Catalogue publishes for its tools, in its own words; the Czech
+# names are the Guide's translation.
+[[knavDiscipline]]
+id = "all"
+name = { cs = "obecné, pro všechny obory", en = "General, for all disciplines" }
+
+[[knavDiscipline]]
+id = "biology-chemistry"
+name = { cs = "biologické a chemické vědy", en = "Biological and Chemical Sciences" }
+
+[[knavDiscipline]]
+id = "physics-materials"
+name = { cs = "fyzikální a materiálové vědy", en = "Physical and Material Sciences" }
+
+[[knavDiscipline]]
+id = "computer-information"
+name = { cs = "počítačové a informační vědy", en = "Computer and Information Sciences" }
+
+[[knavDiscipline]]
+id = "astronomy"
+name = { cs = "astronomie a příbuzné vědy", en = "Astronomy and related Sciences" }
+
+[[knavDiscipline]]
+id = "social-sciences-humanities"
+name = { cs = "společenské a humanitní vědy", en = "Social Sciences and Humanities" }
+
+[[knavDiscipline]]
+id = "earth-sciences"
+name = { cs = "vědy o Zemi", en = "Earth Sciences" }
+
+# The scopes the FIP Dashboard publishes for a FAIR-enabling resource.
+[[fipDashboardScope]]
+id = "global"
+name = { cs = "celosvětový dosah", en = "global coverage" }
+
+[[fipDashboardScope]]
+id = "european"
+name = { cs = "evropský dosah", en = "European coverage" }
+
+[[fipDashboardScope]]
+id = "national"
+name = { cs = "národní dosah", en = "national coverage" }
 
 # What an advice item is: a direction to act, a tip that explains, a station's key point or an AI tip.
 [[adviceKind]]

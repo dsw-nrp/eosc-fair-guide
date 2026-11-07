@@ -24,6 +24,50 @@ rebase: both builds give the same counts.
     `requirement` clause, and four (`gate.01`, `gate.08`, `gate.10`, `maturity.14`) copy a clause they cite only in
     `sources`.
 
+**Graph-model review (2026-11-07, build of `d016c1d`).** After M2, the published graph was read against every
+vocabulary it refers to: schema.org, DCTERMS, DCAT, FOAF, SKOS, DQV, PROV-O, FTR, ADMS 2.00 (which the W3C namespace
+serves), SIO, the FIP ontology, PROF and the FAIR principles terms. The review ran an RDFS closure, schema.org's
+domain and range lists, the vocabularies' disjointness axioms, a comparison of every Guide property's declaration with
+its values, and a mutation that removes each required property from a real node. Python's OpenSSL on the
+maintainer's machine first rejected the valid certificates of SEMIC and Nanodash, which serve ADMS and the FIP terms;
+both loaded through a current CA bundle with verification on. ADMS, PROF and the FAIR principles terms showed no
+failure, and no node falls in two disjoint classes. Decisions 4, 6, 8, 13, 14 and 20 to 23 answer the findings:
+
+- **RC1, declarations the data contradicts.** Under RDFS reasoning, 24 nodes become organisations (memberships
+  through `nodeMilestone`; services and repositories through `nodeMembership`), 14 registry records become
+  repositories (`repositoryKind`), and the Node, memberships, layers, seams and life-cycle stages become creative
+  works. The ranges of `block`, `infrastructureCharacter`, `nodeMembership`, `rdmkitRecord` and `trainingSearch` do not
+  match their values; `assessmentContext` specialises `dcterms:description` but holds a boolean; `disclosureLevel`
+  specialises `schema:position` but holds terms; `guideSources`, `guideState` and `acceptsDeposits` are declared and
+  unused in the content graph (the first two are carried by exported results, the third by NKR records). The RO-Crate
+  validator applies this reasoning, which is why profile 0.2 needed an exemption
+  for memberships.
+- **RC2, strings for classes and terms.** 582 `additionalType` values, which RO-Crate's context reads as text: the
+  FTR test type, FIP classes, cited datasets and software, tools and helper pages, two of them in schema.org's
+  `https` form, which no other schema.org term in the crate uses. Clause kinds, mapping bases,
+  evaluator mapping coverage and model kinds are strings. IRIs are strings in the source, licence, RDMkit and
+  training fields, and three source fields collapse onto one property.
+- **RC3, records typed as their thing.** The 20 FIP Dashboard organisation records are typed as organisations, and
+  record typing differs by registry. FIP Dashboard records also carry the FIP class of the thing they describe, such
+  as `fip:Metadata-schema`, or `fip:Registry` on five repository records, which would type the record as its thing
+  once classes are types.
+- **RC4, schema.org outside its domains.** The Node's `member`, clause `audience` (actor terms are not audiences),
+  `isBasedOn` on organisations and infrastructures, `license`, `citation` and `position` on terms, and crate-local
+  lists that hold organisations.
+- **RC5, facts stated twice.** 377 terms are named by their set and by themselves; inverse pairs are stated both
+  ways; `hasPart` and `isPartOf` have no rule.
+- **RC6, shapes that cannot fail.** Five shapes select nodes by the property they require. A clause, a resource or a
+  repository that loses its kind-defining property leaves its shape and passes.
+- **RC7, a class whose definition does not hold.** FTR defines a test as a service, an API with code that implements
+  a metric (a subclass of `dcat:DataService` and `prov:Agent`); the 214 manual tests are a person answering a
+  question, and the 42 local tests are browser code without an API.
+- **RC8, a term at an IRI its vocabulary does not define.** The crate's 256 links from a test to the question it
+  implements, the profile's test shape and the crate context use `https://semanticscience.org/resource/SIO_000233`.
+  SIO defines only `http://semanticscience.org/resource/SIO_000233`. The `https` form comes from the FTR ontology,
+  which marks it `rdfs:isDefinedBy` SIO, so the scheme is FTR's error. The FAIR Champion test records at
+  `tests.ostrails.eu` use SIO's `http` IRI, so neither a SIO consumer nor a consumer of real FTR records finds the
+  Guide's links.
+
 The approach is bound by these constraints:
 
 - **Static hosting.** GitHub Pages serves files only and ignores query strings. Anything that filters or shapes a
@@ -50,6 +94,8 @@ The approach is bound by these constraints:
 - One identity projection, from the Guide-owned ID to the address, shared by the IRI, API path, page route, prose
   reference, page data key and export.
 - One graph model, published three ways: the crate, N-Triples and the API, with no translation layer between them.
+- A graph that says what its data is: declarations that hold, classes as types, each fact stated once and shapes
+  that a node cannot escape.
 - A contract that consumers can test against (profile, OpenAPI, recipes), with a deprecation rule from `1.0.0`.
 - External IRIs that survive a host move with one redirect change.
 
@@ -96,7 +142,6 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
 | `q/` | `questions` | | |
 | (fragment only) | `advice` | | advice kind (direction, tip), lens, level |
 | `test/fc/`, `test/fcx/`, `test/f-uji/`, `test/guide/` | `tests` | `fair-champion`, `fair-checker`, `f-uji`, `guide` | |
-| (API only) | `tests` | `self-check` (the manual test of each question) | |
 | `res/<type>/` | `resources` | | resource type; cited and recommended as roles |
 | `repo/<kind>/` | `repositories` | | repository kind. Registries (`repo/reg/nkr`) become `resources` |
 | `cl/` | `clauses` | | |
@@ -152,14 +197,20 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
   carries the registry's own name, description, licence,
   retrieval date and source identifier, and it is part of its snapshot. FOAF joins the established vocabularies in
   `ESTABLISHED_TERMS`, for this one property.
+- **One typing for records.** Every record is a `dcat:CatalogRecord` and a `schema:CreativeWork`, whatever the
+  registry describes, and never carries the class of its thing, so a class query counts things and not records
+  (RC3). A FIP Dashboard organisation record is therefore no `schema:Organization`. A classification the registry
+  gives its thing, such as a Dashboard record's FIP class or an NKR record's repository kind, is the record's
+  `dcterms:type`; the thing's own types come from the Guide's classification (open question 12).
 - **Every registry is treated alike.** re3data's repository rows and the FAIRsharing and DataCite annotations become
   records as the KNAV, FIP Dashboard and NKR rows do, instead of merging into the thing. A FAIRsharing record carries
   its DOI and name, a DataCite record its repository ID; the thing keeps the DOI in `sameAs`.
-- **The thing rests on its records.** Every thing names each of its registry records in `isBasedOn`, beside the
-  Guide's curated list where it is curated, and each record names its snapshot. A consumer reads from the graph
-  which catalogues supplied a thing, and the page credits them from the same statements (decision 15).
+- **The thing rests on its records.** Each record names its thing with `foaf:primaryTopic`, and the thing does not
+  name its records again (open question 4, decision 22). A curated thing's `isBasedOn` names the Guide's selection,
+  and each record names its snapshot. A consumer reads which catalogues supplied a thing from the records that name
+  it, and the page credits them from the same statements (decision 15).
 - **A snapshot holds its records.** The KNAV catalogue's and the FIP Dashboard's record lists are their snapshots:
-  each snapshot lists its records in `hasPart` and is `about` the catalogue's own resource
+  each snapshot lists its records in `hasPart` (open question 7) and is `about` the catalogue's own resource
   (`resources/knav-dm-tools-catalogue`, `resources/fip-dashboard`). The crate-local lists `#knav-tools` and `#fers`
   go, so the catalogue is not a second node beside its own entry.
 - **A thing only a registry knows** is founded by its record. The thing node carries its identity, its name, its
@@ -217,8 +268,15 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
 
 - **Every controlled term** is a `DefinedTerm` in exactly one `DefinedTermSet`: membership via `inDefinedTermSet`
   only, its code as `termCode`, a bilingual name. This covers tiers, levels, actors, modes, profiles, resource types,
-  repository kinds, statuses, glossary terms, principles, layers and life-cycle stages. Lenses keep `Audience` as a
-  second type, because `audience` requires it.
+  repository kinds, statuses, glossary terms, principles, layers and life-cycle stages. Lenses and clause actors keep
+  `Audience` as a second type, because `audience` requires it (open question 6).
+- **Stated once.** A term names its set with `inDefinedTermSet`; a set does not list its terms again with
+  `hasDefinedTerm` (RC5).
+- **No controlled value is a string.** Clause kinds, mapping bases, evaluator mapping coverage and model kinds become
+  terms of their own schemes, as statuses did (RC2). Evaluator mapping coverage (whole, partial) stays a scheme of its
+  own beside pre-fill coverage, whose terms include champion evidence only. A list a registry publishes, such as
+  KNAV's discipline groups and the FIP Dashboard's scopes, becomes a scheme attributed to that registry, so its
+  records refer to terms in the registry's own words.
 - **SKOS alignment** is stated once, in the vocabulary document (`terms/fair-guide.ttl`): `schema:DefinedTerm`
   `rdfs:subClassOf skos:Concept`, and `schema:inDefinedTermSet` `rdfs:subPropertyOf skos:inScheme`. The 106
   per-instance `skos:` types and memberships go away.
@@ -250,14 +308,36 @@ Kinds are plural English words. The words below are what `catalogue_identity.py`
 ### 8. FTR in the graph
 
 - **Types.** A check is `Quiz` and `ftr:Benchmark`; a question is `Question` and `ftr:Metric`.
-- **Manual tests.** Each question's manual test is an `ftr:Test` at `tests/self-check/<question>`, generated by the
-  build into the crate (214 today).
-- **Relations.** The graph states the FTR relations (`ftr:hasAssociatedMetric`, `ftr:hasBenchmark`,
-  `dqv:inDimension`, SIO implementation links) and drops the schema.org duplicates for the same relation.
+- **No manual tests.** FTR defines a test as a "Service, formed by an API and associated piece of code that
+  implements a Metric", a subclass of `dcat:DataService` and `prov:Agent`. A person answering a question in the
+  self-check is no such service, so the graph holds no manual tests and `tests/self-check/` is not a scope (RC7). The
+  214 manual tests that M2 generated leave the crate and the API.
+- **A reader's answer** is a `dqv:QualityMeasurement` of its question: `ftr:Metric` specialises `dqv:Metric`, so the
+  answer is `dqv:isMeasurementOf` the question, `dqv:computedOn` the assessed target, with the answer as its
+  `dqv:value`. It lives in the saved result, never in the published graph (decision 14).
+- **Automated tests.** FAIR Champion tests and FAIR-Checker criteria are each invoked through an API endpoint of
+  their own, so each is an `ftr:Test` implementing its metric. F-UJI's criteria arrive in imported reports and are
+  F-UJI's `ftr:Metric`s; their results stay evidence read as F-UJI presents it. A FAIR Champion test implements the
+  metric its own FTR record at FAIR Champion names (for example `fair-metrics/general/FM_F1_M_IdentPersistent`), which
+  the content records with the test; FAIR-Checker publishes no metric IRIs, so its criteria name none (maintainer
+  decision, 2026-11-07). Neither implements a Guide question: pre-filling an answer is evidence, not implementation. The page export already reads them
+  this way (`providers.js`). The Guide's local tests run as browser code without an API, which FTR's definition does
+  not cover: they carry no FTR type, implement their question through SIO's link, and their results stay evidence
+  (open question 11).
+- **One class for the kind.** Every record of the `tests` kind is an `fg:AssessmentCriterion`, whatever its FTR type,
+  so one class selects the kind; its FTR type, where one applies, stands beside it, as `Audience` stands beside a
+  lens's term type (open question 13). Its reason for a Guide class: FTR splits criteria into metrics and tests by how
+  a provider exposes them, while the Guide lists every provider's criterion as one kind.
+- **Relations.** The graph states the FTR relations (`ftr:hasBenchmark`, `dqv:inDimension`, SIO implementation links)
+  and drops the schema.org duplicates for the same relation. Only the question names its check; the check does not
+  list its questions again with `ftr:hasAssociatedMetric`, which FTR declares as the inverse (open question 8).
 - **The API** uses these names as they are, so `RENAMED`, `DROPPED` and `FTR_TYPES` disappear from
   `build_api.py`.
 - **Local tests.** A local test's three entities (record, documentation file and entry point) remain. The entry
   point is the test's executable reference, and the profile documents it.
+- **Alternatives rejected:** keeping the manual tests as `ftr:Test` with the stretch recorded, which makes them data
+  services and agents to any reasoner that knows FTR; a Guide class for them, under which an answer is neither an FTR
+  nor a DQV result.
 
 ### 9. Pre-fill mappings
 
@@ -336,6 +416,32 @@ openapi.json                          one list and one record operation per kind
 
 ### 13. Query contract and recipes
 
+- **Selecting a kind.** Every kind has a class or a term set that selects it, or a recorded reason. Pages and
+  callouts carry a reason: they are the Guide's own text, reached by IRI. Crosswalk correspondences get a class (a
+  Guide class where no established class carries a basis and a source), and their basis becomes a term. The `tests`
+  kind is selected by `fg:AssessmentCriterion` (decision 8). A check fails on a kind with neither a selector nor a
+  reason (RC6).
+- **A Guide class where kinds share one** (maintainer decision, 2026-11-07). Most kinds share their established class
+  with another kind, so each such kind gets a Guide class beside it, specialising that class: `fg:Clause`,
+  `fg:Resource`, `fg:Repository` (also a `schema:DataCatalog`), `fg:ResearchInfrastructure`, `fg:LifecycleModel`,
+  `fg:Crosswalk` and `fg:StageCorrespondence`, `fg:TermSet` for the Guide's vocabularies, and `fg:AssessmentCriterion`.
+  Actions are also `prov:Activity`. A kind of terms is selected by its set: glossary, principles, a life-cycle
+  model's stages and a vocabulary's terms; layers, seams and model examples by their model-kind term. Organisations
+  are the `schema:Organization`s that are not research infrastructures. Pages, callouts and the one conceptual model
+  carry a reason: the Guide's own text and model, reached by IRI. Rejected: classification terms alone, which leave
+  114 resources and three repositories without a term and give the shapes nothing to select by class; and reasons
+  wherever a class is shared, which leaves RC6 open.
+- **Classes are types.** Every class is an `@type`, never an `additionalType` string, which RO-Crate's context reads
+  as text (RC2): the FTR types, the FIP classes, cited datasets and software, tools and helper pages. Each is written
+  at the IRI its vocabulary defines (decision 23), so the helper pages' `https://schema.org/WebApplication` becomes
+  `http://schema.org/WebApplication`, the form RO-Crate's context uses for every schema.org term. A cited dataset is a
+  `dcat:Dataset`, and cited software, a tool and the Guide's own source code are `dcmitype:Software` (maintainer
+  decision, 2026-11-07): as types, RO-Crate 1.2 reads `schema:Dataset` as a data entity the crate holds,
+  `schema:SoftwareSourceCode` as a script that must be a file, and `schema:SoftwareApplication` as software with a
+  known version, none of which a cited work is.
+- **Shapes target classes.** A shape selects its nodes by class and requires the properties that define the kind,
+  so a node that loses one fails rather than leaving the shape. A test removes each required property from a real
+  node and expects a violation (RC6).
 - **The profile** moves to `0.2`. Its shapes cover:
   - every kind's class and required properties;
   - `fg:AdviceItem`;
@@ -361,12 +467,15 @@ openapi.json                          one list and one record operation per kind
 
 ### 14. Saved results
 
-- **Revision 4.** Results name tests by IRI: `<ns>id/tests/self-check/<question>`, or the automated test's own IRI.
+- **Revision 4.** A reader's answer is a `dqv:QualityMeasurement` of its question's IRI, `<ns>id/questions/<question>`,
+  computed on the assessed target (decision 8). Automated evidence names its test's own IRI, or the F-UJI metric it
+  reports on.
 - **Older revisions.** Revisions 1–3 still load. The loader already keys answers by question ID, and it reads their
-  `api/tests/<question>.json` references as the same question's test.
-- **Old test paths.** The build keeps generating `api/tests/<question>.json`, as the manual-test documents that
-  saved files name. This is the separate saved-result support the route-baseline requirement keeps; no other old path
-  survives.
+  `api/tests/<question>.json` references as references to the same question.
+- **Old test paths.** The build keeps generating `api/tests/<question>.json`, as the documents that saved files of
+  revisions 1–3 name, each describing and linking its question. Such a document is no longer a test and no list or
+  question names it. This is the separate saved-result support the
+  route-baseline requirement keeps; no other old path survives.
 
 ### 15. Page addressing and display
 
@@ -384,8 +493,8 @@ openapi.json                          one list and one record operation per kind
   kind and in the list as well as alone, shows its own persistent IRI first among its identifiers. No identifier chip
   carries a label: an identifier is shown in full, and its address already says what issued it ("Identifikátor
   Průvodce", "re3data" or "FAIRsharing" would only repeat it).
-- **Credited sources.** An entry's "Vychází z" / "Based on" row reads its `isBasedOn` (decision 4): the Guide's
-  selection where the entry is curated, and the catalogue of each registry record under it, each leading to that
+- **Credited sources.** An entry's "Vychází z" / "Based on" row reads the Guide's selection from its `isBasedOn`
+  where the entry is curated, and the catalogue of each registry record that names it (decision 4), each leading to that
   catalogue's own entry with its snapshot's date. A registry that only identifies the thing, without a record (an NKR
   handle before NKR's first snapshot), is shown among the identifiers and not credited as a source.
 - **The repository family** is "Repozitáře" / "Repositories": registries are resources (decision 2), so a registry
@@ -510,6 +619,112 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=30
   - Pre-rendering the whole app per record: every record would repeat the application shell, and the app's
     relative paths assume the site root.
 
+### 20. The vocabulary's declarations hold for the graph
+
+- **The rule.** Every domain and range that the vocabulary document and the crate publish holds for every use in the
+  built graph, including the range of an established property a Guide term specialises. A reasoner therefore adds no
+  class that a node does not have. A term the graph does not use is not declared (RC1).
+- **Corrections known now:**
+  - the domains of `nodeMembership`, `nodeMilestone`, `statusAsOf`, `operatedBy`, `repositoryKind`, `modelKind`,
+    `implementationLayers`, `nameTranslation`, `descriptionTranslation`, `quotedDefinition` and `note`;
+  - the ranges of `block`, `infrastructureCharacter`, `nodeMembership`, `rdmkitRecord` and `trainingSearch`;
+  - `assessmentContext`, a flag that marks a question as context rather than an answerable criterion, no longer
+    specialises `dcterms:description`;
+  - `disclosureLevel`, whose values are terms, no longer specialises `schema:position`;
+  - `guideSources` and `guideState` stay, because every exported result carries them under the Guide's IRIs and the
+    loader reads them back; `acceptsDeposits` stays, because NKR records produce it. The check counts the terms the
+    build hands the page for its exports as used, and `acceptsDeposits` in the graph built from the NKR fixture
+    (maintainer decision, 2026-11-07: the review had read the two export terms as unused).
+- **The check.** A test reads the built graph with the Guide's vocabulary and fails on a use whose subject, value or
+  datatype a declaration does not admit, on a use outside the range of the specialised established property, and on
+  an unused term. Planted wrong uses prove each branch.
+- **How declarations are stated.** They stay `rdfs:domain` and `rdfs:range`, and each is made true (open question 2).
+  A domain or range names the most specific class that every use has, read through the class hierarchies of the
+  pinned vocabularies (decision 23); where only `schema:Thing` would cover every use, the declaration is omitted
+  rather than made vacuous.
+- **The membership exemption** in profile 0.2's organisation shape goes, because no declaration types a membership as
+  an organisation any more.
+- **Alternative rejected:** keeping the declarations and exempting their effects in shapes, which treats each
+  symptom and leaves every reasoning consumer with the wrong classes.
+
+### 21. The EOSC CZ Node is a platform
+
+- **What a Node is.** The EOSC Federation Handbook 2.0 (EOSC Association, 2026-01-30, doi:10.5281/zenodo.18454649,
+  CC BY 4.0) defines it: "An EOSC Node is a collection of services and data sources operated as a platform by a
+  national, regional, thematic, or European organisation (or consortium)". Nodes "onboard" resources. The 2024 draft
+  had called a Node an organisation, with a separate Node Host as the legal entity; the Guide follows the current
+  edition, which `content/sources.toml` cites.
+- **The Node in the graph** is a `schema:Service` at `resources/eosc-cz-node`, of resource type `service`, operated by
+  e-INFRA CZ through `schema:provider`. It carries `nodeState`, its state in the federation, with its date, and no
+  five-level service status; the resource shape accepts a node state in place of a service status (open question 3).
+- **Onboarding** is a DCAT qualified relation, one part of the Node per onboarded entry:
+
+```
+resources/eosc-cz-node
+  dcat:qualifiedRelation --> <part>  (dcat:Relationship)
+      dcterms:relation --> the onboarded service or repository
+      dcat:hadRole     --> a term of the node-role scheme (service, repository, incubator)
+      fg:nodeMilestone, fg:statusAsOf, schema:citation (the charter), dcterms:references (the locator)
+```
+
+  DCAT 3 defines `dcat:Relationship` as "an association class for attaching additional information to a relationship
+  between DCAT Resources", and `dcat:hadRole` as "the function of an entity or agent with respect to another entity
+  or resource". As in DCAT's Example 54, the role is the related entry's function for the Node. `dcat:Role`
+  specialises `skos:Concept`, so the node-role terms fit the SKOS alignment of decision 6.
+- **Read from the Node's side.** `fg:nodeMembership` goes, so the relation is stated once. The page reads the Node's
+  relations through its reverse relations for the badge and the facet; an entry's API record still shows its
+  membership, and task 4.1's table may list the node role as a filter field.
+- **The address** moves from `organizations/eosc-cz-node` to `resources/eosc-cz-node` before `1.0.0`, in place, with
+  the register.
+- **Accessibility.** The badge keeps its text, icon and source link; only where it reads its data changes.
+- **Alternatives rejected:**
+  - Keeping the Node an organisation: it contradicts the current Handbook, and DCAT's domain would make that
+    organisation a `dcat:Resource` and a `prov:Entity`.
+  - `schema:member` with a role: its range is an organisation or a person, never a service.
+  - schema.org's `makesOffer` and `itemOffered`: commerce semantics, with no place for a role.
+  - A Guide class for memberships: an established class exists.
+
+### 22. Each fact once, and schema.org within its domains
+
+- **One direction.** For each kind, a relation and its inverse are stated in one documented direction only, never
+  both for the same pair (RC5). The content model records the direction, and a check finds a pair stated both ways.
+- **schema.org within its domains.** A schema.org property is used only on a subject one of its published domain
+  classes admits, with a value its range admits; elsewhere a property whose definition fits replaces it (RC4). A
+  check compares the built graph with the pinned vocabularies of decision 23.
+- **IRIs as references.** A value that names a web resource is an IRI reference, except where schema.org's own `URL`
+  datatype is text, as in `url`. The three source fields become distinct properties, each specialising
+  `dcterms:source` with IRI values.
+- **The particular choices** (open questions 4 to 10):
+  - a record names its thing, and the thing does not name its records (decision 4);
+  - organisations and infrastructures name their published sources with `dcterms:source`, which has no domain; the
+    operator, operated-by and developer sources are its subproperties;
+  - clause actors are typed `Audience` (decision 6);
+  - snapshots keep `hasPart` for their records;
+  - a question names its check and a check does not list its questions (decision 8); `hasPart` and `isPartOf` have
+    one direction per kind, recorded in the content model;
+  - a quoted definition is a `#definition` part of its term, carrying the quoted text, its licence and its citation;
+    the term keeps its name;
+  - the crate-local lists go, except any a page view still reads, which the content model then names.
+
+### 23. Every term is the IRI its vocabulary defines
+
+- **The rule.** Every class and property the graph uses from an established vocabulary is the IRI that vocabulary
+  defines, in its scheme. The link from a test to the question it implements becomes SIO's own
+  `http://semanticscience.org/resource/SIO_000233`, in the crate context, the profile's test shape, the API, the
+  documentation and the tests (RC8). SIO places it under "is attribute of" and then "is related to", whose domain and
+  range are SIO's top class, so the change adds no class a node does not have.
+- **Pinned vocabularies.** A copy of every vocabulary the graph refers to is kept with the tests, as the RO-Crate
+  context already is: schema.org, DCTERMS, DCAT, FOAF, SKOS, DQV, PROV-O, FTR, ADMS, SIO, the FIP ontology, PROF and
+  the FAIR principles terms. Each copy records its source, retrieval date and licence. The checks of decisions 20, 22
+  and this decision read these copies, so no check depends on the network or on a machine's certificate store.
+- **The check.** It fails on a namespace the graph refers to that has no pinned copy, and on a term its vocabulary
+  does not define at the IRI used. A planted `https` schema.org class and an unpinned namespace prove both branches.
+  Refreshing a copy is a reviewed update that reruns the checks.
+- **FTR's own scheme error** can be reported to the FTR maintainers. That is an outward action, drafted and approved
+  separately; this change does not depend on it.
+- **Alternative rejected:** following FTR's `https` form. It matches one ontology file's error, while SIO and the
+  FTR records published by FAIR Champion use the `http` form.
+
 ## Risks / Trade-offs
 
 - [The migration touches almost every content file, and review cannot read it line by line] → It is one idempotent
@@ -546,9 +761,21 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=30
 - [Two kinds of thing legitimately share a name, such as the Czech National Corpus infrastructure and its corpus
   repository] → The build refuses the ambiguous agent name, the content names the agent by address, and an accepted
   group records why the two are separate.
+- [Dropping the manual tests removes 214 IRIs that the preview published after M2] → No release names them. Saved
+  files of revisions 1–3 name `api/tests/<question>.json`, which stays, and revision 4 names the question.
+- [A consumer that relied on inference from the vocabulary's domains gets fewer classes] → Every class a node has is
+  asserted; only the wrong inferences disappear.
+- [The Node's address moves after M1 issued it] → It is unreleased. The content check refuses a reference to the old
+  address and names the record (decision 16), and the register moves with it.
+- [The pinned vocabularies age] → They are reviewed fixtures like the RO-Crate context; a refresh is a reviewed
+  update, and the check names any term a copy lacks.
+- [Switching SIO's IRI breaks a consumer that followed the FTR ontology file's `https` form] → Nothing released uses
+  it, and the FTR records FAIR Champion publishes use SIO's `http` IRI.
+- [The review's fixes reopen a milestone that had closed] → They land before M3 writes any schema or recipe, so no
+  API schema or recipe is written twice; M2 closes again with its own full checks.
 - [A founded thing moves its description to its record, so a consumer reading only the thing's node finds less] →
-  The record is under the thing's IRI, the thing names it in `isBasedOn`, and the API record of the thing carries
-  its records (decision 11).
+  The record is under the thing's IRI and names the thing with `foaf:primaryTopic`; the API record of the thing
+  carries its records in full under their fragments (decision 11).
 
 ## Migration Plan
 
@@ -557,7 +784,9 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=30
                     page addressing and #/id/, one reference syntax, duplicate-attach check
       |
  M2 model           vocabulary and status model, advice class, FTR in graph, pre-fill mappings,
-                    question text from clauses, profile 0.2
+                    question text from clauses, profile 0.2; then the review's fixes: declarations
+                    that hold, kinds by class, records typed once, each fact once, answers as DQV
+                    measurements, the EOSC CZ Node as a platform
       |
  M3 access          API v1, OpenAPI templates, health under operations, N-Triples, recipes and their CI,
                     record landing pages, 404 page and sitemap, machines page, saved-result revision 4
@@ -574,3 +803,39 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=30
 - **Rollback.** Before the release, the change reverts by reverting its pull request; no published artifact changes.
   After the switching release, rollback is a new release: earlier archives keep their bytes and contexts, and the
   redirect can point at any host.
+
+## Open Questions
+
+Raised by the graph-model review. The maintainer answered all of them on 2026-11-07 (task 3.11); each answer is
+recorded in the decision named.
+
+1. **How the native content rule asks for a question's text.** Answer: as `docs/content-model.md` does. Name the
+   clause with `requirement`, and write a `statement` only where the question names another actor, covers part of
+   the clause or must be reworded to be answerable (task 3.10).
+2. **How the vocabulary states domains and ranges.** Answer: `rdfs:domain` and `rdfs:range`, each made true and
+   checked against the class hierarchies of the pinned vocabularies; a declaration only `schema:Thing` would satisfy
+   is omitted (decision 20). Not chosen: schema.org's non-inferential `domainIncludes` and `rangeIncludes`.
+3. **The Node's status.** Answer: its node state only, with its date; the resource shape accepts a node state in
+   place of a service status (decision 21). Not chosen: a five-level service status beside it.
+4. **How a thing names its registry records.** Answer: on the record's side only, with `foaf:primaryTopic`; the
+   thing does not name its records, and the page and the API read them from the records (decisions 4 and 15). The
+   requirement *Registry records describe one thing* says so.
+5. **The published sources of organisations and infrastructures.** Answer: `dcterms:source`, with the operator,
+   operated-by and developer sources as its subproperties, all with IRI values (decision 22).
+6. **Clause actors as audiences.** Answer: actor terms are also typed `Audience` (decision 6).
+7. **Snapshots' records.** Answer: `hasPart` stays (decision 4).
+8. **The direction of `hasPart`/`isPartOf` and of the FTR pair.** Answer: one direction per kind, recorded in the
+   content model; a question names its check with `ftr:hasBenchmark`, and the check does not list its questions
+   (decisions 8 and 22).
+9. **The licence and citation of a quoted definition.** Answer: a `#definition` part of the term carries the quoted
+   text, its licence and its citation (decision 22).
+10. **Crate-local lists.** Answer: removed, except any a page view still reads (decision 22).
+11. **The Guide's local tests.** Answer: no FTR type; they implement their question through SIO's link, and their
+    results stay evidence (decision 8).
+12. **A registry's classification of a thing.** Answer: the record's `dcterms:type`, such as a FIP Dashboard record's
+    FIP class or an NKR record's repository kind; the thing's types come from the Guide's classification
+    (decision 4).
+13. **How the `tests` kind is selected**, found while recording these answers: it holds FTR tests, F-UJI's FTR
+    metrics (the class questions also have) and local tests without an FTR type. Answer: every record of the kind is
+    an `fg:AssessmentCriterion`, with its FTR type beside it where one applies (decisions 8 and 13). Not chosen:
+    reading F-UJI's criteria as tests, or recording a reason for selecting the kind by IRI.

@@ -89,15 +89,26 @@ class ProfileModelTests(unittest.TestCase):
         self.assertIn("as its benchmark", report)
         check = URIRef(iri("checks/dataset"))
         report = self.planted((check, URIRef(SCHEMA + "hasPart"), question))
-        self.assertIn("once, as FTR metrics", report)
+        self.assertIn("does not list them", report)
 
-    def test_a_check_without_metrics_or_a_test_without_a_metric_is_refused(self) -> None:
+    def test_a_check_without_metrics_or_a_criterion_without_its_principles_is_refused(self) -> None:
         check = URIRef(iri("checks/dataset"))
-        associated = URIRef(FTR + "hasAssociatedMetric")
-        self.planted(removed=tuple((check, associated, metric) for metric in self.crate.objects(check, associated)))
-        test = URIRef(iri("tests/self-check/dataset.01"))
-        implements = URIRef("https://semanticscience.org/resource/SIO_000233")
-        self.planted((test, implements, URIRef(iri("checks/dataset"))))
+        benchmark = URIRef(FTR + "hasBenchmark")
+        self.planted(removed=tuple((question, benchmark, check) for question in self.crate.subjects(benchmark, check)))
+        # The check lists no question again.
+        report = self.planted((check, URIRef(FTR + "hasAssociatedMetric"), URIRef(iri("questions/dataset.01"))))
+        self.assertIn("does not list them", report)
+        criterion = URIRef(iri("tests/fair-champion/fc-metadata-pid"))
+        about = URIRef(SCHEMA + "about")
+        report = self.planted(
+            removed=tuple((criterion, about, value) for value in self.crate.objects(criterion, about))
+        )
+        self.assertIn("MUST name the principles it assesses", report)
+        implements = URIRef("http://semanticscience.org/resource/SIO_000233")
+        report = self.planted(
+            (criterion, implements, URIRef("https://w3id.org/fair-metrics/general/FM_F3_M_DataIdent"))
+        )
+        self.assertIn("at most one metric", report)
 
     def test_a_record_about_two_things_or_a_mapping_without_coverage_is_refused(self) -> None:
         record = URIRef(iri("repositories/zenodo") + "#knav")

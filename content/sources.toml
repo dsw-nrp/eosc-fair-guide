@@ -795,6 +795,21 @@ dateAccessed = 2026-10-16
 
 [[source]]
 guideRoute = "resources"
+id = "eosc-federation-handbook"
+type = "document"
+title = "EOSC Federation Handbook 2.0"
+short = { cs = "Příručka Federace EOSC 2.0", en = "EOSC Federation Handbook 2.0" }
+inLanguage = "en"
+url = "https://doi.org/10.5281/zenodo.18454649"
+publisher = "EOSC Association"
+version = "2.0"
+datePublished = 2026-01-30
+dateAccessed = 2026-11-07
+license = "https://creativecommons.org/licenses/by/4.0/"
+doi = "10.5281/zenodo.18454649"
+
+[[source]]
+guideRoute = "resources"
 id = "eosc-cz-node-page"
 type = "webpage"
 title = "EOSC CZ Node (Czechia)"

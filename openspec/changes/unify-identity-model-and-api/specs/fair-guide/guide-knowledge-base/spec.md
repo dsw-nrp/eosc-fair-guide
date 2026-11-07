@@ -30,15 +30,15 @@ operation per kind and response.
 ### Requirement: Content addressed relative to the site
 
 API files SHALL link the guide's own records and each other relative to the referring file, never by the site's
-address. An entity's identity SHALL be its persistent IRI under the Guide namespace. Saved results SHALL name tests
-by persistent IRI; other outbound links SHALL use the page's serving address. Runtime links SHALL use the Guide
-window's location and channel path, not an iframe parent's. Offline use SHALL keep references usable without
-exposing filesystem paths.
+address. An entity's identity SHALL be its persistent IRI under the Guide namespace. Saved results SHALL name
+questions and tests by persistent IRI; other outbound links SHALL use the page's serving address. Runtime links
+SHALL use the Guide window's location and channel path, not an iframe parent's. Offline use SHALL keep references
+usable without exposing filesystem paths.
 
 #### Scenario: The guide moves
 
 - **GIVEN** the guide published at a new address
-- **WHEN** a consumer follows a link in an API record, or the test IRI in a result exported before the move
+- **WHEN** a consumer follows a link in an API record, or a question or test IRI in a result exported before the move
 - **THEN** it reaches the record at the new address, without the guide being rebuilt for it
 
 #### Scenario: The Guide is embedded at a repository subpath
@@ -54,21 +54,28 @@ exposing filesystem paths.
 
 ### Requirement: Checks published as FTR definitions
 
-Each check SHALL be an FTR benchmark in the knowledge graph and the API, its questions FTR metrics, and each question's
-manual test an FTR test with its own persistent IRI (`tests/self-check/<question>`). The API SHALL use the graph's
-types and property names without renaming them, so that the test references in an exported result set resolve to
-the same definitions in both.
+Each check SHALL be an FTR benchmark in the knowledge graph and the API, and its questions FTR metrics. A test that is
+a service implementing one metric SHALL be an FTR test linked to that metric. A reader's answer SHALL be a quality
+measurement of its question, and the Guide SHALL publish no test for it. The API SHALL use the graph's types and
+property names without renaming them, so that the references in an exported result set resolve to the same
+definitions in both.
 
 #### Scenario: Exported result resolves
 
-- **GIVEN** a self-check result set exported from the guide
-- **WHEN** a tool follows a result's test reference
-- **THEN** it reaches the item's FTR test definition in the published API
+- **GIVEN** a self-check result set exported from the guide, with a reader's answer and an automated result
+- **WHEN** a tool follows the question the answer measures, or the test the automated result names
+- **THEN** it reaches that question's FTR metric, or that test's FTR definition, in the published API
 
 #### Scenario: The graph carries the FTR definitions
 
 - **WHEN** a consumer queries the published graph for FTR tests
-- **THEN** it finds every manual test and every curated automated test, each linked to the metric it implements and that metric to its benchmark
+- **THEN** it finds every FAIR Champion test and every FAIR-Checker criterion, each linked to the metric it implements and that metric to its benchmark, and no test for a reader's answer
+
+#### Scenario: An evaluator whose reports are imported
+
+- **GIVEN** F-UJI, whose results the Guide reads from imported reports
+- **WHEN** the graph is built
+- **THEN** each F-UJI criterion is published as F-UJI's FTR metric, not as an FTR test
 
 ### Requirement: One entry per real-world thing
 
@@ -242,6 +249,25 @@ artifacts SHALL retain their bytes and original contexts, without invented alias
 - **WHEN** a consumer reads an older release archive or its original context
 - **THEN** its bytes and legacy term/profile names are unchanged; no alias, redirect or external-IRI normalization is inferred
 
+### Requirement: EOSC CZ Node membership is recorded with its state
+
+The EOSC CZ Node SHALL be a record of a service platform, with its operator and its state in the EOSC Federation, as
+the federation's current handbook defines a Node. Each service or repository it onboards SHALL be a qualified
+relation from the Node carrying the entry's role, any planned milestone, the date checked and the source, stated
+once. Membership SHALL be curated from the node's published charter and announcements until a machine-readable node
+catalogue exists.
+
+#### Scenario: A repository planned for integration
+
+- **GIVEN** MBDB, listed in the node charter for integration by month 6
+- **WHEN** the crate and the API are built
+- **THEN** the Node's relation to MBDB carries the repository role, that milestone, the date checked and the charter as its source, and MBDB's API record shows its membership
+
+#### Scenario: What the Node is
+
+- **WHEN** a consumer reads the EOSC CZ Node in the graph
+- **THEN** it finds a service platform operated by e-INFRA CZ, not an organisation, and no service or repository stated as a member of an organisation
+
 ## ADDED Requirements
 
 ### Requirement: Persistent IRIs resolve through a registered redirect
@@ -274,10 +300,10 @@ SHALL carry no API version. A host move or a new API major version SHALL change 
 
 ### Requirement: Registry records describe one thing
 
-A record a registry publishes (KNAV, FIP Dashboard, NKR, re3data, FAIRsharing, DataCite) SHALL be a catalogue record
-about exactly one thing, scoped under it by the registry's scheme. It SHALL keep the registry's wording, licence and
-retrieval date. The thing SHALL rest on its records. A record that matches no curated entry SHALL found a thing of
-its own. The duplicate check SHALL report a record that could attach to more than one thing.
+A registry's record (KNAV, FIP Dashboard, NKR, re3data, FAIRsharing, DataCite) SHALL be a catalogue record that
+names the one thing it describes, scoped under it by the registry's scheme; the thing SHALL NOT name its records. The
+record SHALL keep the registry's wording, licence, retrieval date and classification of the thing. A record matching
+no curated entry SHALL found a thing. The duplicate check SHALL report a record that could attach to two things.
 
 #### Scenario: A registry describes a curated service
 
@@ -295,7 +321,13 @@ its own. The duplicate check SHALL report a record that could attach to more tha
 
 - **GIVEN** a curated repository that re3data and FAIRsharing also describe
 - **WHEN** the graph is built
-- **THEN** it holds one node with `#re3data` and `#fairsharing` records under it, each keeping its registry's values, and the node names both records among what it rests on
+- **THEN** it holds one node with `#re3data` and `#fairsharing` records under it, each keeping its registry's values and naming the node it describes, while the node does not list them again
+
+#### Scenario: A registry classifies a thing
+
+- **GIVEN** a FIP Dashboard record that classifies a curated resource as a metadata schema
+- **WHEN** a consumer selects every metadata schema by its class
+- **THEN** it receives the resources the Guide classifies so, and the Dashboard's classification is found on its record
 
 ### Requirement: Named agents resolve to one thing
 
@@ -348,10 +380,10 @@ prefix SHALL match records, and a part of a record only where the prefix names o
 
 ### Requirement: Controlled vocabularies have one model
 
-Every controlled-vocabulary term, including tiers, levels, lenses, actors, modes, resource types, statuses, glossary
-terms, principles, layers and life-cycle stages, SHALL be a defined term in exactly one term set, with its membership
-stated once. The vocabulary document SHALL publish once how these terms align with SKOS. A status SHALL refer to a term
-of its scheme, never a free string.
+Every controlled value, including tiers, levels, lenses, actors, modes, resource types, statuses, clause kinds, model
+kinds, mapping bases and coverage, a registry's own lists, glossary terms, principles, layers and life-cycle stages,
+SHALL be a defined term in exactly one term set, its membership stated once, by the term. The vocabulary document
+SHALL publish once how these terms align with SKOS. No controlled value SHALL be a free string.
 
 #### Scenario: A consumer lists a scheme's terms
 
@@ -363,6 +395,17 @@ of its scheme, never a free string.
 - **GIVEN** a clause whose status is that it needs a refresh
 - **WHEN** the graph is built
 - **THEN** its status refers to the refresh term of the clause-status scheme, not to a string
+
+#### Scenario: A clause's kind
+
+- **GIVEN** the clause `A.F1.R1`, a requirement
+- **WHEN** the graph is built
+- **THEN** its kind refers to the requirement term of the clause-kind scheme, not to a string
+
+#### Scenario: A term set and its terms
+
+- **WHEN** a consumer reads the life-cycle stages of RDMkit
+- **THEN** each stage names its set, and the set does not list its stages a second time
 
 ### Requirement: Advice items share one class
 
@@ -419,8 +462,8 @@ context needed to read it. It SHALL hold the same triples a JSON-LD processor ob
 
 The classes, properties and shapes a consumer may query SHALL be published as the versioned RO-Crate profile, with
 documented SPARQL recipes for common questions. CI SHALL run every recipe against the built graph with its expected
-results. Before Guide `1.0.0` the contract MAY change in place; from `1.0.0` a change SHALL follow the published
-deprecation rule.
+results. Every shape SHALL refuse a real node that lacks what it requires. Before Guide `1.0.0` the contract MAY
+change in place; from `1.0.0` a change SHALL follow the published deprecation rule.
 
 #### Scenario: A recipe breaks
 
@@ -428,8 +471,118 @@ deprecation rule.
 - **WHEN** the checks run
 - **THEN** the recipe check fails and names the recipe
 
+#### Scenario: A node loses what defines its kind
+
+- **GIVEN** a clause without its kind, a resource without its type, or a repository without its kind, address and NKR page
+- **WHEN** the profile validates the graph
+- **THEN** it refuses the node, because its shape selects it by class and requires what it lacks
+
 #### Scenario: A consumer starts from a recipe
 
 - **GIVEN** a data steward who wants the researcher advice at one station
 - **WHEN** they run the documented recipe against the published graph
 - **THEN** it returns those advice items with their levels, in the language they select
+
+### Requirement: Every kind is selected by its class
+
+Every kind SHALL have a class or a term set that selects exactly its records, or a recorded reason why it is reached
+only by IRI. Every class a node has SHALL be stated as its type, never as a string. A registry record SHALL be typed
+as a catalogue record and a creative work, never with the class of the thing it describes. The checks SHALL fail on
+a kind with neither a selector nor a reason.
+
+#### Scenario: Counting organisations
+
+- **WHEN** a consumer selects every organisation in the graph by its class
+- **THEN** it receives the organisations and infrastructures the Guide describes, and no registry record
+
+#### Scenario: Selecting FTR tests by type
+
+- **WHEN** a consumer selects every FTR test by its type
+- **THEN** it finds each one without reading any string value
+
+#### Scenario: A new kind without a selector
+
+- **GIVEN** a pull request that adds a kind sharing its class with others, with no term set and no recorded reason
+- **WHEN** the checks run
+- **THEN** they fail and name the kind
+
+### Requirement: The vocabulary's declarations hold for the graph
+
+Every domain and range the Guide's vocabulary declares SHALL hold for each use in the published graph, including the
+range of an established property that a Guide term specialises, so that a reasoner adds no class a node does not
+have. The vocabulary SHALL declare no term the Guide does not use. The checks SHALL fail on a use the declarations do
+not admit and name the term and the use.
+
+#### Scenario: A reasoner reads the graph
+
+- **GIVEN** a consumer that applies RDFS reasoning with the Guide's vocabulary
+- **WHEN** it selects every organisation and every repository
+- **THEN** it receives no membership, service or registry record among them
+
+#### Scenario: A misdeclared term in a pull request
+
+- **GIVEN** a change that gives a Guide term a domain that one of its uses does not have
+- **WHEN** the checks run
+- **THEN** they fail and name the term and the use
+
+### Requirement: Each relation is stated in one direction
+
+For each kind, the graph SHALL state a relation and its inverse in one documented direction only, never both for the
+same pair. A term SHALL name its set, and the set SHALL NOT list it again. The checks SHALL fail on a pair stated both
+ways.
+
+#### Scenario: An infrastructure that operates a repository
+
+- **GIVEN** an infrastructure that a source names as the operator of a repository
+- **WHEN** the graph is built
+- **THEN** the operation is stated once, in the direction the content model documents
+
+#### Scenario: A pair stated both ways in a pull request
+
+- **GIVEN** a change that states a part's whole and the whole's part for the same pair
+- **WHEN** the checks run
+- **THEN** they fail and name the relation and the pair
+
+### Requirement: schema.org properties are used within their domains
+
+A schema.org property SHALL be used only on a subject that one of its published domain classes admits, with a value
+its published range admits; elsewhere a property whose definition fits SHALL replace it. A value that names a web
+resource SHALL be an IRI reference unless the property's range is text. The checks SHALL fail on a use outside these
+bounds.
+
+#### Scenario: A clause addressed to an actor
+
+- **GIVEN** a clause addressed to repositories
+- **WHEN** the graph is built
+- **THEN** the actor it is addressed to has a class that the property naming it admits
+
+#### Scenario: A licence on a glossary term
+
+- **GIVEN** a glossary term whose definition is quoted under a licence
+- **WHEN** the graph is built
+- **THEN** the property that states the licence admits the node it is stated on
+
+### Requirement: Every term is the IRI its vocabulary defines
+
+Every class and property the published graph uses from an established vocabulary SHALL be the IRI that vocabulary
+defines, in its scheme. A pinned copy of every vocabulary the graph refers to SHALL be kept with the tests, and the
+checks SHALL read those copies, never the network. The checks SHALL fail on a namespace without a pinned copy and on a
+term its vocabulary does not define, naming the term and the vocabulary.
+
+#### Scenario: What a test implements
+
+- **GIVEN** a FAIR Champion test the Guide curates
+- **WHEN** a consumer that loads SIO and FAIR Champion's own test records asks which question the test implements
+- **THEN** it finds the link under SIO's own "is implementation of" IRI, the one FAIR Champion's records use
+
+#### Scenario: A term in the wrong scheme
+
+- **GIVEN** a change that writes a schema.org class in its `https` form
+- **WHEN** the checks run
+- **THEN** they fail and name the term and schema.org
+
+#### Scenario: A vocabulary without a pinned copy
+
+- **GIVEN** a change that uses a property from a vocabulary that has no pinned copy
+- **WHEN** the checks run
+- **THEN** they fail and name the namespace

@@ -185,7 +185,8 @@ try {
           assert(test["ftr:outputFromTest"]["@id"].startsWith(origin + prefix + "api/"), "test references use the current channel");
           const response = await fetch(test["ftr:outputFromTest"]["@id"]);
           const record = await response.json();
-          assert(response.ok && [].concat(record["@type"]).includes("Test"));
+          // The document an exported result names as the question's test describes and links the question.
+          assert(response.ok && record.about, "the named document links its question");
         }
       }
     }

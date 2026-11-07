@@ -31,7 +31,7 @@ class ResearchPracticeTests(unittest.TestCase):
         self.assertEqual(software["softwareVersion"], dataset["version"])
         self.assertEqual(dataset["isPartOf"], {"@id": "#guide-software"})
         self.assertEqual(software["subjectOf"], {"@id": "./"})
-        self.assertEqual(source["codeRepository"], self.content["guide"]["guide"]["url"])
+        self.assertEqual(source["url"], self.content["guide"]["guide"]["url"])
 
     def test_source_metrics_are_complete_and_distinct_from_data_principles(self) -> None:
         checks = {data["check"]["id"]: data for data in self.content["checks"]}

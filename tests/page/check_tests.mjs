@@ -22,9 +22,8 @@ const testAddress = (entry) => addressOf(entry["@id"], namespace) || "";
 /* FAIR Champion's tests and the Guide's own, apart from the external evaluators' criteria. */
 const definitions = graph.filter((entry) => /^tests\/(fair-champion|guide)\/[^#]+$/.test(testAddress(entry)));
 const localDefinitions = definitions.filter((entry) => entry.identifier.startsWith("guide-"));
-/* External evaluators' native criteria share the tests listing under their providers' own identifiers. A question's
-   manual test (`tests/self-check/<question>`) is the reader's own answer, which no listing shows. */
-const criteria = graph.filter((entry) => /^tests\/[^/]+\/[^#]+$/.test(testAddress(entry)) && !testAddress(entry).startsWith("tests/self-check/") && !definitions.includes(entry) && entry.identifier);
+/* External evaluators' native criteria share the tests listing under their providers' own identifiers. */
+const criteria = graph.filter((entry) => /^tests\/[^/]+\/[^#]+$/.test(testAddress(entry)) && !definitions.includes(entry) && entry.identifier);
 const questions = graph.filter((entry) => [].concat(entry["@type"]).includes("Question"));
 /* What a test or criterion is about, and the principles a question measures as its FTR dimensions. */
 function principlesOf(entity) {

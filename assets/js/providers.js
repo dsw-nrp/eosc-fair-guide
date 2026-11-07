@@ -36,7 +36,7 @@
     return FG.list(provider.metrics).flatMap((metric) => {
       const criterion = P.criterion(provider.id, metric);
       return criterion
-        ? FG.refs(criterion, "hasPart").map((entity) => ({ metric, question: FG.localId(entity.about), coverage: entity.mappingCoverage, entity }))
+        ? FG.refs(criterion, "hasPart").map((entity) => ({ metric, question: FG.localId(entity.about), coverage: FG.termKey(entity.mappingCoverage), entity }))
         : [];
     });
   };
@@ -294,7 +294,7 @@
     const criterion = params && P.criterion(params.provider, params.metric);
     const mapping = criterion && FG.refs(criterion, "hasPart").find((entity) => FG.id(entity.about) === FG.address("questions", params.question));
     const provider = P.provider(params && params.provider);
-    const head = (provider ? provider.name : "") + " " + (params ? params.metric : "") + " (" + FG.t("selfcheck.providers.coverage." + ((mapping && mapping.mappingCoverage) || "partial")) + ")";
+    const head = (provider ? provider.name : "") + " " + (params ? params.metric : "") + " (" + FG.t("selfcheck.providers.coverage." + ((mapping && FG.termKey(mapping.mappingCoverage)) || "partial")) + ")";
     return head.trim() + (mapping && mapping.description ? ": " + FG.text(mapping.description) : "");
   };
 

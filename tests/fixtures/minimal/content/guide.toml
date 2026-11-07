@@ -123,6 +123,54 @@ name = { cs = "část otázky", en = "part of the question" }
 id = "champion-evidence-only"
 name = { cs = "jen podklad z FAIR Champion", en = "FAIR Champion evidence only" }
 
+[[clauseKind]]
+id = "requirement"
+name = { cs = "požadavek", en = "requirement" }
+
+[[clauseKind]]
+id = "fulfilment"
+name = { cs = "plnění", en = "fulfilment" }
+
+[[clauseKind]]
+id = "recommendation"
+name = { cs = "doporučení", en = "recommendation" }
+
+[[clauseKind]]
+id = "statement"
+name = { cs = "zjištění", en = "finding" }
+
+[[modelKind]]
+id = "layer"
+name = { cs = "vrstva implementace", en = "implementation layer" }
+
+[[modelKind]]
+id = "seam"
+name = { cs = "návaznost", en = "seam" }
+
+[[modelKind]]
+id = "example"
+name = { cs = "příklad implementace", en = "implementation example" }
+
+[[mappingBasis]]
+id = "published"
+name = { cs = "uvádí zdroj", en = "published by the source" }
+
+[[mappingBasis]]
+id = "reviewed"
+name = { cs = "posoudil Průvodce", en = "reviewed by the Guide" }
+
+[[mappingBasis]]
+id = "unconfirmed"
+name = { cs = "nepotvrzeno", en = "unconfirmed" }
+
+[[mappingCoverage]]
+id = "whole"
+name = { cs = "celá otázka", en = "the whole question" }
+
+[[mappingCoverage]]
+id = "partial"
+name = { cs = "část otázky", en = "part of the question" }
+
 [[adviceKind]]
 id = "direction"
 name = { cs = "doporučení", en = "direction" }

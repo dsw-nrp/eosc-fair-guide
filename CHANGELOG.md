@@ -13,28 +13,40 @@ All notable changes to this guide are recorded here. The format follows
   `guideRoute` values follow, and the catalogue's groups are `glossary`, `lifecycles` and `models`.
 - Breaking: every record's `@id` is its IRI under the namespace `https://w3id.org/eosc-cz/fair-guide/`
   (`…/id/stations/licence`), not a crate fragment; the crate drops `catalogueAddress`.
-- Breaking: a registry's record of a thing is a `dcat:CatalogRecord` under it (`#re3data`, `#fip-dashboard`,
-  `#knav`, `#nkr`, `#fairsharing`, `#datacite`) naming the thing by `foaf:primaryTopic`; the thing rests on each of
-  its records, and on the Guide's selection where the Guide describes it, instead of on their snapshots; a snapshot
-  lists its records, and the crate's `#knav-tools` and `#fers` lists are gone. A thing only registries know keeps its
-  identity, name, address and filter facts, and its description stays on the record. A registry is a resource and
-  is no longer in `#repositories`. A named agent is the one thing of that name, and a FIP Dashboard organisation
-  record joins a thing only by a reviewed handle or ROR, as `#fip-dashboard-organization`.
+- Breaking: a registry's record of a thing is a `dcat:CatalogRecord` and `schema:CreativeWork` under it
+  (`#re3data`, `#fip-dashboard`, `#knav`, `#nkr`, `#fairsharing`, `#datacite`) naming the thing by
+  `foaf:primaryTopic`; the thing does not list those records again. The record rests on its snapshot, which lists it;
+  a curated work rests on the Guide's selection, and an organisation or infrastructure names its published sources
+  with `dcterms:source`. A thing only registries know keeps its identity, name, address and filter facts, and its
+  description stays on the record. A registry is a resource and is no longer in `#repositories`. A named agent is the
+  one thing of that name, and a FIP Dashboard organisation record joins a thing only by a reviewed handle or ROR, as
+  `#fip-dashboard-organization`.
 - Breaking: references in text are `[[<kind>/<id>|phrase]]`, with a part as `<address>#<fragment>` and a kind word
   for its list; the Guide's profile is `[[pages/machines#tasks|…]]`, and anything else is refused.
 - Breaking: provenance `objects`, model association `target` and the worked example's `steps` name records by
   address; a result `*` records the Guide as an action's result; `content/identifiers.toml` lists each identifier
   under the kind of its record, as the address without the kind (`vocabularies = ["lenses/V", …]`).
-- Breaking: every controlled term is a `schema:DefinedTerm` in one term set and carries no `skos:` type or
-  `skos:inScheme`; the vocabulary document states their SKOS reading once. Every status is a term of its scheme:
-  `creativeWorkStatus` gives way to `clauseStatus`, `fipStatus`, `declarationStatus` and `releaseStatus`, and
+- Breaking: every controlled term is a `schema:DefinedTerm` in one term set, named only by the term with
+  `schema:inDefinedTermSet` and ordered by `guide:termPosition`; the set does not list terms again with
+  `schema:hasDefinedTerm`, and no instance carries `skos:` types or `skos:inScheme`. Every status is a term of its
+  scheme: `creativeWorkStatus` gives way to `clauseStatus`, `fipStatus`, `declarationStatus` and `releaseStatus`,
   `healthStatus`, `preparationStatus` and `nodeState` name terms instead of strings.
 - Breaking: an advice item is a `guide:AdviceItem` with an `adviceKind` term, not a `HowToTip` or `HowToDirection`;
-  a check is also an `ftr:Benchmark` naming its questions by `ftr:hasAssociatedMetric` instead of `hasPart`, a
-  question an `ftr:Metric` naming its check by `ftr:hasBenchmark` and its principles by `dqv:inDimension` instead
-  of `isPartOf` and `about`, and each question's manual test is in the crate at `tests/self-check/<question>`.
+  a check is also an `ftr:Benchmark`, a question an `ftr:Metric` naming its check by `ftr:hasBenchmark` and its
+  principles by `dqv:inDimension`, while the check does not repeat its questions. Only criteria exposed through an
+  API are `ftr:Test`; F-UJI criteria are `ftr:Metric`, and local assessment criteria carry no FTR type. The manual
+  `tests/self-check/` records are gone, and `api/tests/<question>.json` only supports saved results in revisions 1–3.
 - Breaking: a question's pre-fill is a `guide:PrefillMapping` part (`prefillSource`, `prefillField`,
   `prefillCoverage`) instead of `additionalProperty` values, `prefillLevel` and `championEvidenceOnly`.
+- Breaking: relations are stated in one documented direction, classes are `@type`s rather than
+  `additionalType` strings, and schema.org properties stay within their pinned domain and range declarations;
+  vocabulary declarations are checked against the built graph and its pinned vocabularies.
+- Breaking: quoted glossary and life-cycle definitions move from terms to `schema:CreativeWork` fragments linked
+  with `dcterms:hasPart`, carrying their text, licence and citation; a second Czech life-cycle source has its own
+  fragment linked by `guide:quotedDefinition`. A local criterion calls its browser function by `guide:entryPoint`.
+- Breaking: the EOSC CZ Node is `resources/eosc-cz-node`, a `schema:Service` provided by e-INFRA CZ, and onboarded
+  entries are `dcat:Relationship` parts linked from the Node by `dcat:qualifiedRelation`, not schema.org members;
+  the NRP Data Catch-all Repository is a `service`, not a `registry`.
 - Breaking: the Guide's profile is `0.2`, with shapes for the graph model.
 - Required step: a question that asks what a cited clause says names it as its `requirement` and states no
   `statement`; the content check refuses a statement that copies a cited clause.

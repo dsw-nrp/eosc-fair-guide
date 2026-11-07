@@ -7,10 +7,10 @@ type = "update"
 name = "Move record identity to the kind vocabulary"
 description = "A structural migration of every record's identity: frozen routes name a plural kind word without a classification segment, and prose references, provenance results and objects, model association targets and the worked example's steps name records by their address; the identifier register lists each identifier under the kind of its record, and the Guide's profile is referenced through the section of the machines page that presents it. The texts, sources and classifications are unchanged, and reviewed link decisions follow their fields. The KNAV record of the CESNET ownCloud service is joined to the curated entry for that service. Reviewed handles join the FIP Dashboard's organisation records, and eLTER RI's KNAV record, to the things they describe, and three pairs of things that share a name are recorded as distinct with their reasons. Every page section carries an identifier that names its subject and is its fragment, so a page can be reordered without moving an address; the page for machines now leads from what it offers to what a reader is looking for, a worked example, the Guide's own practice and the endpoints. The statuses of requirements, FIPs and their declarations, tests, the model manuscript, releases and the EOSC CZ Node, the kinds of advice item and the coverage of pre-fill mappings are recorded as reviewed term vocabularies. Fifty-five check questions that copied a cited clause word for word take that clause's text instead: gate.01, gate.08, gate.10 and maturity.14 name the clause they copied as their requirement, and NRP.M8 and A.I3.R2 take the references to NMA, CCMM, ORCID and ROR that those questions' copies carried, with their wording unchanged. The migration adds no content author."
 agent = "david-novak"
-instruments = ["claude-code", "kilo-code", "claude-opus-5-5"]
-objects = ["resources/knav-dm-tools-catalogue", "resources/fip-dashboard", "resources/nrp-conditions", "resources/analyza-fair-1.2"]
+instruments = ["claude-code", "kilo-code", "claude-opus-5-5", "einfra-kimi-k3-1-pro"]
+objects = ["resources/knav-dm-tools-catalogue", "resources/fip-dashboard", "resources/nrp-conditions", "resources/analyza-fair-1.2", "resources/eosc-federation-handbook", "repositories/datarepo"]
 results = ["*"]
-endTime = 2026-11-07T03:32:28+01:00
+endTime = 2026-11-07T23:19:39+01:00
 
 [[action]]
 id = "2026-11-02-nkr-integration"
@@ -1234,7 +1234,7 @@ results = [
   "resources/nma",
   "resources/nma-export-docs",
   "resources/nma-riv-docs",
-  "organizations/eosc-cz-node",
+  "resources/eosc-cz-node",
   "resources/nrp-aai-integration",
   "resources/nrp-admin-docs",
   "resources/nrp-compute",

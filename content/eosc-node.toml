@@ -11,7 +11,7 @@ url = "https://www.eosc.cz/o-nas/eosc-node-czechia"
 operator = "e-infra-cz"
 state = "operational"
 stateDate = 2026-10-08
-sources = ["eosc-cz-node-charter", "eosc-federation-production", "eosc-federation-second-wave-mou", "eosc-cz-node-page", "eosc-cz-node-announcement"]
+sources = ["eosc-cz-node-charter", "eosc-federation-handbook", "eosc-federation-production", "eosc-federation-second-wave-mou", "eosc-cz-node-page", "eosc-cz-node-announcement"]
 checked = 2026-10-16
 
 # Services (charter, section 3)

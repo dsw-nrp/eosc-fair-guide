@@ -1285,6 +1285,8 @@ resources = [
   "tess",
   "git",
   "loc-digital-formats",
+  "eosc-federation-handbook",
+  "eosc-cz-node",
 ]
 repositories = [
   "datarepo",

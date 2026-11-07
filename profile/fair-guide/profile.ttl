@@ -17,7 +17,7 @@
     prof:hasResource [
         a prof:ResourceDescriptor ;
         dct:format <https://w3id.org/mediatype/text/markdown> ;
-        prof:hasRole role:Specification ;
+        prof:hasRole role:specification ;
         prof:hasArtifact <https://github.com/dsw-nrp/eosc-fair-guide/blob/main/docs/content-model.md> ;
     ] ;
     prof:hasToken "fair-guide" .

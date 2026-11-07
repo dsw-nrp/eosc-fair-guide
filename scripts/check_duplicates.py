@@ -35,7 +35,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import check_content  # noqa: E402
 import duplicate_repairs  # noqa: E402
-from build_crate import ROOT, ContentError, Graph, build_crate, founding_record, load_content  # noqa: E402
+from build_crate import (  # noqa: E402
+    ROOT,
+    ContentError,
+    Graph,
+    build_crate,
+    founding_record,
+    load_content,
+    records_by_thing,
+)
 from catalogue_identity import alternate_id, bare_url  # noqa: E402
 from nkr_contract import nkr_status  # noqa: E402
 
@@ -818,6 +826,7 @@ def shared_names(content: dict[str, Any], distinct: list[dict[str, Any]]) -> tup
     graph = Graph()
     build_crate(content, graph)
     base = content["guide"]["guide"]["recordBase"]
+    records = records_by_thing(graph.entities)
     named: dict[str, set[str]] = {}
     for entity_id, entity in graph.entities.items():
         address = entity_id.removeprefix(base)
@@ -836,7 +845,7 @@ def shared_names(content: dict[str, Any], distinct: list[dict[str, Any]]) -> tup
         founded = [
             address
             for address in addresses
-            if str(founding_record(graph.entities[base + address])).endswith("#fip-dashboard-organization")
+            if str(founding_record(graph.entities[base + address], records)).endswith("#fip-dashboard-organization")
         ]
         if founded:
             reviews.append(

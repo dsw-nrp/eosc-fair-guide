@@ -264,6 +264,7 @@ guideRoute = "tests/fair-champion"
 id = "fc-metadata-pid"
 description = { cs = "Porovnává identifikátor metadat se známými schématy trvalých identifikátorů.", en = "Compares the metadata identifier against known persistent-identifier schemes." }
 principle = "F1"
+metric = "https://w3id.org/fair-metrics/general/FM_F1_M_IdentPersistent"
 label = { cs = "Identifikátor metadat je trvalý", en = "Metadata identifier is persistent" }
 health = "available"
 asOf = 2026-10-11
@@ -275,6 +276,7 @@ guideRoute = "tests/fair-champion"
 id = "fc-data-id-metadata"
 description = { cs = "Hledá jednoznačný odkaz na data v podporovaných polích metadat.", en = "Looks for an unambiguous data reference in supported metadata fields." }
 principle = "F3"
+metric = "https://w3id.org/fair-metrics/general/FM_F3_M_DataIdent"
 label = { cs = "Metadata uvádějí identifikátor dat", en = "Metadata include the data identifier" }
 health = "degraded"
 asOf = 2026-10-11
@@ -286,6 +288,7 @@ guideRoute = "tests/fair-champion"
 id = "fc_searchable"
 description = { cs = "Ověřuje nalezení zdroje prostřednictvím metavyhledávače SearXNG.", en = "Checks discovery of the resource through the SearXNG metasearch service." }
 principle = "F4"
+metric = "https://w3id.org/fair-metrics/general/FM_F4_M_MetaIndexed"
 label = { cs = "Záznam je dohledatelný vyhledávači", en = "Record is findable by search engines" }
 health = "degraded"
 asOf = 2026-10-11
@@ -297,6 +300,7 @@ guideRoute = "tests/fair-champion"
 id = "fc_metadata_protocol"
 description = { cs = "Posuzuje protokol rozlišení identifikátoru metadat; neověřuje obsah metadat.", en = "Examines the metadata identifier's resolution protocol, rather than metadata contents." }
 principle = "A1.1"
+metric = "https://w3id.org/fair-metrics/general/FM_A1-1_M_OpenProt"
 label = { cs = "Metadata jsou dostupná otevřeným protokolem", en = "Metadata are retrievable by an open protocol" }
 health = "available"
 asOf = 2026-10-11
@@ -308,6 +312,7 @@ guideRoute = "tests/fair-champion"
 id = "fc_metadata_persistence"
 description = { cs = "Hledá deklaraci zachování metadat; u DOI zachování předpokládá.", en = "Looks for a metadata-persistence declaration; assumes persistence for DOIs." }
 principle = "A2"
+metric = "https://w3id.org/fair-metrics/general/FM_A2_M_MetaLong"
 label = { cs = "Repozitář deklaruje trvalost metadat", en = "Repository declares metadata persistence" }
 health = "degraded"
 asOf = 2026-10-11
@@ -319,6 +324,7 @@ guideRoute = "tests/fair-champion"
 id = "fc_structured_metadata"
 description = { cs = "Hledá strojově čitelná strukturovaná metadata v podporovaných formátech.", en = "Looks for machine-readable structured metadata in supported formats." }
 principle = "I1"
+metric = "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSyntax"
 label = { cs = "Metadata jsou strukturovaná", en = "Metadata are structured" }
 health = "degraded"
 asOf = 2026-10-11
@@ -330,6 +336,7 @@ guideRoute = "tests/fair-champion"
 id = "fc-metadata-fair-vocabularies"
 description = { cs = "Posuzuje, zda termíny v propojených metadatech vedou na propojené zdroje.", en = "Examines whether terms in linked metadata resolve to linked resources." }
 principle = "I2"
+metric = "https://w3id.org/fair-metrics/general/FM_I2_M_ResolvabilityOfTerms"
 label = { cs = "Metadata používají FAIR slovníky", en = "Metadata use FAIR vocabularies" }
 health = "degraded"
 asOf = 2026-10-11
@@ -341,6 +348,7 @@ guideRoute = "tests/fair-champion"
 id = "fc_metadata_outward_links"
 description = { cs = "Hledá odkazy na jiné zdroje v metadatech reprezentovaných jako propojená data.", en = "Looks for outward references in metadata represented as linked data." }
 principle = "I3"
+metric = "https://w3id.org/fair-metrics/general/FM_I3_M_QualRef"
 label = { cs = "Metadata odkazují na jiné zdroje", en = "Metadata link to other resources" }
 health = "degraded"
 asOf = 2026-10-11
@@ -352,6 +360,7 @@ guideRoute = "tests/fair-champion"
 id = "fc_metadata_includes_license"
 description = { cs = "Hledá výslovný odkaz na licenci v propojených metadatech.", en = "Looks for an explicit licence reference in linked metadata." }
 principle = "R1.1"
+metric = "https://w3id.org/fair-metrics/general/FM_R1-1_M_StdLic"
 label = { cs = "Metadata uvádějí licenci", en = "Metadata include a licence" }
 health = "degraded"
 asOf = 2026-10-11
@@ -365,6 +374,7 @@ description = { cs = "Hledá afiliace v záznamech DataCite a Crossref nebo ve v
 record = "https://tests.ostrails.eu/community-tests/community_metadata_includes_author_affiliation"
 endpoint = "https://tests.ostrails.eu/community-tests/assess/test/community_metadata_includes_author_affiliation"
 principle = "R1.2"
+metric = "https://w3id.org/fair-metrics/esrf/FM_R1-2_M_Affil_ESRF"
 label = { cs = "Metadata uvádějí afiliaci autorů", en = "Metadata include author affiliation" }
 health = "degraded"
 asOf = 2026-10-11
@@ -376,6 +386,7 @@ guideRoute = "tests/fair-champion"
 id = "fc_unique_identifier"
 description = { cs = "Porovnává identifikátor s formáty známých schémat. Samostatně neověřuje jedinečnost všech přidělených identifikátorů.", en = "Compares the identifier with known scheme patterns. It does not independently verify uniqueness across all assigned identifiers." }
 principle = "F1"
+metric = "https://w3id.org/fair-metrics/general/FM_F1_M_IdentUnique"
 label = { cs = "Identifikátor odpovídá známému schématu", en = "Identifier matches a known scheme" }
 health = "available"
 asOf = 2026-10-11
@@ -387,6 +398,7 @@ guideRoute = "tests/fair-champion"
 id = "test_FM_F1_M_IdentPersistent"
 description = { cs = "Posuzuje pravděpodobnou trvalost podle známých schémat identifikátorů a URL. Výsledek neurčuje budoucí dostupnost objektu ani pravidla repozitáře.", en = "Assesses likely persistence from known identifier and URL schemes. The result does not establish future object availability or the repository's rules." }
 principle = "F1"
+metric = "https://w3id.org/fair-metrics/general/FM_F1_M_IdentPersistent"
 label = { cs = "Schéma identifikátoru podporuje trvalost", en = "Identifier scheme supports persistence" }
 health = "available"
 asOf = 2026-10-11
@@ -400,6 +412,7 @@ description = { cs = "Hledá identifikátor v citačních indexech OpenAlex a Op
 record = "https://tests.ostrails.eu/community-tests/community_data_cited_in_pub"
 endpoint = "https://tests.ostrails.eu/community-tests/assess/test/community_data_cited_in_pub"
 principle = "R1.2"
+metric = "https://w3id.org/fair-metrics/esrf/FM_R1.2_D_CITED-BY-PUB_ESRF"
 label = { cs = "Citace nalezená v citačních indexech", en = "Citation found in citation indexes" }
 health = "available"
 asOf = 2026-10-11

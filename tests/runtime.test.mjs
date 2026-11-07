@@ -141,22 +141,35 @@ test("bad budgets fail rather than silently running an empty suite", () => {
 test("separate Node processes share the same browser-case limit", async () => {
   for (const budget of [1, 2]) {
     const directory = mkdtempSync(resolve(root, ".cache/runtime-slots-"));
+    const gate = resolve(directory, "overlap");
     const source = `import {acquireSlot} from './scripts/browser_slots.mjs';
+      import {existsSync} from 'node:fs';
       const release=await acquireSlot();
+      console.log('acquired');
+      const deadline=Date.now()+10000;
+      while(!existsSync(${JSON.stringify(gate)}) && Date.now()<deadline) await new Promise(done=>setTimeout(done,20));
       const start=performance.timeOrigin+performance.now();
-      await new Promise(done=>setTimeout(done,60));
+      await new Promise(done=>setTimeout(done,20));
       const end=performance.timeOrigin+performance.now();
       release(); console.log(JSON.stringify({start,end}));`;
+    let overlap = false;
     const intervals = await Promise.all(Array.from({length: 3}, () => new Promise((done, reject) => {
       const child = spawn(process.execPath, ["--input-type=module", "-e", source], {
         cwd: root, env: {...process.env, CHECK_BROWSER_SLOT_DIR: directory, CHECK_BROWSER_WORKERS: String(budget)},
       });
       let output = "", errors = "";
-      child.stdout.on("data", (data) => { output += data; });
+      child.stdout.on("data", (data) => {
+        output += data;
+        // At least two slots must be held before measuring; otherwise Windows process startup can serialize the test.
+        if (!overlap && output.includes("acquired")) {
+          overlap = true;
+          writeFileSync(resolve(directory, "overlap"), "go");
+        }
+      });
       child.stderr.on("data", (data) => { errors += data; });
       child.on("error", reject);
       child.on("close", (code) => {
-        if (code) reject(new Error(errors)); else done(JSON.parse(output));
+        if (code) reject(new Error(errors)); else done(JSON.parse(output.trim().split(/\r?\n/).at(-1)));
       });
     })));
     const events = intervals.flatMap(({start,end}) => [[start,1],[end,-1]]).sort((a,b) => a[0]-b[0] || a[1]-b[1]);

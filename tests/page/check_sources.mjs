@@ -49,7 +49,7 @@ try {
       await page.waitForFunction(() => window.FairGuide?.partsLoaded.has("questions") && window.FairGuide.partsLoaded.has("standards"));
       const combinations = await page.evaluate((id) => {
         const FG = window.FairGuide;
-        const codes = (prefix) => FG.refs(FG.get(prefix + id), "hasDefinedTerm").map((term) => term.termCode);
+        const codes = (prefix) => FG.termsOf(prefix + id).map((term) => term.termCode);
         return { modes: codes("vocabularies/modes-").length ? codes("vocabularies/modes-") : [null], profiles: codes("vocabularies/profiles-").length ? codes("vocabularies/profiles-") : [null] };
       }, id);
       for (const mode of combinations.modes) for (const profile of combinations.profiles) {

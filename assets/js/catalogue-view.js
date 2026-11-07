@@ -22,19 +22,18 @@
     alternateIdentifier: "a source system's key for joining an imported record; persistent identifiers show under Identifiers",
   };
   const SHOWN = ["implementationLayers", "implementationSeams"];
-  const SCHEMA_SUBTYPE = "a schema.org or FIP class for machine readers; the entry's type names what it is";
   const ORDER = "orders the entry within its group; the list follows that order";
   const FIELDS = {
     resources: {
-      shown: ["about", "alternateName", "audience", "author", "catalogueType", "repositoryFunction", "creditText", "dateModified", "datePublished", "description", "discipline", "guideType", "inLanguage", "isBasedOn", "license", "lifecycleStage", "mentions", "name", "nodeMembership", "operatedBy", "operatedBySource", "operatorSource", "preparationStatus", "provider", "publisher", "rdmkitRecord", "resourceType", "review", "sameAs", "sdDatePublished", "serviceStatus", "spatialCoverage", "statusAsOf", "trainingSearch", "url", "version"],
-      excluded: { additionalType: SCHEMA_SUBTYPE },
+      shown: ["about", "alternateName", "audience", "author", "catalogueType", "repositoryFunction", "creditText", "dateModified", "datePublished", "description", "discipline", "guideType", "inLanguage", "isBasedOn", "license", "lifecycleStage", "mentions", "name", "nodeState", "nodeStateSince", "qualifiedRelation", "operatedBy", "operatedBySource", "operatorSource", "preparationStatus", "provider", "publisher", "rdmkitRecord", "resourceType", "review", "sameAs", "sdDatePublished", "serviceStatus", "coverage", "statusAsOf", "source", "trainingSearch", "url", "version"],
+      excluded: {},
     },
     repositories: {
-      shown: ["abbreviation", "about", "alternateName", "attributedTo", "audience", "catalogueType", "description", "developerSource", "guideType", "inLanguage", "isBasedOn", "keywords", "mentions", "name", "nodeMembership", "operatedBy", "operatedBySource", "operatorSource", "provider", "publisher", "rdmkitRecord", "repositoryFunction", "repositoryKind", "resourceType", "review", "sameAs", "sdDatePublished", "serviceStatus", "spatialCoverage", "statusAsOf", "trainingSearch", "url"],
-      excluded: { additionalType: SCHEMA_SUBTYPE, acceptsDeposits: "derived deposit availability controls the deposit facet; functions and dated status remain visible" },
+      shown: ["abbreviation", "about", "alternateName", "attributedTo", "audience", "catalogueType", "description", "developerSource", "guideType", "inLanguage", "isBasedOn", "keywords", "mentions", "name", "qualifiedRelation", "operatedBy", "operatedBySource", "operatorSource", "provider", "publisher", "rdmkitRecord", "repositoryFunction", "repositoryKind", "resourceType", "review", "sameAs", "sdDatePublished", "serviceStatus", "coverage", "statusAsOf", "trainingSearch", "url"],
+      excluded: { acceptsDeposits: "derived deposit availability controls the deposit facet; functions and dated status remain visible" },
     },
     infrastructures: {
-      shown: ["abbreviation", "esfriStatus", "infrastructureCharacter", "infrastructurePhase", "isBasedOn", "memberOf", "name", "nationalNodeOf", "operates", "publisher", "researchField", "roadmapLocator", "roadmapSince", "sameAs", "subjectOf", "url"],
+      shown: ["abbreviation", "esfriStatus", "infrastructureCharacter", "infrastructurePhase", "source", "memberOf", "name", "nationalNodeOf", "publisher", "researchField", "roadmapLocator", "roadmapSince", "sameAs", "subjectOf", "url"],
       excluded: {},
     },
     clauses: {
@@ -48,24 +47,24 @@
       excluded: { position: ORDER },
     },
     glossary: {
-      shown: ["description", "license", "name", "subjectOf", "url"],
-      excluded: { inDefinedTermSet: "every term belongs to Heslář, which the entry's what-line names", termCode: "the term's number in Heslář, whose page the title links" },
+      shown: ["definitionPart", "name", "subjectOf", "url"],
+      excluded: { inDefinedTermSet: "every term belongs to Heslář, which the entry's what-line names", termCode: "the term's number in Heslář, whose page the title links", termPosition: ORDER },
     },
     fips: {
       shown: ["abstract", "alternateName", "author", "fipStatus", "dateModified", "hasPart", "isBasedOn", "keywords", "name", "review", "sameAs", "url", "version"],
-      excluded: { additionalType: SCHEMA_SUBTYPE },
+      excluded: {},
     },
     tests: {
-      shown: ["about", "additionalProperty", "alternateName", "citation", "description", "hasPart", "healthStatus", "isImplementationOf", "isPartOf", "name", "reviewedVersion", "statusAsOf", "subjectOf", "url"],
-      excluded: { additionalType: SCHEMA_SUBTYPE },
+      shown: ["about", "entryPoint", "alternateName", "citation", "description", "hasPart", "healthStatus", "isImplementationOf", "isPartOf", "name", "reviewedVersion", "statusAsOf", "subjectOf", "url"],
+      excluded: {},
     },
     lifecycles: {
-      shown: ["citation", "description", "descriptionTranslation", "inDefinedTermSet", "license", "name", "nameTranslation", "note", "quotedDefinition"],
-      excluded: { position: ORDER, termCode: "the stage's code in its model, which its ID carries" },
+      shown: ["definitionPart", "descriptionTranslation", "inDefinedTermSet", "name", "nameTranslation", "note", "quotedDefinition"],
+      excluded: { position: ORDER, termPosition: ORDER, termCode: "the stage's code in its model, which its ID carries" },
     },
     models: {
-      shown: ["carrier", "citation", "description", "hasPart", "maintainers", "modelKind", "name", "recipient", "sender", "transfer"],
-      excluded: { inDefinedTermSet: "every term belongs to the implementation model, which the entry's what-line names", position: ORDER, termCode: "the term's code, which its ID carries" },
+      shown: ["carrier", "source", "description", "hasPart", "maintainers", "modelKind", "name", "recipient", "sender", "transfer"],
+      excluded: { inDefinedTermSet: "every term belongs to the implementation model, which the entry's what-line names", position: ORDER, termPosition: ORDER, termCode: "the term's code, which its ID carries" },
     },
     actions: {
       shown: ["agent", "description", "endTime", "instrument", "name", "object", "result"],
@@ -116,14 +115,15 @@
       export: { url: tool.url || "", text: FG.text(tool.description) },
       text: [tool.name, FG.text(tool.description)].join(" "),
       stations: holders.map((station) => station.identifier), principles: [],
-      facets: { use: ["knav"], type: [FG.term("resource-types", "tool")], status: [], language: ["en"], lens: [], discipline: FG.list(tool.discipline) },
+      facets: { use: ["knav"], type: [typeOf(thing) || FG.term("resource-types", "tool")], status: [], language: ["en"], lens: [], discipline: FG.list(tool.discipline).map(FG.termKey) },
       render: () => entryCard({ kind: "resources",
         id: anchor, entity: thing, service: { identifier: anchor, name: tool.name, url: tool.url },
-        what: [FG.termName(FG.term("resource-types", "tool"))].concat(uses(["knav"])),
+        /* The catalogue lists tools; a tool only it knows takes that type from the Guide, which the entry shows. */
+        what: [field("guideType", FG.termName(typeOf(thing) || FG.term("resource-types", "tool")))].concat(uses(["knav"])),
         /* The guide links only over HTTPS; a tool the catalogue lists by a plain-HTTP address leads to the catalogue. */
         title: tool.url ? FG.external(tool.url, tool.name) : h("span", null, tool.name),
         titleFields: "name url",
-        details: [field("discipline", FG.list(tool.discipline).map((value) => FG.t("catalogue.discipline." + value)).join(", ") || null)],
+        details: [field("discipline", FG.list(tool.discipline).map((value) => FG.t("catalogue.discipline." + FG.termKey(value))).join(", ") || null)],
         body: [
           h("p", { lang: "en", "data-field": "description" }, FG.text(tool.description)),
           /* The description is the catalogue's own text, under the catalogue's licence. */
@@ -175,7 +175,7 @@
           status: FG.id(resource.serviceStatus) ? [FG.id(resource.serviceStatus)] : [],
           language: FG.list(resource.inLanguage).map(String),
           lens: FG.refIds(resource, "audience").map(FG.termKey),
-          discipline: tool ? FG.list(tool.discipline) : [],
+          discipline: tool ? FG.list(tool.discipline).map(FG.termKey) : [],
           node: nodeRole(resource),
         },
         render: () => resourceCard(resource, record, used, recommended.concat(citedBy)),
@@ -194,7 +194,7 @@
         text: [FG.text(source.name), source.creditText, FG.text((FG.get(source.publisher) || {}).name)].join(" "),
         stations: stationsOf(citedBy),
         principles: [],
-        facets: { use: used, type: [typeOf(source)].filter(Boolean), status: [], language: FG.list(source.inLanguage).map(String), lens: [], discipline: tool ? FG.list(tool.discipline) : [] },
+        facets: { use: used, type: [typeOf(source)].filter(Boolean), status: [], language: FG.list(source.inLanguage).map(String), lens: [], discipline: tool ? FG.list(tool.discipline).map(FG.termKey) : [] },
         render: () =>
           entryCard({ kind: "resources",
             id: source.identifier,
@@ -224,7 +224,7 @@
         text: [FG.text(fer.name), FG.bothLanguages(fer.description)].join(" "),
         stations: [],
         principles: FG.refs(fer, "about").map(code),
-        facets: { use: used, type: [typeOf(fer)].filter(Boolean), status: [], language: [], lens: [], discipline: tool ? FG.list(tool.discipline) : [] },
+        facets: { use: used, type: [typeOf(fer)].filter(Boolean), status: [], language: [], lens: [], discipline: tool ? FG.list(tool.discipline).map(FG.termKey) : [] },
         render: () =>
           entryCard({ kind: "resources",
             id: sourceKey("fip-dashboard", fer.identifier),
@@ -237,7 +237,7 @@
             details: [
               field("alternateName", fer.alternateName ? FG.text(fer.alternateName) : null),
               field("catalogueType", FG.id(fer.catalogueType) ? FG.t("catalogue.fairDataType", { type: FG.termName(FG.id(fer.catalogueType)) }) : null),
-              field("spatialCoverage", fer.spatialCoverage ? FG.t("catalogue.spatial." + fer.spatialCoverage) : null),
+              field("coverage", fer.coverage ? FG.t("catalogue.spatial." + FG.termKey(fer.coverage)) : null),
             ],
             body: fer.description ? h("p", { "data-field": "description" }, FG.span(fer.description)) : null,
             states: FG.verificationBadges(fer),
@@ -257,15 +257,15 @@
 
   /** What an entry is in the EOSC CZ Node, as a facet value: its role there, or none. */
   const nodeRole = (entity) => {
-    const membership = FG.get(FG.id(entity.nodeMembership));
-    return membership ? [FG.id(membership.roleName)] : [];
+    const membership = FG.nodeRelation(entity);
+    return membership ? [FG.id(membership.hadRole)] : [];
   };
 
   /** The large research infrastructures of the national roadmap: names in the reader's language with the
       acronym, the facts the roadmap states with where it states them, and three relations kept apart: the European
       infrastructures each is the Czech node of, its ERIC memberships, and the entries it operates. */
   function infrastructureEntries() {
-    return FG.refs(FG.get("#infrastructures"), "hasPart").map((infra) => {
+    return FG.refs(FG.get("#infrastructures"), "about").map((infra) => {
       const researchField = FG.id(infra.researchField);
       const phase = FG.id(infra.infrastructurePhase);
       const character = FG.id(infra.infrastructureCharacter);
@@ -293,15 +293,16 @@
             /* The host is who operates the infrastructure, in the Operated by row as for every kind. */
             details: [otherName(infra), field("roadmapSince", FG.t("infrastructure.since", { year: infra.roadmapSince })), field("infrastructureCharacter", character ? categoryLabel(character) : null)],
             states: FG.refIds(infra, "esfriStatus").map((id) => h("span", { class: "badge", "data-field": "esfriStatus" }, FG.termName(id))),
-            fields: { basedOn: "isBasedOn roadmapLocator" },
+            fields: { basedOn: "source roadmapLocator" },
             relations: {
               operatedBy: operatorRow(infra),
-              operates: FG.refs(infra, "operates").map(entryLink),
+              /* The entries that name this infrastructure as their operator. */
+              operates: FG.graph.filter((entry) => FG.hasRef(entry, "operatedBy", infra["@id"])).map(entryLink),
               identifiers: FG.identifierItems(infra),
               nationalNodeOf: nodes.map((ri) => h("span", null, ri.name + (FG.id(ri.esfriStatus) ? " (" + FG.termName(FG.id(ri.esfriStatus)) + ")" : ""))),
               fips: FG.id(infra.subjectOf) ? [h("a", { href: FG.entryHref(FG.get(infra.subjectOf)) }, FG.text((FG.get(FG.id(infra.subjectOf)) || {}).name) || FG.localId(infra.subjectOf))] : [],
               memberOf: erics.map((eric) => h("span", null, eric.czechMembershipSince === "expected" ? FG.t("infrastructure.ericExpected", { name: eric.name }) : FG.t("infrastructure.ericSince", { name: eric.name, year: eric.czechMembershipSince }))),
-              basedOn: FG.refs(infra, "isBasedOn").map((source, index) => h("span", null, sourceLink(source), index === 0 && infra.roadmapLocator ? " · " + infra.roadmapLocator : null)),
+              basedOn: FG.refs(infra, "source").map((source, index) => h("span", null, sourceLink(source), index === 0 && infra.roadmapLocator ? " · " + infra.roadmapLocator : null)),
             },
           }),
       };
@@ -367,7 +368,7 @@
               field("keywords", FG.subjectsOf(repository).join(", ") || null),
               field("inLanguage", languages.length ? FG.t("resource.languages", { languages: languages.join(", ") }) : null),
               field("catalogueType", FG.id(about.catalogueType) ? FG.t("catalogue.fairDataType", { type: FG.termName(FG.id(about.catalogueType)) }) : null),
-              field("spatialCoverage", about.spatialCoverage ? FG.t("catalogue.spatial." + about.spatialCoverage) : null),
+              field("coverage", about.coverage ? FG.t("catalogue.spatial." + FG.termKey(about.coverage)) : null),
               field("sdDatePublished", repository.sdDatePublished ? FG.t("catalogue.accessed", { date: FG.formatDate(repository.sdDatePublished) }) : null),
             ],
             body: [repository.url ? null : h("p", { class: "small" }, FG.t("repositories.noPublicAddress")), about.description ? h("p", { "data-field": "description mentions" }, FG.linkedSpan(about, "description")) : null, dataciteBlock(repository, anchor)],
@@ -379,7 +380,7 @@
               developedBy: developerRow(repository),
               providedBy: FG.refs(repository, "provider").map((party) => (party.url ? FG.external(party.url, FG.abbreviatedName(party, FG.state.lang)) : h("span", null, FG.abbreviatedName(party, FG.state.lang)))),
               declaredIn: declaredInRow(fer),
-              basedOn: [FG.sourceCredits(repository), repository.rdmkitRecord ? FG.external(repository.rdmkitRecord, "RDMkit") : null, repository.trainingSearch ? FG.external(repository.trainingSearch, FG.t("catalogue.trainingSearch")) : null],
+              basedOn: [FG.sourceCredits(repository), repository.rdmkitRecord ? FG.external(FG.id(repository.rdmkitRecord), "RDMkit") : null, repository.trainingSearch ? FG.external(FG.id(repository.trainingSearch), FG.t("catalogue.trainingSearch")) : null],
               audience: audiences(FG.refIds(repository, "audience")),
               inGuide: inGuide(holders),
               identifiers: FG.identifierItems(repository),
@@ -460,13 +461,13 @@
         principles: FG.principlesOf(clause).map((principle) => principle.termCode),
         order: String(index).padStart(4, "0"),
         group: { source: FG.id(clause.isPartOf) },
-        facets: { ckind: clause.clauseKind ? [clause.clauseKind] : [], csource: [FG.id(clause.isPartOf)], actor: audience ? [audience] : [], cstatus: [status] },
+        facets: { ckind: clause.clauseKind ? [FG.termKey(clause.clauseKind)] : [], csource: [FG.id(clause.isPartOf)], actor: audience ? [audience] : [], cstatus: [status] },
         render: () =>
           entryCard({ kind: "clauses",
             id: clause.identifier,
             entity: clause,
             class: "clause-card",
-            what: clause.clauseKind ? field("clauseKind", FG.t("catalogue.clauseKind." + clause.clauseKind)) : null,
+            what: clause.clauseKind ? field("clauseKind", FG.t("catalogue.clauseKind." + FG.termKey(clause.clauseKind))) : null,
             title: FG.clauseTitle(clause) ? FG.span(FG.clauseTitle(clause)) : null,
             body: [h("p", { "data-field": "text mentions" }, FG.linkedSpan(clause)), FG.guidance(clause)],
             states: status === "superseded" ? field("clauseStatus", FG.clauseStatus(status)) : null,
@@ -580,17 +581,18 @@
   function termEntries() {
     const stations = new Map();
     for (const station of FG.stations()) for (const id of FG.refIds(station, "mentions")) stations.set(id, (stations.get(id) || []).concat(station));
-    return FG.refs(FG.get("vocabularies/glossary"), "hasDefinedTerm").map((term) => {
+    return FG.termsOf("vocabularies/glossary").map((term) => {
       const at = stations.get(term["@id"]) || [];
+      const definitions = FG.refs(term, "definitionPart");
       const cs = FG.textOf(term.name, "cs").text;
       const en = FG.textOf(term.name, "en").text;
       return {
         kind: "glossary",
         entity: term,
         name: cs.replace(/^[[(]+/, ""),
-        export: { name: FG.text(term.name), url: term.url, text: FG.text(term.description), license: term.license },
+        export: { name: FG.text(term.name), url: term.url, text: definitions.map((definition) => FG.text(definition.description)).join(" "), license: definitions[0] && FG.id(definitions[0].license) },
         nameEn: en.replace(/^[[(]+/, ""),
-        text: cs + " " + en + " " + FG.bothLanguages(term.description),
+        text: cs + " " + en + " " + definitions.map((definition) => FG.bothLanguages(definition.description)).join(" "),
         stations: stationsOf(at),
         principles: [],
         facets: {},
@@ -607,14 +609,14 @@
             detailsLang: "en",
             /* Definitions retain the source's language; no English translation is invented. */
             body: [
-              term.description ? h("details", { class: "term-definition", open: Boolean(FG.parseHash(window.location.hash).extra), "data-field": "description" },
-                h("summary", null, FG.t("catalogue.termDefinition")), h("div", { class: "content" }, FG.paragraphs(term.description))) : null,
+              definitions.map((definition) => h("details", { class: "term-definition", open: Boolean(FG.parseHash(window.location.hash).extra), "data-field": "definitionPart" },
+                h("summary", null, FG.t("catalogue.termDefinition")), h("div", { class: "content" }, FG.paragraphs(definition.description)))),
               FG.refs(term, "subjectOf").filter((clause) => clause.guidance).map((clause) => h("details", { "data-field": "subjectOf" },
                 h("summary", null, FG.t("catalogue.originalDefinition", { source: FG.shortText(FG.get(clause.isPartOf)) })),
                 h("div", { class: "content" }, h("p", null, FG.sourceLink(FG.get(clause.isPartOf)), clause.sourceLocator ? " · " + clause.sourceLocator : ""),
                   h("blockquote", null, FG.paragraphs(clause.guidance))))),
               /* The definition is Heslář's text, under the licence its record names. */
-              FG.quoteLicence(term.license, "license"),
+              definitions.map((definition) => FG.quoteLicence(definition.license, "definitionPart")),
             ],
             relations: { inGuide: inGuide(at), identifiers: FG.identifierItems(term) },
           }),
@@ -751,7 +753,7 @@
         const stations = [...new Set(linked.map(({ item }) => FG.localId(item.fixAt)).filter(Boolean))];
         const principles = FG.principlesOf(criterion);
         const execution = provider.mode === "import" ? "import" : "service";
-        const documentation = FG.list(criterion.subjectOf).map(FG.id).filter(Boolean);
+        const documentation = FG.list(criterion.citation).map(FG.id).filter(Boolean);
         const anchor = sourceKey(provider.id, criterion.identifier);
         return {
           kind: "tests",
@@ -774,13 +776,13 @@
               titleFields: "alternateName",
               body: [h("p", { class: "small muted", lang: "en", "data-field": "name" }, FG.text(criterion.name)),
                 h("p", { class: "small" }, criterion.url ? h("span", { "data-field": "url" }, FG.external(criterion.url, FG.t(execution === "service" ? "selfcheck.evidence.endpoint" : "catalogue.criterionForm"))) : null,
-                  documentation.map((url) => [" · ", h("span", { "data-field": "subjectOf" }, FG.external(url, FG.t("selfcheck.evidence.documentation")))])),
+                  documentation.map((url) => [" · ", h("span", { "data-field": "citation" }, FG.external(url, FG.t("selfcheck.evidence.documentation")))])),
                 FG.list(criterion.reviewedVersion).length ? h("p", { class: "small", "data-field": "reviewedVersion" }, FG.t("catalogue.reviewedVersion") + ": " + FG.list(criterion.reviewedVersion).join("; ")) : null,
                 linked.length ? null : h("p", { class: "small muted" }, FG.t("catalogue.unmapped"))],
               relations: {
                 principles: tiles(principles),
                 /* The questions the criterion's result suggests an answer to, each with how much of it it covers. */
-                covers: FG.relationGroups([{ items: linked, render: ({ mapping, item }) => [FG.idChip(item), h("span", { class: "muted" }, " · " + FG.t("catalogue.coverage." + mapping.mappingCoverage)), mapping.description ? [": ", FG.span(mapping.description)] : null] }]),
+                covers: FG.relationGroups([{ items: linked, render: ({ mapping, item }) => [FG.idChip(item), h("span", { class: "muted" }, " · " + FG.t("catalogue.coverage." + FG.termKey(mapping.mappingCoverage))), mapping.description ? [": ", FG.span(mapping.description)] : null] }]),
                 inGuide: inGuide(checks.map((id) => FG.get(FG.address("checks", id)))),
                 identifiers: FG.identifierItems(criterion),
               },
@@ -795,17 +797,17 @@
   function testEntries() {
     const questions = testQuestions();
     return FG.graph
-      .filter((entity) => FG.isRecord(entity, "tests") && !FG.isCriterion(entity) && !FG.isManualTest(entity))
+      .filter((entity) => FG.isRecord(entity, "tests") && !FG.isCriterion(entity))
       .map((test) => {
         const principles = FG.principlesOf(test);
         const local = String(test.identifier).startsWith("guide-");
         const anchor = local ? test.identifier : sourceKey("fair-champion", test.identifier);
         const health = FG.termKey(test.healthStatus) || null;
-        const documentation = FG.list(test.subjectOf).map((entry) => {
+        const documentation = FG.list(test.subjectOf).concat(local ? [] : FG.list(test.citation)).map((entry) => {
           const entity = FG.get(entry);
           return entity && entity.url || FG.id(entry);
         }).filter(Boolean);
-        const entryPoint = FG.refs(test, "additionalProperty").find((entry) => entry.propertyID === "entryPoint");
+        const entryPoint = test.entryPoint;
         const linkedQuestions = questions.get(local ? test.identifier : FG.sourceIdentifier(test, "fair-champion")) || [];
         const checks = [...new Set(linkedQuestions.map((item) => String(item.identifier).split(".")[0]))];
         const stations = [...new Set(linkedQuestions.map((item) => FG.localId(item.fixAt)).filter(Boolean))];
@@ -834,14 +836,16 @@
                   FG.refIds(test, "hasPart").filter((path) => path !== test.url).length
                     ? h("span", { "data-field": "hasPart" }, " · " + FG.t("catalogue.testFiles") + ": ", FG.refIds(test, "hasPart").filter((path) => path !== test.url).map((path, index) => [index ? ", " : null, h("a", { href: path }, path)]))
                     : null),
-                documentation.length ? h("p", { class: "small", "data-field": "subjectOf" }, documentation.map((url, index) => [index ? " · " : null, FG.external(FG.testDocumentationHref(url, test), FG.t("selfcheck.evidence.documentation") + (documentation.length > 1 ? " " + (index + 1) : ""))])) : null,
-                entryPoint ? h("p", { class: "small", "data-field": "additionalProperty" }, h("code", null, entryPoint.value)) : null],
+                documentation.length ? h("p", { class: "small", "data-field": "subjectOf citation" }, documentation.map((url, index) => [index ? " · " : null, FG.external(FG.testDocumentationHref(url, test), FG.t("selfcheck.evidence.documentation") + (documentation.length > 1 ? " " + (index + 1) : ""))])) : null,
+                entryPoint ? h("p", { class: "small", "data-field": "entryPoint" }, h("code", null, entryPoint)) : null,
+                /* A FAIR Champion test implements the metric its own FTR record names. */
+                !local && FG.id(test.isImplementationOf) ? h("p", { class: "small", "data-field": "isImplementationOf" }, FG.t("catalogue.implementsMetric") + ": ", FG.external(FG.id(test.isImplementationOf), FG.id(test.isImplementationOf))) : null],
               states: health ? FG.stateBadge({ icon: HEALTH_ICON[health], text: FG.t("catalogue.health." + health), asOf: test.statusAsOf, attrs: { "data-health": String(health) }, field: "healthStatus statusAsOf" }) : null,
-              fields: { basedOn: "citation", prefills: "isImplementationOf" },
+              fields: local ? { basedOn: "citation", prefills: "isImplementationOf" } : { basedOn: "citation" },
               relations: {
                 principles: tiles(principles),
                 prefills: FG.relationGroups([{ items: linkedQuestions, render: (item) => [FG.idChip(item), " ", FG.linkedSpan(item)] }]),
-                basedOn: FG.refs(test, "citation").map(FG.recordLink),
+                basedOn: FG.list(test.citation).map((source) => FG.get(source) ? FG.recordLink(FG.get(source)) : FG.external(FG.id(source), FG.id(source))),
                 inGuide: inGuide(checks.map((id) => FG.get(FG.address("checks", id)))),
                 identifiers: FG.identifierItems(test),
               },
@@ -976,22 +980,23 @@
       kind: "models", entity: term, name: FG.text(term.name),
       text: [term.identifier, FG.bothLanguages(term.name), FG.bothLanguages(term.description)].join(" "),
       export: { text: FG.text(term.description) }, stations: [], principles: [],
-      order: String(term.position || 0).padStart(3, "0"), facets: { modelKind: [term.modelKind] },
-      render: () => entryCard({ kind: "models", id: term.identifier, entity: term, what: field("modelKind", FG.t("model.kind." + term.modelKind)),
+      order: String(term.position || 0).padStart(3, "0"), facets: { modelKind: [FG.termKey(term.modelKind)] },
+      render: () => entryCard({ kind: "models", id: term.identifier, entity: term, what: field("modelKind", FG.t("model.kind." + FG.termKey(term.modelKind))),
         title: FG.span(term.name), body: [h("div", { "data-field": "description" }, FG.paragraphs(term.description)), FG.modelDetail(term),
           h("p", { class: "small" }, h("a", { href: FG.modelFilterHref("resources", term) }, FG.t("model.related")), " · ",
             h("a", { href: FG.href("page", "model") }, FG.t("model.overview")))],
-        fields: { basedOn: "citation" },
-        relations: { basedOn: FG.refs(term, "citation").map(FG.sourceLink) }
+        fields: { basedOn: "source" },
+        relations: { basedOn: FG.refs(term, "source").map(FG.sourceLink) }
       })
     }));
   }
 
   /* The life-cycle models in order, and the path's stage of a station (`lifecycleStage`). */
-  const lifecycleModels = () => FG.graph.filter((entity) => FG.isRecord(entity, "lifecycles") && entity["@type"] === "DefinedTermSet").sort(FG.byPosition);
+  const lifecycleModels = () => FG.graph.filter((entity) => FG.isRecord(entity, "lifecycles") && FG.list(entity["@type"]).includes("DefinedTermSet")).sort(FG.byPosition);
   const modelSource = (model) => FG.refs(model, "citation")[0];
   const crosswalk = () => FG.graph.find((entity) => FG.isRecord(entity, "crosswalks") && FG.localId(entity).split("/").length === 1);
-  const correspondences = (stageId) => FG.refs(crosswalk(), "hasPart").filter((item) => FG.refIds(item, "about").includes(stageId));
+  /* A correspondence names its crosswalk; the crosswalk does not list them. */
+  const correspondences = (stageId) => { const whole = FG.id(crosswalk()); return FG.graph.filter((item) => whole && FG.hasRef(item, "isPartOf", whole) && FG.refIds(item, "about").includes(stageId)); };
 
   /* Each basis of a correspondence by its icon, beside its name. */
   const BASIS_ICONS = { published: "met", reviewed: "search", unconfirmed: "unknown" };
@@ -1001,21 +1006,24 @@
     const other = FG.refs(item, "about").find((stage) => stage["@id"] !== stageId);
     const model = other && FG.get(FG.id(other.inDefinedTermSet));
     const source = FG.refs(item, "citation")[0];
-    return h("li", { "data-basis": item.mappingBasis },
+    const basis = FG.termKey(item.mappingBasis);
+    return h("li", { "data-basis": basis },
       h("a", { href: FG.entryHref(other) }, model ? FG.shortText(modelSource(model)) + ": " : "", FG.span(other.name)),
-      " ", h("span", { class: "badge", "data-basis": item.mappingBasis }, FG.icon(BASIS_ICONS[item.mappingBasis]), FG.t("lifecycle.basis." + item.mappingBasis)),
+      " ", h("span", { class: "badge", "data-basis": basis }, FG.icon(BASIS_ICONS[basis]), FG.t("lifecycle.basis." + basis)),
       source ? [" · ", FG.sourceLink(source)] : null,
       item.description ? h("span", { class: "small muted" }, " · ", FG.span(item.description)) : null);
   }
 
   function lifecycleEntries() {
     const stations = FG.stations();
-    return lifecycleModels().flatMap((model) => FG.refs(model, "hasDefinedTerm").map((stage) => {
+    return lifecycleModels().flatMap((model) => FG.termsOf(model).map((stage) => {
       /* A path stage holds its stations; another model's stage reaches them through the path stages it matches. */
       const pathStages = model["@id"] === FG.id(FG.get("#path").isBasedOn) ? [stage["@id"]] : correspondences(stage["@id"]).flatMap((item) => FG.refIds(item, "about")).filter((id) => id !== stage["@id"]);
       const holders = stations.filter((station) => pathStages.includes(FG.id(station.lifecycleStage)));
       const translated = FG.list(stage.nameTranslation).includes(FG.state.lang);
-      const definition = FG.list(stage.description).filter((value) => value && value["@value"]);
+      const primary = FG.refs(stage, "definitionPart")[0] || {};
+      const secondary = FG.get(stage.quotedDefinition) || {};
+      const definition = FG.list(primary.description).filter((value) => value && value["@value"]);
       const shown = definition.find((value) => value["@language"] === FG.state.lang) || definition[0];
       return {
         kind: "lifecycles", entity: stage, name: FG.text(stage.name),
@@ -1028,23 +1036,24 @@
           title: FG.span(stage.name),
           details: translated ? field("nameTranslation", FG.t("lifecycle.translatedName")) : null,
           body: [
-            shown ? h("blockquote", { class: "stage-definition", lang: shown["@language"], "data-field": "description" }, shown["@value"]) : null,
+            shown ? h("blockquote", { class: "stage-definition", lang: shown["@language"], "data-field": "definitionPart" }, shown["@value"]) : null,
             /* A path stage's Czech definition is the Průvodce's translation; the Czech source's own wording follows it. */
             shown && FG.list(stage.descriptionTranslation).includes(shown["@language"])
               ? h("p", { class: "small muted", "data-field": "descriptionTranslation" }, FG.t("lifecycle.translationOf", { source: FG.shortText(modelSource(model)) }))
               : null,
-            stage.quotedDefinition
-              ? [h("blockquote", { class: "stage-definition stage-quote", lang: FG.list(stage.quotedDefinition)[0]["@language"], "data-field": "quotedDefinition" }, FG.list(stage.quotedDefinition)[0]["@value"]),
-                h("p", { class: "small muted" }, FG.t("lifecycle.quoteOf") + " ", FG.sourceLink(FG.refs(stage, "citation").slice(-1)[0]))]
+            FG.list(secondary.description).length
+              ? [h("blockquote", { class: "stage-definition stage-quote", lang: FG.list(secondary.description)[0]["@language"], "data-field": "quotedDefinition" }, FG.list(secondary.description)[0]["@value"]),
+                h("p", { class: "small muted" }, FG.t("lifecycle.quoteOf") + " ", FG.sourceLink(FG.refs(secondary, "citation")[0]))]
               : null,
             stage.note ? h("p", { class: "small", lang: FG.list(stage.note)[0]["@language"], "data-field": "note" }, FG.list(stage.note)[0]["@value"]) : null,
             /* The definition is the model's own text, under the licence its record names. */
-            FG.quoteLicence(stage.license, "license"),
+            FG.quoteLicence(primary.license, "definitionPart"),
+            FG.quoteLicence(secondary.license, "quotedDefinition"),
           ],
-          fields: { basedOn: "citation" },
+          fields: { basedOn: "definitionPart quotedDefinition" },
           relations: {
             correspondsTo: correspondences(stage["@id"]).length ? h("ul", { class: "relation-group crosswalk relation-list" }, correspondences(stage["@id"]).map((item) => correspondenceItem(item, stage["@id"]))) : [],
-            basedOn: FG.refs(stage, "citation").map(FG.sourceLink),
+            basedOn: FG.refs(primary, "citation").concat(FG.refs(secondary, "citation")).map(FG.sourceLink),
             inGuide: inGuide(holders),
           },
         }),
@@ -1087,10 +1096,11 @@
     const site = FG.siteAddress();
     const summary = (entry) => {
       const entity = entry.entity || {};
+      const definition = entry.kind === "glossary" ? FG.refs(entity, "definitionPart")[0] || {} : {};
       const record = FG.recordHref(entity);
       const label = entity.text !== undefined && entity.name === entity.identifier ? "text" : "name";
       return { "@id": record ? site + record : FG.pageAddress() + FG.catalogueHref(entry.address), "@type": entity["@type"], identifier: FG.config.api.records[FG.id(entity)], [label]: FG.languageMap(entity[label]) || entry.name,
-        ...(entry.kind === "glossary" && entity.description ? { description: FG.languageMap(entity.description), url: entity.url, license: entity.license } : {}),
+        ...(entry.kind === "glossary" && definition.description ? { description: FG.languageMap(definition.description), url: entity.url, license: FG.id(definition.license) } : {}),
         implementationLayers: entry.layers.map((id) => ({ "@id": FG.iri(id) })),
         implementationSeams: entry.seams.map((id) => ({ "@id": FG.iri(id) })) };
     };
@@ -1126,7 +1136,7 @@
   /* Every kind's categories read the same: in lower case, unless a name starts with an acronym. */
   const categoryLabel = (id) => FG.category(termLabel(id));
   /** A vocabulary's terms, in its order. */
-  const termsOf = (set) => FG.refIds(FG.get("vocabularies/" + set), "hasDefinedTerm");
+  const termsOf = (set) => FG.termsOf("vocabularies/" + set).map(FG.id);
   const checkName = (value) => FG.text((FG.get(FG.address("checks", value)) || {}).name);
   const DEPOSIT = FG.term("repository-functions", "deposit-data");
   const KIND_FACETS = {
@@ -1212,7 +1222,7 @@
   /** A model definition belongs in its own facet without asserting a self-association in the knowledge base. */
   function sharedValues(entry, dimension) {
     const ownKind = dimension === "layers" ? "layer" : dimension === "seams" ? "seam" : "";
-    return entry.kind === "models" && entry.entity.modelKind === ownKind
+    return entry.kind === "models" && FG.termKey(entry.entity.modelKind) === ownKind
       ? [...entry[dimension], entry.entity["@id"]] : entry[dimension];
   }
 

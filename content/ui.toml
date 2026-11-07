@@ -840,7 +840,7 @@ stations = { cs = "Kroky cesty", en = "Steps of the path" }
 principles = { cs = "Principy", en = "Principles" }
 entry = { cs = "Položka v katalogu", en = "Catalogue entry" }
 implementationLayers = { cs = "Vrstvy implementace", en = "Implementation layers" }
-implementationSeams = { cs = "Návaznosti", en = "Connections" }
+implementationSeams = { cs = "Návaznosti", en = "Seams" }
 record = { cs = "Záznam v API", en = "Record in the API" }
 
 [footer]
@@ -925,6 +925,7 @@ notApplicableNot = { cs = "odpověď „netýká se“ nabízena není", en = "�
 prefillPartly = { cs = "navrhne nejvýš Částečně", en = "suggests at most Partly" }
 championOnly = { cs = "jen z podkladů FAIR Champion", en = "FAIR Champion evidence only" }
 testFiles = { cs = "Soubory", en = "Files" }
+implementsMetric = { cs = "Implementuje metriku", en = "Implements the metric" }
 version = { cs = "verze {version}", en = "version {version}" }
 declarations = { cs = "{n} deklarace|{n} deklarace|{n} deklarací", en = "{n} declaration|{n} declarations" }
 created = { cs = "obsah vytvořen", en = "content created" }
@@ -973,15 +974,15 @@ statement = { cs = "zjištění", en = "finding" }
 [catalogue.tab]
 resources = { cs = "Zdroje", en = "Resources" }
 repositories = { cs = "Repozitáře", en = "Repositories" }
-clauses = { cs = "Požadavky a doporučení", en = "Requirements and recommendations" }
+clauses = { cs = "Požadavky", en = "Requirements" }
 glossary = { cs = "Pojmy", en = "Glossary" }
 fips = { cs = "Profily FIP", en = "FIP profiles" }
 tests = { cs = "Testy FAIR", en = "FAIR tests" }
 questions = { cs = "Otázky kontrol", en = "Check questions" }
 actions = { cs = "Změny obsahu", en = "Content changes" }
-lifecycles = { cs = "Životní cyklus dat", en = "Data life cycle" }
-models = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
-infrastructures = { cs = "Velké výzkumné infrastruktury", en = "Large research infrastructures" }
+lifecycles = { cs = "Životní cyklus", en = "Life cycle" }
+models = { cs = "Model implementace", en = "Implementation model" }
+infrastructures = { cs = "Výzkumné infrastruktury", en = "Research infrastructures" }
 
 [catalogue.intro]
 infrastructures = { cs = "Velké výzkumné infrastruktury z Cestovní mapy velkých výzkumných infrastruktur ČR na léta 2023–2026: obor, fáze, hostitelská instituce, národní uzly evropských výzkumných infrastruktur a členství v ERIC, jak je mapa uvádí, a repozitáře, které provozují, kde to uvádí zdroj.", en = "The large research infrastructures of the Czech Roadmap of Large Research Infrastructures for 2023–2026: field, phase, hosting institution, national nodes of European research infrastructures and ERIC memberships as the roadmap states them, and the repositories they operate where a source says so." }
@@ -1036,11 +1037,12 @@ basedOn = { cs = "Vychází z", en = "Based on" }
 inGuide = { cs = "V Průvodci", en = "In the Guide" }
 identifiers = { cs = "Identifikátory", en = "Identifiers" }
 implementationLayers = { cs = "Vrstvy implementace", en = "Implementation layers" }
-implementationSeams = { cs = "Návaznosti", en = "Connections" }
+implementationSeams = { cs = "Návaznosti", en = "Seams" }
 operatedBy = { cs = "Provozovatel", en = "Operated by" }
 nationalNodeOf = { cs = "Národní uzel", en = "National node of" }
 memberOf = { cs = "Členství v ERIC", en = "ERIC membership" }
 operates = { cs = "Provozuje", en = "Operates" }
+qualifiedRelation = { cs = "Zapojení do uzlu", en = "Onboarded by node" }
 fips = { cs = "Profil FIP komunity", en = "Community FIP" }
 developedBy = { cs = "Vyvinuli", en = "Developed by" }
 fixedBy = { cs = "Kdo to napraví", en = "Who puts it right" }
@@ -1255,7 +1257,7 @@ earth-sciences = { cs = "vědy o Zemi", en = "Earth Sciences" }
 [catalogue.facet]
 record = { cs = "Položka", en = "Entry" }
 layers = { cs = "Vrstvy implementace", en = "Implementation layers" }
-seams = { cs = "Návaznosti", en = "Connections" }
+seams = { cs = "Návaznosti", en = "Seams" }
 modelKind = { cs = "Část modelu", en = "Part of the model" }
 lcmodel = { cs = "Model životního cyklu", en = "Life-cycle model" }
 discipline = { cs = "Obor v katalogu KNAV", en = "Discipline in the KNAV catalogue" }
@@ -1332,8 +1334,8 @@ recordTitle = { cs = "Záznam v API Průvodce", en = "Record in the Guide's API"
 
 [api.test]
 contextDescription = { cs = "Tato položka vysvětluje kontext původního zdroje. Nepředstavuje samostatné hodnotitelné kritérium.", en = "This item explains the original source's context. It does not represent a separate assessable criterion." }
-name = { cs = "Ruční test otázky {id}", en = "Manual test of question {id}" }
-description = { cs = "Test provádí člověk v sebehodnocení Průvodce: odpověď ano je pass, ne je fail, částečně a nevím jsou indeterminate.", en = "A person runs the test in the Guide's self-check: yes is pass, no is fail, partly and don't know are indeterminate." }
+name = { cs = "Otázka {id} v uložených výsledcích", en = "Question {id} in saved results" }
+description = { cs = "Výsledky uložené dřívějšími verzemi Průvodce uvádějí tento dokument jako test otázky. Popisuje otázku a odkazuje na ni.", en = "Results saved by earlier versions of the Guide name this document as the question's test. It describes the question and links to it." }
 
 [api.collection.principles]
 name = { cs = "Principy FAIR", en = "FAIR principles" }
@@ -1500,13 +1502,13 @@ statusAsOf = { cs = "stav v mapování k {date}", en = "mapping status as of {da
 overview = { cs = "Jak spolupráce vytváří FAIR data", en = "How collaboration enables FAIR data" }
 functions = { cs = "Šest funkcí implementace", en = "Six implementation functions" }
 connections = { cs = "Co předat a komu", en = "What to hand over and to whom" }
-choose = { cs = "Vyberte návaznost", en = "Choose a connection" }
+choose = { cs = "Vyberte návaznost", en = "Choose a seam" }
 related = { cs = "Související obsah v katalogu", en = "Related catalogue content" }
 openRecord = { cs = "Podrobnosti v katalogu", en = "Details in the catalogue" }
 allRecords = { cs = "Všechny části modelu v katalogu", en = "All parts of the model in the catalogue" }
 examples = { cs = "Doložené příklady implementace", en = "Documented implementation examples" }
 diagramAlt = { cs = "Šest vrstev propojených předáním informací; provozní podpora a hodnocení vracejí zpětnou vazbu do celého modelu.", en = "Six layers connected by information hand-offs; operational support and evaluation return feedback throughout the model." }
-diagramCaption = { cs = "Vrstvy označují funkce. Návaznosti mohou spojovat různé vrstvy i různé funkce uvnitř jedné vrstvy.", en = "Layers identify functions. Connections can join different layers or different functions within one layer." }
+diagramCaption = { cs = "Vrstvy označují funkce. Návaznosti mohou spojovat různé vrstvy i různé funkce uvnitř jedné vrstvy.", en = "Layers identify functions. Seams can join different layers or different functions within one layer." }
 openFigure = { cs = "Otevřít celý obrázek", en = "Open the full figure" }
 handover = { cs = "Podklad pro řešení", en = "Information for follow-up" }
 handoverHint = { cs = "Při řešení použijte označenou otázku a uchovaný podklad. Souhrn můžete uložit jako Markdown nebo JSON-LD v nabídce výsledku.", en = "Use the identified question and retained evidence when following up. You can save the summary as Markdown or JSON-LD from the result menu." }
@@ -1515,7 +1517,7 @@ criterion = { cs = "Otázka", en = "Question" }
 
 [model.kind]
 layer = { cs = "vrstva implementace", en = "implementation layer" }
-seam = { cs = "návaznost", en = "connection" }
+seam = { cs = "návaznost", en = "seam" }
 
 [model.field]
 transfer = { cs = "Co se předává", en = "What is transferred" }

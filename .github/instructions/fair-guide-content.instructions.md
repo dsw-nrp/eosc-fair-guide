@@ -53,8 +53,11 @@ For an **advice item**:
 3. Cite at least one ledger clause in `sources`. If the fact has no clause yet, add one to the ledger first
    (section 3).
 
-For a **question** (`[[item]]` in `content/checks/<check>.toml`): set `tier`, `principles`, the `statement` in
-both languages, `sources`, `fixAt`, `owner`, the `modes` or `profiles` it applies to, and `prefill` where a live
+For a **question** (`[[item]]` in `content/checks/<check>.toml`): name the ledger clause it asks about in
+`requirement`, which supplies its text, so the text is written once. Write a `statement` in both languages only where
+the question differs from that clause: it names another actor, covers part of the clause or must be reworded to be
+answerable. A reworded copy is still a copy; the content check refuses only an identical one. Set `tier`,
+`principles`, `sources`, `fixAt`, `owner`, the `modes` or `profiles` it applies to, and `prefill` where a live
 source can answer it, with `prefillLevel` or `championEvidenceOnly` where that source covers only part of it.
 Never add a score.
 

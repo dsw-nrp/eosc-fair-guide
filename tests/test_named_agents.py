@@ -45,7 +45,7 @@ class NamedAgentTests(unittest.TestCase):
         for fragment in ("#fip-dashboard", "#fip-dashboard-organization"):
             record = self.entities[datacite + fragment]
             self.assertEqual(record["primaryTopic"], kb.ref(datacite), fragment)
-            self.assertIn(kb.ref(datacite + fragment), kb.as_list(self.entities[datacite]["isBasedOn"]))
+            self.assertNotIn(kb.ref(datacite + fragment), kb.as_list(self.entities[datacite].get("isBasedOn")))
         self.assertNotIn(iri("organizations/datacite"), self.entities)
 
     def test_no_two_described_things_share_a_name_outside_a_reviewed_group(self):

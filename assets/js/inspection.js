@@ -351,11 +351,11 @@
   function localTestLine(item) {
     const id = "guide-" + item.identifier.replace(".", "-");
     const test = FG.localTest(id);
-    const entryPoint = test && FG.refs(test, "additionalProperty").find((property) => property.propertyID === "entryPoint");
+    const entryPoint = test && test.entryPoint;
     return test ? h("div", { class: "test-line", "data-local-test": id }, localTestLinks(test),
       h("p", { class: "small muted" }, FG.t("selfcheck.evidence.local")),
       entryPoint ? h("details", { class: "probe-log" }, h("summary", null, FG.t("selfcheck.evidence.call")),
-        h("div", { class: "content test-invocation" }, h("code", null, entryPoint.value))) : null) : null;
+        h("div", { class: "content test-invocation" }, h("code", null, entryPoint))) : null) : null;
   }
 
   /** Who gave the answer: the reader, a pre-fill they kept, changed or confirmed, or a shared result. A source is

@@ -135,8 +135,9 @@ class PublicationLocationTests(unittest.TestCase):
                             broken.add(triple)
                         predicate = URIRef(semantic + "terms#modelKind")
                         target = next(broken.subjects(predicate=predicate))
-                        # Removing required source evidence is caught at the selected namespace too.
+                        # Removing both forms of required source evidence is caught at the selected namespace too.
                         broken.remove((target, URIRef("http://schema.org/citation"), None))
+                        broken.remove((target, URIRef("http://purl.org/dc/terms/source"), None))
                         self.assertFalse(validate(broken, shacl_graph=shapes, advanced=True)[0])
 
     def test_the_namespace_comes_from_content_never_from_the_environment(self):

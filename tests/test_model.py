@@ -213,10 +213,8 @@ class ModelTests(unittest.TestCase):
         crate = build_crate.build_crate(self.content)
         graph = {item["@id"]: item for item in crate["@graph"]}
         worked = graph[iri("models/layers-seams#worked-example")]
-        self.assertEqual(
-            worked["hasPart"],
-            [{"@id": iri("clauses/A.F1.R1")}, {"@id": iri("questions/gate.01")}, {"@id": iri(f"actions/{action}")}],
-        )
+        self.assertEqual(worked["hasPart"], [{"@id": iri("clauses/A.F1.R1")}, {"@id": iri("questions/gate.01")}])
+        self.assertEqual(worked["potentialAction"], [{"@id": iri(f"actions/{action}")}])
         self.assertEqual(
             graph[iri("models/layers-seams")]["workExample"], {"@id": iri("models/layers-seams#worked-example")}
         )

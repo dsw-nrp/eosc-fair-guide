@@ -260,3 +260,55 @@
   tests share `schema:CreativeWork` with other kinds, so profile 0.2 has no shape that targets them; the content
   check keeps covering them. The native content rule in `.agents/guide/` still tells question authors to write a
   statement; it is a governed surface outside this milestone's tasks, so it is left for an approved edit.
+
+## Kilo session, continued (M2 graph-model review and close-out)
+
+- **When:** 2026-11-07 (+01:00)
+- **Agent / runtime:** Kilo Code (VS Code extension)
+- **Model / backend:** e-infra-cz/kimi-k3.1-pro
+- **Subagents used:** none
+- **MCP servers used:** none (GitHub was reached through the `gh` CLI)
+- **Workflow context used:** continued the Claude Code session's `openspec-apply-change unify-identity-model-and-api`
+  from its own resume file; delivered `aiscr-planning-core`, `aiscr-quality-first-execution`, `aiscr-usage-logging`
+  and `aiscr-model-logging` rules; the native `fair-guide-editor` and `openspec-apply-change` workflows; the pinned
+  `npx openspec` CLI; offline rdflib, pyshacl and the repository's Playwright suites; `gh pr checks` for CI.
+- **What:**
+  - Completed the native question-text rule and the maintainer's graph-model decisions. Pinned the used vocabularies
+    and their licences as offline fixtures, checked every used term at its declared IRI, and tested each Guide
+    declaration against the graph and class hierarchies.
+  - Selected every kind by its class or term set, asserted rather than inferred kinds, made all registry records
+    `dcat:CatalogRecord` plus `schema:CreativeWork`, removed manual FTR tests, and selected criteria by
+    `guide:AssessmentCriterion`. Profile shapes now fail planted removals of required fields instead of letting a
+    node escape its shape.
+  - Stated each relation once: terms name their sets, principles are dimensions and questions name checks, records
+    name their topics, snapshots hold records, and no thing duplicates its records. Models, lifecycle definitions,
+    glossary definitions and test entry points use valid properties and classes; sources and documents use IRI
+    references. An author/provider's organisational role stays distinct from its service record.
+  - Moved quoted definitions to creative works under their terms, linked with `dcterms:hasPart` and, for a second
+    Czech definition, `guide:quotedDefinition`. Their exact wording, licences and citations remain available to the
+    page, search, exports and deferred reconstruction. Model terms and organisations use `dcterms:source` where
+    schema.org is too restrictive.
+  - Modelled the EOSC CZ Node as `resources/eosc-cz-node`, a service provided by e-INFRA CZ, with qualified DCAT
+    relationships and their role, milestone, date and charter. Reclassified the NRP Data Catch-all Repository as a
+    service. Registered the new source and Node and the EOSC Federation Handbook with its DOI and licence.
+  - Corrected API source alternatives and record fragments, embedded registry records through reverse
+    `foaf:primaryTopic`, and avoided treating ordinary health source IDs as links. Deferred definitions and
+    instruments so the initial Czech payload returns below 300 KB with complete reconstruction.
+  - Documented the resulting model in `docs/content-model.md` and `docs/design.md`, corrected the unreleased
+    changelog, and made the worker-limit regression deterministic by coordinating acquisitions rather than relying
+    on process startup timing.
+- **Impacted:** `content/` (`eosc-node.toml`, `sources.toml`, `identifiers.toml`, `guide.toml`, `resources.toml`,
+  `stations/05-repository.toml`, `provenance.toml`, `ui.toml`), `scripts/` (`build_crate.py`, `build_api.py`,
+  `check_content.py`, `check_docs.py`, `check_duplicates.py`), `assets/js/` (catalogue, core, search, inspection and
+  view scripts), `profile/fair-guide/`, `tests/` (offline vocabularies, graph, API, page and runtime contracts),
+  `docs/` (`content-model.md`, `design.md`), `CHANGELOG.md`, `.agents/guide/rules/fair-guide-content.md` and its
+  generated mirrors, `openspec/changes/unify-identity-model-and-api/` (proposal, design, tasks and spec deltas), and
+  this entry. The local Claude session file remains runtime scratch under `.agents/local_scratch/cld/`.
+- **Verification:** `python scripts/check_all.py` passes all 36 checks on the final tree. The offline vocabulary,
+  graph and profile regressions, full browser suite, API's 1,735 files and 38,592 links, and both publication and
+  worker-coordination suites pass. `npm run openspec:validate` passes 6 of 6. The initial Czech payload is 299.3
+  KB and English is 296.9 KB, below the 300 KB budget. `gh pr checks 172` is green on the earlier head; no CI run
+  covers the uncommitted head used for this entry yet. Live checks were not run.
+- **Close-out:** the local M2 work is complete (49 of 71 tracked tasks). Task 3.22 is not checked off until CI
+  verifies a commit containing it; that requires separately authorised staging, commit and push. M3 (API v1 and
+  graph access) is the next implementation milestone.

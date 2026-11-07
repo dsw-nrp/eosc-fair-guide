@@ -149,15 +149,27 @@ fipDashboard = "eduid-cz"
 knav = "eduid"
 evidence = ["https://fip-dashboard.dmp.eosc.cz/resources/eduid-cz", "https://www.eduid.cz/"]
 
+# The FIP Dashboard describes it as the platform's general-purpose repository for institutions without their own.
 [[record]]
 fipDashboard = "nrp-invenio"
+kind = "general"
 functions = ["deposit-data"]
 evidence = ["https://fip-dashboard.dmp.eosc.cz/resources/nrp-invenio"]
 
+# The FIP Dashboard describes it as the Czech aggregating repository of grey literature from partner institutions,
+# in every discipline.
 [[record]]
 fipDashboard = "nusl"
+kind = "general"
 functions = ["deposit-publications"]
 evidence = ["https://fip-dashboard.dmp.eosc.cz/resources/nusl"]
+
+# re3data records no type for Pandora and describes it as an open data platform devoted to the study of the human
+# story, from archaeology and anthropology to history and ancient DNA.
+[[record]]
+re3data = "r3d100013698"
+kind = "domain"
+evidence = ["https://www.re3data.org/repository/r3d100013698"]
 
 # Czech-hosted repositories that re3data lists without the Czech Republic as a country; the re3data snapshot adds
 # them to its Czech listing (docs/content-model.md).

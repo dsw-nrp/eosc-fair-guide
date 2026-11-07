@@ -138,6 +138,9 @@ for (const file of files.filter((name) => name.endsWith(".json"))) {
   (function walk(value, key) {
     if (Array.isArray(value)) return value.forEach((item) => walk(item, key));
     if (value && typeof value === "object") return Object.entries(value).forEach(([inner, item]) => walk(item, inner));
+    // Health evidence also has literal `source` IDs; those are not dcterms:source references. Actual links are
+    // reached through an @id (including a dcterms:source object) and are checked there.
+    if (key === "source") return;
     if (typeof value === "string" && (linkKeys.has(key) || key === "@context")) check(value);
   })(read(join(site, file)), null);
 }

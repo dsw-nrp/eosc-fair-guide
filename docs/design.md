@@ -199,25 +199,52 @@ Genuine source identifiers live in typed `alternateIds`; obsolete Guide IDs are 
 projection gives every record one address, `<kind>/<id>` in a plain-word kind vocabulary, and one IRI under the
 Guide's namespace; the crate, the API, the page's routes and references all use it, and there is no parallel
 full-address register. A part of a record takes a fragment under it, as a registry's record about the thing it
-describes does; a page's section takes its own id, never its place, so reordering a page moves no address. Every registry's row is such a record, and the thing rests on each of its records and, where the
-Guide describes it, on the Guide's selection, so a consumer reads from the graph which catalogues supplied a thing,
-and the page credits them from the same statements. A thing that rests on nothing but its records is one only
-registries know. Chips display the record ID, and an entry's identifiers start with its own IRI; no identifier
-chip carries a label, because an identifier says what issued it. Published source labels and authoritative IRIs
-remain metadata with their actual roles. Before the first official release, IDs may change in place without compatibility routes or duplicate
-API documents. After issue, names/classification may change while the address remains fixed. Reviewed joins
-identify one described thing; ambiguous changes require review. Duplicate checks retain their current reasons.
+describes does; a page's section takes its own id, never its place, so reordering a page moves no address. Every
+registry's row is a `dcat:CatalogRecord` and `schema:CreativeWork` under its thing, naming that thing with
+`foaf:primaryTopic`; the thing does not list those records again. Each record rests on its snapshot, and a curated
+work rests on the Guide's selection, while organisations and infrastructures name their published sources with
+`dcterms:source`, so a consumer reads from the graph which catalogues supplied a thing and the page credits them
+from the same statements. A thing only registries know is founded by its first record and has no curated-source
+statement. Chips display the record ID, and an entry's identifiers start with its own IRI; no identifier chip carries
+a label, because an identifier says what issued it. Published source labels and authoritative IRIs remain metadata
+with their actual roles. Before the first official release, IDs may change in place without compatibility routes or
+duplicate API documents. After issue, names/classification may change while the address remains fixed. Reviewed
+joins identify one described thing; ambiguous changes require review. Duplicate checks retain their current reasons.
 
 **One graph model.** A controlled vocabulary is modelled once: every term is a `schema:DefinedTerm` in exactly one
-term set, and its SKOS reading is stated once, as subclass and subproperty axioms in the Guide's own vocabulary
-document, so no membership is stated twice. Every status is a term of its own scheme, named through a property that
-specializes `adms:status`, so `planned` exists once and a status is never a string. Advice is a class of its own,
-`guide:AdviceItem`, with its kind as a term, because schema.org's HowTo types describe one procedure's steps, not
-advice by lens and level. A check is an FTR benchmark and its questions FTR metrics, each implemented by a manual
-test the build writes, and the graph states the FTR relations instead of their schema.org duplicates; a pre-fill is
-a typed mapping that names its source, what it reads and how much of its question it covers. A question that asks
-what a clause says names the clause as its requirement and takes its text, so the text is written once. The
-profile states these rules as shapes, each proved by a planted violation it refuses.
+term set, named by the term with `schema:inDefinedTermSet`, and its SKOS reading is stated once, as subclass and
+subproperty axioms in the Guide's own vocabulary document. A set does not list its terms again, and ordered terms
+carry `guide:termPosition` because schema.org's `position` does not admit terms. Every status is a term of its own
+scheme, named through a property that specializes `adms:status`, so `planned` exists once and a status is never a
+string. Advice is a class of its own, `guide:AdviceItem`, with its kind as a term, because schema.org's HowTo types
+describe one procedure's steps, not advice by lens and level. A check is an FTR benchmark and its questions FTR
+metrics; only criteria exposed through an API are FTR tests, and a reader's answer is a DQV measurement, never an
+FTR test. A pre-fill is a typed mapping naming its source, what it reads and how much of its question it covers. A
+question that asks what a clause says names the clause as its requirement and takes its text, so the text is written
+once. The profile states these rules as shapes, each proved by a planted violation it refuses.
+
+Every relation is written in one documented direction, never both for the same pair. Every class is an `@type`,
+including Guide classes for kinds that share an established class; a registry record's FIP classification sits on
+that record rather than typing it as its thing. The vocabulary's domains and ranges hold for the built graph, and a
+pinned copy of every established vocabulary lets checks prove each property is used within its declarations.
+Schema.org properties stay within their published alternatives: licences and citations belong to quoted works, not
+to defined terms, and organisations name their sources with `dcterms:source`. Local test entry points use an explicit
+Guide property rather than `additionalProperty`. An operator or provider that is also a described service keeps its
+organisational role explicit without duplicating its service record.
+
+**The EOSC CZ Node is a service platform.** Current EOSC Federation guidance describes a Node as a collection of
+services and data sources operated by an organisation. Its Guide resource is therefore `resources/eosc-cz-node`, a
+`schema:Service` provided by e-INFRA CZ, not an organisation with members. Each onboarded entry is a
+`dcat:Relationship` part linked from the Node with `dcat:qualifiedRelation`: `dcterms:relation` names the entry,
+`dcat:hadRole` its role, and the part carries any integration milestone, date checked, charter and locator. The part
+is also a `schema:CreativeWork` as the dated evidence statement, so its source citation is in scope. The page derives
+an entry's badge and the node facet from those Node-side relations rather than repeating membership on every entry.
+
+**Quoted definitions are works, not metadata stuck on terms.** A glossary or life-cycle definition lives in a
+`schema:CreativeWork` fragment under its term, linked with `dcterms:hasPart` and carrying the quoted text, licence
+and source. A second Czech life-cycle source has its own fragment linked by `guide:quotedDefinition`. This preserves
+the exact wording and attribution while keeping schema.org's CreativeWork-only licence and citation properties off
+`schema:DefinedTerm` instances.
 
 **Originals and translations have separate purposes.** Permitted originals are attributed once on
 clauses, with language, version, locator and reuse terms, and reused by stations, checks and catalogue.
@@ -519,13 +546,14 @@ partial, complete, expanded and imported states in both languages at desktop/pho
 
 **The static API is a crate view.** `build_api.py` emits collection/entity JSON with language maps,
 JSON-LD context, OpenAPI 3.1 and pinned local Swagger UI. Records link relatively. Checks are FTR
-benchmarks, questions metrics, and named manual tests link exports to definitions; the API uses the graph's types
-and relations as they are, without renaming them. Paths align with
-the Dashboard's published vocabulary. Data for machines teaches from real task-to-data links, FAIR
-Signposting, profile, licensing, paradata and result examples. Head and linkset share one discovery list.
-Views offer their own data, cards their record, checks their result; filtered exports retain order/filters.
-Print exposes closed content and relevant addresses. Swagger UI is the explicit scoped accessibility
-exception named in the public statement; the accessible machines page lists the same endpoints.
+benchmarks and questions metrics; a person answering a question is not an FTR test, and the `api/tests/<question>.json`
+documents kept for saved results in format revisions 1 to 3 are not presented as tests. The API uses the graph's
+types and relations as they are, without renaming them. Paths align with the Dashboard's published vocabulary. Data
+for machines teaches from real task-to-data links, FAIR Signposting, profile, licensing, paradata and saved result
+examples. Head and linkset share one discovery list. Views offer their own data, cards their record, checks their
+result; filtered exports retain order/filters. Print exposes closed content and relevant addresses. Swagger UI is the
+explicit scoped accessibility exception named in the public statement; the accessible machines page lists the same
+endpoints.
 
 ## Checks, automation and delivery
 

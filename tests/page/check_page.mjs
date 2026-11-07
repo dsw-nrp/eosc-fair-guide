@@ -1774,13 +1774,13 @@ sections.push(["self-check", async () => {
   if (!String(k01["ftr:log"]).includes("Doklad") || !k01["prov:used"]) fail("export: the fip.01 result does not record its evidence: " + JSON.stringify(k01));
   if (!md.includes("Deklarované")) fail("export: the Markdown summary does not carry the evidence behind the answers");
   if (JSON.stringify(exported).includes("file:")) fail("export: the JSON-LD names a local file");
-  // A result names the test it came from: the question's manual test in the guide's API, which implements the
-  // question's metric. From a local file the page names the configured address, which maps onto the built site.
+  // A result of this format names the document the question had as its test in the guide's API, which describes and
+  // links the question. From a local file the page names the configured address, which maps onto the built site.
   const configured = await page.evaluate(() => window.FairGuide.config.pageUrl);
   const testRef = String((k01["ftr:outputFromTest"] || {})["@id"] || "");
   const testFile = testRef.startsWith(configured) ? resolve(root, "_site", testRef.slice(configured.length)) : null;
   const testRecord = testFile && existsSync(testFile) ? JSON.parse(readFileSync(testFile, "utf8")) : null;
-    if (!testRecord || ![].concat(testRecord["@type"]).includes("Test") || testRecord.isImplementationOf !== "../questions/fip.01.json") fail("export: the fip.01 result does not name its test in the guide's API: " + testRef);
+    if (!testRecord || testRecord.about !== "../questions/fip.01.json") fail("export: the fip.01 result does not name its question's document in the guide's API: " + testRef);
 
   // Local data: each check says where the answers are kept, and how it works.
   await at("K", "fip", "evidence");
@@ -2461,7 +2461,10 @@ sections.push(["glossary definitions", async () => {
   await rendered(page);
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   const terms = graph.filter((node) => node.inDefinedTermSet?.["@id"] === crateNodes.get("vocabularies/glossary")["@id"]);
-  const description = (term) => [].concat(term.description || []).find((value) => value["@language"] === "cs")?.["@value"];
+  const description = (term) => {
+    const definition = term.definitionPart && crateNodes.get(term.definitionPart["@id"]);
+    return [].concat(definition?.description || []).find((value) => value["@language"] === "cs")?.["@value"];
+  };
   const described = terms.filter(description);
   if (described.length !== terms.length) fail("glossary: the reviewed snapshot lost a source definition");
   const term = described.find((entry) => description(entry).length > 200);
@@ -2923,8 +2926,8 @@ sections.push(["grouping and typography", async () => {
       await go(`#/${lang}/V/check/${code}/evidence`);
       await page.evaluate((code) => {
         const FG = window.FairGuide;
-        const mode = FG.refs(FG.get('vocabularies/modes-' + code), 'hasDefinedTerm')[0]?.termCode;
-        const profile = FG.refs(FG.get('vocabularies/profiles-' + code), 'hasDefinedTerm').at(-1)?.termCode;
+        const mode = FG.termsOf('vocabularies/modes-' + code)[0]?.termCode;
+        const profile = FG.termsOf('vocabularies/profiles-' + code).at(-1)?.termCode;
         FG.state.answers[code] = { items: {}, mode, profile };
         FG.state.resultCollapsed = true;
         FG.saveState();

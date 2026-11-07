@@ -570,9 +570,10 @@ class NkrCatalogueTests(unittest.TestCase):
         ]
         self.assertEqual(len(joined), 5)
         self.assertIn(iri("repositories/herbarium"), entities)
-        # A curated repository NKR also lists rests on NKR's record, which rests on the snapshot.
+        # NKR's record names the curated repository and rests on the snapshot; the repository does not repeat it.
         datarepo = iri("repositories/datarepo")
-        self.assertIn(build_crate.ref(datarepo + "#nkr"), entities[datarepo]["isBasedOn"])
+        self.assertEqual(entities[datarepo + "#nkr"]["primaryTopic"], build_crate.ref(datarepo))
+        self.assertNotIn(build_crate.ref(datarepo + "#nkr"), build_crate.as_list(entities[datarepo].get("isBasedOn")))
         self.assertIn(build_crate.ref("#snapshot-nkr"), build_crate.as_list(entities[datarepo + "#nkr"]["isBasedOn"]))
 
     def test_an_nkr_address_reaching_two_components_is_refused(self):
@@ -636,9 +637,10 @@ class NkrCatalogueTests(unittest.TestCase):
         self.assertEqual(entity["serviceStatus"], build_crate.ref(iri("vocabularies/statuses/pilot")))
         self.assertEqual(entity["statusAsOf"], "2026-11-01")
         self.assertIs(entity["acceptsDeposits"], False)
-        self.assertEqual(
-            build_crate.as_list(entity["isBasedOn"]), build_crate.refs([dashboard["@id"], original["@id"] + "#nkr"])
-        )
+        records = build_crate.records_by_thing(graph.entities)
+        self.assertEqual(set(records[entity["@id"]]), {dashboard["@id"], original["@id"] + "#nkr"})
+        self.assertEqual(build_crate.founding_record(entity, records), dashboard["@id"])
+        self.assertNotIn("isBasedOn", entity)
         for source in (
             "https://fip-dashboard.dmp.eosc.cz/resources/nrp-invenio",
             "https://repo.cz/objects/20.500.14818/cesnet-test",
@@ -658,7 +660,9 @@ class NkrCatalogueTests(unittest.TestCase):
             entity["repositoryFunction"],
             build_crate.refs([iri("vocabularies/repository-functions/deposit-publications")]),
         )
-        self.assertIn(build_crate.ref(entity["@id"] + "#nkr"), build_crate.as_list(entity["isBasedOn"]))
+        record = graph.entities[entity["@id"] + "#nkr"]
+        self.assertEqual(record["primaryTopic"], build_crate.ref(entity["@id"]))
+        self.assertNotIn(build_crate.ref(record["@id"]), build_crate.as_list(entity.get("isBasedOn")))
 
     def test_nkr_handle_and_dashboard_address_reaching_different_entries_are_refused(self):
         content = reference_content()

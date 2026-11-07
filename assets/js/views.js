@@ -150,14 +150,14 @@
       says (a node service, a repository whose integration is planned by a stated milestone, an incubator service),
       the date checked and the charter it comes from. The badge claims no more than the charter. */
   FG.nodeBadge = function (entity) {
-    const membership = FG.get(FG.id(entity && entity.nodeMembership));
+    const membership = FG.nodeRelation(entity);
     if (!membership) return null;
-    const role = FG.termKey(membership.roleName);
+    const role = FG.termKey(membership.hadRole);
     const source = FG.refs(membership, "citation")[0];
     const what = role === "repository" && membership.nodeMilestone ? FG.t("node.repository", { milestone: membership.nodeMilestone }) : FG.t("node." + role);
     return h(
       "span",
-      { class: "badge node-badge", "data-node": role, "data-field": "nodeMembership" },
+      { class: "badge node-badge", "data-node": role, "data-field": "qualifiedRelation" },
       h("span", { "aria-hidden": "true" }, "◆"), " ",
       h("span", null, "EOSC CZ Node · " + what),
       membership.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("node.checked", { date: FG.formatDate(membership.statusAsOf) })) : null,
@@ -408,7 +408,7 @@
           h("li", null, h("a", { href: FG.href("page", "machines") }, FG.t("footer.crate"))),
           h("li", null, h("a", { href: "health/index.html", hreflang: "en" }, FG.t("footer.health")))
         ),
-        h("p", null, FG.span(root.usageInfo)),
+        h("p", null, FG.span((FG.get(root.usageInfo) || {}).text)),
         h("p", null, FG.span(root.creditText)),
         logolink()
       )
@@ -1382,7 +1382,9 @@
   /** The catalogues an entry comes from: the Guide's selection where the Guide describes it, and the snapshot of
       each registry record it holds, read through the record. */
   FG.sourceIds = (entity) => [...new Set(FG.refIds(entity, "isBasedOn")
-    .flatMap((id) => (FG.kind(id) ? FG.refIds(FG.get(id), "isBasedOn") : [id])))];
+    .flatMap((id) => (FG.kind(id) ? FG.refIds(FG.get(id), "isBasedOn") : [id]))
+    .concat(FG.refIds(entity, "source"))
+    .concat(FG.recordsOf(entity).flatMap((record) => FG.refIds(record, "isBasedOn"))))];
 
   /** Those catalogues, each leading to its own entry in the catalogue, with the date of its snapshot. */
   FG.sourceCredits = (entity) => FG.sourceIds(entity).map((id) => {
@@ -1493,7 +1495,8 @@
   /** A connection's carrier and actors describe its function; dated implementation evidence stays scoped. */
   FG.modelDetail = function (term) {
     const fields = ["transfer", "sender", "recipient", "carrier", "maintainers"].filter((key) => term[key]);
-    const examples = FG.refs(term, "hasPart").filter((entry) => entry.modelKind === "example");
+    /* An example names the layer or seam it illustrates; the term does not list its examples. */
+    const examples = FG.graph.filter((entry) => FG.hasRef(entry, "isPartOf", term["@id"]) && FG.termKey(entry.modelKind) === "example");
     return [fields.length ? h("dl", { class: "relations model-detail" }, fields.map((key) => [FG.relationTerm(key, FG.t("model.field." + key)), h("dd", { "data-field": key }, FG.span(term[key]))])) : null,
       examples.length ? h("details", { class: "model-examples", "data-field": "hasPart" }, h("summary", null, FG.t("model.examples")), h("div", { class: "content" }, examples.map((example) => h("section", { class: "model-example" },
         h("h4", null, FG.span(example.name)), example.scope ? h("p", { class: "small" }, FG.span(example.scope)) : null,
@@ -1568,7 +1571,7 @@
     const example = FG.get(FG.model()?.workExample);
     if (!example) return null;
     return h("section", { class: "model-worked-example" }, h("h2", null, FG.span(example.name)), FG.paragraphs(example.description),
-      h("ol", null, FG.refs(example, "hasPart").map((entity) => h("li", null,
+      h("ol", null, FG.refs(example, "hasPart").concat(FG.refs(example, "potentialAction")).map((entity) => h("li", null,
         h("a", { href: FG.referenceHref(entity["@id"]) }, entity.identifier || FG.span(entity.name)),
         entity.text ? [" · ", FG.span(entity.text)] : entity.identifier && entity.name ? [" · ", FG.span(entity.name)] : null))),
       FG.apiLink(example));
@@ -1651,7 +1654,7 @@
 
   /** Whether a page holds a helper that the page script does not provide yet. */
   function helperComing(page) {
-    return FG.list(page.additionalType).includes(FG.config.vocab.webApplication) && !FG.list(FG.config.helpers?.pages).includes(page.identifier) && !(FG.helpers && FG.helpers[page.identifier]);
+    return FG.list(page["@type"]).includes("WebApplication") && !FG.list(FG.config.helpers?.pages).includes(page.identifier) && !(FG.helpers && FG.helpers[page.identifier]);
   }
 
   /** The tools: the helpers for single tasks on the path and the advice on AI, each as a card. */

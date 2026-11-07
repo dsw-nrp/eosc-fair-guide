@@ -179,6 +179,101 @@ its head in CI.
 - [x] 3.9 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
   head.
 
+Tasks 3.10 to 3.22 answer the graph-model review of 2026-11-07 (design.md, *Context*). M2 closes again with 3.22,
+before any M3 task starts.
+
+- [x] 3.10 Update the native rule `.agents/guide/rules/fair-guide-content.md` for questions as open question 1 settles,
+  then run `python scripts/generate_agent_surfaces.py`. Verify:
+  `python scripts/check_all.py --only docs agent-generation agent-ownership` passes, and the vendor mirrors carry the
+  new text.
+- [x] 3.11 **Hand-off (maintainer):** answer open questions 1 to 12 in design.md, and record each answer in its decision
+  (4, 8, 20, 21 or 22). Verify: design.md's *Open Questions* lists no question without an answer.
+- [x] 3.12 Pin every vocabulary the graph refers to and write each term at the IRI its vocabulary defines
+  (decision 23):
+  - keep a copy of each vocabulary (schema.org, DCTERMS, DCAT, FOAF, SKOS, DQV, PROV-O, FTR, ADMS, SIO, the FIP
+    ontology, PROF, the FAIR principles terms) under `tests/fixtures/`, each with its source, retrieval date and
+    licence;
+  - add a check that reads only those copies and fails on a namespace without one and on a term its vocabulary does
+    not define at the IRI used;
+  - write SIO's `http://semanticscience.org/resource/SIO_000233` in the crate context, the profile's test shape, the
+    API, `docs/content-model.md` and the tests, and the helper pages' class in schema.org's `http` form.
+
+  Verify: the check fails on a planted `https` schema.org class and on an unpinned namespace, and passes on the tree;
+  a unit test finds every implementation link under SIO's `http` IRI and none under `https`;
+  `python scripts/check_all.py --only crate profile` passes.
+- [x] 3.13 Make the vocabulary's declarations hold for the graph (decision 20), reading the pinned vocabularies:
+  - state domains and ranges as open question 2 settles, and correct the ones the review found;
+  - `assessmentContext` stops specialising `dcterms:description`, and `disclosureLevel` stops specialising
+    `schema:position`;
+  - keep `guideSources` and `guideState`, which exported results carry, and count the export's terms as used;
+  - add a check over the built graph that fails on a use outside a declaration and on an unused term;
+  - remove the membership exemption from the organisation shape in `profile/fair-guide/must/2_model.ttl`.
+
+  Verify:
+  - the check fails on a planted wrong domain, range, datatype and specialised range, and passes on the tree;
+  - an RDFS closure of the crate with the vocabulary adds no class to a Guide node beyond its asserted classes'
+    superclasses;
+  - `python scripts/check_all.py --only crate profile` passes.
+- [x] 3.14 Type every registry record as `dcat:CatalogRecord` and `schema:CreativeWork`, never with its thing's class,
+  and state a FIP Dashboard record's FIP class as open question 12 settles (decision 4). Verify: a unit test finds
+  every record with exactly those two classes, and selecting `schema:Organization` or a FIP class returns no record;
+  `npm run check:page` passes.
+- [x] 3.15 Select every kind by its class (decision 13):
+  - write every class as `@type`, never as an `additionalType` string: the FIP classes, cited datasets and software,
+    tools and helper pages;
+  - type crosswalk correspondences by a class, with their basis a term;
+  - add term sets for clause kinds, mapping bases, evaluator mapping coverage and model kinds to `content/guide.toml`,
+    and schemes for the lists a registry publishes (KNAV's discipline groups, the FIP Dashboard's scopes);
+  - give each kind that shares its class a Guide class (decision 13);
+  - add a check that every kind has a class, a term set or a recorded reason.
+
+  Verify: the check fails on a planted kind without one; a unit test finds no `additionalType` value that names a
+  class and no controlled value as a string; `python scripts/check_all.py --only content crate profile` and
+  `npm run check:page` pass.
+- [x] 3.16 Make the profile's shapes select by class and require what defines each kind: the clause, resource,
+  repository, model and test shapes (decision 13). Verify: a test removes each required property from a real node of
+  every shape and gets a violation, including the five shapes the review found inert and the three a node could
+  leave; pyshacl and the RO-Crate validator pass on the tree.
+- [x] 3.17 Remove the manual tests and the `tests/self-check/` scope from the crate, the API and the kind vocabulary
+  (decision 8). Type every record of the `tests` kind as `fg:AssessmentCriterion`, with FAIR Champion tests and
+  FAIR-Checker criteria also `ftr:Test`, F-UJI criteria also `ftr:Metric`, and the local tests without an FTR type
+  (open questions 11 and 13). Keep generating `api/tests/<question>.json` for revisions 1–3 (decision 14). Verify: unit
+  tests find no manual test, every record of the kind an assessment criterion, every FAIR Champion test implementing
+  the metric its FTR record names and no FAIR-Checker criterion naming one (FAIR-Checker publishes none; decision 8),
+  every F-UJI criterion a metric and no local test with an FTR type; `npm run check:assessment` passes.
+- [x] 3.18 State each relation in one direction and use schema.org within its domains (decision 22), as open
+  questions 4 to 10 settle:
+  - term-set membership by the term only;
+  - one direction per relation per kind, recorded in `docs/content-model.md`;
+  - the link between a thing and its registry records, and the sources of organisations and infrastructures;
+  - clause actors, quoted definitions' licence and citation, and the crate-local lists;
+  - distinct source properties with IRI values, and IRI references for RDMkit records, training searches and
+    licences;
+  - a check of every schema.org use against the pinned schema.org copy (3.12).
+
+  Verify: the schema.org check fails on a planted use outside a domain and a range, and passes on the tree; a unit
+  test finds no relation stated in both directions and no set that lists its terms; `npm run check:page` passes.
+- [x] 3.19 Make the EOSC CZ Node a platform (decision 21):
+  - move it to `resources/eosc-cz-node` as a `schema:Service` operated through `schema:provider`, with its state as
+    open question 3 settles, and update the register;
+  - record onboarding as `dcat:qualifiedRelation` parts typed `dcat:Relationship`, with `dcterms:relation`,
+    `dcat:hadRole`, milestone, date checked, charter and locator;
+  - drop `fg:nodeMembership`, and read the badge and the facet from the Node's relations;
+  - cite the EOSC Federation Handbook 2.0 (doi:10.5281/zenodo.18454649) in `content/sources.toml`, with paradata.
+
+  Verify:
+  - a unit test finds MBDB's relation with its role, milestone, date and source, and no `schema:member` on the Node;
+  - under RDFS reasoning, no relation, service or repository is an organisation;
+  - `npm run check:page` covers a service's and a repository's badge and the node facet in Czech and English.
+- [x] 3.20 Give the NRP Data Catch-all Repository (`content/resources.toml`, `datarepo`) a classification other than
+  `registry`, with paradata. Verify: no repository carries the registry type, and
+  `python scripts/check_all.py --only content duplicates` passes.
+- [x] 3.21 Update `docs/content-model.md` (crate mapping, classes, the Node, records, statuses, kinds, relation
+  directions and the pinned vocabularies), `docs/design.md` and `CHANGELOG.md` for tasks 3.10 to 3.20. Verify:
+  `python scripts/check_all.py --only docs changelog` passes.
+- [ ] 3.22 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
+  head.
+
 ## 4. API v1 and graph access (M3)
 
 - [ ] 4.1 Rebuild `scripts/build_api.py` on the `api/v1/` layout (decision 11):
@@ -217,9 +312,10 @@ its head in CI.
   - the practice section's paragraph on addresses, which still says the permanent address is to be settled.
 
   Verify: `npm run check:page` passes for the machines page in both languages, at phone width and in print.
-- [ ] 4.8 Write saved results as format revision 4, with persistent test IRIs, and load revisions 1–3 with their
+- [ ] 4.8 Write saved results as format revision 4, with each reader's answer a `dqv:QualityMeasurement` of its
+  question's persistent IRI and automated evidence naming its test's persistent IRI, and load revisions 1–3 with their
   `api/tests/` references (decision 14). Verify: `npm run check:assessment` loads a fixture of each revision and
-  exports revision 4 with IRIs.
+  exports revision 4 with question and test IRIs.
 - [ ] 4.9 Update `docs/content-model.md` (*Static API*), `docs/design.md`, `docs/ci-reference.md` and the README
   endpoint mentions, and add the `[Unreleased]` breaking lines for API v1 and result revision 4. Verify:
   `python scripts/check_all.py --only docs changelog` passes.

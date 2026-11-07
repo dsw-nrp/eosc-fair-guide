@@ -141,7 +141,7 @@ class ProviderCrateTests(ProviderCase):
         self.assertEqual(criterion["url"], "https://evaluator.example.org/api/metric_M1")
         mapping = graph[iri("tests/service/M1#mapping-gate.01")]
         self.assertEqual(mapping["about"], {"@id": iri("questions/gate.01")})
-        self.assertEqual(mapping["mappingCoverage"], "whole")
+        self.assertEqual(mapping["mappingCoverage"], {"@id": iri("vocabularies/evaluator-coverages/whole")})
         self.assertEqual(build_crate.as_list(mapping["reviewedVersion"]), ["api 1.0"])
         unmapped = graph[iri("tests/service/M2")]
         self.assertNotIn("hasPart", unmapped, "an unmapped criterion stays listed without an invented association")

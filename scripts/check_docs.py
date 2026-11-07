@@ -319,6 +319,7 @@ def semantic_mapping(text: str, crate: dict, base_context: dict) -> list[str]:
         "sio": extension["isImplementationOf"].removesuffix("SIO_000233"),
         "skos": SKOS,
         "dcat": DCAT,
+        "dcmitype": extension["dcmitype"],
         "adms": ADMS,
         "foaf": FOAF,
         "dqv": DQV,

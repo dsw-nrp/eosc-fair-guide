@@ -1,12 +1,13 @@
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dqv: <http://www.w3.org/ns/dqv#> .
 @prefix fg: <https://fair.eosc.cz/terms#> .
+@prefix fip: <https://w3id.org/fair/fip/terms/> .
 @prefix fair-guide: <https://fair.eosc.cz/profile/fair-guide/> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix ftr: <https://w3id.org/ftr#> .
 @prefix schema: <http://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
-@prefix sio: <https://semanticscience.org/resource/> .
+@prefix sio: <http://semanticscience.org/resource/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 
 # The graph model of profile 0.2: controlled terms and their sets, statuses as terms, FTR benchmarks, metrics and
@@ -36,40 +37,25 @@ fair-guide:TermSet a sh:NodeShape ;
     sh:targetClass schema:DefinedTermSet ;
     sh:property [ sh:path schema:name ; sh:minCount 1 ; sh:message "A term set MUST have a name" ] .
 
-# A membership in the EOSC CZ Node is a schema.org role, which a validator inferring types from `member` reads as an
-# organisation too; a role is no organisation and carries the role, not a name.
 fair-guide:Agent a sh:NodeShape ;
     sh:name "Organisation or infrastructure" ;
     sh:description "An organisation or research infrastructure has a name" ;
     sh:targetClass schema:Organization ;
-    sh:or (
-        [ sh:class schema:OrganizationRole ]
-        [ sh:property [ sh:path schema:name ; sh:minCount 1 ] ]
-    ) ;
-    sh:message "An organisation MUST have a name" .
+    sh:property [ sh:path schema:name ; sh:minCount 1 ; sh:message "An organisation MUST have a name" ] .
 
-# A FIP is found by what it is, its additional type, so a FIP that lost its status is still checked. RO-Crate's
-# context reads additionalType as a string, so the type is matched as the string the crate writes.
+# A FIP is found by what it is, its FIP class, so a FIP that lost its status is still checked.
 fair-guide:Fip a sh:NodeShape ;
     sh:name "FAIR Implementation Profile" ;
     sh:description "A FIP has its identifier, a name, one status term and its declarations, each with its own status" ;
-    sh:targetSubjectsOf schema:additionalType ;
-    sh:or (
-        [ sh:not [ sh:property [
-            sh:path schema:additionalType ;
-            sh:hasValue "https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile"
-        ] ] ]
-        [
-            sh:property [ sh:path schema:identifier ; sh:minCount 1 ] ;
-            sh:property [ sh:path schema:name ; sh:minCount 1 ] ;
-            sh:property [ sh:path fg:fipStatus ; sh:class schema:DefinedTerm ; sh:minCount 1 ; sh:maxCount 1 ] ;
-            sh:property [
-                sh:path schema:hasPart ;
-                sh:minCount 1 ;
-                sh:node [ sh:property [ sh:path fg:declarationStatus ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ]
-            ]
-        ]
-    ) ;
+    sh:targetClass fip:FAIR-Implementation-Profile ;
+    sh:property [ sh:path schema:identifier ; sh:minCount 1 ] ;
+    sh:property [ sh:path schema:name ; sh:minCount 1 ] ;
+    sh:property [ sh:path fg:fipStatus ; sh:class schema:DefinedTerm ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [
+        sh:path schema:hasPart ;
+        sh:minCount 1 ;
+        sh:node [ sh:property [ sh:path fg:declarationStatus ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ]
+    ] ;
     sh:message "A FIP MUST have its identifier, name, one status term and its declarations" .
 
 fair-guide:Status a sh:NodeShape ;
@@ -89,16 +75,17 @@ fair-guide:Status a sh:NodeShape ;
 
 fair-guide:Benchmark a sh:NodeShape ;
     sh:name "Check as an FTR benchmark" ;
-    sh:description "A check is an FTR benchmark that names its questions as its metrics" ;
+    sh:description "A check is an FTR benchmark whose questions, its FTR metrics, each name it; the check does not list them" ;
     sh:targetClass schema:Quiz ;
     sh:class ftr:Benchmark ;
     sh:property [
-        sh:path ftr:hasAssociatedMetric ;
+        sh:path [ sh:inversePath ftr:hasBenchmark ] ;
         sh:class ftr:Metric ;
         sh:minCount 1 ;
-        sh:message "A check MUST name its questions as its FTR metrics" ;
+        sh:message "A check MUST be the benchmark of its questions, each an FTR metric" ;
     ] ;
-    sh:property [ sh:path schema:hasPart ; sh:maxCount 0 ; sh:message "A check names its questions once, as FTR metrics" ] .
+    sh:property [ sh:path schema:hasPart ; sh:maxCount 0 ; sh:message "A check's questions name it; it does not list them" ] ;
+    sh:property [ sh:path ftr:hasAssociatedMetric ; sh:maxCount 0 ; sh:message "A check's questions name it; it does not list them" ] .
 
 fair-guide:Metric a sh:NodeShape ;
     sh:name "Question as an FTR metric" ;
@@ -110,25 +97,34 @@ fair-guide:Metric a sh:NodeShape ;
     sh:property [ sh:path schema:isPartOf ; sh:maxCount 0 ; sh:message "A question names its check once, as its benchmark" ] .
 
 fair-guide:Test a sh:NodeShape ;
-    sh:name "FTR test" ;
-    sh:description "A test implements a question, its FTR metric: the manual test in the self-check or an automated test" ;
-    sh:targetSubjectsOf sio:SIO_000233 ;
+    sh:name "Assessment criterion" ;
+    sh:description "A criterion has its identifier, a name and the principles it assesses, and names at most one metric it implements" ;
+    sh:targetClass fg:AssessmentCriterion ;
     sh:property [
-        sh:path sio:SIO_000233 ;
-        sh:class ftr:Metric ;
-        sh:minCount 1 ;
-        sh:message "A test MUST implement a question" ;
-    ] .
+        sh:path schema:identifier ;
+        sh:qualifiedValueShape [ sh:nodeKind sh:Literal ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:qualifiedMaxCount 1 ;
+        sh:message "A criterion MUST have one identifier of its own" ;
+    ] ;
+    sh:property [ sh:path schema:name ; sh:minCount 1 ; sh:message "A criterion MUST have a name" ] ;
+    sh:property [ sh:path schema:about ; sh:minCount 1 ; sh:message "A criterion MUST name the principles it assesses" ] ;
+    sh:property [ sh:path sio:SIO_000233 ; sh:nodeKind sh:IRI ; sh:maxCount 1 ; sh:message "A test implements at most one metric" ] .
 
 fair-guide:CatalogueRecord a sh:NodeShape ;
     sh:name "Registry record" ;
-    sh:description "A registry's record is about one thing the Guide describes, and is part of its snapshot" ;
+    sh:description "A registry's record is about one thing the Guide describes, and rests on its snapshot" ;
     sh:targetClass dcat:CatalogRecord ;
     sh:property [
         sh:path foaf:primaryTopic ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:message "A registry record MUST be about exactly one thing" ;
+    ] ;
+    sh:property [
+        sh:path schema:isBasedOn ;
+        sh:minCount 1 ;
+        sh:message "A registry record MUST credit its snapshot" ;
     ] .
 
 fair-guide:PrefillMapping a sh:NodeShape ;

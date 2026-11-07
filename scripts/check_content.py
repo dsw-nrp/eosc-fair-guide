@@ -1084,10 +1084,10 @@ def check_resources(report: Report, content: dict[str, Any], vocab: dict[str, se
                 report.error(f"{where}:citation", "a citation takes its ID and address from the resource")
             check_citation(report, f"{where}:citation", resource["citation"], own_url=True)
         if resource.get("repository") is not None:
-            if resource.get("type") != "registry":
+            if resource.get("type") not in {"service", "registry"}:
                 report.error(
                     f"{where}:repository",
-                    "only a resource of type 'registry' (repository or registry) carries repository facts",
+                    "only a repository service or registry carries repository facts",
                 )
             if resource["repository"].get("kind") not in vocab["repository_kinds"]:
                 report.error(f"{where}:repository", f"unknown kind '{resource['repository'].get('kind')}'")
@@ -1118,8 +1118,12 @@ def check_repositories(report: Report, content: dict[str, Any], vocab: dict[str,
         for value in entry.get("functions", []):
             if value not in vocab["repository_functions"]:
                 report.error(entry["id"], f"unknown repository function '{value}'")
-        if entry.get("functions") and entry in content["resources"] and entry.get("type") != "registry":
-            report.error(entry["id"], "repository functions belong to repositories or registries")
+        if (
+            entry.get("functions")
+            and entry in content["resources"]
+            and entry.get("type") not in {"service", "registry"}
+        ):
+            report.error(entry["id"], "repository functions belong to repositories, repository services or registries")
     repositories = {item["re3data"] for snapshot in content["snapshots"] for item in snapshot.get("repository", [])}
     dashboard = {
         alternate_id(item, "fip-dashboard"): item
@@ -1164,6 +1168,9 @@ def check_repositories(report: Report, content: dict[str, Any], vocab: dict[str,
         for value in record.get("functions", []):
             if value not in vocab["repository_functions"]:
                 report.error(where, f"unknown repository function '{value}'")
+        # A reviewed kind classifies a repository its registry leaves unclassified.
+        if "kind" in record and record["kind"] not in vocab["repository_kinds"]:
+            report.error(where, f"unknown repository kind '{record['kind']}'")
     for entry in content["resources"] + content["repositories"] + content["sources"]:
         if entry.get("knav") and entry["knav"] not in tools:
             report.error(entry["id"], f"knav names no tool of the KNAV catalogue snapshot ('{entry['knav']}')")
@@ -1309,6 +1316,8 @@ def check_live(report: Report, content: dict[str, Any], vocab: dict[str, set[str
         where = f"test:{test.get('id')}"
         if test.get("principle") not in vocab["principles"]:
             report.error(where, f"unknown principle '{test.get('principle')}'")
+        if not re.match(r"^https?://\S+$", str(test.get("metric", ""))):
+            report.error(where, "metric must be the IRI of the metric the test implements, as its FTR record names it")
         if test.get("health") is not None:
             if test["health"] not in HEALTH:
                 report.error(where, f"health must be one of {', '.join(HEALTH)}")
@@ -1534,7 +1543,7 @@ def content_addresses(content: dict[str, Any]) -> dict[str, str]:
     for item in (content.get("infrastructures") or {}).get("infrastructure", []):
         put(f"infrastructure:{item['id']}", f"infrastructures/{item['id']}")
     if (content.get("node") or {}).get("node"):
-        put("node:eosc-cz-node", "organizations/eosc-cz-node")
+        put("node:eosc-cz-node", "resources/eosc-cz-node")
     return found
 
 

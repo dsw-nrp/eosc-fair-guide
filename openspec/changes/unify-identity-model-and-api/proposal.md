@@ -20,6 +20,10 @@ model behind it:
 - Controlled vocabularies are modelled three ways, and statuses seven ways (strings and concepts). 55 check questions
   copy a ledger clause word for word, so the text is written out twice in the sources. The 16 CoreTrustSeal
   questions already take theirs from the clause.
+- The graph says things its own data contradicts. The vocabulary the Guide publishes declares domains and ranges
+  that make a reasoner, the RO-Crate validator among them, type membership roles as organisations and registry
+  records as repositories. Classes such as the FTR test type are written as strings, a class query counts registry
+  records as organisations, and some facts are stated in both directions.
 
 The Guide's own term and profile IRIs name a hosting address (`content/guide.toml:26`), and record IRIs depend on
 where the crate was read. The first official release fixes identifiers for good
@@ -45,13 +49,23 @@ submission.
   - A name in content, such as a publisher or an operator, resolves to the one thing the Guide describes under that
     name. A registry's organisation record attaches to a thing only by a reviewed key, never by its name.
   - Registries are resources; the catalogue's repository family holds repositories only.
+  - Registry records are typed once, as catalogue records and creative works, never as the thing they describe.
+  - The EOSC CZ Node is a platform the Guide lists as a resource, as the EOSC Federation Handbook 2.0 defines a Node:
+    a collection of services and data sources that an organisation operates. The services and repositories it
+    onboards are DCAT qualified relations carrying their role, milestone, date checked and source.
   - The duplicate check attaches every record to exactly one thing.
 - **One model.**
-  - Controlled vocabularies are modelled once.
+  - Controlled vocabularies are modelled once, and every controlled value is a term, clause kinds and mapping
+    coverage included.
   - Statuses become terms rather than strings.
+  - Every kind is selected by its class or its term set; no class is written as a string.
   - Advice has a class of its own.
-  - FTR benchmarks, metrics and manual tests become part of the graph.
+  - FTR benchmarks and metrics become part of the graph, and the tests that are services are FTR tests. A reader's
+    self-check answer is a DQV quality measurement of its question.
   - Pre-fill mappings become typed statements.
+  - The vocabulary's domains and ranges hold for the published graph, so a reasoner adds no class that a thing does
+    not have.
+  - Each fact is stated once, and schema.org properties are used within their domains and ranges.
   - Names that only repeat an identifier are dropped.
   - A question that repeats its clause takes the clause's text instead of copying it (55 questions).
 - **BREAKING. API v1** under `/api/v1/`:
@@ -79,7 +93,8 @@ submission.
   - Every page section carries a reviewed `id` as its fragment, so reordering a page moves no IRI.
   - The machines page follows a reader's task: what it offers, what the reader is looking for, a worked example, how
     the Guide applies its own advice, and then the endpoints.
-- **Saved results.** Format revision 4 names persistent test IRIs. Revisions 1–3 still load, and their
+- **Saved results.** Format revision 4 records a reader's answer as a measurement of its question's persistent IRI,
+  and automated evidence by its test's persistent IRI. Revisions 1–3 still load, and their
   `api/tests/<question>.json` references keep resolving.
 - **Contract stability.** Nothing published is permanent before Guide `1.0.0`. A deprecation rule takes effect from
   `1.0.0`. The follow-up issue
@@ -98,13 +113,17 @@ None. The changed behaviour belongs to the existing capabilities below.
   - the static API, addressing and FTR publication;
   - the one-entry rule, prose references and catalogue addresses;
   - the namespace and the route baseline;
+  - the EOSC CZ Node and the entries it onboards;
   - new requirements for IRI resolution, registry records, vocabulary and status modelling, the graph distribution
-    and recipes, and derived question text.
+    and recipes, and derived question text;
+  - new requirements that every kind is selected by its class, that the vocabulary's declarations hold for the
+    graph, that each relation is stated once and that schema.org properties stay within their domains.
 - `fair-guide/guide-experience`: the machine-readable page, signposting, identifier routing, identifier chips, the
   credited sources, the repository family and its facets, catalogue routes and record landing pages.
 - `fair-guide/guide-delivery`: health snapshot publication, the production sitemap, namespace alignment between
   channels, and monitoring and maintaining the w3id redirect.
-- `fair-guide/guide-self-check`: result format revision 4 and its persistent test references.
+- `fair-guide/guide-self-check`: result format revision 4, which records answers as measurements of persistent
+  question IRIs and automated evidence by persistent test IRIs.
 
 ## Impact
 
@@ -114,8 +133,10 @@ None. The changed behaviour belongs to the existing capabilities below.
 - **Checks:** `scripts/check_content.py`, `scripts/check_duplicates.py`, `scripts/check_health.py`,
   `scripts/refresh_snapshots.py`, and `scripts/check_docs.py`, which refuses a citation of any change.
 - **Release:** release assembly and packaging stamps (`scripts/assemble_pages.py`, `scripts/package_site.py`).
-- **Page:** the scripts in `assets/js/` (213 fragment-prefix literals in 10 files) and the API documentation page in
-  `api/`.
+- **Page:** the scripts in `assets/js/` (213 fragment-prefix literals in 10 files), including the self-check's
+  evidence export (`selfcheck.js`, `providers.js`) and the EOSC CZ Node badge and facet, and the API documentation
+  page in `api/`.
+- **Profile:** the shapes in `profile/fair-guide/must/`, which select every kind by its class.
 - **Content:**
   - every content file with prose references;
   - `guideRoute` in the snapshots;
@@ -123,7 +144,11 @@ None. The changed behaviour belongs to the existing capabilities below.
   - provenance results and objects, model association targets and the worked example's steps;
   - agent names that need an address, and reviewed FIP Dashboard handles on curated rows;
   - the 55 merged question statements in `content/checks/`;
-  - `content/pages.toml`: an `id` for every page section, and the machines page's order.
+  - `content/pages.toml`: an `id` for every page section, and the machines page's order;
+  - `content/eosc-node.toml` and the Node's entry, which moves to `resources/eosc-cz-node`, and
+    `content/sources.toml`, which gains the EOSC Federation Handbook 2.0;
+  - `content/guide.toml`: term sets for clause kinds, mapping bases, evaluator mapping coverage and model kinds;
+  - `content/resources.toml`: the classification of the NRP Data Catch-all Repository, which says registry.
 - **Tests:** Python, page and API tests, and fixtures.
 - **Documentation and tooling:**
   - `docs/content-model.md`, `docs/design.md`, `docs/deployment.md` and `docs/ci-reference.md`;
@@ -147,6 +172,9 @@ None. The changed behaviour belongs to the existing capabilities below.
 - **Validation:**
   - `npm run openspec:validate` and `python scripts/check_all.py`;
   - the new RDF, recipe and template-coverage checks;
+  - the new checks that every kind has a selector, that the vocabulary's declarations hold, that no relation is
+    stated both ways, that schema.org properties stay within their domains, and that every shape refuses a real node
+    missing what it requires;
   - the w3id probe once the redirect is live;
   - inspection of the catalogue, records, landing pages and machines page in both languages, at phone width and in
     print.

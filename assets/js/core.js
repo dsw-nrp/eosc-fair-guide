@@ -171,7 +171,22 @@
   FG.refIds = (entity, prop) => FG.list(entity && entity[prop]).map(FG.id).filter(Boolean);
   FG.hasRef = (entity, prop, id) => FG.refIds(entity, prop).includes(id);
   FG.ofType = (type) => FG.graph.filter((entity) => FG.list(entity["@type"]).includes(type));
-  FG.byPosition = (a, b) => (a.position || 0) - (b.position || 0);
+  /* A record's position, or a term's place among its set's terms. */
+  FG.byPosition = (a, b) => ((a.position ?? a.termPosition) || 0) - ((b.position ?? b.termPosition) || 0);
+  /* The terms of a set in order: a term names its set, and the set does not list them. */
+  let termIndex = { size: -1, sets: new Map() };
+  FG.termsOf = (set) => {
+    if (termIndex.size !== FG.graph.length) {
+      const sets = new Map();
+      for (const entity of FG.graph) {
+        const id = FG.id(entity.inDefinedTermSet);
+        if (id) sets.set(id, (sets.get(id) || []).concat(entity));
+      }
+      for (const terms of sets.values()) terms.sort(FG.byPosition);
+      termIndex = { size: FG.graph.length, sets };
+    }
+    return termIndex.sets.get(FG.id(set)) || [];
+  };
 
   /* ---------------------------------------------------------------- record identity */
 
@@ -206,8 +221,6 @@
       the Guide's own. */
   FG.isCriterion = (value) => FG.isRecord(value, "tests")
     && FG.list(FG.config.providers && FG.config.providers.list).some((provider) => FG.localId(value).startsWith(provider.id + "/"));
-  /** A question's manual test, `tests/self-check/<question>`: the reader answering it, which no catalogue lists. */
-  FG.isManualTest = (value) => FG.isRecord(value, "tests") && FG.localId(value).startsWith("self-check/");
   /** The Guide's own test of a question (`guide-dataset-01`), and a FAIR Champion test, by their IDs. */
   FG.localTest = (id) => FG.get(FG.address("tests", id, "guide"));
   FG.championTest = (id) => FG.get(FG.address("tests", id, "fair-champion"));
@@ -216,10 +229,28 @@
   /** The registry record that founds a thing only registries know: the first of its records, in the build's order
       of registries, when the thing rests on nothing else; none for a thing the Guide's own content describes. */
   FG.foundingRecord = function (thing) {
-    const sources = FG.refIds(thing, "isBasedOn");
-    if (!sources.length || sources.some((id) => FG.recordOf(id) !== FG.id(thing) || !FG.fragment(id))) return null;
-    const order = FG.list(FG.config && FG.config.recordSchemes);
-    return sources.slice().sort((a, b) => order.indexOf(FG.fragment(a)) - order.indexOf(FG.fragment(b)))[0];
+    if (!thing || FG.refIds(thing, "isBasedOn").length || FG.refIds(thing, "source").length) return null;
+    return FG.id(FG.recordsOf(thing)[0]) || null;
+  };
+  /* A thing's registry records, which name it as their primary topic, in the build's order of registries. */
+  let recordIndex = { size: -1, things: new Map() };
+  FG.recordsOf = (thing) => {
+    if (recordIndex.size !== FG.graph.length) {
+      const order = FG.list(FG.config && FG.config.recordSchemes);
+      const things = new Map();
+      for (const entity of FG.graph) {
+        const topic = FG.id(entity.primaryTopic);
+        if (topic) things.set(topic, (things.get(topic) || []).concat(entity));
+      }
+      for (const records of things.values()) records.sort((a, b) => order.indexOf(FG.fragment(a)) - order.indexOf(FG.fragment(b)));
+      recordIndex = { size: FG.graph.length, things };
+    }
+    return recordIndex.things.get(FG.id(thing)) || [];
+  };
+  /** The Node's qualified relation to an entry, read from the Node rather than duplicated on the entry. */
+  FG.nodeRelation = function (entity) {
+    const node = FG.get("resources/eosc-cz-node");
+    return FG.refs(node, "qualifiedRelation").find((relation) => FG.id(relation.relation) === FG.id(entity)) || null;
   };
   /** Whether a registry's record founds its thing, one only registries know. */
   FG.foundedBy = (record) => Boolean(record) && FG.foundingRecord(FG.get(FG.thingOf(record))) === FG.id(record);
@@ -233,7 +264,7 @@
 
   /** The implementation model is an independent organising vocabulary, with explicit editorial associations. */
   FG.model = () => FG.graph.find((entity) => FG.kind(entity) === "models" && !FG.fragment(entity));
-  FG.modelTerms = (kind) => FG.refs(FG.model(), "hasDefinedTerm").filter((term) => !kind || term.modelKind === kind).sort(FG.byPosition);
+  FG.modelTerms = (kind) => FG.termsOf(FG.model()).filter((term) => !kind || FG.termKey(term.modelKind) === kind).sort(FG.byPosition);
   FG.modelLink = (term) => FG.h("a", { class: "model-tag", href: FG.entryHref(term) }, FG.span(term.name));
   FG.modelRows = function (entity) {
     return ["implementationLayers", "implementationSeams"].flatMap((property) => {
@@ -284,7 +315,9 @@
     const icon = ((FG.config && FG.config.icons && FG.config.icons.kind) || {})[kind];
     return FG.h("span", { class: "service-badge service-placeholder kind-" + kind, "data-service": key ? String(key) : null, "aria-hidden": "true" }, FG.icon(icon));
   };
-  FG.modelContexts = (station, lens) => FG.graph.filter((entity) => FG.fragment(entity).startsWith("context-") && FG.hasRef(entity, "isPartOf", station["@id"]) && FG.hasRef(entity, "audience", FG.term("lenses", lens)));
+  /* What an entity is part of: the record it names, or for a fragment the record it is under, which names it. */
+  FG.wholeOf = (entity) => FG.id(entity && entity.isPartOf) || (FG.fragment(entity) ? FG.recordOf(entity) : null);
+  FG.modelContexts = (station, lens) => FG.graph.filter((entity) => FG.fragment(entity).startsWith("context-") && FG.recordOf(entity) === station["@id"] && FG.hasRef(entity, "audience", FG.term("lenses", lens)));
 
   /** Pick the value in the requested language; fall back to another language and report it. */
   FG.textOf = function (value, lang) {
@@ -986,7 +1019,8 @@
   /** Whether live evidence can suggest at most Partly for a question it only partly proves. */
   FG.prefillPartly = (item) => FG.prefillMappings(item).some((mapping) => FG.prefillCoverage(mapping) === "partly");
   /** A check's questions, its FTR metrics, and the check a question belongs to, its benchmark. */
-  FG.questionsOf = (check) => FG.refs(check, "hasAssociatedMetric");
+  /* A check's questions in order: each question names its check, and the check does not list them. */
+  FG.questionsOf = (check) => FG.graph.filter((entity) => entity.hasBenchmark && FG.id(entity.hasBenchmark) === FG.id(check)).sort(FG.byPosition);
   FG.checkOf = (question) => FG.get(question && question.hasBenchmark);
   FG.principles = () => FG.principlesOf(FG.root);
   FG.termName = (id) => FG.text(FG.get(id) && FG.get(id).name);
