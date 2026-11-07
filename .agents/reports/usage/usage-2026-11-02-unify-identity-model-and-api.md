@@ -170,3 +170,48 @@
 - **Corrections:** the maintainer's review asked to drop the migration instrument, to keep change-specific
   references out of durable prose, to keep one pull request, to name register entries by kind instead of keeping
   names for share links, and to credit every catalogue that supplied an entry.
+
+## Kilo session (page sections, machines page, citation cleanup)
+
+- **When:** 2026-11-07 (+01:00)
+- **Agent / runtime:** Kilo Code (VS Code extension)
+- **Model / backend:** anthropic/claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** continued the Claude Code session recorded in the runtime scratch area: its
+  `openspec-explore` decisions on the machines page and earlier change citations, then the approved planning
+  edits and `openspec-apply-change unify-identity-model-and-api`; delivered `aiscr-planning-core`,
+  `aiscr-quality-first-execution`, `aiscr-usage-logging` and `aiscr-model-logging` rules; the native
+  `fair-guide-content` and `fair-guide-surfaces` rules; the change's own `migration/migrate.py`; the integrated
+  browser for the machines page.
+- **What:**
+  - Planning: tasks 2.25 to 2.27, the *Durable prose* constraint widened to any change, decision 15's page sections
+    and machines page outline, the proposal's page and impact points, and a knowledge-base scenario for reordered
+    sections.
+  - Task 2.25: sixteen page sections took reviewed ids through `migrate.py` and `ids.toml`; the build keys and
+    names every section by its id, the content check refuses a section without one or with a number, and the
+    page always anchors a section by its id.
+  - Task 2.26: the machines page runs intro, *Co hledáte*, the worked example, the Guide's practice, then the
+    endpoints; the page check asserts that order in the crate and in both languages, and failed on a planted
+    reorder. The migration's provenance action names the work and Kilo Code among its instruments.
+  - Task 2.27: 122 citations of earlier changes (D-numbers, design and decision numbers, design groupings, task
+    numbers) rewritten in their own words; `change_citations` covers every form, the `.github` workflows, scripts
+    and `repository.toml`, and the CSS, with each planted form tested from fragments.
+- **Impacted:** `assets/` (`js/catalogue.js`, `js/catalogue-view.js`, `js/core.js`, `js/live.js`,
+  `js/providers.js`, `js/search.js`, `js/selfcheck.js`, `js/views.js`, `css/app.css`), `content/` (`pages.toml`,
+  `provenance.toml`, and comments in `eosc-node.toml`, `guide.toml`, `icons.toml`, `infrastructures.toml`,
+  `live.toml`, `repositories.toml`, `resources.toml`, `ui.toml`), `scripts/` (`assemble_pages.py`,
+  `build_crate.py`, `check_content.py`, `check_docs.py`, `refresh_snapshots.py`, `vendor_favicons.py`,
+  `watch_sources.py`), `tests/`, `.github/` (`repository.toml`, six workflows, four scripts), `docs/`
+  (`content-model.md`, `design.md`), `openspec/changes/unify-identity-model-and-api/` (proposal, design, tasks,
+  the knowledge-base delta, `migration/`); this entry.
+- **Verification:** `python scripts/check_all.py` passes 36 of 36 checks on the uncommitted tree; the live checks
+  were not run. `migration/test_migrate.py` passes 11 of 11, and a second migration run changes nothing.
+  `npm run openspec:validate` passes. The machines page was viewed in the integrated browser at desktop width;
+  the phone-width reflow is covered by the page check, not by a screenshot.
+- **Close-out:** M1 is complete again with tasks 2.25 to 2.27 (28 of 58 tasks). The planning edits are committed
+  locally as `4addbb7`, and the implementation with this entry in the commit after it. Nothing is pushed; PR #172
+  and its CI are unchanged.
+- **Corrections:** the runtime's permission rules refused `git add`, and the session stopped before committing the
+  implementation. The maintainer staged the work and asked the session to read the allowlist more carefully and
+  carry on; the session committed what the maintainer staged.
