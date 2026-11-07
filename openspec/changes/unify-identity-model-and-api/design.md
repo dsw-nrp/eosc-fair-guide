@@ -38,9 +38,10 @@ The approach is bound by these constraints:
 - **Pre-release freedom.** Before Guide `1.0.0`, identifiers, addresses and the published contract may change in
   place without compatibility routes (*The first release establishes the route baseline*, as modified here). No
   name, form or register category is kept for compatibility alone.
-- **Durable prose.** Code, tests, content and durable documents cite no part of this change. They explain a rule in
-  their own words and name no design decision, task or migration step; this change's artifacts stay under
-  `openspec/changes/`, and knowledge of the old forms lives only in its `migration/` folder.
+- **Durable prose.** Code, tests, content, styles, CI and durable documents cite no part of any change, this one or an
+  earlier one. They explain a rule in their own words and name no design decision, task or migration step, in any
+  form a change has used: `D-172`, `design D8`, `(decision 28)`, `(design: group 21)` or `(task 4.1)`. This change's
+  artifacts stay under `openspec/changes/`, and knowledge of the old forms lives only in its `migration/` folder.
 
 ## Goals / Non-Goals
 
@@ -58,7 +59,7 @@ The approach is bound by these constraints:
   console.
 - Changing what any advice, question or requirement says, except the 55 statements merged into their clauses.
 - Re-shaping the page beyond addressing, identifier chips, credited sources, the repository family's name, the
-  `#/id/` entry route and the record landing pages (decision 19).
+  `#/id/` entry route, the record landing pages (decision 19) and the machines page's outline (decision 15).
 
 ## Decisions
 
@@ -390,6 +391,14 @@ openapi.json                          one list and one record operation per kind
 - **The repository family** is "Repozitáře" / "Repositories": registries are resources (decision 2), so a registry
   is listed and filtered with the resources.
 - **Anchors** for glossary terms and repositories become the bare ID.
+- **Page sections.** A page section's fragment is its reviewed `id` (`pages/machines#tasks`), never its position, and
+  the content check refuses a section without one. Reordering a page then moves no IRI, reference or shared link;
+  today 16 of the 47 sections have no `id`, so their fragment is their place on the page.
+- **The machines page's outline** follows what a reader wants: what the page offers, *Co hledáte* / *What you are
+  looking for*, the worked example from a requirement to a usable finding, how the Guide applies its own advice, and
+  then the API endpoints. Today it opens with the worked example and only then says what the page is. Task 4.7 adds
+  the IRI and address patterns, the landing pages, the RDF distribution, the recipes and API v1 within this outline
+  rather than reordering it.
 - **Accessibility.** An identifier chip is a native link with a visible focus. It carries text, not colour alone, and
   wraps at slashes on narrow screens.
 

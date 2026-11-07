@@ -76,6 +76,9 @@ submission.
     each identifier is shown in full.
   - An entry credits every catalogue that supplied it.
   - Prose, and every field that can name records of several kinds, names a record by its address.
+  - Every page section carries a reviewed `id` as its fragment, so reordering a page moves no IRI.
+  - The machines page follows a reader's task: what it offers, what the reader is looking for, a worked example, how
+    the Guide applies its own advice, and then the endpoints.
 - **Saved results.** Format revision 4 names persistent test IRIs. Revisions 1–3 still load, and their
   `api/tests/<question>.json` references keep resolving.
 - **Contract stability.** Nothing published is permanent before Guide `1.0.0`. A deprecation rule takes effect from
@@ -108,8 +111,8 @@ None. The changed behaviour belongs to the existing capabilities below.
 - **Build:** `scripts/build_crate.py`, `scripts/catalogue_identity.py`, `scripts/build_api.py` and
   `scripts/nkr_contract.py` (NKR's status mapping), plus a new RDF writer and a writer for the record landing
   pages and `404.html`. The sitemap in `build_crate.py` lists the landing pages.
-- **Checks:** `scripts/check_content.py`, `scripts/check_duplicates.py`, `scripts/check_health.py` and
-  `scripts/refresh_snapshots.py`.
+- **Checks:** `scripts/check_content.py`, `scripts/check_duplicates.py`, `scripts/check_health.py`,
+  `scripts/refresh_snapshots.py`, and `scripts/check_docs.py`, which refuses a citation of any change.
 - **Release:** release assembly and packaging stamps (`scripts/assemble_pages.py`, `scripts/package_site.py`).
 - **Page:** the scripts in `assets/js/` (213 fragment-prefix literals in 10 files) and the API documentation page in
   `api/`.
@@ -119,14 +122,17 @@ None. The changed behaviour belongs to the existing capabilities below.
   - `content/identifiers.toml`;
   - provenance results and objects, model association targets and the worked example's steps;
   - agent names that need an address, and reviewed FIP Dashboard handles on curated rows;
-  - the 55 merged question statements in `content/checks/`.
+  - the 55 merged question statements in `content/checks/`;
+  - `content/pages.toml`: an `id` for every page section, and the machines page's order.
 - **Tests:** Python, page and API tests, and fixtures.
 - **Documentation and tooling:**
   - `docs/content-model.md`, `docs/design.md`, `docs/deployment.md` and `docs/ci-reference.md`;
   - the refresh and duplicate runbooks, and a new w3id runbook;
   - the native content rule in `.agents/guide/`, regenerated;
   - `docker/nginx.conf`;
-  - the health-watch workflow.
+  - the health-watch workflow;
+  - comments that cite earlier changes, rewritten in their own words, in `scripts/`, `tests/`, `assets/`,
+    `content/`, the `.github` workflows and scripts, and `.github/repository.toml`.
 - **External:** a pull request to `perma-id/w3id.org` adding `ids/eosc-cz/fair-guide/`. EOSC CZ must agree to the
   `eosc-cz` folder first. The w3id maintainers decide when it merges.
 - **Out of scope:**

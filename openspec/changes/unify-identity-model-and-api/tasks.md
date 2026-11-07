@@ -130,6 +130,20 @@ its head in CI.
 - [x] 2.24 Inspect the catalogue, a record of each kind and the identifier input in Czech and English, at phone width
   and in print. Then run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull
   request's head.
+- [ ] 2.25 Give every page section in `content/pages.toml` a reviewed `id`, through `migrate.py`, and make
+  `scripts/check_content.py` refuse a section without one. The section's `id` is its fragment wherever the section is
+  named: in the crate, in the page's list of folded sections and in references (decision 15). Verify: a unit test
+  finds no page section whose fragment is its position, the content check rejects a section without an `id`, and a
+  second migration run changes nothing.
+- [ ] 2.26 Reorder the machines page in `content/pages.toml`: the introduction, *Co hledáte* (`tasks`), the worked
+  example (`model-example`), the Guide's practice (`practice`), then the API endpoints (`endpoints`) (decision 15).
+  Verify: `npm run check:page` finds that order in Czech and English, and every section keeps its IRI.
+- [ ] 2.27 Rewrite every citation of a change in its own words, in every form a change has used: the D-numbers
+  (`D-172`), `design Dn`, `(decision N)`, `(design: group N)` and `(task N.N)`. Widen the check from 2.22
+  (`change_citations` in `scripts/check_docs.py`) to all these forms, to the `.github` workflows, scripts and
+  `repository.toml`, and to `assets/css/` (design.md, *Context*). Tests that plant a citation build it from fragments.
+  The repository audit's `task` field stays, since naming the step that applies a pending setting is its job.
+  Verify: the check fails on each planted form and passes on the tree.
 
 ## 3. One graph model (M2)
 

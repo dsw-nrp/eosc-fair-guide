@@ -170,7 +170,8 @@ SHALL preserve them.
 Every normalized catalogue record SHALL store one Guide-owned primary `id`; source identifiers SHALL use typed
 `alternateIds` with source scheme and value. In the graph a record SHALL have one persistent IRI from its address,
 carry its Guide identifier once and source identifiers as typed values. No other property SHALL restate it, a name
-SHALL NOT repeat it, and no identifier SHALL encode a type or collision counter.
+SHALL NOT repeat it, and no identifier SHALL encode a type or collision counter. A page section's fragment SHALL be
+its own reviewed identifier, never its position on the page.
 
 #### Scenario: An imported record is normalized
 
@@ -188,6 +189,12 @@ SHALL NOT repeat it, and no identifier SHALL encode a type or collision counter.
 - **GIVEN** a FIP Dashboard organisation whose source ID equals a curated organisation's ID
 - **WHEN** the graph is built
 - **THEN** the Dashboard record attaches to the organisation it describes, or is rejected for review, and no identifier gains a counter suffix
+
+#### Scenario: A page's sections are reordered
+
+- **GIVEN** the machines page, whose sections are parts of `pages/machines`
+- **WHEN** an editor moves its introduction ahead of the worked example
+- **THEN** every section keeps its fragment and its IRI, because a section's fragment is its own identifier and never its position
 
 ### Requirement: The first release establishes the route baseline
 
