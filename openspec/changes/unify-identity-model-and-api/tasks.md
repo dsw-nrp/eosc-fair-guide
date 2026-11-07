@@ -151,7 +151,7 @@ its head in CI.
   Publish the SKOS alignment once in `terms/fair-guide.ttl`, and update `GUIDE_TERMS` with shapes or reasons
   (decision 6). Verify: a unit test finds no `skos:inScheme` on any instance and finds the alignment axioms in the
   vocabulary document; `python scripts/check_all.py --only content` passes.
-- [ ] 3.2 Make every status a term of its scheme, through properties that specialise `adms:status`, and remove
+- [x] 3.2 Make every status a term of its scheme, through properties that specialise `adms:status`, and remove
   `creativeWorkStatus` strings. Verify: a unit test finds no status literal, and the stale-status test in
   `tests/test_health.py` still reports an expired `asOf`.
 - [ ] 3.3 Give advice items the class `fg:AdviceItem` and an `adviceKind` term, with steps and actions as parts

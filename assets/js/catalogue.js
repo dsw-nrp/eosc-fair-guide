@@ -54,7 +54,7 @@
     if (!node || !node.nodeStateSince) return null;
     const sources = FG.refs(node, "isBasedOn");
     const source = sources[1] || sources[0];
-    return h("p", { class: "small" }, FG.t("node." + node.nodeState, { date: FG.formatDate(node.nodeStateSince) }), source ? [" ", FG.sourceLink(source)] : null);
+    return h("p", { class: "small" }, FG.t("node." + FG.termKey(node.nodeState), { date: FG.formatDate(node.nodeStateSince) }), source ? [" ", FG.sourceLink(source)] : null);
   };
 
   /** Warn when a published statement has been superseded. Refresh is an editorial status. */
@@ -82,7 +82,7 @@
   /** A compact catalogue entry, reused in principles, path reasons and question sources. */
   FG.clauseEntry = function (clause) {
     const source = FG.get(clause.isPartOf);
-    const status = clause.creativeWorkStatus;
+    const status = FG.termKey(clause.clauseStatus);
     const isClause = FG.kind(clause) === "clauses";
     const title = FG.clauseTitle(clause);
     return h(
@@ -366,7 +366,7 @@
       ? FG.relationGroups([{ items: list, render: ({ fip, declaration }) => [
           h("a", { href: FG.entryHref(fip) }, FG.text(fip.alternateName) || FG.text(fip.name)),
           h("span", { class: "muted" }, " · " + FG.principlesOf(declaration).map((principle) => principle.termCode).join(", ") + " "),
-          FG.declarationBadge(declaration.creativeWorkStatus),
+          FG.declarationBadge(FG.termKey(declaration.declarationStatus)),
         ] }])
       : [];
   };
@@ -492,7 +492,7 @@
       field("publisher", publisher ? FG.text(publisher.alternateName || publisher.name) : null),
       field("inLanguage", languages.length ? FG.t("resource.languages", { languages: languages.join(", ") }) : null),
       field("version", entity.version ? FG.t("catalogue.version", { version: entity.version }) : null),
-      field("preparationStatus", entity.preparationStatus === "in-preparation" ? FG.t("model.inPreparation") : null),
+      field("preparationStatus", FG.termKey(entity.preparationStatus) === "in-preparation" ? FG.t("model.inPreparation") : null),
       field("datePublished", date("catalogue.published", entity.datePublished)),
       field("dateModified", date("catalogue.modified", entity.dateModified)),
       field("sdDatePublished", date("catalogue.accessed", entity.sdDatePublished)),

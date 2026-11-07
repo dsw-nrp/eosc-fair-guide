@@ -71,6 +71,46 @@ role = "owner"
 id = "pilot"
 name = { cs = "pilotní", en = "pilot" }
 
+[[clauseStatus]]
+id = "current"
+name = { cs = "platné", en = "current" }
+
+[[clauseStatus]]
+id = "superseded"
+name = { cs = "nahrazené", en = "superseded" }
+
+[[fipStatus]]
+id = "published"
+name = { cs = "zveřejněný profil", en = "published profile" }
+
+[[declarationStatus]]
+id = "in-use"
+name = { cs = "používá se", en = "in use" }
+
+[[healthStatus]]
+id = "available"
+name = { cs = "funguje", en = "available" }
+
+[[healthStatus]]
+id = "degraded"
+name = { cs = "funguje omezeně", en = "degraded" }
+
+[[preparationStatus]]
+id = "in-preparation"
+name = { cs = "v přípravě", en = "in preparation" }
+
+[[releaseStatus]]
+id = "testing"
+name = { cs = "testovací verze", en = "testing version" }
+
+[[releaseStatus]]
+id = "production"
+name = { cs = "produkční verze", en = "production version" }
+
+[[nodeState]]
+id = "candidate"
+name = { cs = "kandidátský uzel", en = "candidate node" }
+
 [[tier]]
 id = "required"
 name = { cs = "Povinné", en = "Required" }

@@ -239,7 +239,9 @@ class GeneratorTests(FixtureCase):
         self.assertEqual(membership["roleName"], {"@id": iri("vocabularies/node-roles/service")})
         self.assertEqual(membership["statusAsOf"], "2026-01-02")
         self.assertEqual(entities[iri("organizations/eosc-cz-node")]["operatedBy"], {"@id": iri("infrastructures/ri")})
-        self.assertEqual(entities[iri("organizations/eosc-cz-node")]["nodeState"], "candidate")
+        self.assertEqual(
+            entities[iri("organizations/eosc-cz-node")]["nodeState"], {"@id": iri("vocabularies/node-states/candidate")}
+        )
         records = build_crate.api_records(entities, build_crate.load_content(self.root / "content"))
         self.assertIn(("ri", iri("infrastructures/ri")), records["infrastructures"])
         self.assertIn(("eosc-cz-node", iri("organizations/eosc-cz-node")), records["organizations"])
@@ -578,6 +580,24 @@ class GeneratorTests(FixtureCase):
         document = build_crate.vocabulary_document(content["guide"]["guide"])
         self.assertIn("schema:DefinedTerm rdfs:subClassOf skos:Concept .", document)
         self.assertIn("schema:inDefinedTermSet rdfs:subPropertyOf skos:inScheme .", document)
+
+    def test_every_status_is_a_term_of_its_scheme(self) -> None:
+        crate = build_crate.build_crate(build_crate.load_content())
+        statuses = {
+            term for term, shape in build_crate.GUIDE_TERM_SHAPES.items() if shape[0] == build_crate.ADMS + "status"
+        }
+        self.assertLessEqual({*build_crate.STATUS_SCHEMES, "serviceStatus", "esfriStatus"}, statuses)
+        found = set()
+        for entity in crate["@graph"]:
+            self.assertNotIn("creativeWorkStatus", entity, entity["@id"])
+            for prop in statuses & set(entity):
+                for value in build_crate.as_list(entity[prop]):
+                    self.assertIsInstance(value, dict, f"{entity['@id']} {prop} is a literal")
+                    self.assertIn("/id/vocabularies/", value["@id"])
+                    found.add(prop)
+        self.assertLessEqual({"clauseStatus", "healthStatus", "releaseStatus", "serviceStatus"}, found)
+        root = next(entity for entity in crate["@graph"] if entity["@id"] == "./")
+        self.assertIn(build_crate.status_code(root["releaseStatus"]), ("testing", "production"))
 
     def test_a_page_section_is_named_by_its_own_id_never_by_its_position(self) -> None:
         """Reordering a page moves no section's IRI, reference or shared link: its fragment is the id it carries."""
@@ -1371,7 +1391,11 @@ class SnapshotTests(FixtureCase):
         record = graph[iri("resources/service#fip-dashboard")]
         self.assertEqual(record["review"], {"@id": iri("resources/service#fip-dashboard-verification-1")})
         self.assertEqual(graph[iri("resources/service#fip-dashboard-verification-1")]["reviewAspect"], "verified")
-        self.assertEqual(graph[iri("fips/fip1#F1-r1")]["creativeWorkStatus"], "in-use")
+        # A declaration's status is a term of its scheme, never a string.
+        self.assertEqual(
+            graph[iri("fips/fip1#F1-r1")]["declarationStatus"],
+            {"@id": iri("vocabularies/declaration-statuses/in-use")},
+        )
         self.assertIn({"@value": "Sample data.", "@language": "en"}, graph["#snapshot-fip-dashboard"]["disclaimer"])
 
     def test_a_reference_to_an_entity_the_crate_lacks_is_an_error(self) -> None:

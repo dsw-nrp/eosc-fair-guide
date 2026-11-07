@@ -51,7 +51,9 @@ const problems = await page.evaluate(() => {
         else if (isShown && present(value)) {
           /* A name that only repeats the entry's ID is what its ID chip shows; a declared default draws nothing. */
           if (field === "name" && FG.text(value) === entity.identifier) continue;
-          if ((declared.defaults || {})[field]?.values.includes(value)) continue;
+          /* A status is a term of its scheme, compared by its code. */
+          const code = value && typeof value === "object" && value["@id"] ? FG.termKey(value) : value;
+          if ((declared.defaults || {})[field]?.values.includes(code)) continue;
           const marked = [...card.querySelectorAll("[data-field]")].filter((node) => node.dataset.field.split(" ").includes(field));
           if (!marked.some((node) => node.textContent.trim())) note(kind, field, "is shown by the kind but its card draws nothing", entity["@id"]);
         }

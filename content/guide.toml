@@ -393,6 +393,77 @@ name = { cs = "plánováno", en = "planned" }
 id = "prospective"
 name = { cs = "výhledové", en = "prospective" }
 
+# The other statuses the Guide records, each a scheme of its own: a requirement's, a FIP's and its declarations'
+# as the FIP Dashboard gives them, a test's last observed health, the approved manuscript's preparation and the
+# Guide's own release. Each is named through a property that specialises adms:status.
+[[clauseStatus]]
+id = "current"
+name = { cs = "platné", en = "current" }
+
+[[clauseStatus]]
+id = "refresh"
+name = { cs = "k aktualizaci", en = "to be updated" }
+
+[[clauseStatus]]
+id = "superseded"
+name = { cs = "nahrazené", en = "superseded" }
+
+[[fipStatus]]
+id = "published"
+name = { cs = "zveřejněný profil", en = "published profile" }
+
+[[fipStatus]]
+id = "draft"
+name = { cs = "koncept profilu", en = "draft profile" }
+
+[[declarationStatus]]
+id = "in-use"
+name = { cs = "používá se", en = "in use" }
+
+[[declarationStatus]]
+id = "planned"
+name = { cs = "plánováno", en = "planned" }
+
+[[declarationStatus]]
+id = "under-consideration"
+name = { cs = "zvažuje se", en = "under consideration" }
+
+[[declarationStatus]]
+id = "to-be-replaced"
+name = { cs = "bude nahrazeno", en = "to be replaced" }
+
+[[healthStatus]]
+id = "available"
+name = { cs = "funguje", en = "available" }
+
+[[healthStatus]]
+id = "degraded"
+name = { cs = "funguje omezeně", en = "degraded" }
+
+[[healthStatus]]
+id = "unavailable"
+name = { cs = "nefunguje", en = "unavailable" }
+
+[[preparationStatus]]
+id = "in-preparation"
+name = { cs = "v přípravě", en = "in preparation" }
+
+[[releaseStatus]]
+id = "testing"
+name = { cs = "testovací verze", en = "testing version" }
+
+[[releaseStatus]]
+id = "production"
+name = { cs = "produkční verze", en = "production version" }
+
+[[nodeState]]
+id = "candidate"
+name = { cs = "kandidátský uzel", en = "candidate node" }
+
+[[nodeState]]
+id = "operational"
+name = { cs = "v produkčním provozu", en = "in production operations" }
+
 [[tier]]
 id = "minimum"
 name = { cs = "Minimum", en = "Minimum" }

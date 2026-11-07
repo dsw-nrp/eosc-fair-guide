@@ -577,7 +577,7 @@
       const record = FG.refIds(fer, "sameAs").find((id) => id.startsWith(FG.DASHBOARD));
       return {
         principle: (FG.get(declaration.about) || {}).termCode,
-        status: declaration.creativeWorkStatus,
+        status: FG.termKey(declaration.declarationStatus) || null,
         note: declaration.description,
         fer: { name: FG.text(fer.alternateName || fer.name) || FG.text(fer.name), url: record || fer.url || null },
       };
@@ -903,7 +903,7 @@
   const VERDICTS = ["pass", "fail", "indeterminate"];
   const VERDICT_ICON = { pass: "✓", fail: "✗", indeterminate: "?", none: "–", partly: "◐", running: "…" };
   const sampleOf = (text) => [...new Set(String(text || "").split(/[\s,;]+/).map((value) => value.trim()).filter(Boolean))];
-  const healthOf = (test) => (test ? FG.id(test.healthStatus) || test.healthStatus : null);
+  const healthOf = (test) => (test ? FG.termKey(test.healthStatus) || null : null);
   const verdictKey = (test, record) => test + " " + record;
   /* Tests running now, by identifier, so each question's line can say so. */
   const running = new Set();

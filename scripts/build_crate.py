@@ -180,6 +180,10 @@ TERMS = MODEL_TERMS | {
     "serviceStatus": "Status of a service or resource in the five-level vocabulary.",
     "statusAsOf": "Date on which a status was last verified.",
     "healthStatus": "Availability of a live test as last observed.",
+    "clauseStatus": "Whether a requirement is current, due for an editorial update or superseded.",
+    "fipStatus": "Whether a FAIR Implementation Profile is published or a draft, as the FIP Dashboard records it.",
+    "declarationStatus": "The status of one declaration in a FAIR Implementation Profile, as the profile states it.",
+    "releaseStatus": "Whether this build of the guide is a testing version or a production release.",
     "resourceType": "Type of a resource, used to filter the resource finder.",
     "guideType": (
         "The guide's resource type of a cited source or a FIP Dashboard resource, from the crosswalk in "
@@ -277,7 +281,7 @@ ESTABLISHED_TERMS: dict[str, str] = {
 # several distinct slots over one property that the profile targets individually.
 GUIDE_TERMS: dict[str, str] = {term: definition for term, definition in TERMS.items() if term not in ESTABLISHED_TERMS}
 GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
-    "preparationStatus": ("", SCHEMA + "ScholarlyArticle", XSD + "string"),
+    "preparationStatus": (ADMS + "status", SCHEMA + "ScholarlyArticle", SCHEMA + "DefinedTerm"),
     "modelKind": ("", SCHEMA + "CreativeWork", XSD + "string"),
     "implementationLayers": (DCTERMS + "subject", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "implementationSeams": (DCTERMS + "subject", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
@@ -304,7 +308,11 @@ GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
     "allowsNotApplicable": ("", SCHEMA + "Question", XSD + "boolean"),
     "serviceStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "statusAsOf": (DCTERMS + "date", SCHEMA + "CreativeWork", XSD + "date"),
-    "healthStatus": (ADMS + "status", SCHEMA + "CreativeWork", XSD + "string"),
+    "healthStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "clauseStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "fipStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "declarationStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "releaseStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "resourceType": (DCTERMS + "type", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "guideType": (DCTERMS + "type", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "catalogueType": (DCTERMS + "type", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
@@ -335,7 +343,7 @@ GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
     "czechMembershipSince": ("", SCHEMA + "Organization", XSD + "string"),
     "nodeMembership": ("", SCHEMA + "Organization", RDF_LANG),
     "nodeMilestone": ("", SCHEMA + "Organization", XSD + "string"),
-    "nodeState": (ADMS + "status", SCHEMA + "Organization", XSD + "string"),
+    "nodeState": (ADMS + "status", SCHEMA + "Organization", SCHEMA + "DefinedTerm"),
     "nodeStateSince": ("", SCHEMA + "Organization", XSD + "date"),
     "operates": ("", SCHEMA + "Organization", SCHEMA + "CreativeWork"),
     "mappingBasis": ("", SCHEMA + "CreativeWork", XSD + "string"),
@@ -351,7 +359,6 @@ GUIDE_TERM_REASONS: dict[str, str] = {
     for reason, terms in {
         "No established property expresses current availability for repository deposits.": ["acceptsDeposits"],
         "The guide's Layers-and-Seams conceptual model has no established equivalent.": [
-            "preparationStatus",
             "modelKind",
             "introduction",
             "ordering",
@@ -790,6 +797,36 @@ def link_texts(graph: Graph, targets: dict[str, str]) -> None:
             graph.text_links[entity_id] = list(found.values())
 
 
+# The statuses that are terms of their own schemes, by the property that names them, each specialising adms:status:
+# the scheme's set, its name and its terms' build prefix. The terms are authored in guide.toml under the property.
+STATUS_SCHEMES: dict[str, tuple[str, str, str]] = {
+    "clauseStatus": ("requirement-statuses", "Requirement statuses", "requirement-status"),
+    "fipStatus": ("fip-statuses", "FIP statuses", "fip-status"),
+    "declarationStatus": ("declaration-statuses", "FIP declaration statuses", "declaration-status"),
+    "healthStatus": ("health-statuses", "Test health", "health"),
+    "preparationStatus": ("preparation-statuses", "Preparation statuses", "preparation"),
+    "releaseStatus": ("release-statuses", "Release statuses", "release"),
+    "nodeState": ("node-states", "EOSC CZ Node states", "node-state"),
+}
+
+
+def status_term(graph: Graph, prop: str, code: Any) -> dict[str, str] | None:
+    """A status as the term of its scheme. A code the scheme lacks is refused, so no status stays a string."""
+    if code in (None, ""):
+        return None
+    set_id, _, prefix = STATUS_SCHEMES[prop]
+    term_id = f"#{prefix}-{code}"
+    if term_id not in graph.entities:
+        raise ContentError(f"{prop}: '{code}' is no term of the {set_id} scheme in guide.toml")
+    return ref(term_id)
+
+
+def status_code(value: Any) -> str | None:
+    """The code of a status term a published node names (`.../release-statuses/testing` gives `testing`)."""
+    target = value.get("@id") if isinstance(value, dict) else None
+    return str(target).rsplit("/", 1)[-1] if target else None
+
+
 def defined_terms(graph: Graph, set_id: str, set_name: str, prefix: str, items: list[dict[str, Any]]) -> list[str]:
     """Add a named term set and its terms; return the term IDs. Every term is a DefinedTerm in exactly one
     DefinedTermSet, which it names with `inDefinedTermSet`; the set lists its terms in order. Their SKOS reading is
@@ -1045,6 +1082,8 @@ def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
     )
     defined_terms(graph, "esfri-statuses", "ESFRI statuses", "esfri", guide.get("esfriStatus", []))
     defined_terms(graph, "node-roles", "EOSC CZ Node roles", "noderole", guide.get("nodeRole", []))
+    for prop, (set_id, set_name, prefix) in STATUS_SCHEMES.items():
+        defined_terms(graph, set_id, set_name, prefix, guide.get(prop, []))
     for help_route in guide.get("help", []):
         graph.add(
             {
@@ -1156,7 +1195,7 @@ def citation_properties(
         "dateModified": iso(citation["dateModified"]) if citation.get("dateModified") else None,
         "sdDatePublished": iso(citation["dateAccessed"]) if citation.get("dateAccessed") else None,
         "license": citation.get("license"),
-        "preparationStatus": citation.get("preparationStatus"),
+        "preparationStatus": status_term(graph, "preparationStatus", citation.get("preparationStatus")),
     }
 
 
@@ -1182,7 +1221,7 @@ def build_ledger(graph: Graph, clauses: list[dict[str, Any]]) -> None:
                 "isPartOf": refs(graph.resolve([clause["source"]])) if clause.get("source") else None,
                 "clauseKind": clause.get("kind"),
                 "sourceLocator": clause.get("locator"),
-                "creativeWorkStatus": clause.get("status", "current"),
+                "clauseStatus": status_term(graph, "clauseStatus", clause.get("status", "current")),
                 "note": text(clause.get("note")),
             },
             clause["id"],
@@ -2179,7 +2218,7 @@ def build_node(graph: Graph, data: dict[str, Any]) -> list[str]:
             "identifier": node["id"],
             "name": node["name"],
             "url": node.get("url"),
-            "nodeState": node.get("state"),
+            "nodeState": status_term(graph, "nodeState", node.get("state")),
             "statusAsOf": iso(node["checked"]),
             "nodeStateSince": iso(node["stateDate"]) if node.get("stateDate") else None,
             "operatedBy": ref(operator) if operator in graph.entities else None,
@@ -2274,7 +2313,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
                     "additionalType": FIP_TERMS + "FIP-Declaration",
                     "about": ref(principle_iri(declaration["principle"])),
                     "mentions": ref("#fer-" + resources[declaration["resource"]]),
-                    "creativeWorkStatus": declaration.get("status"),
+                    "declarationStatus": status_term(graph, "declarationStatus", declaration.get("status")),
                     "description": text(declaration.get("note")),
                     "isPartOf": ref(fip_id),
                 }
@@ -2291,7 +2330,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
                 "keywords": text(fip.get("domain")),
                 "version": fip.get("version"),
                 "dateModified": fip.get("updated"),
-                "creativeWorkStatus": fip.get("status"),
+                "fipStatus": status_term(graph, "fipStatus", fip.get("status")),
                 "url": fip.get("url"),
                 "author": organization_ref(fip.get("community")),
                 "sameAs": ref(f"{base}/profiles/{alternate_id(fip, 'fip-dashboard')}")
@@ -2422,7 +2461,7 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
                     else []
                 ),
                 "about": ref(principle_iri(test["principle"])) if test.get("principle") else None,
-                "healthStatus": test.get("health"),
+                "healthStatus": status_term(graph, "healthStatus", test.get("health")),
                 "statusAsOf": iso(test["asOf"]) if test.get("asOf") else None,
             },
             f"test:{test['id']}",
@@ -3071,8 +3110,9 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     build_principles(graph, content["principles"])
     names = {person["id"]: person["name"] for person in guide_file.get("person", [])}
     crosswalk = type_crosswalk(guide_file)
-    source_ids = build_sources(graph, content["sources"], organizations, people, names, crosswalk=crosswalk)
+    # The vocabularies come first: every status names a term of its scheme, a source's included.
     build_vocabularies(graph, guide_file)
+    source_ids = build_sources(graph, content["sources"], organizations, people, names, crosswalk=crosswalk)
     build_glossary(graph, content["glossary"], content["ledger"])
     # Resources exist before the ledger, because a clause may cite a resource; the stations they are recommended at
     # are linked once the stations exist.
@@ -3169,7 +3209,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             "description": "The guide software; its content knowledge base is a separately described dataset.",
             "softwareVersion": guide["version"],
             "version": guide["version"],
-            "creativeWorkStatus": build_identity_facts()["status"],
+            "releaseStatus": status_term(graph, "releaseStatus", build_identity_facts()["status"]),
             "url": guide.get("url"),
             "license": ref(LICENSES["MIT"][0]),
             "author": refs([people[person] for person in guide.get("editors", [])]),
@@ -3191,7 +3231,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         "name": text(guide["name"]),
         "description": text(guide["description"]),
         "version": guide["version"],
-        "creativeWorkStatus": build_identity_facts()["status"],
+        "releaseStatus": status_term(graph, "releaseStatus", build_identity_facts()["status"]),
         "disambiguatingDescription": text(guide.get("testingNotice"))
         if build_identity_facts()["status"] == "testing"
         else None,
@@ -4882,6 +4922,10 @@ GUIDE_TERM_GROUPS: list[tuple[str, list[str]]] = [
             "lifecycleStage",
             "serviceStatus",
             "healthStatus",
+            "clauseStatus",
+            "fipStatus",
+            "declarationStatus",
+            "releaseStatus",
             "infrastructurePhase",
             "esfriStatus",
             "nodeState",

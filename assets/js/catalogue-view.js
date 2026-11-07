@@ -38,10 +38,10 @@
       excluded: {},
     },
     clauses: {
-      shown: ["about", "audience", "citation", "clauseKind", "creativeWorkStatus", "guidance", "isPartOf", "mentions", "name", "note", "sourceLocator", "supersededBy", "text"],
+      shown: ["about", "audience", "citation", "clauseKind", "clauseStatus", "guidance", "isPartOf", "mentions", "name", "note", "sourceLocator", "supersededBy", "text"],
       excluded: {},
       /* Values that draw nothing on purpose: a reader sees only a superseded requirement marked. */
-      defaults: { creativeWorkStatus: { values: ["current", "refresh"], reason: "a current requirement shows no badge, and a refresh is an editorial task; only a superseded one is marked" } },
+      defaults: { clauseStatus: { values: ["current", "refresh"], reason: "a current requirement shows no badge, and a refresh is an editorial task; only a superseded one is marked" } },
     },
     questions: {
       shown: ["about", "additionalProperty", "allowsNotApplicable", "appliesTo", "assessmentContext", "block", "championEvidenceOnly", "citation", "description", "fixAt", "fixedBy", "isPartOf", "lookup", "mentions", "name", "note", "prefillLevel", "providedByNrpFor", "text", "tier"],
@@ -52,7 +52,7 @@
       excluded: { inDefinedTermSet: "every term belongs to Heslář, which the entry's what-line names", termCode: "the term's number in Heslář, whose page the title links" },
     },
     fips: {
-      shown: ["abstract", "alternateName", "author", "creativeWorkStatus", "dateModified", "hasPart", "isBasedOn", "keywords", "name", "review", "sameAs", "url", "version"],
+      shown: ["abstract", "alternateName", "author", "fipStatus", "dateModified", "hasPart", "isBasedOn", "keywords", "name", "review", "sameAs", "url", "version"],
       excluded: { additionalType: SCHEMA_SUBTYPE },
     },
     tests: {
@@ -447,7 +447,7 @@
   function clauseEntries(used) {
     return FG.refs(FG.get("#ledger"), "hasPart").map((clause, index) => {
       const holders = used.get(clause["@id"]) || [];
-      const status = clause.creativeWorkStatus || "current";
+      const status = FG.termKey(clause.clauseStatus) || "current";
       const audience = FG.id(clause.audience);
       const source = FG.get(clause.isPartOf);
       return {
@@ -469,7 +469,7 @@
             what: clause.clauseKind ? field("clauseKind", FG.t("catalogue.clauseKind." + clause.clauseKind)) : null,
             title: FG.clauseTitle(clause) ? FG.span(FG.clauseTitle(clause)) : null,
             body: [h("p", { "data-field": "text mentions" }, FG.linkedSpan(clause)), FG.guidance(clause)],
-            states: status === "superseded" ? field("creativeWorkStatus", FG.clauseStatus(status)) : null,
+            states: status === "superseded" ? field("clauseStatus", FG.clauseStatus(status)) : null,
             /* What has changed since the source was published, with the requirements that say so. */
             notes: clause.note
               ? h("p", { class: "small clause-note" }, h("span", { "data-field": "note" }, FG.span(clause.note)),
@@ -628,7 +628,10 @@
   function declarationsOf(fip) {
     const declarations = FG.refs(fip, "hasPart").slice().sort((a, b) => FG.principleOrder(FG.principlesOf(a)[0] || {}, FG.principlesOf(b)[0] || {}));
     const counts = new Map();
-    for (const declaration of declarations) counts.set(declaration.creativeWorkStatus, (counts.get(declaration.creativeWorkStatus) || 0) + 1);
+    for (const declaration of declarations) {
+      const status = FG.termKey(declaration.declarationStatus);
+      counts.set(status, (counts.get(status) || 0) + 1);
+    }
     const summary = FG.t("catalogue.declarations", { n: declarations.length }) + ": " + [...counts].map(([status, n]) => FG.t("catalogue.declarationCount." + status, { n })).join(", ");
     return { declarations, summary };
   }
@@ -642,7 +645,7 @@
         h("tbody", null, declarations.map((declaration) => h("tr", null,
           h("td", null, FG.principlesOf(declaration).map((principle) => FG.principleTile(principle))),
           h("td", null, FG.refs(declaration, "mentions").map((fer, index) => [index ? ", " : null, FG.recordLink(fer)])),
-          h("td", null, FG.declarationBadge(declaration.creativeWorkStatus)),
+          h("td", null, FG.declarationBadge(FG.termKey(declaration.declarationStatus))),
           h("td", null, declaration.description ? FG.span(declaration.description) : null))))));
   }
 
@@ -701,7 +704,7 @@
             bylineFields: "author url",
             details: [
               field("alternateName", fip.alternateName),
-              field("creativeWorkStatus", fip.creativeWorkStatus ? FG.t("catalogue.fipStatus." + fip.creativeWorkStatus) : null),
+              field("fipStatus", fip.fipStatus ? FG.t("catalogue.fipStatus." + FG.termKey(fip.fipStatus)) : null),
               field("version", fip.version ? FG.t("catalogue.version", { version: fip.version }) : null),
               field("dateModified", fip.dateModified ? FG.t("catalogue.modified", { date: FG.formatDate(String(fip.dateModified).slice(0, 10)) }) : null),
               field("keywords", FG.subjectsOf(fip).join(", ") || null),
@@ -799,7 +802,7 @@
         const principles = FG.principlesOf(test);
         const local = String(test.identifier).startsWith("guide-");
         const anchor = local ? test.identifier : sourceKey("fair-champion", test.identifier);
-        const health = FG.id(test.healthStatus) || test.healthStatus;
+        const health = FG.termKey(test.healthStatus) || null;
         const documentation = FG.list(test.subjectOf).map((entry) => {
           const entity = FG.get(entry);
           return entity && entity.url || FG.id(entry);

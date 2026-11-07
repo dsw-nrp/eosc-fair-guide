@@ -93,7 +93,7 @@ async function checkFacets(lang) {
   assert.equal(await restored.locator(".entry-card").count(), software.length);
   await restored.close();
   await visit(`#/${lang}/K/catalogue/k!tests~f.execution!service~f.thealth!degraded`);
-  const degraded = definitions.filter((entry) => !entry.identifier.startsWith("guide-") && entry.healthStatus === "degraded");
+  const degraded = definitions.filter((entry) => !entry.identifier.startsWith("guide-") && String(entry.healthStatus?.["@id"] || "").endsWith("/health-statuses/degraded"));
   assert.equal(await page.locator(".entry-card").count(), degraded.length);
   assert.equal(await page.locator('.entry-card[id^="item-guide-"]').count(), 0, "recorded service status never includes local tests");
   await visit(`#/${lang}/K/catalogue/k!tests~o!name`);

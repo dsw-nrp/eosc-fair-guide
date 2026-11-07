@@ -52,7 +52,8 @@ fair-guide:ApprovedModelManuscript a sh:NodeShape ;
     sh:targetSubjectsOf fg:preparationStatus ;
     sh:class schema:ScholarlyArticle ;
     sh:property [ sh:path schema:identifier ; sh:hasValue "layers-seams-manuscript" ] ;
-    sh:property [ sh:path fg:preparationStatus ; sh:hasValue "in-preparation" ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:preparationStatus ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:node [ sh:property [ sh:path schema:termCode ; sh:hasValue "in-preparation" ] ] ] ;
     sh:property [ sh:path schema:datePublished ; sh:maxCount 0 ] ;
     sh:property [ sh:path schema:publisher ; sh:maxCount 0 ] ;
     sh:property [ sh:path schema:license ; sh:maxCount 0 ] .
