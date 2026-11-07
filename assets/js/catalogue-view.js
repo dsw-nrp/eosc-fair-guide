@@ -44,7 +44,7 @@
       defaults: { clauseStatus: { values: ["current", "refresh"], reason: "a current requirement shows no badge, and a refresh is an editorial task; only a superseded one is marked" } },
     },
     questions: {
-      shown: ["additionalProperty", "allowsNotApplicable", "appliesTo", "assessmentContext", "block", "championEvidenceOnly", "citation", "description", "fixAt", "fixedBy", "hasBenchmark", "inDimension", "lookup", "mentions", "name", "note", "prefillLevel", "providedByNrpFor", "text", "tier"],
+      shown: ["allowsNotApplicable", "appliesTo", "assessmentContext", "block", "citation", "description", "fixAt", "fixedBy", "hasBenchmark", "inDimension", "lookup", "mentions", "name", "note", "prefillMapping", "providedByNrpFor", "text", "tier"],
       excluded: { position: ORDER },
     },
     glossary: {
@@ -494,23 +494,21 @@
   /** Where a question's suggested answer comes from: the records and fields the self-check reads, the FAIR Champion
       tests, the Guide's own tests and the evaluators' criteria mapped to it, each with how much it covers. */
   function prefillSources(item) {
-    const own = FG.refs(item, "additionalProperty")
-      .filter((property) => String(property.propertyID).startsWith("prefill:"))
-      .flatMap((property) => {
-        const source = String(property.propertyID).slice("prefill:".length);
-        if (source === "champion") {
-          return FG.list(property.value).map((value) => {
-            const test = FG.sourceEntity("fair-champion", String(value), "tests");
-            return [FG.t("catalogue.prefill.champion") + ": ", test ? FG.recordLink(test) : h("code", null, String(value))];
-          });
-        }
-        return [[FG.t("catalogue.prefill." + source), typeof property.value === "string" ? [" · ", h("code", null, property.value)] : null]];
-      });
+    const own = FG.prefillMappings(item).flatMap((mapping) => {
+      if (mapping.identifier === "champion") {
+        return FG.list(mapping.prefillField).map((value) => {
+          const test = FG.sourceEntity("fair-champion", String(value), "tests");
+          return [FG.t("catalogue.prefill.champion") + ": ", test ? FG.recordLink(test) : h("code", null, String(value))];
+        });
+      }
+      return [[FG.t("catalogue.prefill." + mapping.identifier)]];
+    });
     const reverse = (FG.reverseRelations().prefilledBy.get(item["@id"]) || []).map(({ entity, coverage }) => [
       FG.recordLink(entity),
       coverage ? h("span", { class: "muted" }, " · " + FG.t("catalogue.coverage." + coverage)) : null,
     ]);
-    const limits = [item.prefillLevel === "partly" ? FG.t("catalogue.prefillPartly") : null, item.championEvidenceOnly ? FG.t("catalogue.championOnly") : null].filter(Boolean);
+    const evidenceOnly = FG.prefillCoverage(FG.prefillOf(item, "champion")) === "champion-evidence-only";
+    const limits = [FG.prefillPartly(item) ? FG.t("catalogue.prefillPartly") : null, evidenceOnly ? FG.t("catalogue.championOnly") : null].filter(Boolean);
     const items = own.concat(reverse);
     if (!items.length && !limits.length) return [];
     return [FG.relationGroups([{ items, render: (entry) => entry }]), limits.length ? h("p", { class: "small muted" }, limits.join(" · ")) : null];
@@ -727,8 +725,8 @@
     const byTest = new Map();
     for (const check of FG.ofType("Quiz")) {
       for (const item of FG.questionsOf(check).sort(FG.byPosition)) {
-        for (const entry of FG.refs(item, "additionalProperty").filter((property) => property.propertyID === "prefill:champion")) {
-          for (const test of FG.list(entry.value).map(String)) byTest.set(test, (byTest.get(test) || []).concat(item));
+        for (const entry of [FG.prefillOf(item, "champion")].filter(Boolean)) {
+          for (const test of FG.list(entry.prefillField).map(String)) byTest.set(test, (byTest.get(test) || []).concat(item));
         }
       }
     }

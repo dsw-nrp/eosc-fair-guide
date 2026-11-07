@@ -655,6 +655,28 @@ class GeneratorTests(FixtureCase):
             {key: len(value) for key, value in measured.items()}, {k: len(v) for k, v in principles.items()}
         )
 
+    def test_a_question_names_its_prefill_mappings_as_typed_statements(self) -> None:
+        crate = build_crate.build_crate(build_crate.load_content())
+        graph = {entity["@id"]: entity for entity in crate["@graph"]}
+        question = graph[iri("questions/dataset.01")]
+        for retired in ("additionalProperty", "prefillLevel", "championEvidenceOnly"):
+            self.assertNotIn(retired, question)
+        self.assertIn({"@id": iri("questions/dataset.01#prefill-datacite")}, question["prefillMapping"])
+        datacite = graph[iri("questions/dataset.01#prefill-datacite")]
+        self.assertEqual(datacite["@type"], "PrefillMapping")
+        self.assertEqual(datacite["prefillSource"], {"@id": iri("resources/datacite")})
+        self.assertEqual(build_crate.as_list(datacite["prefillField"]), ["doi"])
+        self.assertEqual(datacite["prefillCoverage"], {"@id": iri("vocabularies/prefill-coverages/whole")})
+        champion = graph[iri("questions/dataset.01#prefill-champion")]
+        self.assertEqual(
+            champion["prefillCoverage"], {"@id": iri("vocabularies/prefill-coverages/champion-evidence-only")}
+        )
+        # The resolver is the Guide's own lookup, which no catalogue entry describes; it reads no named field.
+        resolver = graph[iri("questions/dataset.01#prefill-resolver")]
+        self.assertNotIn("prefillSource", resolver)
+        self.assertNotIn("prefillField", resolver)
+        self.assertTrue(crate["@context"][1]["PrefillMapping"].endswith("terms#PrefillMapping"))
+
     def test_a_page_section_is_named_by_its_own_id_never_by_its_position(self) -> None:
         """Reordering a page moves no section's IRI, reference or shared link: its fragment is the id it carries."""
         content = build_crate.load_content()
@@ -1164,8 +1186,13 @@ class ContentCheckTests(FixtureCase):
         )
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
-        item = next(entity for entity in crate["@graph"] if entity["@id"] == iri("questions/gate.01"))
-        self.assertTrue(item["championEvidenceOnly"])
+        graph = {entity["@id"]: entity for entity in crate["@graph"]}
+        # The policy is the coverage of the question's FAIR Champion pre-fill mapping.
+        mapping = graph[iri("questions/gate.01#prefill-champion")]
+        self.assertEqual(
+            mapping["prefillCoverage"], {"@id": iri("vocabularies/prefill-coverages/champion-evidence-only")}
+        )
+        self.assertEqual(build_crate.as_list(mapping["prefillField"]), ["test_one"])
         self.edit("checks/gate.toml", "championEvidenceOnly = true", 'championEvidenceOnly = "true"')
         self.assertError("championEvidenceOnly must be a boolean")
 

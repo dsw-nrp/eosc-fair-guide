@@ -252,7 +252,9 @@ try {
     await page.waitForFunction(() => window.FairGuide.state.answers.fip?.items?.["fip.02"]?.value);
     await visit(`#/${lang}/K/check/fip/answers`, "#answer-fip-02-partly");
     assert(await page.locator("#answer-fip-02-partly").isChecked(), "selecting an F2 resource does not establish all profile attributes");
-    assert.equal(get(model("questions/fip.02")).prefillLevel, "partly");
+    /* The FIP profile's pre-fill covers part of the question, as its mapping states. */
+    const fipMapping = refs(get(model("questions/fip.02")), "prefillMapping").map(get).find((entry) => entry?.identifier === "fip");
+    assert(String(fipMapping?.prefillCoverage?.["@id"]).endsWith("/prefill-coverages/partly"), "the FIP pre-fill of fip.02 covers part of it");
     await page.locator("#answer-fip-02-yes").check();
     assert(await page.locator("#answer-fip-02-yes").isChecked(), "the informed user can supply complete evidence");
   }

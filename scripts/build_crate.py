@@ -201,8 +201,11 @@ TERMS = MODEL_TERMS | {
     "guidance": "Original description or guidance from the cited published source, in its original language.",
     "assessmentContext": "Source context that explains an assessment without creating a separate answerable criterion.",
     "disclaimer": "Disclaimer that a snapshot's source publishes about its data, shown while it is present.",
-    "prefillLevel": "Highest answer that live evidence can pre-fill for a self-check item that it only partly proves.",
-    "championEvidenceOnly": "Champion tests cover part of a question: Partly when that part is met, No when it fails.",
+    "prefillMapping": "A live source that can suggest an answer to a check question, as a typed pre-fill mapping.",
+    "prefillSource": "The source or service a pre-fill mapping reads, as the guide's catalogue describes it.",
+    "prefillField": "A field of the source's record, or a test of the service, that a pre-fill mapping reads.",
+    "prefillCoverage": "How much of its question a pre-fill mapping covers: the whole question, part of it, or "
+    "FAIR Champion evidence only, which answers Partly when its part is met and No when it fails.",
     "lookup": "Service where a user can find out the answer to a self-check item.",
     "guideState": "The reader's saved state for one check, carried in an exported result crate.",
     "guideSources": "The provenance of the evaluator sources an exported result retains, as JSON.",
@@ -293,6 +296,12 @@ GUIDE_CLASSES: dict[str, tuple[str, str, str]] = {
         SCHEMA + "CreativeWork",
         "schema.org's HowTo types describe the steps of one procedure, not advice addressed by lens and level.",
     ),
+    "PrefillMapping": (
+        "A live source that can suggest an answer to a check question: the source, the fields or tests it reads and "
+        "how much of the question they cover.",
+        SCHEMA + "Intangible",
+        "schema:PropertyValue holds the value of an arbitrary property, not a source, what it reads and its coverage.",
+    ),
 }
 GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
     "preparationStatus": (ADMS + "status", SCHEMA + "ScholarlyArticle", SCHEMA + "DefinedTerm"),
@@ -339,8 +348,10 @@ GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
     "guidance": (DCTERMS + "description", SCHEMA + "CreativeWork", RDF_LANG),
     "assessmentContext": (DCTERMS + "description", SCHEMA + "CreativeWork", RDF_LANG),
     "disclaimer": (SKOS + "note", SCHEMA + "CreativeWork", RDF_LANG),
-    "prefillLevel": ("", SCHEMA + "Question", SCHEMA + "DefinedTerm"),
-    "championEvidenceOnly": ("", SCHEMA + "Question", XSD + "boolean"),
+    "prefillMapping": ("", SCHEMA + "Question", SCHEMA + "Intangible"),
+    "prefillSource": ("", SCHEMA + "Intangible", SCHEMA + "Thing"),
+    "prefillField": ("", SCHEMA + "Intangible", XSD + "string"),
+    "prefillCoverage": ("", SCHEMA + "Intangible", SCHEMA + "DefinedTerm"),
     "lookup": ("", SCHEMA + "Question", SCHEMA + "CreativeWork"),
     "guideState": ("", SCHEMA + "CreativeWork", XSD + "string"),
     "guideSources": ("", SCHEMA + "CreativeWork", XSD + "string"),
@@ -397,8 +408,10 @@ GUIDE_TERM_REASONS: dict[str, str] = {
             "appliesTo",
             "providedByNrpFor",
             "allowsNotApplicable",
-            "prefillLevel",
-            "championEvidenceOnly",
+            "prefillMapping",
+            "prefillSource",
+            "prefillField",
+            "prefillCoverage",
             "lookup",
         ],
         "The infrastructure that operates an entry, and the entries it operates, are entity references; no single "
@@ -826,7 +839,10 @@ STATUS_SCHEMES: dict[str, tuple[str, str, str]] = {
 TERM_SCHEMES: dict[str, tuple[str, str, str]] = {
     **STATUS_SCHEMES,
     "adviceKind": ("advice-kinds", "Advice kinds", "advicekind"),
+    "prefillCoverage": ("prefill-coverages", "Pre-fill coverage", "prefill-coverage"),
 }
+# The term sets the page reads by code alone, never by a term's own name or description.
+CODED_SETS = frozenset(set_id for set_id, _, _ in TERM_SCHEMES.values())
 
 
 def status_term(graph: Graph, prop: str, code: Any) -> dict[str, str] | None:
@@ -1355,13 +1371,43 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
     return station_ids
 
 
-def build_prefill(graph: Graph, item_id: str, prefill: dict[str, Any]) -> list[str]:
-    """One property value per live source that can pre-fill an item, naming the fields, tests or FIP questions."""
+# The catalogue entry of each live source a question's pre-fill names; the DOI or Handle resolver is the Guide's own
+# lookup through either system, which no single entry describes.
+PREFILL_SOURCES = {
+    "datacite": "datacite",
+    "champion": "fair-champion",
+    "fip": "fip-dashboard",
+    "nkr": "nkr",
+    "re3data": "re3data",
+    "resolver": None,
+}
+
+
+def build_prefill(graph: Graph, item_id: str, item: dict[str, Any]) -> list[str]:
+    """One typed mapping per live source that can suggest the item's answer: the source, the fields, tests or FIP
+    questions it reads, and how much of the question it covers. The item's `prefillLevel` and
+    `championEvidenceOnly` are read into that coverage."""
     prefill_ids = []
-    for source, value in prefill.items():
+    for source, value in item.get("prefill", {}).items():
+        if source not in PREFILL_SOURCES:
+            raise ContentError(f"{item_id}: unknown pre-fill source '{source}'")
+        if source == "champion" and item.get("championEvidenceOnly"):
+            coverage = "champion-evidence-only"
+        else:
+            coverage = "partly" if item.get("prefillLevel") == "partly" else "whole"
+        entry = next((key for key in graph.resolve([PREFILL_SOURCES[source] or ""]) if key in graph.entities), None)
         prefill_id = f"{item_id}-prefill-{source}"
         prefill_ids.append(prefill_id)
-        graph.add({"@id": prefill_id, "@type": "PropertyValue", "propertyID": f"prefill:{source}", "value": value})
+        graph.add(
+            {
+                "@id": prefill_id,
+                "@type": "PrefillMapping",
+                "identifier": source,
+                "prefillSource": ref(entry) if entry else None,
+                "prefillField": [str(field) for field in as_list(value)] if value is not True else None,
+                "prefillCoverage": status_term(graph, "prefillCoverage", coverage),
+            }
+        )
     return prefill_ids
 
 
@@ -1403,7 +1449,7 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
         for order, item in enumerate(data.get("item", []), start=1):
             item_id = f"#item-{item['id']}"
             item_ids.append(item_id)
-            prefill_ids = build_prefill(graph, item_id, item.get("prefill", {}))
+            prefill_ids = build_prefill(graph, item_id, item)
             applies = [f"#profile-{profile}" for profile in item.get("profiles", [])]
             applies += [f"#mode-{mode}" for mode in item.get("modes", [])]
             graph.add(
@@ -1426,9 +1472,7 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
                     "allowsNotApplicable": item.get("allowNotApplicable", False),
                     "assessmentContext": True if item.get("context") else None,
                     "note": text(item.get("note")),
-                    "additionalProperty": refs(prefill_ids),
-                    "prefillLevel": item.get("prefillLevel"),
-                    "championEvidenceOnly": True if item.get("championEvidenceOnly") else None,
+                    "prefillMapping": refs(prefill_ids),
                     "lookup": ref(links[item["lookup"]]) if item.get("lookup") else None,
                     "hasBenchmark": ref(check_id),
                 },
@@ -3776,7 +3820,15 @@ CRATE_LOCAL = re.compile(
     r"|guide-selection|guide-source|guide-software|(?:snapshot|instrument|help|person)-[A-Za-z0-9._-]+)\Z"
 )
 # The properties by which a record holds a part that has no address of its own.
-PART_PROPERTIES = ("hasPart", "potentialAction", "alternateIdentifier", "additionalProperty", "member", "review")
+PART_PROPERTIES = (
+    "hasPart",
+    "potentialAction",
+    "alternateIdentifier",
+    "additionalProperty",
+    "prefillMapping",
+    "member",
+    "review",
+)
 
 
 class Placement(NamedTuple):
@@ -4543,9 +4595,13 @@ def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[st
         elif entity.get("@type") == "rdf:Property" and entity.get("rdfs:label") in MODEL_TERMS:
             # Full definitions are needed only with the model; its property IRIs remain in the core context.
             parts["model"]["entities"].append(entity)
-        elif entity.get("@type") == "rdf:Property":
+        elif entity.get("@type") in ("rdf:Property", "rdfs:Class"):
             # Vocabulary definitions serve source detail and machine readers, rather than initial navigation.
             # Keep their full definitions with the standards part, which the machine-data page also loads.
+            parts["standards"]["entities"].append(entity)
+        elif kind(entity) == "vocabularies" and address(entity).split("/")[1] in CODED_SETS:
+            # Statuses, advice kinds and pre-fill coverage are read by their codes, which their references carry;
+            # the terms themselves serve detail and machine readers.
             parts["standards"]["entities"].append(entity)
         elif kind(entity) == "glossary" and fragment(entity).startswith("id-"):
             # Imported glossary IDs are detail metadata; catalogue/search load them with the definitions.
@@ -5009,7 +5065,7 @@ GUIDE_TERM_GROUPS: list[tuple[str, list[str]]] = [
     ("Descriptions and notes", ["guidance", "assessmentContext", "note", "disclaimer"]),
     (
         "Dated and reviewed status",
-        ["statusAsOf", "reviewedVersion", "mappingCoverage", "mappingBasis", "championEvidenceOnly", "prefillLevel"],
+        ["statusAsOf", "reviewedVersion", "mappingCoverage", "mappingBasis"],
     ),
     (
         "Self-check machinery",
@@ -5024,6 +5080,10 @@ GUIDE_TERM_GROUPS: list[tuple[str, list[str]]] = [
             "providedByNrpFor",
             "allowsNotApplicable",
             "lookup",
+            "prefillMapping",
+            "prefillSource",
+            "prefillField",
+            "prefillCoverage",
             "adviceKind",
             "checkAfter",
             "promptSample",

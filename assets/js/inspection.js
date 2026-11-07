@@ -426,7 +426,7 @@
     const owner = entry ? ownership(entry, value, pre) : null;
     const first = entry && pre ? readable(entry)[0] : null;
     if (!owner && !first) {
-      const sources = [...new Set(FG.refs(item, "additionalProperty").map((property) => String(property.propertyID).replace("prefill:", "")))].map(label);
+      const sources = [...new Set(FG.prefillMappings(item).map((mapping) => mapping.identifier))].map(label);
       /* A test the Guide runs in the browser is a source too. */
       if (FG.localTest("guide-" + item.identifier.replace(".", "-"))) sources.push(FG.t("selfcheck.question.localTest"));
       return h("p", { class: "evidence-line evidence-none small" },

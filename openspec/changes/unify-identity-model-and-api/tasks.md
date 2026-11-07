@@ -160,7 +160,7 @@ its head in CI.
 - [x] 3.4 Type checks and questions as FTR benchmarks and metrics. Generate the manual tests at `tests/self-check/`,
   state the FTR relations and drop their schema.org duplicates (decision 8). Verify: a unit test finds one manual test
   per question and every FTR relation; `npm run check:assessment` passes.
-- [ ] 3.5 Publish pre-fill mappings as `fg:PrefillMapping` and read them on the page (decision 9). Verify: a unit test
+- [x] 3.5 Publish pre-fill mappings as `fg:PrefillMapping` and read them on the page (decision 9). Verify: a unit test
   finds `dataset.01`'s DataCite mapping with field and coverage; the catalogue scenario *A check question shows how it
   is answered* passes in `npm run check:page`.
 - [ ] 3.6 Make the content check reject copied statements. Migrate the 55 questions through `requirement`: the 51 that

@@ -111,6 +111,18 @@ name = { cs = "produkční verze", en = "production version" }
 id = "candidate"
 name = { cs = "kandidátský uzel", en = "candidate node" }
 
+[[prefillCoverage]]
+id = "whole"
+name = { cs = "celá otázka", en = "the whole question" }
+
+[[prefillCoverage]]
+id = "partly"
+name = { cs = "část otázky", en = "part of the question" }
+
+[[prefillCoverage]]
+id = "champion-evidence-only"
+name = { cs = "jen podklad z FAIR Champion", en = "FAIR Champion evidence only" }
+
 [[adviceKind]]
 id = "direction"
 name = { cs = "doporučení", en = "direction" }

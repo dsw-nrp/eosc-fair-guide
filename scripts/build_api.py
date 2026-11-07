@@ -53,11 +53,19 @@ DCAT = "http://www.w3.org/ns/dcat#"
 SIO = "https://semanticscience.org/resource/"
 
 # Entities small enough to repeat in full inside the records that name them.
-EMBEDDED_TYPES = {"DefinedTerm", "Audience", "Action", "EntryPoint", "Person", "Organization", "PropertyValue"}
+EMBEDDED_TYPES = {
+    "DefinedTerm",
+    "Audience",
+    "Action",
+    "EntryPoint",
+    "Person",
+    "Organization",
+    "PropertyValue",
+    "PrefillMapping",
+}
 # What a record adds to its crate entity, per collection: the crate types checks and questions as FTR benchmarks and
 # metrics itself, and an automated test carries ftr:Test as its additional type.
 FTR_TYPES = {"tests": "Test"}
-DROPPED = {"metrics": {"additionalProperty", "name"}}  # the page's pre-fill settings; a name repeating the identifier
 TERMS: dict[str, Any] = {
     "@vocab": SCHEMA_ORG,
     "ftr": kb.FTR,
@@ -213,7 +221,7 @@ class Api:
         own = self.relative(here, path) if path else self.iri(entity_id, here)
         node: dict[str, Any] = {"@id": own, "@type": entity["@type"]}
         for key, value in entity.items():
-            if key in ("@id", "@type") or key in DROPPED.get(collection, ()):
+            if key in ("@id", "@type"):
                 continue
             name = key
             if (
@@ -639,10 +647,6 @@ def schemas(language_keys: set[str], reference_keys: set[str]) -> dict[str, Any]
     """The schemas of the records, a list and the context; `Text` and `Links` cover what every record may hold."""
 
     def property_schema(key: str) -> dict[str, Any]:
-        if key == "championEvidenceOnly":
-            return {"type": "boolean"}
-        if key == "prefillLevel":
-            return {"type": "string", "enum": ["partly"]}
         if key in language_keys:
             return ref("Text")
         if key in reference_keys or key in TERMS:

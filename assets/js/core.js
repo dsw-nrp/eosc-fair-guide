@@ -978,6 +978,13 @@
   /** The principles an entity is about, in the fixed order. */
   /** The principles something is about; a check question measures them as its FTR dimensions. */
   FG.principlesOf = (entity) => FG.refs(entity, "about").concat(FG.refs(entity, "inDimension")).filter((ref) => ref.termCode).sort(FG.principleOrder);
+  /** A question's pre-fill mappings: which live source can suggest its answer (`datacite`, `champion`…), the fields
+      or tests the source reads, and how much of the question it covers (`whole`, `partly`, `champion-evidence-only`). */
+  FG.prefillMappings = (item) => FG.refs(item, "prefillMapping");
+  FG.prefillOf = (item, source) => FG.prefillMappings(item).find((mapping) => mapping.identifier === source) || null;
+  FG.prefillCoverage = (mapping) => (mapping ? FG.termKey(mapping.prefillCoverage) : "");
+  /** Whether live evidence can suggest at most Partly for a question it only partly proves. */
+  FG.prefillPartly = (item) => FG.prefillMappings(item).some((mapping) => FG.prefillCoverage(mapping) === "partly");
   /** A check's questions, its FTR metrics, and the check a question belongs to, its benchmark. */
   FG.questionsOf = (check) => FG.refs(check, "hasAssociatedMetric");
   FG.checkOf = (question) => FG.get(question && question.hasBenchmark);

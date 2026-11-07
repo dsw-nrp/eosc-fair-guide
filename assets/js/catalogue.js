@@ -164,7 +164,7 @@
     applies: "appliesTo allowsNotApplicable",
     group: "block",
     nrpProfile: "providedByNrpFor",
-    prefilledFrom: "additionalProperty prefillLevel championEvidenceOnly",
+    prefilledFrom: "prefillMapping",
     covers: "hasPart",
     declarations: "hasPart",
     tools: "instrument",

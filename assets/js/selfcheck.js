@@ -59,7 +59,7 @@
   const coded = (ids, code) => ids.find((id) => FG.termKey(id) === code) || null;
   const today = () => new Date().toISOString().slice(0, 10);
   const label = (source) => FG.t("selfcheck.source." + source);
-  const prefillOf = (item, source) => FG.refs(item, "additionalProperty").find((entry) => entry.propertyID === "prefill:" + source);
+  const prefillOf = FG.prefillOf;
 
   function fragment(...children) {
     const node = document.createDocumentFragment();
@@ -243,11 +243,11 @@
     for (const item of answerable(check, st)) {
       const entry = prefillOf(item, source);
       if (!entry && !direct) continue;
-      const result = evidence(item, FG.list(entry && entry.value));
+      const result = evidence(item, FG.list(entry && entry.prefillField));
       if (!result) continue;
       let value = result.value || null;
       const notes = (result.notes || []).slice();
-      if (value === "yes" && item.prefillLevel === "partly") {
+      if (value === "yes" && FG.prefillPartly(item)) {
         value = "partly";
         notes.push({ key: "selfcheck.note.partlyOnly" });
       }
@@ -867,13 +867,13 @@
 
   function sourcesOf(check, st) {
     const sources = new Set();
-    for (const item of answerable(check, st)) for (const entry of FG.refs(item, "additionalProperty")) sources.add(String(entry.propertyID).replace("prefill:", ""));
+    for (const item of answerable(check, st)) for (const mapping of FG.prefillMappings(item)) sources.add(mapping.identifier);
     return sources;
   }
 
   /** Whether a question the check shows is answered by looking for the output's data steward. */
   const needsSteward = (check, st) =>
-    answerable(check, st).some((item) => FG.refs(item, "additionalProperty").some((entry) => entry.propertyID === "prefill:datacite" && FG.list(entry.value).includes("@steward")));
+    answerable(check, st).some((item) => FG.list((prefillOf(item, "datacite") || {}).prefillField).includes("@steward"));
 
   /** The data steward of a funded output, by ORCID iD, for the DataCite lookup to find among creators and contributors. */
   function stewardControl(check, st) {
@@ -916,7 +916,7 @@
 
   /** A question's FAIR Champion tests; a test known to be unavailable is left out. */
   const testsOf = (item) =>
-    FG.list((prefillOf(item, "champion") || {}).value)
+    FG.list((prefillOf(item, "champion") || {}).prefillField)
       .map(String)
       .filter((id) => healthOf(FG.sourceEntity("fair-champion", id)) !== "unavailable");
 
@@ -1078,7 +1078,8 @@
         /* No verdict at all verified nothing, so it is not described as partial support; a narrower test or a sample
            with records without a result supports only part of the question, and answers Partly when that part is
            met and No when it fails. */
-        const partial = item.championEvidenceOnly || states.some((state) => ["none", "indeterminate"].includes(state));
+        const evidenceOnly = FG.prefillCoverage(prefillOf(item, "champion")) === "champion-evidence-only";
+        const partial = evidenceOnly || states.some((state) => ["none", "indeterminate"].includes(state));
         const notes = !known ? [{ key: "selfcheck.note.testUnavailable" }] : partial ? [{ key: "selfcheck.note.partialCoverage" }] : [];
         return {
           value: !known ? null : !passed ? "no" : passed === run.records.length && !partial ? "yes" : "partly",

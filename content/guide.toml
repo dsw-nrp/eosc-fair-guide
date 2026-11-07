@@ -464,6 +464,21 @@ name = { cs = "kandidátský uzel", en = "candidate node" }
 id = "operational"
 name = { cs = "v produkčním provozu", en = "in production operations" }
 
+# How much of its question a live source's pre-fill covers.
+[[prefillCoverage]]
+id = "whole"
+name = { cs = "celá otázka", en = "the whole question" }
+
+[[prefillCoverage]]
+id = "partly"
+name = { cs = "část otázky", en = "part of the question" }
+description = { cs = "Zdroj navrhne nejvýš Částečně.", en = "The source suggests Partly at most." }
+
+[[prefillCoverage]]
+id = "champion-evidence-only"
+name = { cs = "jen podklad z FAIR Champion", en = "FAIR Champion evidence only" }
+description = { cs = "Splněná část navrhne Částečně, nesplněná Ne.", en = "A part met suggests Partly, a part failed No." }
+
 # What an advice item is: a direction to act, a tip that explains, a station's key point or an AI tip.
 [[adviceKind]]
 id = "direction"

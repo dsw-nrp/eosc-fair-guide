@@ -20,8 +20,12 @@ console.log("check_champion_probe: reviewed endpoint admission, stable identitie
 
 const root = resolve(import.meta.dirname, "../..");
 const graph = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"))["@graph"];
+/* The evidence-only policy travels with the question, as the coverage of its FAIR Champion pre-fill mapping. */
+const byId = new Map(graph.map((entry) => [entry["@id"], entry]));
 for (const id of ["dataset.01", "dataset.13", "maturity.01", "maturity.05", "maturity.11"]) {
-  assert.equal(graph.find((entry) => entry.identifier === id)?.championEvidenceOnly, true, "evidence-only policy travels with the question");
+  const question = graph.find((entry) => entry.identifier === id && [].concat(entry["@type"]).includes("Question"));
+  const champion = [].concat(question?.prefillMapping || []).map((ref) => byId.get(ref["@id"])).find((mapping) => mapping?.identifier === "champion");
+  assert(String(champion?.prefillCoverage?.["@id"]).endsWith("/prefill-coverages/champion-evidence-only"), "evidence-only policy travels with " + id);
 }
 const { chromium } = await import("./browser.mjs");
 const browser = await chromium.launch();
