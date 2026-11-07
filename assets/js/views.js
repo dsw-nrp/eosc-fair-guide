@@ -1581,7 +1581,7 @@
     const example = FG.config.api.records[FG.graph.find((entity) => entity.termCode === "R1.1")["@id"]];
     const rows = [
       ["crate", [link("ro-crate-metadata.json", null, "application/ld+json"), " · ", link("ro-crate-preview.html", FG.t("machines.preview"))]],
-      ["profile", [link("profile/0.1/index.html", FG.t("machines.profile"), "text/html"), " · ", link("profile/fair-guide/profile.ttl", "Turtle", "text/turtle")]],
+      ["profile", [link(FG.config.vocab.profilePage, FG.t("machines.profile"), "text/html"), " · ", link("profile/fair-guide/profile.ttl", "Turtle", "text/turtle")]],
       ["vocabulary", [link("terms/index.html", FG.t("machines.vocabulary"), "text/html"), " · ", link("terms/fair-guide.ttl", "Turtle", "text/turtle")]],
       ["record", [h("code", null, files.record.replace("{record}", "<kolekce>/<id>")), " · ", FG.t("machines.example") + ": ", link(files.record.replace("{record}", example), null, "application/json")]],
       ["service", [link(files.description, null, "application/vnd.oai.openapi+json"), " · ", link(files.docs, FG.t("api.docs"), "text/html")]],

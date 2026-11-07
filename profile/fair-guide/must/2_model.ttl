@@ -1,0 +1,146 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dqv: <http://www.w3.org/ns/dqv#> .
+@prefix fg: <https://fair.eosc.cz/terms#> .
+@prefix fair-guide: <https://fair.eosc.cz/profile/fair-guide/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix ftr: <https://w3id.org/ftr#> .
+@prefix schema: <http://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix sio: <https://semanticscience.org/resource/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# The graph model of profile 0.2: controlled terms and their sets, statuses as terms, FTR benchmarks, metrics and
+# tests, registry records about one thing, and typed pre-fill mappings.
+
+fair-guide:ControlledTerm a sh:NodeShape ;
+    sh:name "Controlled term" ;
+    sh:description "A controlled term belongs to exactly one term set, stated once; its SKOS reading is in the vocabulary" ;
+    sh:targetClass schema:DefinedTerm ;
+    sh:property [ sh:path schema:name ; sh:minCount 1 ; sh:message "A controlled term MUST have a name" ] ;
+    sh:property [
+        sh:path schema:inDefinedTermSet ;
+        sh:class schema:DefinedTermSet ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "A controlled term MUST belong to exactly one term set" ;
+    ] ;
+    sh:property [
+        sh:path skos:inScheme ;
+        sh:maxCount 0 ;
+        sh:message "A term states its membership once, with schema:inDefinedTermSet" ;
+    ] .
+
+fair-guide:TermSet a sh:NodeShape ;
+    sh:name "Term set" ;
+    sh:description "A term set has a name; glossary, principles, life-cycle models and vocabularies are term sets" ;
+    sh:targetClass schema:DefinedTermSet ;
+    sh:property [ sh:path schema:name ; sh:minCount 1 ; sh:message "A term set MUST have a name" ] .
+
+# A membership in the EOSC CZ Node is a schema.org role, which a validator inferring types from `member` reads as an
+# organisation too; a role is no organisation and carries the role, not a name.
+fair-guide:Agent a sh:NodeShape ;
+    sh:name "Organisation or infrastructure" ;
+    sh:description "An organisation or research infrastructure has a name" ;
+    sh:targetClass schema:Organization ;
+    sh:or (
+        [ sh:class schema:OrganizationRole ]
+        [ sh:property [ sh:path schema:name ; sh:minCount 1 ] ]
+    ) ;
+    sh:message "An organisation MUST have a name" .
+
+# A FIP is found by what it is, its additional type, so a FIP that lost its status is still checked. RO-Crate's
+# context reads additionalType as a string, so the type is matched as the string the crate writes.
+fair-guide:Fip a sh:NodeShape ;
+    sh:name "FAIR Implementation Profile" ;
+    sh:description "A FIP has its identifier, a name, one status term and its declarations, each with its own status" ;
+    sh:targetSubjectsOf schema:additionalType ;
+    sh:or (
+        [ sh:not [ sh:property [
+            sh:path schema:additionalType ;
+            sh:hasValue "https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile"
+        ] ] ]
+        [
+            sh:property [ sh:path schema:identifier ; sh:minCount 1 ] ;
+            sh:property [ sh:path schema:name ; sh:minCount 1 ] ;
+            sh:property [ sh:path fg:fipStatus ; sh:class schema:DefinedTerm ; sh:minCount 1 ; sh:maxCount 1 ] ;
+            sh:property [
+                sh:path schema:hasPart ;
+                sh:minCount 1 ;
+                sh:node [ sh:property [ sh:path fg:declarationStatus ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ]
+            ]
+        ]
+    ) ;
+    sh:message "A FIP MUST have its identifier, name, one status term and its declarations" .
+
+fair-guide:Status a sh:NodeShape ;
+    sh:name "Status" ;
+    sh:description "Every status is one term of its own scheme, never a string" ;
+    sh:targetSubjectsOf fg:serviceStatus , fg:clauseStatus , fg:fipStatus , fg:declarationStatus , fg:healthStatus ,
+        fg:preparationStatus , fg:releaseStatus , fg:nodeState , fg:esfriStatus ;
+    sh:property [ sh:path fg:serviceStatus ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:clauseStatus ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:fipStatus ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:declarationStatus ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:healthStatus ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:preparationStatus ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:releaseStatus ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:nodeState ; sh:class schema:DefinedTerm ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:esfriStatus ; sh:class schema:DefinedTerm ] .
+
+fair-guide:Benchmark a sh:NodeShape ;
+    sh:name "Check as an FTR benchmark" ;
+    sh:description "A check is an FTR benchmark that names its questions as its metrics" ;
+    sh:targetClass schema:Quiz ;
+    sh:class ftr:Benchmark ;
+    sh:property [
+        sh:path ftr:hasAssociatedMetric ;
+        sh:class ftr:Metric ;
+        sh:minCount 1 ;
+        sh:message "A check MUST name its questions as its FTR metrics" ;
+    ] ;
+    sh:property [ sh:path schema:hasPart ; sh:maxCount 0 ; sh:message "A check names its questions once, as FTR metrics" ] .
+
+fair-guide:Metric a sh:NodeShape ;
+    sh:name "Question as an FTR metric" ;
+    sh:description "A question is an FTR metric of the principles it measures, and a manual test implements it" ;
+    sh:targetClass schema:Question ;
+    sh:class ftr:Metric ;
+    sh:property [ sh:path dqv:inDimension ; sh:class schema:DefinedTerm ] ;
+    sh:property [ sh:path schema:about ; sh:maxCount 0 ; sh:message "A question names its principles once, as dimensions" ] ;
+    sh:property [ sh:path schema:isPartOf ; sh:maxCount 0 ; sh:message "A question names its check once, as its benchmark" ] .
+
+fair-guide:Test a sh:NodeShape ;
+    sh:name "FTR test" ;
+    sh:description "A test implements a question, its FTR metric: the manual test in the self-check or an automated test" ;
+    sh:targetSubjectsOf sio:SIO_000233 ;
+    sh:property [
+        sh:path sio:SIO_000233 ;
+        sh:class ftr:Metric ;
+        sh:minCount 1 ;
+        sh:message "A test MUST implement a question" ;
+    ] .
+
+fair-guide:CatalogueRecord a sh:NodeShape ;
+    sh:name "Registry record" ;
+    sh:description "A registry's record is about one thing the Guide describes, and is part of its snapshot" ;
+    sh:targetClass dcat:CatalogRecord ;
+    sh:property [
+        sh:path foaf:primaryTopic ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "A registry record MUST be about exactly one thing" ;
+    ] .
+
+fair-guide:PrefillMapping a sh:NodeShape ;
+    sh:name "Pre-fill mapping" ;
+    sh:description "A pre-fill mapping names its source, what it reads and how much of its question it covers" ;
+    sh:targetClass fg:PrefillMapping ;
+    sh:property [ sh:path schema:identifier ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:prefillSource ; sh:maxCount 1 ] ;
+    sh:property [
+        sh:path fg:prefillCoverage ;
+        sh:class schema:DefinedTerm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "A pre-fill mapping MUST state how much of its question it covers" ;
+    ] .

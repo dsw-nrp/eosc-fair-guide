@@ -169,7 +169,7 @@ its head in CI.
   - unit tests cover the rejection and the build output for a question without a `statement`;
   - `content/checks/` holds no statement identical to a cited clause;
   - the affected questions read the same in both languages.
-- [ ] 3.7 Move the profile to `0.2`, with shapes for every kind's class, catalogue records, term sets, the FTR types
+- [x] 3.7 Move the profile to `0.2`, with shapes for every kind's class, catalogue records, term sets, the FTR types
   and pre-fill mappings. Keep the `Repository` shape's not-yet-public exception (an HTTPS address, or planned or in
   development with an NKR page in `sameAs`), with its status test on the decision-6 term (decision 4). Verify:
   `python scripts/check_all.py --only crate profile` passes, and the profile accepts an address-free NKR repository

@@ -26,7 +26,7 @@ baseUrl = "https://dsw-nrp.github.io/eosc-fair-guide/"
 # Guide term and record, so it is a reviewed breaking change. Releases up to 1.0.0-alpha.3 used https://fair.eosc.cz/
 # and up to 1.0.0-alpha.5 https://dsw-nrp.github.io/eosc-fair-guide/.
 namespace = "https://w3id.org/eosc-cz/fair-guide/"
-profileVersion = "0.1"
+profileVersion = "0.2"
 freshnessDays = 180
 # The guide is compiled and developed by its editors; the authors of its content basis are credited on the
 # sources it is based on (isBasedOn).

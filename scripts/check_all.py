@@ -119,7 +119,7 @@ def jobs(base: str | None, live: bool) -> list[Job]:
         Job("process-run", [validator, "validate", "-p", "process-run-crate-0.5", "-nh", *crate]),
         Job(
             "profile",
-            [validator, "validate", "--extra-profiles-path", "_site/profile", "-p", "fair-guide-0.1", "-nh", *crate],
+            [validator, "validate", "--extra-profiles-path", "_site/profile", "-p", "fair-guide-0.2", "-nh", *crate],
         ),
         Job("page", [npm, "run", "-s", "check:page"]),
         Job("final-candidate", [npm, "run", "-s", "check:final"]),

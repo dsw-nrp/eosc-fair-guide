@@ -113,7 +113,8 @@ class PublicationLocationTests(unittest.TestCase):
                             semantic + "terms#" + term
                             for term in [*build_crate.GUIDE_TERMS, *build_crate.GUIDE_CLASSES]
                         }
-                        self.assertEqual(owned, expected | {semantic + "profile/0.1"})
+                        version = content["guide"]["guide"]["profileVersion"]
+                        self.assertEqual(owned, expected | {semantic + "profile/" + version})
                         # The records move with the namespace and keep their addresses; everything else stays.
                         logical = {iri.removeprefix(semantic + "id/") for iri in records}
                         other = {iri for iri in iris if not iri.startswith(semantic)} | {

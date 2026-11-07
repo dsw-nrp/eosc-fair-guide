@@ -4425,6 +4425,8 @@ def page_config(
                 "guide": guide["vocabularyBase"],
                 "guideTerms": {term: guide["vocabularyBase"] + term for term in EXPORT_GUIDE_TERMS},
                 "webApplication": WEB_APPLICATION,
+                # The landing page of the Guide's profile, at its version's address.
+                "profilePage": f"profile/{guide.get('profileVersion', '')}/index.html",
             },
             "favicons": {
                 "hosts": sorted(entry["host"] for entry in content.get("favicons", []) if not entry.get("key")),

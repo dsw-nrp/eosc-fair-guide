@@ -2096,7 +2096,7 @@ sections.push(["research station links", async () => {
 sections.push(["published health and documentation links", async () => {
   const { context, page, external, problems } = await openPage();
   const health = JSON.parse(readFileSync(resolve(site, "api/health.json"), "utf8"));
-  const documents = ["health/index.html", "ro-crate-preview.html", "profile/0.1/index.html", "profile/fair-guide/profile.ttl", "terms/index.html", "terms/fair-guide.ttl", "assets/js/tests/index.html"];
+  const documents = ["health/index.html", "ro-crate-preview.html", publishedUi.config.vocab.profilePage, "profile/fair-guide/profile.ttl", "terms/index.html", "terms/fair-guide.ttl", "assets/js/tests/index.html"];
   // Data for machines runs from what it offers to what a reader is looking for, a worked example, the Guide's own
   // practice and the endpoints. Each section's IRI ends in its own id, so the order moves none of them.
   const outline = ["intro", "tasks", "model-example", "practice", "endpoints"];
