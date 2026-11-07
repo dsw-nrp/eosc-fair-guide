@@ -24,7 +24,7 @@ datacite = "biot.mbdb"
 functions = ["deposit-data"]
 name = "Molecular Biophysics Database"
 abbreviation = { cs = "MBDB", en = "MBDB" }
-# Its sources name its developers and no operating infrastructure (D-174).
+# Its sources name its developers and no operating infrastructure.
 developer = { name = { cs = "Biotechnologický ústav AV ČR a CESNET v rámci projektu MOSBRI", en = "Institute of Biotechnology of the Czech Academy of Sciences and CESNET within the MOSBRI project" }, source = "https://www.ciisb.org/news/launch-of-database-for-raw-molecular-biophysics-data-mbdb" }
 url = "https://mbdb-data.org"
 kind = "domain"
@@ -61,7 +61,7 @@ pidTypes = ["DOI"]
 status = "operational"
 asOf = 2026-10-09
 
-# Repositories of the EOSC CZ Node (charter, Appendix A) that re3data does not list (D-172); each names its operator
+# Repositories of the EOSC CZ Node (charter, Appendix A) that re3data does not list; each names its operator
 # as its own source states it.
 [[repository]]
 guideRoute = "repositories"
@@ -124,7 +124,7 @@ name = { cs = "Český sociálněvědní datový archiv", en = "Czech Social Sci
 abbreviation = { cs = "ČSDA", en = "CSDA" }
 evidence = ["https://www.re3data.org/repository/r3d100010484", "https://archiv.soc.cas.cz/cz/", "https://archiv.soc.cas.cz/en/"]
 
-# Names and addresses re3data tags unevenly, corrected from each repository's own site (D-173): AMČR's own address
+# Names and addresses re3data tags unevenly, corrected from each repository's own site: AMČR's own address
 # is its information portal, not the digital archive re3data lists.
 [[record]]
 re3data = "r3d100013576"

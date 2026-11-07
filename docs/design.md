@@ -199,7 +199,7 @@ Genuine source identifiers live in typed `alternateIds`; obsolete Guide IDs are 
 projection gives every record one address, `<kind>/<id>` in a plain-word kind vocabulary, and one IRI under the
 Guide's namespace; the crate, the API, the page's routes and references all use it, and there is no parallel
 full-address register. A part of a record takes a fragment under it, as a registry's record about the thing it
-describes does. Every registry's row is such a record, and the thing rests on each of its records and, where the
+describes does; a page's section takes its own id, never its place, so reordering a page moves no address. Every registry's row is such a record, and the thing rests on each of its records and, where the
 Guide describes it, on the Guide's selection, so a consumer reads from the graph which catalogues supplied a thing,
 and the page credits them from the same statements. A thing that rests on nothing but its records is one only
 registries know. Chips display the record ID, and an entry's identifiers start with its own IRI; no identifier

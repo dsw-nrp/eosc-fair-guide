@@ -229,7 +229,7 @@
     if (element) element.textContent = text;
   }
 
-  /* Evidence that covers only part of its question carries the partial-coverage note (D-168); its suggestion is a
+  /* Evidence that covers only part of its question carries the partial-coverage note; its suggestion is a
      lower bound, which evidence about the whole question outranks. */
   const partialOnly = (observation) => FG.list(observation.notes).some((note) => note && note.key === "selfcheck.note.partialCoverage");
 
@@ -1055,7 +1055,7 @@
   }
 
   /** Answer every question whose FAIR Champion tests have results on this run: Yes when every record passed them,
-      Partly when some did or when the tests cover only part of the question, No when none did (D-168). A test
+      Partly when some did or when the tests cover only part of the question, No when none did. A test
       without a result never counts as a failure, and the coverage is always stated. */
   function applyChampion(check, st, run) {
     const single = run.records.length === 1;
@@ -1077,7 +1077,7 @@
         const passed = states.filter((state) => state === "pass").length;
         /* No verdict at all verified nothing, so it is not described as partial support; a narrower test or a sample
            with records without a result supports only part of the question, and answers Partly when that part is
-           met and No when it fails (D-168). */
+           met and No when it fails. */
         const partial = item.championEvidenceOnly || states.some((state) => ["none", "indeterminate"].includes(state));
         const notes = !known ? [{ key: "selfcheck.note.testUnavailable" }] : partial ? [{ key: "selfcheck.note.partialCoverage" }] : [];
         return {
@@ -2141,7 +2141,7 @@
       const verdict = observation.value ? stateLabel(ANSWER_STATE[observation.value] || "open") : FG.t("selfcheck.report.noVerdict");
       return h("td", null, link(item, verdict));
     };
-    /* Partial evidence is a lower bound (D-168): its Partly agrees with Yes or Partly, and its No with No or Partly. */
+    /* Partial evidence is a lower bound: its Partly agrees with Yes or Partly, and its No with No or Partly. */
     const consistent = (own, observation) => (partialOnly(observation) ? (observation.value === "partly" ? own !== "no" : own !== "yes") : observation.value === own);
     const verdictOf = (item) => {
       const own = answerOf(st, item);

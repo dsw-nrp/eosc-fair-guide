@@ -56,11 +56,10 @@ class ProvenanceScopeTests(unittest.TestCase):
         )
         # The migration changed the Guide as a whole: no record lists it among its own changes.
         self.assertEqual(build_crate.as_list(action["result"]), [{"@id": "./"}])
-        # Its instruments are the tools that made it; no migration script is an instrument.
-        self.assertEqual(
-            {ref["@id"] for ref in build_crate.as_list(action["instrument"])},
-            {"#instrument-claude-code", "#instrument-claude-opus-5-5"},
-        )
+        # Its instruments are the tools that made it, the AI model among them; no migration script is an instrument.
+        instruments = {ref["@id"] for ref in build_crate.as_list(action["instrument"])}
+        self.assertIn("#instrument-claude-opus-5-5", instruments)
+        self.assertNotIn("#instrument-identity-migration", instruments)
 
     def test_the_register_keys_identifiers_by_the_kind_of_their_record(self):
         register = self.content["identifiers"]

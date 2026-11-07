@@ -1,7 +1,8 @@
-# Reviewed reassignments of Guide-owned identifiers in generated snapshots (design.md, decisions 3 and 17). No
-# identifier keeps a collision counter, and an identifier names what its record describes. Each row is found by its
-# source's own identifier, so a reassignment cannot reach another record. Applied once by migrate.py; the refresh
-# then carries the new identifiers as it carries any local identifier.
+# Reviewed reassignments of Guide-owned identifiers in generated snapshots (design.md, decisions 3 and 17), and the
+# reviewed identifiers of page sections (decision 15). No identifier keeps a collision counter, and an identifier
+# names what its record describes. Each snapshot row is found by its source's own identifier, so a reassignment
+# cannot reach another record. Applied once by migrate.py; the refresh then carries the new identifiers as it carries
+# any local identifier.
 
 # Heslář 383 is data and text mining, which received the bare slug `data` from its label "Data / Text mining";
 # Heslář 393, data itself, received the counter. The large research infrastructure is Heslář 79, the research
@@ -55,3 +56,101 @@ new = "term:large-research-infrastructure"
 file = "content/duplicates.toml"
 old = "term:research-infrastructure-2"
 new = "term:research-infrastructure"
+
+# Page sections that had no id took their position as their fragment (`pages/machines#2`), which moved whenever the
+# page was reordered. Each takes an id that names its subject, unique within its page. A row is found by its page,
+# that position and the section's English heading (none where the section has no heading).
+[[section]]
+page = "model"
+position = 3
+heading = "Theoretical basis"
+id = "basis"
+
+[[section]]
+page = "about"
+position = 1
+heading = "What the Guide builds on"
+id = "basis"
+
+[[section]]
+page = "about"
+position = 3
+heading = "The Guide and the FIP Dashboard"
+id = "fip-dashboard"
+
+[[section]]
+page = "about"
+position = 6
+heading = "Use of artificial intelligence"
+id = "ai"
+
+[[section]]
+page = "accessibility"
+position = 1
+heading = "Compliance status"
+id = "status"
+
+[[section]]
+page = "accessibility"
+position = 2
+heading = "What the Guide does for accessibility"
+id = "measures"
+
+[[section]]
+page = "accessibility"
+position = 3
+heading = "Exception: the interactive API documentation"
+id = "exception"
+
+[[section]]
+page = "accessibility"
+position = 4
+heading = "Feedback"
+id = "feedback"
+
+[[section]]
+page = "live-check"
+position = 1
+heading = "Quick and deep check"
+id = "quick-deep"
+
+[[section]]
+page = "identifiers"
+position = 1
+heading = "How the helper works"
+id = "helper"
+
+[[section]]
+page = "citation"
+position = 1
+heading = "How the helper works"
+id = "helper"
+
+[[section]]
+page = "ai"
+position = 1
+heading = "Where AI helps"
+id = "uses"
+
+[[section]]
+page = "ai"
+position = 2
+heading = "Three rules"
+id = "rules"
+
+[[section]]
+page = "ai"
+position = 3
+heading = "When an AI agent does the work"
+id = "agents"
+
+[[section]]
+page = "machines"
+position = 2
+id = "intro"
+
+[[section]]
+page = "licence-compatibility"
+position = 1
+heading = "Two licences and new adapted content"
+id = "adaptation"

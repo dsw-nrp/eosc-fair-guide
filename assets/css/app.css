@@ -567,7 +567,7 @@ button:hover,
 }
 
 /* A step's row: its link and the reader's own read control beside it. The control is a sibling of the link, never
-   inside it, so a button is not nested in a link (D-190). */
+   inside it, so a button is not nested in a link. */
 .rail .rail-step,
 .journey-steps .journey-step {
   display: grid;
@@ -965,7 +965,7 @@ button:hover,
   flex-shrink: 0;
 }
 
-/* The reader's read mark on a step: a small control beside the step that the reader sets and clears (D-190). */
+/* The reader's read mark on a step: a small control beside the step that the reader sets and clears. */
 .read-toggle {
   flex: none;
   display: inline-grid;
@@ -3834,7 +3834,7 @@ section.datacite-read p {
 }
 
 /* A relation's groups, one under another across the row; a long one folds behind its count, and a table inside it
-   scrolls within the row (design D8). */
+   scrolls within the row. */
 .relations dd > .relation-group {
   flex: 1 1 100%;
   min-width: 0;

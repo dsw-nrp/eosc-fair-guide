@@ -37,7 +37,7 @@ jobs:
     outputs:
       pull-request: ${{ steps.propose.outputs.url }}
     steps:
-      # A dispatch on another branch fails here, before any checkout, instead of skipping the job (decision 30). Called
+      # A dispatch on another branch fails here, before any checkout, instead of skipping the job. Called
       # from Tag release, the ref is the caller's, which passed the same check.
       - name: Require the default branch
         env:

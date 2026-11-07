@@ -48,7 +48,7 @@
     for (const entity of FG.graph) {
       const identifiers = [entity.identifier, ...FG.refs(entity, "alternateIdentifier").map((item) => item.value)].join(" ");
       if (entity.resourceType && FG.isRecord(entity, "resources") && entity.name) add("resource", entity.name, bothLanguages(entity.description) + " " + identifiers, { href: FG.entryHref(entity) });
-      /* A repository is found by every form of its name, the abbreviations of both languages included (D-173). */
+      /* A repository is found by every form of its name, the abbreviations of both languages included. */
       else if (FG.isRecord(entity, "repositories") && entity.name) add("repository", entity.name, FG.nameForms(entity) + " " + bothLanguages(entity.keywords) + " " + identifiers, { href: FG.catalogueHref(entity["@id"]) });
       else if (FG.isRecord(entity, "glossary") && entity.name) add("term", entity.name, bothLanguages(entity.description) + " " + identifiers, { href: FG.catalogueHref(entity["@id"]) });
       else if (FG.isRecord(entity, "pages") && entity.identifier && entity.headline) add("page", entity.headline, "", { href: FG.href("page", entity.identifier) });

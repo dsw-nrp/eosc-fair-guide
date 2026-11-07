@@ -378,8 +378,8 @@
       schemaVersions: counts(meta.schemaVersions) };
   };
 
-  /** Records drawn at random from all a repository's DOIs, of every type it publishes, each with its title and type
-      (D-185). A record that is part of another (a file Dataverse registers within its dataset) is left out, so the
+  /** Records drawn at random from all a repository's DOIs, of every type it publishes, each with its title and
+      type. A record that is part of another (a file Dataverse registers within its dataset) is left out, so the
       sample holds what the repository publishes. */
   live.dataciteSample = async function (repositoryId, size) {
     const data = await live.fetchJson("datacite", "dois?client-id=" + enc(repositoryId) +

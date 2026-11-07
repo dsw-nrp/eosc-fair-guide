@@ -106,7 +106,7 @@ def token_differences(reviewed: dict, actual: dict) -> list[str]:
 
 class WorkflowContracts(unittest.TestCase):
     def test_publication_rechecks_the_pages_root_and_pairs_no_release_with_a_preview(self):
-        # The Guide's namespace is a reviewed content setting (decision 28, revised): no job reads the live site or a
+        # The Guide's namespace is a reviewed content setting: no job reads the live site or a
         # release archive to choose one, and a release is published beside the latest checked staging site.
         deploy = load(".github/workflows/deploy.yml")
         self.assertFalse({"pair-head", "paired-preview"} & set(deploy["jobs"]))
@@ -318,7 +318,7 @@ class WorkflowContracts(unittest.TestCase):
             self.assertEqual(set(workflow["on"]), triggers)
             self.assertEqual(workflow["permissions"]["contents"], "read")
             job = next(iter(workflow["jobs"].values()))
-            # The default-branch requirement is the first step, which fails visibly rather than skipping (decision 30).
+            # The default-branch requirement is the first step, which fails visibly rather than skipping.
             self.assertIn('"$GITHUB_REF" != "refs/heads/$DEFAULT_BRANCH"', job["steps"][0]["run"])
             steps = job["steps"]
             app = next(step for step in steps if step.get("id") == "app")
@@ -514,7 +514,7 @@ class WorkflowContracts(unittest.TestCase):
         for step in review_steps:
             self.assertEqual(step["if"], "always() && inputs.review", "merge groups prepare no review data")
         # The trusted review comment answers pull-request runs only, never merge-group runs, and never a cancelled run:
-        # its collector, which uploads the review data, does not run in a cancelled run (task 7.8), and a newer run of
+        # its collector, which uploads the review data, does not run in a cancelled run, and a newer run of
         # the same branch comments instead. Runs 40198033937 and 40198114056 failed on exactly that missing artifact.
         comment = load(".github/workflows/pr-summary.yml")["jobs"]["comment"]
         self.assertEqual(
@@ -680,7 +680,7 @@ class WorkflowContracts(unittest.TestCase):
         publish = next(step for step in steps if "publish(" in step.get("with", {}).get("script", ""))
         self.assertEqual(publish["with"]["github-token"], "${{ steps.app.outputs.token }}")
         # Every run ends with each source's outcome and who acts; the summary, not an exit code, decides red or a
-        # warning, so no step fails the run merely because a source could not be retrieved (decision 29).
+        # warning, so no step fails the run merely because a source could not be retrieved.
         self.assertIn("summarize(", steps[-1]["with"]["script"])
         self.assertEqual(steps[-1]["if"], "always()")
         self.assertEqual(steps[-1]["env"]["PUBLICATION"], "${{ steps.publish.outcome }}")

@@ -25,7 +25,7 @@
   }
 
   /** One status as a badge, the same wherever a status shows: its icon, its text and, where recorded, its as-of date,
-      so it reads without colour (design D8). `attrs` carries the data attribute that styles it. */
+      so it reads without colour. `attrs` carries the data attribute that styles it. */
   FG.stateBadge = function ({ icon, text, asOf, asOfKey = "status.asOf", attrs, field }) {
     return h(
       "span",
@@ -148,7 +148,7 @@
 
   /** An entry's membership of the EOSC CZ Node as one badge: the node, what the entry is in it as the node's charter
       says (a node service, a repository whose integration is planned by a stated milestone, an incubator service),
-      the date checked and the charter it comes from. The badge claims no more than the charter (D-172). */
+      the date checked and the charter it comes from. The badge claims no more than the charter. */
   FG.nodeBadge = function (entity) {
     const membership = FG.get(FG.id(entity && entity.nodeMembership));
     if (!membership) return null;
@@ -457,7 +457,7 @@
   const stationIcon = (station) => ((FG.config.icons && FG.config.icons.station) || {})[station.identifier];
 
   /* A step's read mark is the reader's own, not a record of visits: this control sets it and takes it off again,
-     and every step carries one, so the mark is optional rather than automatic (D-190). */
+     and every step carries one, so the mark is optional rather than automatic. */
   const readToggle = (stationId) => {
     const read = FG.list(FG.state.readStations).includes(stationId);
     return h(
@@ -1477,7 +1477,7 @@
           ];
           return h(
             folded ? "details" : "section",
-            section.identifier ? { id: section.identifier, tabindex: "-1" } : null,
+            { id: section.identifier, tabindex: "-1" },
             section.headline ? h(folded ? "summary" : "h2", null, FG.span(section.headline)) : null,
             folded ? h("div", { class: "content" }, content) : content
           );

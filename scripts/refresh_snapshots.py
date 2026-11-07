@@ -303,7 +303,7 @@ def r3d(element: ET.Element, tag: str) -> list[str]:
 
 def r3d_names_in(record: ET.Element, language: str) -> list[str]:
     """The names a re3data record tags with one language (ISO 639-3), its repository name before its other names, in
-    the record's order and each once. re3data tags names unevenly, so curated entries correct them (D-173)."""
+    the record's order and each once. re3data tags names unevenly, so curated entries correct them."""
     names: list[str] = []
     for tag in ("repositoryName", "additionalName"):
         for child in record.iter():

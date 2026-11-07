@@ -14,6 +14,7 @@ import tempfile
 import tomllib
 import unittest
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
@@ -139,6 +140,26 @@ class MigrationTests(unittest.TestCase):
         model.write_text('[[association]]\ntarget = "nothing"\nseams = ["x"]\n', encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "'nothing' names no record"):
             migrate.migrate_named_records(self.root)
+
+    def test_a_page_section_takes_its_reviewed_id_once(self) -> None:
+        pages = self.root / "content" / "pages.toml"
+        pages.write_text(
+            '[[page]]\nid = "p"\nmenu = "about"\ntitle = { cs = "Stránka", en = "Page" }\n\n'
+            '[[page.section]]\nbody = { cs = "Úvod.", en = "Intro." }\n\n'
+            '[[page.section]]\nid = "kept"\nheading = { cs = "Dál", en = "On" }\n'
+            'body = { cs = "Text.", en = "Text." }\n',
+            encoding="utf-8",
+        )
+        with mock.patch.dict(migrate.IDS, {"section": [{"page": "p", "position": 1, "id": "intro"}]}):
+            migrate.name_sections(self.root)
+            named = pages.read_text(encoding="utf-8")
+            sections = tomllib.loads(named)["page"][0]["section"]
+            self.assertEqual([section["id"] for section in sections], ["intro", "kept"])
+            migrate.name_sections(self.root)
+            self.assertEqual(pages.read_text(encoding="utf-8"), named)
+        pages.write_text(named.replace('id = "intro"\n', ""), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "section 1 of 'p' has no id and no reviewed one"):
+            migrate.name_sections(self.root)
 
     def test_references_name_records_by_address(self) -> None:
         bare = {"service": "resources"}

@@ -12,7 +12,7 @@
   /* The catalogue's lists, named by the kind of their records; a few kinds are listed together (FG.catalogueGroup). */
   const KINDS = ["resources", "repositories", "infrastructures", "clauses", "questions", "glossary", "fips", "tests", "lifecycles", "models", "actions"];
 
-  /* What each kind's entry shows of its record, and what it leaves out with the reason (design D8). The catalogue's
+  /* What each kind's entry shows of its record, and what it leaves out with the reason. The catalogue's
      completeness test fails when a record carries a field its kind neither shows nor excludes, and when a shown field
      with a value draws nothing; a card marks what it draws with `data-field`. */
   const NOT_SHOWN = {
@@ -255,13 +255,13 @@
     return entries;
   }
 
-  /** What an entry is in the EOSC CZ Node, as a facet value: its role there, or none (D-172). */
+  /** What an entry is in the EOSC CZ Node, as a facet value: its role there, or none. */
   const nodeRole = (entity) => {
     const membership = FG.get(FG.id(entity.nodeMembership));
     return membership ? [FG.id(membership.roleName)] : [];
   };
 
-  /** The large research infrastructures of the national roadmap (D-174): names in the reader's language with the
+  /** The large research infrastructures of the national roadmap: names in the reader's language with the
       acronym, the facts the roadmap states with where it states them, and three relations kept apart: the European
       infrastructures each is the Czech node of, its ERIC memberships, and the entries it operates. */
   function infrastructureEntries() {
@@ -290,7 +290,7 @@
             what: [field("researchField", researchField ? categoryLabel(researchField) : null), field("infrastructurePhase", phase ? categoryLabel(phase) : null)],
             title: infra.url ? FG.external(infra.url, name) : name,
             titleFields: "name abbreviation url",
-            /* The host is who operates the infrastructure, in the Operated by row as for every kind (design D8). */
+            /* The host is who operates the infrastructure, in the Operated by row as for every kind. */
             details: [otherName(infra), field("roadmapSince", FG.t("infrastructure.since", { year: infra.roadmapSince })), field("infrastructureCharacter", character ? categoryLabel(character) : null)],
             states: FG.refIds(infra, "esfriStatus").map((id) => h("span", { class: "badge", "data-field": "esfriStatus" }, FG.termName(id))),
             fields: { basedOn: "isBasedOn roadmapLocator" },
@@ -308,7 +308,7 @@
     });
   }
 
-  /** An entry's name in the other language, where it differs (D-173). */
+  /** An entry's name in the other language, where it differs. */
   const otherName = (entity) => (FG.otherLanguageName(entity) || {}).text || null;
 
   function repositoryEntries(cited) {
@@ -360,7 +360,7 @@
               field("resourceType guideType", typeOf(repository) ? FG.termName(typeOf(repository)) : null)].concat(uses(used)),
             title: repository.url ? FG.external(repository.url, FG.abbreviatedName(repository, FG.state.lang)) : h("a", { href: FG.entryHref(repository) }, FG.abbreviatedName(repository, FG.state.lang)),
             titleFields: "name abbreviation url",
-            /* The name in the other language stays on the entry (D-173). */
+            /* The name in the other language stays on the entry. */
             details: [
               field("alternateName", repository.alternateName && !repository.abbreviation ? FG.text(repository.alternateName) : null),
               otherName(repository),
@@ -615,7 +615,7 @@
                 h("summary", null, FG.t("catalogue.originalDefinition", { source: FG.shortText(FG.get(clause.isPartOf)) })),
                 h("div", { class: "content" }, h("p", null, FG.sourceLink(FG.get(clause.isPartOf)), clause.sourceLocator ? " · " + clause.sourceLocator : ""),
                   h("blockquote", null, FG.paragraphs(clause.guidance))))),
-              /* The definition is Heslář's text, under the licence its record names (design D8). */
+              /* The definition is Heslář's text, under the licence its record names. */
               FG.quoteLicence(term.license, "license"),
             ],
             relations: { inGuide: inGuide(at), identifiers: FG.identifierItems(term) },
@@ -888,7 +888,7 @@
   }
 
   /** A content change: when and what kind, who made it and with which tools, what was done, what it consulted and
-      every item it changed, each leading to its entry, station or page (design D8). */
+      every item it changed, each leading to its entry, station or page. */
   function actionEntries(reach) {
     return FG.graph
       .filter((entity) => FG.isRecord(entity, "actions"))
@@ -1037,7 +1037,7 @@
                 h("p", { class: "small muted" }, FG.t("lifecycle.quoteOf") + " ", FG.sourceLink(FG.refs(stage, "citation").slice(-1)[0]))]
               : null,
             stage.note ? h("p", { class: "small", lang: FG.list(stage.note)[0]["@language"], "data-field": "note" }, FG.list(stage.note)[0]["@value"]) : null,
-            /* The definition is the model's own text, under the licence its record names (design D8). */
+            /* The definition is the model's own text, under the licence its record names. */
             FG.quoteLicence(stage.license, "license"),
           ],
           fields: { basedOn: "citation" },

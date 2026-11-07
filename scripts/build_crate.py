@@ -57,7 +57,7 @@ from publication_location import base_url as publication_base
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
-# The record of the favicons the page shows for tools and services, relative to the checkout (D-183).
+# The record of the favicons the page shows for tools and services, relative to the checkout.
 FAVICONS = Path("assets") / "favicons" / "sources.toml"
 
 # The build's own git-derived identity, computed once per process (see build_identity).
@@ -101,7 +101,7 @@ PART_SCRIPTS = {
 }
 # View code the page loads when the view first opens, beside the shared code every view needs.
 # Views whose code loads when they first open: the catalogue, and the self-check with its parts and report, which a
-# path page also loads when saved answers mark gaps on its rail (D-182).
+# path page also loads when saved answers mark gaps on its rail.
 VIEW_SCRIPTS = {
     "catalogue": "assets/js/catalogue-view.js",
     "check": "assets/js/selfcheck.js",
@@ -212,9 +212,9 @@ TERMS = MODEL_TERMS | {
     ),
     "lifecycleStage": "Stage of the RDMkit research data life cycle that a path step belongs to.",
     "dataciteRepository": "The repository's ID in DataCite (its DataCite client), as the maintainer reviewed it.",
-    "abbreviation": "The abbreviation of a name in each language, such as ČSDA in Czech and CSDA in English (D-173).",
+    "abbreviation": "The abbreviation of a name in each language, such as ČSDA in Czech and CSDA in English.",
     "operatorSource": "The published page or document that states who operates a service or repository.",
-    "operatedBy": "The large research infrastructure operating a catalogue entry, where a source says so (D-174).",
+    "operatedBy": "The large research infrastructure operating a catalogue entry, where a source says so.",
     "researchField": "The science-disciplinary domain of a large research infrastructure in the national roadmap.",
     "infrastructurePhase": "The life-cycle phase of a large research infrastructure in the national roadmap.",
     "infrastructureCharacter": "Whether an infrastructure is single-sited, multi-sited, distributed or virtual.",
@@ -228,7 +228,7 @@ TERMS = MODEL_TERMS | {
     "nodeState": "The state of the EOSC CZ Node in the EOSC Federation, such as candidate.",
     "nodeStateSince": "The date the EOSC CZ Node reached its state, such as its approval as a candidate node.",
     "operatedBySource": "The published page or document that states which infrastructure operates an entry.",
-    "operates": "Catalogue entries a large research infrastructure operates, where a source states it (D-174).",
+    "operates": "Catalogue entries a large research infrastructure operates, where a source states it.",
     "developerSource": "The published page that states who developed a repository.",
     "mappingBasis": (
         "Basis of a correspondence between life-cycle stages: published by its source, reviewed by the guide, or "
@@ -274,7 +274,7 @@ ESTABLISHED_TERMS: dict[str, str] = {
 # The guide's own vocabulary: the terms the guide keeps in its namespace. Each declares the broader established
 # term it specializes (empty where none exists, with the reason in GUIDE_TERM_REASONS), its domain and its range.
 # The typing and status slots specialize their established parent rather than replacing it, because they are
-# several distinct slots over one property that the profile targets individually (design: group 21).
+# several distinct slots over one property that the profile targets individually.
 GUIDE_TERMS: dict[str, str] = {term: definition for term, definition in TERMS.items() if term not in ESTABLISHED_TERMS}
 GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
     "preparationStatus": ("", SCHEMA + "ScholarlyArticle", XSD + "string"),
@@ -381,7 +381,7 @@ GUIDE_TERM_REASONS: dict[str, str] = {
             "lookup",
         ],
         "The infrastructure that operates an entry, and the entries it operates, are entity references; no single "
-        "established property expresses the relation (D-174).": [
+        "established property expresses the relation.": [
             "operatedBy",
             "operates",
         ],
@@ -412,7 +412,7 @@ GUIDE_TERM_REASONS: dict[str, str] = {
 }
 
 # The guide's own terms the exported result crate carries: the build owns their IRIs and the export reads them from
-# the page configuration rather than declaring its own (design: one shared term context, group 21).
+# the page configuration rather than declaring its own, so the page and its exports share one term context.
 EXPORT_GUIDE_TERMS = ("guideState", "guideSources", "implementationLayers", "implementationSeams")
 
 # Sources are contextual entities. Cited datasets and software are typed through additionalType: as Dataset or
@@ -793,7 +793,7 @@ def link_texts(graph: Graph, targets: dict[str, str]) -> None:
 def defined_terms(graph: Graph, set_id: str, set_name: str, prefix: str, items: list[dict[str, Any]]) -> list[str]:
     """Add a named term set and its terms; return the term IDs. A set names its scheme both as a schema.org
     DefinedTermSet and as a SKOS ConceptScheme, and each term is a DefinedTerm and a SKOS Concept, so the typing
-    sets are one vocabulary over named schemes (design: group 21)."""
+    sets are one vocabulary over named schemes."""
     term_ids = [f"#{prefix}-{item['id']}" for item in items]
     graph.add(
         {
@@ -1483,7 +1483,7 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
     if repository.get("fipDashboard"):
         same_as.append(FIP_DASHBOARD + repository["fipDashboard"])
     # A name re3data gives only in English takes the first name it tags as Czech for Czech readers; a curated name
-    # (a table, from the entry or its record annotation) corrects both (D-173).
+    # (a table, from the entry or its record annotation) corrects both.
     name = repository["name"]
     czech = repository.get("namesCs") or []
     if isinstance(name, str) and czech and czech[0] != name:
@@ -2051,7 +2051,7 @@ def catalogue_entry(graph: Graph, row: dict[str, Any]) -> str | None:
 
 
 def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
-    """The large research infrastructures of the national roadmap (D-174): each with its names, hosting institution,
+    """The large research infrastructures of the national roadmap: each with its names, hosting institution,
     field, phase, character, year of inclusion and ESFRI status (Annex 1), the European research infrastructures it is
     the Czech node of (Annex 7), the ERICs it belongs to through the Czech Republic's membership (Annex 6), and the
     catalogue entries it operates where a source states it. Three relations stay distinct: node, ERIC membership and
@@ -2140,7 +2140,7 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
 
 
 def build_node(graph: Graph, data: dict[str, Any]) -> list[str]:
-    """The EOSC CZ Node (D-172): its operator, its state and its members. Each member entry carries its membership:
+    """The EOSC CZ Node: its operator, its state and its members. Each member entry carries its membership:
     the role, any planned milestone, the date checked and the source, so a badge says no more than the charter does."""
     node = data.get("node")
     if not node:
@@ -2570,7 +2570,10 @@ def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
         page_ids.append(page_id)
         section_ids = []
         for number, section in enumerate(page.get("section", []), start=1):
-            section_id = f"{page_id}-{number}"
+            # A section's own id is its fragment, so reordering a page moves no IRI; its place is only its position.
+            if not section.get("id"):
+                raise ContentError(f"page '{page['id']}': section {number} has no id")
+            section_id = f"{page_id}-{section['id']}"
             section_ids.append(section_id)
             action_id = f"{section_id}-action" if section.get("action") else None
             graph.add(
@@ -2899,7 +2902,7 @@ def attach_associations(graph: Graph, data: dict[str, Any], base: str) -> None:
             append_ref(entity, "implementationSeams", graph.published[f"#seam-{key}"])
 
 
-# The life-cycle model whose stages the path follows (D-162): a station's `lifecycleStage` names one of its stages.
+# The life-cycle model whose stages the path follows: a station's `lifecycleStage` names one of its stages.
 PATH_LIFECYCLE = "rdmkit"
 
 
@@ -3421,7 +3424,7 @@ def catalogue_record_keys(
         if entity_id == "#implementation-model":
             collection, record = "model", entity["identifier"]
         if entity_id == "#eosc-cz-node":
-            # The EOSC CZ Node is an organisation of its own, beside the curated ones (D-172).
+            # The EOSC CZ Node is an organisation of its own, beside the curated ones.
             collection, record = "organizations", entity["identifier"]
         if collection is None:
             continue
@@ -3805,8 +3808,8 @@ def name_values(value: Any) -> list[str]:
 
 
 def part_fragment(key: str, entity: dict[str, Any], whole: str) -> str:
-    """A part's fragment under its whole: a name for what it is to the whole, its own identifier, or the rest of its
-    build key after the whole's."""
+    """A part's fragment under its whole: a name for what it is to the whole, or the rest of its build key after the
+    whole's, which for a page section is its own id."""
     named = {
         "#entry-localtest-": lambda: "entry-point",
         "#mapping-": lambda: "mapping-" + key.removeprefix("#mapping-" + whole.removeprefix("#criterion-") + "-"),
@@ -3819,8 +3822,7 @@ def part_fragment(key: str, entity: dict[str, Any], whole: str) -> str:
     elif fragment is None and whole == "#implementation-model" and key.startswith("#model-"):
         fragment = key.removeprefix("#model-")
     elif fragment is None and key.startswith(whole + "-"):
-        own = entity.get("identifier") if whole.startswith("#page-") else None
-        fragment = own if isinstance(own, str) else key[len(whole) + 1 :]
+        fragment = key[len(whole) + 1 :]
     if fragment is None:
         raise ContentError(f"{key}: no fragment for a part of {whole}")
     return fragment
@@ -4232,9 +4234,9 @@ def page_config(
             "recordSchemes": list(RECORD_SCHEMES),
             "textLinks": text_links or {},
             "foldedSections": [
-                f"pages/{page['id']}#{section.get('id') or number}"
+                f"pages/{page['id']}#{section['id']}"
                 for page in content["pages"]
-                for number, section in enumerate(page.get("section", []), start=1)
+                for section in page.get("section", [])
                 if section.get("details")
             ],
             "api": {"files": API_FILES, "collections": list(API_COLLECTIONS), "records": api or {}},
@@ -4587,7 +4589,7 @@ def split_languages(value: Any) -> tuple[Any, dict[str, Any], list[dict[str, Any
             bilingual = all(lang in node for lang in LANGS) and not any(isinstance(node[lang], dict) for lang in LANGS)
             source_language = node.get("inLanguage") if not node.get("resourceType") else None
             glossary = str(node.get("@id", "")).startswith("glossary/") and node.get("termCode")
-            # A repository's or an infrastructure's entry keeps its name in the other language too (D-173).
+            # A repository's or an infrastructure's entry keeps its name in the other language too.
             named = node.get("@type") == "DataCatalog" or "abbreviation" in node
             for key, item in node.items():
                 if bilingual and key in LANGS:

@@ -5,12 +5,12 @@
 id = "2026-11-06-identity-migration"
 type = "update"
 name = "Move record identity to the kind vocabulary"
-description = "A structural migration of every record's identity: frozen routes name a plural kind word without a classification segment, and prose references, provenance results and objects, model association targets and the worked example's steps name records by their address; the identifier register lists each identifier under the kind of its record, and the Guide's profile is referenced through the section of the machines page that presents it. The texts, sources and classifications are unchanged, and reviewed link decisions follow their fields. The KNAV record of the CESNET ownCloud service is joined to the curated entry for that service. Reviewed handles join the FIP Dashboard's organisation records, and eLTER RI's KNAV record, to the things they describe, and three pairs of things that share a name are recorded as distinct with their reasons. The migration adds no content author."
+description = "A structural migration of every record's identity: frozen routes name a plural kind word without a classification segment, and prose references, provenance results and objects, model association targets and the worked example's steps name records by their address; the identifier register lists each identifier under the kind of its record, and the Guide's profile is referenced through the section of the machines page that presents it. The texts, sources and classifications are unchanged, and reviewed link decisions follow their fields. The KNAV record of the CESNET ownCloud service is joined to the curated entry for that service. Reviewed handles join the FIP Dashboard's organisation records, and eLTER RI's KNAV record, to the things they describe, and three pairs of things that share a name are recorded as distinct with their reasons. Every page section carries an identifier that names its subject and is its fragment, so a page can be reordered without moving an address; the page for machines now leads from what it offers to what a reader is looking for, a worked example, the Guide's own practice and the endpoints. The migration adds no content author."
 agent = "david-novak"
-instruments = ["claude-code", "claude-opus-5-5"]
+instruments = ["claude-code", "kilo-code", "claude-opus-5-5"]
 objects = ["resources/knav-dm-tools-catalogue", "resources/fip-dashboard"]
 results = ["*"]
-endTime = 2026-11-07T00:00:04+01:00
+endTime = 2026-11-07T01:01:03+01:00
 
 [[action]]
 id = "2026-11-02-nkr-integration"

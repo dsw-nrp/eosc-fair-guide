@@ -12,6 +12,9 @@ with the same script. Steps:
   reassignment is an editorial decision no refresh can make;
 - snapshots: every generated snapshot is renormalised without a new observation: its rows, source passages and
   retrieval date stay, its identities are revalidated and its stored routes translated (``renormalise_snapshot``);
+- page sections: a section without an ``id`` took its position as its fragment, which moved whenever its page was
+  reordered; each takes its reviewed ``id`` from ``ids.toml``, found by its page, its position and its English
+  heading, and a section that has an ``id`` keeps it;
 - routes: stored ``guideRoute`` values, through the reviewed ``[routes]`` table in ``routes.toml``;
 - references: every prose reference ``[[target|phrase]]`` to its one form, ``[[<kind>/<id>|phrase]]``. The word
   forms (``term:``, ``page:``, ``station:``, ``clause:``, ``infrastructure:``), the code addresses (``res/srv/``,
@@ -247,6 +250,38 @@ def rename(work: Path) -> None:
         )
 
 
+PAGE = re.compile(r"(?m)(?=^\[\[page\]\]\s*$)")
+SECTION = re.compile(r"(?m)(?=^\[\[page\.section\]\]\s*$)")
+
+
+def name_sections(work: Path) -> None:
+    """Give each page section without an id its reviewed one (``[[section]]`` in ``ids.toml``), found by its page, its
+    position and its English heading (none for a section without a heading); a section that has an id keeps it."""
+    path = work / "content" / "pages.toml"
+    if not path.exists():
+        return
+    reviewed = {(row["page"], row["position"]): row for row in IDS.get("section", [])}
+    pages = PAGE.split(path.read_text(encoding="utf-8"))
+    for index, page in enumerate(pages):
+        if not page.startswith("[[page]]"):
+            continue
+        parts = SECTION.split(page)
+        page_id = tomllib.loads(parts[0])["page"][0]["id"]
+        for position, block in enumerate(parts[1:], start=1):
+            section = tomllib.loads(block)["page"]["section"][0]
+            if "id" in section:
+                continue
+            row = reviewed.get((page_id, position))
+            if row is None or row.get("heading", "") != (section.get("heading") or {}).get("en", ""):
+                raise ValueError(f"pages.toml: section {position} of '{page_id}' has no id and no reviewed one")
+            named = f"[[page.section]]\nid = {json.dumps(row['id'])}\n"
+            parts[position] = block.replace("[[page.section]]\n", named, 1)
+        pages[index] = "".join(parts)
+    text = "".join(pages)
+    tomllib.loads(text)  # the result stays valid TOML
+    path.write_text(text, encoding="utf-8", newline="\n")
+
+
 RESULTS = re.compile(r"(?ms)^results = \[(?P<body>[^\]]*)\]$")
 # The family words of the content IDs that provenance results used, before an item's own ID.
 FAMILIES = (
@@ -478,6 +513,7 @@ def run(work: Path) -> None:
     if reassign(work):
         rename(work)
     renormalise_snapshots(work)
+    name_sections(work)
     before = field_texts(work)
     bare = bare_kinds(work)
     for path in authored_files(work):

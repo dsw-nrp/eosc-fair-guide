@@ -175,7 +175,7 @@ async function previousState({ github, context, core }) {
 }
 
 /** The latest completed scheduled Source refresh of the default branch and its report artifact, so the digest lists
-    the sources it did not refresh (decision 29). A run without a readable report is still named, for an "unknown"
+    the sources it did not refresh. A run without a readable report is still named, for an "unknown"
     entry; a failed lookup names nothing and says so as a warning. */
 async function latestRefresh({ github, context, core }) {
   const repo = context.repo;

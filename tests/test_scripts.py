@@ -36,7 +36,7 @@ import check_duplicates  # noqa: E402
 import fix_duplicates  # noqa: E402
 import refresh_snapshots  # noqa: E402
 import register_ids  # noqa: E402
-from addresses import iri  # noqa: E402
+from addresses import address_of, iri  # noqa: E402
 from catalogue_identity import KINDS  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "minimal"
@@ -557,6 +557,37 @@ class GeneratorTests(FixtureCase):
         for target in targets:
             self.assertIn(target.split("/", 1)[0], KINDS, target)
 
+    def test_a_page_section_is_named_by_its_own_id_never_by_its_position(self) -> None:
+        """Reordering a page moves no section's IRI, reference or shared link: its fragment is the id it carries."""
+        content = build_crate.load_content()
+        graph = build_crate.Graph()
+        build_crate.build_crate(content, graph)
+        sections = {
+            address_of(key): entity
+            for key, entity in graph.entities.items()
+            if key.startswith(iri("pages/")) and "#" in key and "position" in entity
+        }
+        authored = {f"pages/{page['id']}#{section['id']}" for page in content["pages"] for section in page["section"]}
+        self.assertEqual(set(sections), authored)
+        for address, entity in sections.items():
+            fragment = address.split("#", 1)[1]
+            self.assertFalse(fragment.isdigit(), f"{address}: a section's fragment is never its position")
+            self.assertEqual(entity["identifier"], fragment)
+
+    def test_a_page_section_needs_an_id_that_names_it(self) -> None:
+        pages = self.root / "content" / "pages.toml"
+        page = '[[page]]\nid = "p"\nmenu = "about"\ntitle = { cs = "Stránka", en = "Page" }\n'
+        body = 'body = { cs = "Text.", en = "Text." }\n'
+        pages.write_text(page + "\n[[page.section]]\n" + body, encoding="utf-8")
+        self.assertError("page:p[1]: a section needs an id that names its subject")
+        pages.write_text(page + '\n[[page.section]]\nid = "2"\n' + body, encoding="utf-8")
+        self.assertError("section id '2' is a lowercase word, never a number")
+        pages.write_text(page + ('\n[[page.section]]\nid = "intro"\n' + body) * 2, encoding="utf-8")
+        self.assertError("duplicate section ID 'intro'")
+        pages.write_text(page + '\n[[page.section]]\nid = "intro"\n' + body, encoding="utf-8")
+        self.edit("provenance.toml", '"tests/fair-champion/test_one"]', '"tests/fair-champion/test_one", "pages/p"]')
+        self.assertFalse(any(error.startswith("page:") for error in self.errors()), self.errors())
+
     def test_a_repository_reference_resolves_and_an_unknown_one_fails(self) -> None:
         self.edit(
             "provenance.toml",
@@ -991,7 +1022,7 @@ class ContentCheckTests(FixtureCase):
             'version = "0.0.1"\n',
             'version = "0.0.1"\ngenericGuideUses = ["průvodcem licencemi"]\n',
         )
-        self.assertFalse(any("D-177" in error for error in self.errors()))
+        self.assertFalse(any("name the Guide with a capital letter" in error for error in self.errors()))
 
     def test_item_without_provenance(self) -> None:
         self.edit("provenance.toml", '"questions/gate.01", ', "")
@@ -1237,7 +1268,7 @@ class ContentCheckTests(FixtureCase):
         self.assertError("missing description")
         described = 'description = { cs = "Co dělá.", en = "What it does." }\n'
         pages.write_text('[[page]]\nid = "tool"\nmenu = "tools"\n' + described + title, encoding="utf-8")
-        # A tools page names its group, so the tools view can show tools and guidance apart (D-185).
+        # A tools page names its group, so the tools view can show tools and guidance apart.
         self.assertError("a tools page names its group")
         grouped = described + 'group = "guidance"\n'
         pages.write_text('[[page]]\nid = "tool"\nmenu = "tools"\n' + grouped + title, encoding="utf-8")
@@ -2048,8 +2079,8 @@ class FreshnessTests(FixtureCase):
 
 class AlphaThreeQueueTests(unittest.TestCase):
     """Queue run 40151368869 rejected release PR #114: its release action ended at 01:28:10 UTC, and the new queue
-    base 7b3fa74 was committed at 01:36:37 (task 8.1). History now decides, so the action prepared before the base
-    moved still covers the Guide metadata it changed."""
+    base 7b3fa74 was committed at 01:36:37. History now decides, not the clock, so the action prepared before the
+    base moved still covers the Guide metadata it changed."""
 
     BASE = "7b3fa743f0afe526c9cd8067ec734702f432ea22"
     PREPARED = datetime(2026, 10, 25, 1, 28, 10, tzinfo=UTC)
@@ -2072,7 +2103,7 @@ class AlphaThreeQueueTests(unittest.TestCase):
 
 
 class ExactBaseTests(unittest.TestCase):
-    """The first pull-request run failed for eight organisations against this exact base (review task 12.21)."""
+    """The first pull-request run failed for eight organisations against this exact base."""
 
     BASE = "01f20310966149b5bf1fb896047608f5fb8bac50"
     ORGANISATIONS = ("knav", "aru-praha", "cesnet", "msmt", "ntk", "csda", "cuni", "nrp")
@@ -2954,7 +2985,7 @@ class ApiTests(unittest.TestCase):
 
     def test_one_setting_moves_the_guide_and_another_keeps_its_terms(self) -> None:
         # The guide's address is set once: a build at another address names the configured one only as the reviewed
-        # namespace of its own terms and profile, which moving the site never renames (decision 28).
+        # namespace of its own terms and profile, which moving the site never renames.
         moved = "https://guide.example.org/fair/"
         with mock.patch.dict(os.environ, {build_crate.BASE_URL_ENV: moved}):
             outputs = build_crate.outputs()

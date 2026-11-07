@@ -1,4 +1,4 @@
-// The catalogue hides nothing (design D8): every field a catalogue entry's record carries is shown by its kind or
+// The catalogue hides nothing: every field a catalogue entry's record carries is shown by its kind or
 // excluded with a reason, and every shown field with a value draws visible text in the entry's card.
 import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -68,7 +68,7 @@ const problems = await page.evaluate(() => {
   return [...found.entries()].map(([key, ids]) => key + " (" + ids.length + ": " + ids.slice(0, 3).join(", ") + (ids.length > 3 ? ", …" : "") + ")").sort();
 });
 
-// The entries design D8 names, read as a reader sees them: the facts each kind gains, both ends of each relation, and
+// Sample entries of each kind, read as a reader sees them: the facts each kind gains, both ends of each relation, and
 // a folded list that opens by keyboard and is built only then.
 const graph = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"))["@graph"];
 const namespace = siteNamespace(site);

@@ -2144,7 +2144,7 @@ lenses = ["DS", "SR"]
 stations = ["repository"]
 languages = ["en"]
 
-# Services of the EOSC CZ Node that a step's advice uses (D-172); each names its operator as its own source states it.
+# Services of the EOSC CZ Node that a step's advice uses; each names its operator as its own source states it.
 [[resource]]
 guideRoute = "resources"
 id = "galaxy-cz"

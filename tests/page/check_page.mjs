@@ -212,7 +212,7 @@ sections.push(["page", async () => {
       return bar.nextElementSibling.getBoundingClientRect().top - bar.getBoundingClientRect().bottom;
     });
     if (toolbarGap < 8) fail(`catalogue: the ordering control touches the content below it (${toolbarGap}px)`);
-    // A content change names the person responsible and its tools, an AI model among the tools (design D8).
+    // A content change names the person responsible and its tools, an AI model among the tools.
     const changes = await view.locator(".catalogue-results").textContent();
     if (!/Novák/.test(changes) || !/model AI/.test(changes)) fail("catalogue: the content changes do not name the person responsible and the AI model used as a tool");
     if (await view.locator('.change .entry-byline', { hasText: "Claude" }).count()) fail("catalogue: an AI model is named as a change's author");
@@ -1586,7 +1586,7 @@ sections.push(["self-check", async () => {
 
   // Maturity and institution checks run end to end; the institution check has no Minimum items and shows them all.
   // The maturity check fills in from the re3data snapshot and says which repository it is; a repository outside
-  // the snapshot is explained rather than guessed. FAIRsharing's record comes from its snapshot (D-185).
+  // the snapshot is explained rather than guessed. FAIRsharing's record comes from its snapshot.
   await at("SR", "maturity", "answers");
   await page.locator('label[for="extended-toggle"]').click();
   const fromRe3data = async (input) => {
@@ -1632,7 +1632,7 @@ sections.push(["self-check", async () => {
   await page.evaluate(() => { const FG = window.FairGuide; FG.config.nkr = window.__savedNkr; delete window.__savedNkr; FG.rerender(); });
   // FAIR Champion over a sample of records (replaced here). Each question shows the tests that can answer it and runs
   // them alone; an identifier that does not resolve is not tested. One record passes, one fails and one gives no
-  // result. A narrower retention test covers only part of the tombstone question, so it suggests Partly (D-168).
+  // result. A narrower retention test covers only part of the tombstone question, so it suggests Partly.
   // Running all tests shows a bar in the sample's card, the coverage is stated, and a retry runs only the tests
   // without a result.
   await at("SR", "maturity", "answers");
@@ -1696,7 +1696,7 @@ sections.push(["self-check", async () => {
   await page.locator("#answer-institution-01-unknown").check();
   await at("DS", "institution", "report");
   if (!(await numbersIn(page.locator(".gaps").first())).includes("01")) fail("institution check: the don't-know task is missing");
-  // A check in blocks reports its state by block, every question once (D-185).
+  // A check in blocks reports its state by block, every question once.
   if (!(await page.locator("#results-blocks").count()) || !(await page.locator("#results .block-distribution").count())) fail("institution check: the report does not give the state by block");
   await at("DS", "institution", "answers");
   // The basic institution check is the strategy, which the Open Science III call requires, and the research act's
@@ -2097,8 +2097,15 @@ sections.push(["published health and documentation links", async () => {
   const { context, page, external, problems } = await openPage();
   const health = JSON.parse(readFileSync(resolve(site, "api/health.json"), "utf8"));
   const documents = ["health/index.html", "ro-crate-preview.html", "profile/0.1/index.html", "profile/fair-guide/profile.ttl", "terms/index.html", "terms/fair-guide.ttl", "assets/js/tests/index.html"];
+  // Data for machines runs from what it offers to what a reader is looking for, a worked example, the Guide's own
+  // practice and the endpoints. Each section's IRI ends in its own id, so the order moves none of them.
+  const outline = ["intro", "tasks", "model-example", "practice", "endpoints"];
+  const published = graph.filter((entity) => String(address(entity)).startsWith("pages/machines#") && entity.position).sort((a, b) => a.position - b.position).map(address);
+  if (published.join(" ") !== outline.map((id) => "pages/machines#" + id).join(" ")) fail("machines: the crate's sections are " + published.join(", "));
   for (const lang of ["cs", "en"]) {
     await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/K/page/machines`));
+    const order = await page.locator("#main article > :is(section, details)").evaluateAll((parts) => parts.map((part) => part.id));
+    if (order.join(" ") !== outline.join(" ")) fail(`${lang}: Data for machines shows its sections as ${order.join(", ")}`);
     const footerLink = page.locator('footer a[href="health/index.html"]');
     if (await footerLink.count() !== 1 || await footerLink.getAttribute("hreflang") !== "en") fail(`${lang}: health dashboard is not linked from the footer with its language`);
     for (const document of documents) {
@@ -2381,7 +2388,7 @@ sections.push(["visual system", async () => {
     if (!seen.length) fail(`visual system: no ${kind} entries to compare`);
     for (const card of seen) {
       if (card.kind !== kind) fail(`visual system: ${card.id} in ${kind} is marked as ${card.kind}`);
-      // The kind shows in the facet and as the card's top strip; a card carries no kind mark of its own (D-185).
+      // The kind shows in the facet and as the card's top strip; a card carries no kind mark of its own.
       if (card.marked) fail(`visual system: ${card.id} repeats its kind's mark`);
       if ((marks.get(kind) || card.strip) !== card.strip) fail(`visual system: ${kind} entries carry different strips`);
       marks.set(kind, card.strip);
@@ -2407,7 +2414,7 @@ sections.push(["visual system", async () => {
 
   // A service's badge: the same favicon, or the same kind icon and colour, at a step and in the catalogue; its own
   // favicon wherever the page has one, and loaded from the page's own files; a tool on a code-hosting platform shows
-  // its kind's icon, never a two-letter monogram; none on a standard (D-183, D-185).
+  // its kind's icon, never a two-letter monogram; none on a standard.
   const badge = (card) => card.locator(".entry-title > .service-badge").evaluateAll((nodes) => nodes.map((node) =>
     [node.dataset.service, node.textContent.trim(), (node.querySelector("use") || { getAttribute: () => "" }).getAttribute("href"), getComputedStyle(node).backgroundColor, (node.querySelector("img") || {}).src || ""].join(" ")));
   const favicons = new Set(JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).config.favicons.hosts);
@@ -2438,7 +2445,7 @@ sections.push(["visual system", async () => {
   if ((await badge(page.locator(".catalogue-results .entry-card").first()))[0]?.split(" ")[0] !== "fair-checker") fail("visual system: the evaluator's catalogue entry is not badged under the key the self-check uses");
   const standard = graph.find((r) => r.resourceType?.["@id"] === crateNodes.get(termAddress("resource-types", "standard"))["@id"] && r.identifier && catalogueRecords.has(address(r)));
   await visit(`#/cs/K/catalogue/${address(standard)}`);
-  // A standard is no service: it shows its kind's icon before its title, not a service's badge (D-185).
+  // A standard is no service: it shows its kind's icon before its title, not a service's badge.
   {
     const card = page.locator(".catalogue-results .entry-card").first();
     if ((await card.locator(".entry-title > .service-badge[data-service]").count()) || (await card.locator(".entry-title > .service-placeholder use").getAttribute("href")) !== kindIcons.get("resources")) fail(`visual system: the standard ${standard.identifier} does not show its kind's icon, or carries a service's badge`);
@@ -2735,7 +2742,7 @@ sections.push(["Read steps and situations", async () => {
     if (await shortcuts.count() !== 4) fail(`shortcuts: expected four situations for ${lang}/${lens}`);
     const hrefs = await shortcuts.evaluateAll((links) => links.map((link) => link.getAttribute("href")));
     if (hrefs.some((href) => !href.includes("/path/"))) fail(`shortcuts: a ${lang}/${lens} situation bypasses its step`);
-    /* A visit marks nothing: the read mark is the reader's own, and every step offers the control (D-190). */
+    /* A visit marks nothing: the read mark is the reader's own, and every step offers the control. */
     if (await page.locator(".journey-steps [data-read][data-state='read']").count()) fail(`read steps: ${lang}/${lens} marked a step without the reader`);
     if (await page.locator(".journey-steps [data-read]").count() !== 11) fail(`read steps: ${lang}/${lens} does not offer a read control on every step`);
     for (const width of [1280, 320]) {

@@ -4,7 +4,7 @@
    versions, and every native result with its own identifier, wording, verdict, score, maturity, subtests and
    diagnostics. Questions refer to that record. Each result is read as its provider presents it (`P.reading`), and a
    reviewed mapping (a part of the criterion) for a reviewed version turns that reading into a suggestion: whole coverage
-   answers as the reading, partial coverage answers Partly or No (D-168). Provider text is untrusted and is only ever
+   answers as the reading, partial coverage answers Partly or No. Provider text is untrusted and is only ever
    shown as text. */
 (function () {
   "use strict";
@@ -247,7 +247,7 @@
     Object.entries(assessment.versions || {}).filter(([key]) => key !== "requested").map(([key, value]) => FG.t("selfcheck.providers.version." + key) + " " + value).join(", ") || FG.t("selfcheck.providers.versionUnknown");
   P.versionText = versionText;
 
-  /** The suggestion one reading gives through a mapping (D-168): whole coverage answers as the reading; partial
+  /** The suggestion one reading gives through a mapping: whole coverage answers as the reading; partial
       coverage answers Partly when its part is met, even in part, and No when it fails; an open reading answers nothing. */
   const suggestionOf = (reading, coverage) => (reading === "failed" ? "no" : reading === "open" ? null : coverage === "whole" && reading === "met" ? "yes" : "partly");
 

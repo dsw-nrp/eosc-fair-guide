@@ -131,7 +131,8 @@ An identifier says where an entry belongs, not what it says:
   `scripts/catalogue_identity.py`. The record's IRI is the address under the `namespace` of `guide.toml`
   (`https://w3id.org/eosc-cz/fair-guide/id/stations/licence`), the same in the crate, the API and the page. A part
   of a record takes a fragment of its own: an advice step (`advice/plan.05#step-1`), a registry's record about the
-  thing (`repositories/zenodo#knav`). The crate's own lists, files and snapshots keep their names (`#repositories`,
+  thing (`repositories/zenodo#knav`), a page's section by its own `id` (`pages/machines#tasks`), never by its place
+  on the page. The crate's own lists, files and snapshots keep their names (`#repositories`,
   `#snapshot-datacite`); a snapshot lists the records it supplied in `schema:hasPart` and is `schema:about` its
   catalogue's own entry (`resources/re3data`).
 - **Stable identity through refresh.** `guideRoute` stores the frozen kind, with its scope where it has one
@@ -910,7 +911,9 @@ for a page that holds an interactive helper; until the page script provides it, 
 built), `[[page.section]]` with `heading`, `body` (text; paragraphs are separated by a blank line, and a block
 whose lines all start with a `-` and a space is shown as a list, an item's short lead before a colon in bold;
 a rectangular pipe table with a separator row renders as a native table with column and first-column row headers,
-inside a keyboard-focusable horizontal scroll region labelled by its top-left heading), an optional `id` and an optional `action` (a `label` and an
+inside a keyboard-focusable horizontal scroll region labelled by its top-left heading), an `id` (required and
+unique within the page: a lowercase word that names the section's subject and is its fragment, so reordering the
+page moves no address, reference or shared link) and an optional `action` (a `label` and an
 `href`, as on an L0 advice item, shown as a button below the text); the section
 `credits` on the about page carries the roles table, generated from the guide's metadata, and on the page for
 machines `tasks`, `practice` and `endpoints` carry the table of what a reader wants and where it is, the guide's

@@ -263,8 +263,8 @@
 
   /** One badge for an external tool or service wherever the Guide shows it, beside its name: in the catalogue, among
       a step's resources and in the self-check's evidence. It is the service's own favicon wherever one could be
-      obtained (D-183); otherwise the icon of its catalogue kind on the kind's colour, as the kind facet shows it, so
-      one service looks the same everywhere (D-185). */
+      obtained; otherwise the icon of its catalogue kind on the kind's colour, as the kind facet shows it, so
+      one service looks the same everywhere. */
   FG.serviceBadge = function (key, url, kind = "resources") {
     const mark = FG.config.favicons?.marks?.[key];
     const favicon = mark ? "assets/favicons/" + mark : FG.faviconOf(url);
@@ -302,7 +302,7 @@
   };
 
   /** A repository's or an infrastructure's name in one language with that language's abbreviation, where it has one
-      the name does not already contain: "Český sociálněvědní datový archiv (ČSDA)" (D-173). */
+      the name does not already contain: "Český sociálněvědní datový archiv (ČSDA)". */
   FG.abbreviatedName = function (entity, lang) {
     const name = FG.text(entity.name, lang);
     const abbreviation = entity.abbreviation ? FG.text(entity.abbreviation, lang) : "";
@@ -790,7 +790,7 @@
   };
 
   /** The reader's own read mark on a step: set it or take it off. Every visible control for the step follows without a
-      re-render, so the control the reader used keeps the focus (D-190). */
+      re-render, so the control the reader used keeps the focus. */
   FG.toggleReadStation = function (stationId) {
     const reads = FG.list(FG.state.readStations);
     FG.state.readStations = reads.includes(stationId) ? reads.filter((id) => id !== stationId) : reads.concat(stationId);

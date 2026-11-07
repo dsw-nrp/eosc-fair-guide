@@ -686,9 +686,8 @@ GUIDE_NAME_SKIPPED = {"snapshots", "glossary", "identifiers"}
 
 
 def check_guide_name(report: Report, content: dict[str, Any]) -> None:
-    """The Guide is named with a capital letter wherever the word means it: Průvodce, the Guide (D-177). A
-    lower-case form is accepted only inside a reviewed generic use (`genericGuideUses` in guide.toml), such as a
-    licence selector."""
+    """The Guide is named with a capital letter wherever the word means it: Průvodce, the Guide. A lower-case form is
+    accepted only inside a reviewed generic use (`genericGuideUses` in guide.toml), such as a licence selector."""
     generic = [phrase.lower() for phrase in content["guide"]["guide"].get("genericGuideUses", [])]
 
     def accepted(text: str, start: int, end: int) -> bool:
@@ -708,14 +707,14 @@ def check_guide_name(report: Report, content: dict[str, Any]) -> None:
             pattern = GUIDE_ENGLISH if key == "en" or (key != "cs" and not GUIDE_CZECH.search(value)) else GUIDE_CZECH
             for match in pattern.finditer(value):
                 if not accepted(value, match.start(), match.end()):
-                    report.error(f"{path}.{key}", f"name the Guide with a capital letter: '{match.group(0)}' (D-177)")
+                    report.error(f"{path}.{key}", f"name the Guide with a capital letter: '{match.group(0)}'")
 
 
 def check_lifecycles(report: Report, content: dict[str, Any]) -> None:
     """Each life-cycle model cites its source, and each stage keeps its published name and definition: a name the
-    guide translated is marked, a definition is quoted, and a path stage adds the Průvodce's Czech translation of it
-    (D-176). Each correspondence links a stage of the path's
-    model to another model's stage and states its basis; a source's correspondence cites where it is published, the
+    guide translated is marked, a definition is quoted, and a path stage adds the Průvodce's Czech translation of it.
+    Each correspondence links a stage of the path's model to another model's stage and states its basis; a source's
+    correspondence cites where it is published, the
     guide's own and an unconfirmed one say why. Every path stage corresponds to a stage of each other model, and a
     station's stage is one of the path's."""
     lifecycles = content.get("lifecycles", [])
@@ -800,7 +799,7 @@ def check_lifecycles(report: Report, content: dict[str, Any]) -> None:
                 f"lifecycle:{key}", "corresponds to no stage of " + ", ".join(sorted(others - linked.get(key, set())))
             )
     # The path follows the cycle: each stage holds its steps in the cycle's order, and no step stands outside it; the
-    # assessment, a form of reuse, belongs to the reuse stage (D-175).
+    # assessment, a form of reuse, belongs to the reuse stage.
     path_stages = [
         stage["id"]
         for data in lifecycles
@@ -1769,7 +1768,7 @@ def check_references(report: Report, content: dict[str, Any], targets: dict[str,
 
 
 def check_infrastructures(report: Report, content: dict[str, Any]) -> None:
-    """The large research infrastructures and the EOSC CZ Node (D-172, D-174): known vocabularies and sources, unique
+    """The large research infrastructures and the EOSC CZ Node: known vocabularies and sources, unique
     IDs, an operator relation only with its evidence and to a catalogue entry, and node members that name catalogue
     entries with a known role; a planned repository names its milestone."""
     guide = content["guide"]
@@ -1874,7 +1873,7 @@ def check_names(report: Report, content: dict[str, Any]) -> None:
             report.error(where, f"'{name}' is a Czech name with no English form; give it as a table with 'cs' and 'en'")
 
     # R6a, and where a Czech form exists, a curated name carries it: re3data tags a Czech name for the record, so the
-    # entry or record annotation that names the repository gives its Czech name too (D-173).
+    # entry or record annotation that names the repository gives its Czech name too.
     czech = {
         item["re3data"]: item["namesCs"]
         for snapshot in content["snapshots"]
@@ -1939,7 +1938,15 @@ def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
             require_text(report, where, page.get("description"), "description")
             if page.get("group") not in TOOL_GROUPS:
                 report.error(where, f"a tools page names its group, one of {', '.join(TOOL_GROUPS)}")
-        for number, section in enumerate(page.get("section", []), start=1):
+        sections = page.get("section", [])
+        unique(report, where, [section["id"] for section in sections if section.get("id")], "section")
+        for number, section in enumerate(sections, start=1):
+            # A section's id is its fragment in the page's IRI, in references and in shared links; a position would
+            # move all of them whenever the page is reordered.
+            if not section.get("id"):
+                report.error(f"{where}[{number}]", "a section needs an id that names its subject, as its fragment")
+            elif not SLUG.match(str(section["id"])) or str(section["id"]).isdigit():
+                report.error(f"{where}[{number}]", f"section id '{section['id']}' is a lowercase word, never a number")
             require_text(report, f"{where}[{number}]", section.get("body"), "body")
             if not isinstance(section.get("details", False), bool):
                 report.error(f"{where}[{number}]", "details must be true or false")
@@ -2041,7 +2048,7 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
                 if not prefix.endswith("/terms#"):
                     report.error(str(shape.relative_to(root)), f"fg: prefix {prefix} is not <address>terms#")
     # Every guide-specific term declares a broader established term or a recorded reason, and every published
-    # guide term is defined in the vocabulary document served at the guide's address (design: group 21).
+    # guide term is defined in the vocabulary document served at the guide's address.
     for error in vocabulary_errors(guide):
         report.error("vocabulary", error)
 

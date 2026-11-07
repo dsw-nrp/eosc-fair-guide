@@ -96,7 +96,7 @@ jobs:
             const { publish } = require('./.github/scripts/source-publisher.cjs');
             core.setOutput('results', JSON.stringify(await publish({ github, context, core })));
       # The run fails only when a maintainer must act; a source the next scheduled run retries is a warning, and the
-      # summary names each source's outcome and the next step (decision 29).
+      # summary names each source's outcome and the next step.
       - name: Summarize each source and who acts next
         if: always()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0

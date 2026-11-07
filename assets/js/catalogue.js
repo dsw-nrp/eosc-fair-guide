@@ -48,7 +48,7 @@
   FG.sourceLink = (source) => h("a", { class: "source-link", href: FG.entryHref(source) }, FG.shortName(source));
 
   /** What the EOSC CZ Node is, as the About page states it: the node's own state since its date, with the source
-      that states it (D-172). */
+      that states it. */
   FG.nodeNote = function () {
     const node = FG.get("organizations/eosc-cz-node");
     if (!node || !node.nodeStateSince) return null;
@@ -71,7 +71,7 @@
       h("div", { class: "content", lang: language },
         source ? [h("p", { class: "small muted", lang: FG.state.lang }, FG.sourceLink(source), source.version && !FG.text(source.name).endsWith(" " + source.version) ? " · " + source.version : null),
           source.creditText ? h("p", { class: "small muted", lang: FG.state.lang }, source.creditText) : null,
-          /* The quoted guidance is under its source's licence, named from the data beside the quote (design D8). */
+          /* The quoted guidance is under its source's licence, named from the data beside the quote. */
           source.license ? h("div", { lang: FG.state.lang }, FG.quoteLicence(source.license)) : null] : null,
         FG.paragraphs(clause.guidance)));
   };
@@ -156,7 +156,7 @@
      where it is used and changed. */
   const RELATIONS = ["principles", "audience", "fixedBy", "applies", "group", "nrpProfile", "prefilledFrom", "prefills", "covers", "correspondsTo", "declarations", "declaredIn", "tools", "operatedBy", "developedBy", "providedBy", "operates", "nationalNodeOf", "memberOf", "fips", "license", "basedOn", "replacedBy", "replaces", "consulted", "changed", "mentions", "inGuide", "identifiers"];
   /* The record fields each row draws, unless a card names its own: the catalogue's completeness test reads them from
-     the row's `data-field` (design D8). */
+     the row's `data-field`. */
   const ROW_FIELDS = {
     principles: "about",
     audience: "audience",
@@ -190,7 +190,7 @@
   /** A part of a card that draws record fields, marked with their names for the completeness test. */
   const field = (names, node) => (node ? h("span", { "data-field": names }, node) : null);
 
-  /* ---------------------------------------------------------------- shared conventions (design D8) */
+  /* ---------------------------------------------------------------- shared conventions */
 
   /** A licence named from the data: an SPDX record by its identifier, a Creative Commons or GNU licence by its code
       and version from its address, and any other licence by its address. */
@@ -221,7 +221,7 @@
   FG.quoteLicence = (value, names) =>
     value ? h("p", { class: "small muted quote-licence", "data-field": names || null }, FG.t("catalogue.quoteLicence") + ": ", FG.list(value).map((item, index) => [index ? ", " : null, FG.licenceLink(item)])) : null;
 
-  /* Relations read from their other end, worked out once for the knowledge base as loaded (design D8): the changes
+  /* Relations read from their other end, worked out once for the knowledge base as loaded: the changes
      that produced or altered each record, the tests and criteria that pre-fill each question, the FIP declarations that
      name each enabling resource, the requirements each one replaces, and the station or page of every part of the
      Guide that has no catalogue entry of its own. */
@@ -332,7 +332,7 @@
 
   /** An entry's links in its top corner: the changes that produced or altered it, as a count that leads to them in
       the catalogue, and its record as data. A record's changes stay in the catalogue's list of changes, so no entry
-      grows with each one (design D8). */
+      grows with each one. */
   const entryLinks = (entity) => {
     const count = (FG.reverseRelations().changes.get(FG.id(entity)) || []).length;
     const changes = count
@@ -423,7 +423,7 @@
       "li",
       { class: ["card", "entry-card", kind ? "kind-" + kind : null, spec.compact ? "entry-compact" : null].concat(spec.class || []).filter(Boolean).join(" "), id: "item-" + spec.id, "data-kind": kind, tabindex: "-1" },
       /* The kind shows in the card's top strip and the kind facet, and its icon stands before the title wherever the
-         entry has no favicon of its own (D-185). */
+         entry has no favicon of its own. */
       h("p", { class: "entry-head" }, FG.idChip(spec.entity), what.length ? h("span", { class: "entry-what" }, what.map((item, index) => [index ? " · " : null, item])) : null, spec.compact ? null : entryLinks(spec.entity)),
       spec.title
         ? h("h3", { class: "entry-title", lang: spec.titleLang || null, "data-field": spec.titleFields || "name" }, spec.service ? FG.serviceBadge(spec.service.identifier, spec.service.url, kind || "resources") : kind && icons().kind?.[kind] ? FG.kindBadge(kind) : null, h("span", null, spec.title))
@@ -456,7 +456,7 @@
   };
 
   /** Who operates an entry, as its sources state it: the operator its own page names and the large research
-      infrastructure that operates it, each with the source that says so (D-172, D-174). */
+      infrastructure that operates it, each with the source that says so. */
   const operatorRow = (entity) => [
     FG.partyName(entity, "publisher") ? h("span", null, FG.partyName(entity, "publisher"), entity.operatorSource ? [" (", FG.external(entity.operatorSource, FG.t("infrastructure.operatorSource")), ")"] : null) : null,
     FG.get(FG.id(entity.operatedBy))
@@ -464,7 +464,7 @@
       : null,
   ].filter(Boolean);
 
-  /** Who developed an entry, where its sources name its developers rather than an operator (D-174). */
+  /** Who developed an entry, where its sources name its developers rather than an operator. */
   const developerRow = (entity) =>
     FG.partyName(entity, "attributedTo") ? [h("span", null, FG.partyName(entity, "attributedTo"), entity.developerSource ? [" (", FG.external(entity.developerSource, FG.t("infrastructure.operatorSource")), ")"] : null)] : [];
   /** The audiences an entry is for, by icon and name. */

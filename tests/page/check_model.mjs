@@ -104,7 +104,7 @@ try {
       assert.equal(await page.locator(`[id="item-${anchor}"]`).count(), 1, `the ${kind} catalogue finds its displayed ID case-insensitively`);
     }
     await visit(`#/${lang}/K/catalogue/k!models`, ".catalogue-results");
-    // The model's icon marks its kind in the facet; entries carry the kind's colour, not its icon (D-185).
+    // The model's icon marks its kind in the facet; entries carry the kind's colour, not its icon.
     assert.equal(await page.locator(`.facet-kinds label[for="facet-kind-models"] use[href="${modelIcon}"]`).count(), 1, "the kind facet marks model records with its icon");
     assert.equal(await page.locator(".entry-card .entry-head .kind-mark").count(), 0, "model records do not repeat the kind's icon");
     await choose("#facet-models-modelKind-layer");
