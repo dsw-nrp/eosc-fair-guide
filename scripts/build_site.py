@@ -68,7 +68,7 @@ def render_test_docs(template: str, content: dict[str, Any], crate: dict[str, An
                     strings["question"] + ": " + test["question"],
                 ),
                 (f"../../../index.html#/{language}/K/catalogue/{test_address}", strings["record"]),
-                (f"../../../api/{test_address}.json", "JSON"),
+                (f"../../../api/v1/{test_address}.json", "JSON"),
             ]
             linked = " · ".join(
                 f'<a href="{html.escape(target, quote=True)}">{html.escape(label)}</a>' for target, label in links

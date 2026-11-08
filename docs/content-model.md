@@ -1105,54 +1105,82 @@ generated copy of `index.html`, so the page is the crate's HTML preview.
 
 ## Static API
 
-`scripts/build_api.py`, part of the site build, makes a read-only API from the crate in the site directory: a
-list per collection (`api/<collection>.json`), a record per entity at its address
-(`api/<address>.json`, such as `_site/api/questions/software.04.json`), each saved-result support document at
-`api/tests/<question-id>.json`, the JSON-LD context `_site/api/context.jsonld`, `_site/api/meta.json`, the OpenAPI 3.1
-description `openapi.json`, and its documentation `api/index.html`, which is the authored files in `api/` with the
-pinned Swagger UI package. In `build_crate.py`, `api_records` decides what each collection lists and `API_FILES`
-names the API's files; the page reads both from `_site/assets/data/ui.js` for its links.
+`scripts/build_api.py` projects the same crate into API v1 under `_site/api/v1/`. `build_crate.api_records` selects
+records by the issued address kind, and `API_FILES` supplies the paths. `_site/api/v1/index.json` links every kind's list,
+each controlled-term set, the JSON-LD context and the health snapshot; it is not a content-kind list. Every list is
+`api/v1/<kind>.json`; every record is `api/v1/<kind>/<id>.json`, or `api/v1/<kind>/<scope>/<id>.json` where the
+scope belongs to the identity. `_site/api/v1/health.json` carries the health snapshot under the `operations` tag.
 
-| Collection | Records | Example record address under `_site/api/` |
-| --- | --- | --- |
-| `principles` | FAIR principles | `principles/F1` |
-| `stations` | stations, with their advice and its steps | `stations/plan` |
-| `checks` | checks as FTR benchmarks (`Benchmark`, with each question naming it through `hasBenchmark`) | `checks/cdif` |
-| `metrics` | check questions as FTR metrics (`Metric`, `inDimension`, `hasBenchmark`, `hasImplementation`) | `questions/cdif.01` |
-| `tests` | API-exposed FTR tests, F-UJI metrics and the Guide's local assessment criteria, with saved-result support documents kept apart from FTR tests | `tests/guide/<test-id>`, `tests/fair-champion/<test-id>`, `tests/<provider>/<metric>` |
-| `resources` | curated resources, the FIP Dashboard resources no curated resource stands for, and the KNAV tools no curated resource stands for | `resources/dmp-eosc` |
-| `sources` | cited works that are not also resources | `resources/layers-seams-manuscript` |
-| `repositories` | the guide's repositories | `repositories/zenodo` |
-| `clauses` | requirements and findings | `clauses/A.F1.N1` |
-| `terms` | glossary terms | `glossary/free-libre-open-source` |
-| `organizations` | curated organisations and the EOSC CZ Node | `organizations/eosc-cz` |
-| `fips` | FIP profiles from the dashboard snapshot, with their declarations | `fips/csda` |
-| `changes` | provenance actions | `actions/2026-10-16-initial-state` |
-| `model` | the implementation model, its layers, seams and examples | `layers/policy` |
-| `lifecycle` | life-cycle models, their stages and the crosswalk's correspondences | `lifecycles/rdmkit`, `lifecycles/rdmkit/plan`, `crosswalks/lifecycle-stages/rdm-plan-mld-plan` |
-| `infrastructures` | reviewed research infrastructures | `infrastructures/auger-cz` |
+| Kind | Address or representative record under `_site/api/v1/` |
+| --- | --- |
+| `advice` | advice with its station, lens, level, clauses and procedures |
+| `callouts` | practical cautions and helpers |
+| `checks` | FTR benchmarks of the checks |
+| `clauses` | published requirements and findings |
+| `crosswalks` | the crosswalk itself and its scoped stage correspondences |
+| `fips` | FIP profiles and declarations |
+| `glossary` | glossary terms and their definitions |
+| `infrastructures` | reviewed research infrastructures |
+| `layers` | model layers |
+| `lifecycles` | models and their scoped life-cycle stages |
+| `model-examples` | scoped implementation examples and evidence |
+| `models` | the conceptual model |
+| `organizations` | curated organisations |
+| `pages` | Guide pages and their sections |
+| `principles` | FAIR principles and their reverse joins |
+| `questions` | FTR metrics, their requirements and assessment coverage |
+| `repositories` | repositories, including records without a public address while planned or in development |
+| `resources` | curated resources and resources introduced by registries |
+| `seams` | information hand-offs in the conceptual model |
+| `stations` | stations, with their callouts and practical steps |
+| `tests` | local, FAIR Champion and other evaluator criteria, scoped by their provider |
+| `vocabularies` | one `api/v1/vocabularies/<set>.json` per controlled-term set |
+| `actions` | provenance actions |
 
-A record is its crate entity with language maps (`{"cs": …, "en": …}`) in place of value lists. Links to other
-records are paths relative to the record. A part without a record of its own (advice and its steps, callouts, FIP
-declarations) is given in full in the record of its whole, under its fragment (`plan.json#advice-plan.01`). Small
-terms (tiers, lenses, levels, actors, modes, profiles, organisations named in citations) are given in full; anything
-else of the Guide is named by its IRI, and `sameAs` names the record's own IRI. No file of the API names the site's
-address, so the site can move; only the context's vocabulary terms are absolute, as JSON-LD requires. A principle's record also lists
-what is about it: `clauses`, the `advice` that cites them, `stations` and `metrics`, reverse properties in the
-context. Paths end in `.json` because the site is static. The OpenAPI description gives each record its concrete
-address; a collection whose records all sit directly under one kind has a parameterised path, such as
-`/api/stations/{station_id}.json` and `/api/tests/{test_id}.json`. A saved result from format revisions 1 to 3 names
-the question's support document at that address, while no manual FTR test is published. The `[api]` strings in
-`ui.toml` title and describe the API and its collections: the OpenAPI description reads the English, and the
-machines page lists every collection in the reader's language.
+A list entry carries the `identifier`, `address` (the issued `<kind>/<id>` or `<kind>/<scope>/<id>`), the record's
+persistent `iri` and bilingual `label`, plus its filter fields. A scoped entry also carries `scope`. The filter table
+in `build_api.py` drives list generation and the OpenAPI list schemas: advice exposes its station, lens, level, kind,
+principles and text; questions their check, tier, principles, applicability, responsible actor and pre-fill mapping;
+resources and repositories their type/kind and dated status; clauses their source, principles, kind, actor and
+status; tests their provider scope, metric and principles. Other kinds expose their ordering where one exists. No
+`acceptsDeposits` value is `true`: absence means unknown, never acceptance.
 
-The guide signposts itself (FAIR Signposting): `signposts` in `build_crate.py` is the one list of its links
-(`describedby` the crate, `service-desc` and `service-doc` the API, `license`, `type`, `author` the editors,
-`cite-as` the DOI once set, and `linkset`), written as link elements into the page head, as `linkset.json`
-(RFC 9264, anchored at `./`) and into `_site/assets/data/ui.js` for the page for machines. Every view offers its content as data
-under it where it has a record (a station, a principle, a check, the list of checks); a catalogue list saves as
-CSV with each entry's record and as data in the shape of the API's lists (`ItemList` with the context, each
-entry's record at the page's address). The whole crate is offered on the page for machines.
+A record uses the crate's properties and bilingual language maps. Links between documents are relative. Every
+record's `sameAs` first names its persistent IRI. Advice steps, FIP declarations, guide-page sections and registry
+records are given in full under a fragment in their owner document. Compact term references contain only `@id` and
+`termCode`, addressed to the term's fragment in its set document; that set publishes its terms and bilingual names
+once. Full glossaries, layers, seams and life-cycle stages remain records of their own kinds, not fragments of a
+controlled-vocabulary set. A principle also names its clauses, advice, stations and questions through reverse
+properties, named by the published relations rather than a per-code API vocabulary.
+
+`openapi.json` describes one list operation per kind, plus one unscoped or scoped record template as required. The
+`{scope}` parameter enumerates the kind's scopes; `{id}` takes a safe identifier, never the record list. Each
+response is a typed schema with language-map, part, reference and term-set code constraints. Each actual JSON file
+matches exactly one template, not a generated per-record operation. The relative server is `.`. `api/index.html`
+presents the same description in the pinned Swagger UI. `_site/api/v1/context.jsonld` describes the JSON-LD meaning of
+record properties. The machine-page endpoint table reads the generated configuration and describes each kind in
+both languages; it also shows which kinds correspond to FIP Dashboard `principles`, `resources`, `organizations`
+and `fips` collections, without inventing mappings for the Guide's other kinds.
+
+Saved-result revisions 1–3 retain only the explicit support documents at `api/tests/<question>.json`. Each document
+describes and links its question, is not an FTR test, and appears in no FTR test list. It is the compatibility
+exception: no other pre-v1 collection or role-named path is generated.
+
+`scripts/knowledge_graph.py` also writes `knowledge-graph.nt`: the same graph as `ro-crate-metadata.json` in
+N-Triples, using a standard-library serializer and the pinned local RO-Crate 1.2 context, without a network request.
+A unit test parses both through rdflib and proves them isomorphic. Signposting names this distribution as
+`describedby` with type `application/n-triples`, in both the HTML head and `linkset.json`.
+
+Authored recipes under `profile/fair-guide/recipes/` are published by `profile_recipes` as
+`profile/<profileVersion>/recipes/<name>.rq`, currently under `_site/profile/0.2/recipes/`. Their comments give Czech and
+English descriptions. Tests execute all six queries for station/lens advice, check questions by tier, resources for
+a principle, registry records of a thing, tests implementing a metric and clauses cited by a question. They compare
+the results with the reviewed ordinary-JSON fixtures under `tests/fixtures/recipes/` and rename each query's first
+relation predicate in a copy of the graph to show that the checks break rather than becoming inert.
+
+The guide signposts itself through the single `signposts` list: `describedby` for the RO-Crate and N-Triples,
+`service-desc` and `service-doc` for the API, `license`, `type`, `author`, `cite-as` once a DOI is set, and `linkset`.
+Views expose records as data under v1; catalogue list exports retain the current filter and each entry's record.
 
 ## Research practice additions
 
@@ -1176,8 +1204,7 @@ conflicting Yes/No observations leave the suggestion open. Replacing the last su
 with an unknown observation clears its automatic answer. Missing access or incomplete coverage is
 unverified evidence; earlier observations keep their own dates and inspected subjects.
 
-Portable results use format revision 3 when they contain assessments and revision 2 otherwise; revisions 1 and 2
-remain loadable. They carry observations, sample records, per-record logs and software commit details. The import
+Portable results use format revision 4: `dqv:QualityMeasurement` links each reader answer to its question's persistent IRI, `dqv:computedOn` and `dqv:value`; automated FTR evidence names actual test IRIs, and revisions 1 to 3 remain loadable. They carry observations, sample records, per-record logs and software commit details. The import
 limit is 8 MiB. Exceptionally large portable
 payloads have a 384 KiB budget: older observations or long supporting text may be shortened with an
 explicit bound marker, preserving answers and source links. Markdown and FTR use the same bounded
@@ -1237,7 +1264,7 @@ previous-report comparison produce JSON, a self-contained HTML dashboard and a C
 `check_all.py` adds actual job outcomes, including omitted jobs and build failures. Live availability
 of the full external estate remains unchecked; separate optional live jobs report their actual subset.
 Neither source coverage nor service availability is a FAIR verdict.
-The same report is published at `_site/api/health.json`, linked from API metadata and described in OpenAPI.
+The same report is published at `_site/api/v1/health.json`, linked from `index.json` and described under OpenAPI's `operations` tag.
 A build-only inventory states that no check run has completed; the runner publishes its final result
 only after a successful fresh build, leaving a stale site untouched when the build fails. This endpoint
 is a dated content/check-run snapshot. The FIP Dashboard's `/health` instead reports its running

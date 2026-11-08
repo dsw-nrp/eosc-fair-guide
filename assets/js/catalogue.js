@@ -296,9 +296,9 @@
     const href = FG.entryHref(entity);
     const isRequirement = FG.isRecord(entity, "clauses") || FG.isRecord(entity, "questions");
     const label = isRequirement || !entity.name ? entity.identifier || FG.text(entity.name) || String(entity["@id"]) : FG.nameText(entity);
+    if (FG.isRecord(entity, "pages") && entity.identifier && entity.headline) return h("a", { href: FG.href("page", entity.identifier) }, FG.span(entity.headline));
     if (href) return h("a", { href }, label);
     if (entity["@id"] === "./") return h("a", { href: FG.href("page", "about") }, FG.text(entity.name));
-    if (FG.isRecord(entity, "pages") && entity.identifier && entity.headline) return h("a", { href: FG.href("page", entity.identifier) }, FG.span(entity.headline));
     const place = FG.reverseRelations().places.get(entity["@id"]);
     if (place) return h("span", null, entity.identifier || FG.text(entity.name), " · ", h("a", { href: FG.href(place.view, place.arg) }, FG.span(place.entity.name || place.entity.headline)));
     return h("span", null, entity.identifier || FG.text(entity.name) || String(entity["@id"]));

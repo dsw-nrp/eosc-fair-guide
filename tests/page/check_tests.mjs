@@ -155,7 +155,7 @@ try {
     assert((await section.locator("h3").textContent()).includes(test.name.find((value) => value["@language"] === lang)["@value"]));
     assert((await section.textContent()).includes(test.description.find((value) => value["@language"] === lang)["@value"]));
     assert.equal(await section.locator(`a[href="../../../index.html#/${lang}/K/catalogue/${addressOf(test.isImplementationOf["@id"], namespace)}"]`).count(), 1);
-    assert.equal(await section.locator(`a[href="../../../api/${testAddress(test)}.json"]`).count(), 1);
+    assert.equal(await section.locator(`a[href="../../../api/v1/${testAddress(test)}.json"]`).count(), 1);
   }
   for (const [lang, id] of [["cs", "guide-cdif-04"], ["en", "guide-software-14"]]) for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });

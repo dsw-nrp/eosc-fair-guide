@@ -271,12 +271,12 @@ before any M3 task starts.
 - [x] 3.21 Update `docs/content-model.md` (crate mapping, classes, the Node, records, statuses, kinds, relation
   directions and the pinned vocabularies), `docs/design.md` and `CHANGELOG.md` for tasks 3.10 to 3.20. Verify:
   `python scripts/check_all.py --only docs changelog` passes.
-- [ ] 3.22 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
+- [x] 3.22 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
   head.
 
 ## 4. API v1 and graph access (M3)
 
-- [ ] 4.1 Rebuild `scripts/build_api.py` on the `api/v1/` layout (decision 11):
+- [x] 4.1 Rebuild `scripts/build_api.py` on the `api/v1/` layout (decision 11):
   - `index.json`;
   - lists from one filter-field table;
   - records that refer to vocabularies;
@@ -287,22 +287,22 @@ before any M3 task starts.
 
   Verify: unit tests in `tests/test_scripts.py` find every kind's list and records, the filter fields of each list
   entry, and no API file outside `api/v1/`, `api/tests/` and the documentation page.
-- [ ] 4.2 Describe the API with one list and one record operation per kind, typed schemas and term-set enums. Keep the
+- [x] 4.2 Describe the API with one list and one record operation per kind, typed schemas and term-set enums. Keep the
   `Repository` schema's not-yet-public exception with a referenced status term, and describe `acceptsDeposits` as
   `false` or absent (decisions 4 and 11). Change `tests/api/check_api.mjs` to match every file to exactly one template
   and to reject per-record operations. Verify: `npm run check:api` passes, its NKR probe accepts a repository in
   development without an address and rejects an operational one, and the Swagger page lists one tag per kind.
-- [ ] 4.3 Move the health snapshot's consumers and `docker/nginx.conf`'s `no-store` rule to `api/v1/health.json`.
+- [x] 4.3 Move the health snapshot's consumers and `docker/nginx.conf`'s `no-store` rule to `api/v1/health.json`.
   Verify: `python scripts/check_all.py --only health health-api` passes.
-- [ ] 4.4 Write `knowledge-graph.nt` with a standard-library writer and a pinned local RO-Crate 1.2 context
+- [x] 4.4 Write `knowledge-graph.nt` with a standard-library writer and a pinned local RO-Crate 1.2 context
   (decision 12). Verify: a unit test proves it isomorphic to rdflib's parse of the crate, and the build makes no
   network request.
-- [ ] 4.5 Add the N-Triples distribution to the linkset and the HTML head as `describedby`. Verify:
+- [x] 4.5 Add the N-Triples distribution to the linkset and the HTML head as `describedby`. Verify:
   `npm run check:deployment` and the signposting test find it.
-- [ ] 4.6 Publish the six recipes with bilingual descriptions under `profile/0.2/recipes/`, with expected-result
+- [x] 4.6 Publish the six recipes with bilingual descriptions under `profile/0.2/recipes/`, with expected-result
   fixtures in `tests/fixtures/recipes/` and a unit test that runs each one (decision 13). Verify: the test passes,
   and fails on a copy of the graph with a renamed property.
-- [ ] 4.7 Update the machines page and the API documentation page:
+- [x] 4.7 Update the machines page and the API documentation page:
   - the IRI and address patterns;
   - the record landing pages and what their typed links point to;
   - the RDF distribution;
@@ -312,14 +312,14 @@ before any M3 task starts.
   - the practice section's paragraph on addresses, which still says the permanent address is to be settled.
 
   Verify: `npm run check:page` passes for the machines page in both languages, at phone width and in print.
-- [ ] 4.8 Write saved results as format revision 4, with each reader's answer a `dqv:QualityMeasurement` of its
+- [x] 4.8 Write saved results as format revision 4, with each reader's answer a `dqv:QualityMeasurement` of its
   question's persistent IRI and automated evidence naming its test's persistent IRI, and load revisions 1–3 with their
   `api/tests/` references (decision 14). Verify: `npm run check:assessment` loads a fixture of each revision and
   exports revision 4 with question and test IRIs.
-- [ ] 4.9 Update `docs/content-model.md` (*Static API*), `docs/design.md`, `docs/ci-reference.md` and the README
+- [x] 4.9 Update `docs/content-model.md` (*Static API*), `docs/design.md`, `docs/ci-reference.md` and the README
   endpoint mentions, and add the `[Unreleased]` breaking lines for API v1 and result revision 4. Verify:
   `python scripts/check_all.py --only docs changelog` passes.
-- [ ] 4.10 Write a landing page, `id/<address>.html`, for every issued address (decision 19): the fixed field set
+- [x] 4.10 Write a landing page, `id/<address>.html`, for every issued address (decision 19): the fixed field set
   from the API record, both languages with `lang`, an anchored section per part, the typed links and the link into
   the Guide through `index.html#/id/<address>`. Verify:
   - a unit test finds one page per address, an anchor for every part fragment, and `cite-as` and `describedby`
@@ -327,7 +327,7 @@ before any M3 task starts.
   - a test compares each page's fields with its API record;
   - `npm run check:page` reads a resource's, a station's and a repository's page without JavaScript in both
     languages, at phone width and in print, and follows the link into the Guide from `file://`.
-- [ ] 4.11 Write the bilingual `404.html` with an absolute link to the catalogue search, add
+- [x] 4.11 Write the bilingual `404.html` with an absolute link to the catalogue search, add
   `error_page 404 /404.html` to `docker/nginx.conf`, and list the landing pages in the production sitemap
   (`build_crate.py`). Verify:
   - a unit test finds every landing page in the production sitemap and none in a preview build, and finds the

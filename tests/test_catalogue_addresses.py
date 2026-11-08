@@ -74,9 +74,9 @@ class CatalogueAddressTests(unittest.TestCase):
         api = build_api.Api(self.crate, self.content)
         for members in api.records.values():
             for _, entity_id in members:
-                self.assertEqual(api.paths[entity_id], f"api/{address_of(entity_id)}.json")
-        self.assertEqual(api.paths[iri("resources/datacite")], "api/resources/datacite.json")
-        self.assertEqual(api.paths[iri("repositories/zenodo")], "api/repositories/zenodo.json")
+                self.assertEqual(api.paths[entity_id], f"api/v1/{address_of(entity_id)}.json")
+        self.assertEqual(api.paths[iri("resources/datacite")], "api/v1/resources/datacite.json")
+        self.assertEqual(api.paths[iri("repositories/zenodo")], "api/v1/repositories/zenodo.json")
 
     def test_source_id_changes_do_not_reissue_our_address(self):
         content = copy.deepcopy(self.content)
@@ -137,7 +137,7 @@ class CatalogueAddressTests(unittest.TestCase):
     def test_api_publishes_no_legacy_documents_and_retains_external_iris(self):
         api = build_api.Api(self.crate, self.content)
         files = api.files()
-        self.assertIn("api/resources/github.json", files)
+        self.assertIn("api/v1/resources/github.json", files)
         self.assertNotIn("api/res/tool/github.json", files)
         self.assertNotIn("api/metrics/dataset.01.json", files)
         self.assertNotIn("catalogue", self.content["identifiers"])

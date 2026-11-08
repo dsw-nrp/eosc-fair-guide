@@ -916,7 +916,7 @@
         const provider = P.provider(assessment.provider) || { name: assessment.provider };
         for (const result of assessment.results) {
           const criterion = P.criterion(assessment.provider, result.id);
-          const testId = (criterion && criterion.url) || provider.form || (criterion ? FG.iri(criterion) : "#provider-" + index + "-test-" + result.id);
+          const testId = (criterion && (criterion.url || FG.iri(criterion))) || provider.form || "#provider-" + index + "-test-" + result.id;
           members.push({
             "@id": "#provider-" + index + "-" + result.id,
             "@type": ["CreativeWork", "TestResult"],

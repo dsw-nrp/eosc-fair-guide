@@ -1,0 +1,14 @@
+{
+  "columns": ["advice", "level"],
+  "rows": [
+    ["https://w3id.org/eosc-cz/fair-guide/id/advice/plan.01", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/levels/L1"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/advice/plan.09", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/levels/L0"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/advice/plan.10", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/levels/L1"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/advice/plan.11", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/levels/L1"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/advice/plan.12", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/levels/L1"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/advice/plan.13", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/levels/L1"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/advice/plan.14", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/levels/L2"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/advice/plan.26", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/levels/L1"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/advice/plan.27", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/levels/L1"]
+  ]
+}

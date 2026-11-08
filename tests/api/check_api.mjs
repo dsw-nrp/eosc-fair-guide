@@ -44,7 +44,7 @@ const files = [];
   }
 })(join(site, "api"));
 if (healthOnly) {
-  files.splice(0, files.length, "api/health.json", "api/meta.json");
+  files.splice(0, files.length, "api/v1/health.json", "api/v1/index.json");
 }
 
 // 1. The description is valid OpenAPI 3.1 and names its server relative to itself.
@@ -62,40 +62,59 @@ const definitions = JSON.parse(JSON.stringify(openapi.components.schemas).replac
 ajv.addSchema({ $id: "api", $defs: definitions });
 if (!healthOnly) {
   const repository = ajv.compile({ $ref: "api#/$defs/Repository" });
-  const probe = { "@context": "context.jsonld", "@id": "repository.json", "@type": "DataCatalog", name: "NKR repository",
-    serviceStatus: { termCode: "in-development" }, sameAs: ["https://repo.cz/objects/test/record"] };
-  if (!repository(probe)) fail("Repository schema rejects an NKR repository in development without an address");
+  const probe = {
+    "@context": "context.jsonld", "@id": "repository.json", "@type": ["DataCatalog"],
+    identifier: "test-repository", name: "NKR repository",
+    repositoryKind: { "@id": "../vocabularies/repository-kinds.json#general", termCode: "general" },
+    serviceStatus: { "@id": "../vocabularies/statuses.json#in-development", termCode: "in-development" },
+    sameAs: ["https://repo.cz/objects/test/record"],
+  };
+  if (!repository(probe)) fail("Repository schema rejects an NKR repository in development without an address: " + JSON.stringify(repository.errors));
   for (const invalid of [{ ...probe, serviceStatus: { termCode: "operational" } }, { ...probe, sameAs: [] }, { ...probe, url: "http://example.org" }]) {
     if (repository(invalid)) fail("Repository schema accepts an operational, unlinked or insecure address-free repository");
   }
 }
+const specialPaths = new Set(["/api/v1/index.json", "/api/v1/context.jsonld", "/api/v1/health.json"]);
+const kindPath = /^\/api\/v1\/[a-z][a-z-]*(?:[.]json|\/(?:\{scope\}\/)?\{id\}[.]json)$/;
+const savedResultPath = /^\/api\/tests\/\{id\}[.]json$/;
 const routes = Object.entries(openapi.paths).map(([template, item]) => {
-  const parameter = (item.get.parameters || [])[0];
-  const pattern = new RegExp("^" + template.slice(1).replace(/[.]/g, "\\.").replace(/\{[^}]+\}/, "([^/]+)") + "$");
-  const media = Object.values(item.get.responses["200"].content)[0];
-  return { template, pattern, schema: media.schema.$ref.split("/").pop(), values: parameter ? parameter.schema.enum : null };
-});
-for (const file of files) {
-  const route = routes.find((candidate) => candidate.pattern.test(file));
-  if (!route) {
-    fail(`${file}: no path of the description serves it`);
-    continue;
+  if (!specialPaths.has(template) && !kindPath.test(template) && !savedResultPath.test(template)) {
+    fail(`${template}: not a kind template, an operation or the saved-result support template`);
   }
-  const validate = ajv.getSchema("api#/$defs/" + route.schema);
-  if (!validate(read(join(site, file)))) {
-    fail(`${file}: does not match ${route.schema}: ` + validate.errors.slice(0, 3).map((error) => `${error.instancePath || "/"} ${error.message}`).join("; "));
+  for (const parameter of item.get.parameters || []) {
+    if (parameter.name === "id" && parameter.schema.enum) fail(`${template}: the record id enumerates per-record operations`);
+    if (parameter.name === "id" && !parameter.schema.pattern) fail(`${template}: record id has no identifier pattern`);
+    if (!["id", "scope"].includes(parameter.name)) fail(`${template}: unexpected path parameter ${parameter.name}`);
+  }
+  const pattern = new RegExp("^" + template.slice(1)
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\\\{[^{}/]+\\\}/g, "([^/]+)") + "$");
+  const media = Object.values(item.get.responses["200"].content)[0];
+  return { template, pattern, schema: media.schema.$ref.split("/").pop() };
+});
+const kindTags = (openapi.tags || []).filter((tag) => tag.name !== "operations").map((tag) => tag.name);
+if (new Set(kindTags).size !== kindTags.length) fail("openapi.json: duplicate kind tags");
+for (const kind of kindTags) {
+  const list = openapi.paths[`/api/v1/${kind}.json`];
+  if (!list || !list.get.tags.includes(kind)) fail(`${kind}: the Swagger tag has no corresponding list operation`);
+  if (!Object.keys(openapi.paths).some((path) => path.startsWith(`/api/v1/${kind}/`) && path.endsWith("{id}.json"))) {
+    fail(`${kind}: no templated record operation`);
   }
 }
-for (const route of routes.filter((candidate) => candidate.values && !healthOnly)) {
-  for (const value of route.values) {
-    const file = route.template.slice(1).replace(/\{[^}]+\}/, value);
-    if (!existsSync(join(site, file))) fail(`${route.template}: the documented record ${value} has no file`);
+for (const file of files) {
+  const matching = routes.filter((candidate) => candidate.pattern.test(file));
+  if (matching.length !== 1) {
+    fail(`${file}: matches ${matching.length} templates, not exactly one`);
+    continue;
+  }
+  const validate = ajv.getSchema("api#/$defs/" + matching[0].schema);
+  if (!validate(read(join(site, file)))) {
+    fail(`${file}: does not match ${matching[0].schema}: ` + validate.errors.filter((error) => !["oneOf", "anyOf", "allOf"].includes(error.keyword)).slice(0, 4).map((error) => `${error.instancePath || "/"} ${error.message}: ${JSON.stringify(error.params)}`).join("; "));
   }
 }
 
 // 3. Links lead somewhere: relative paths to API files (and their fragments to parts given there), the crate's
 //    identifiers to its entities. Link-valued properties are the ones the context types as links.
-const context = read(join(site, "api/context.jsonld"))["@context"];
+const context = read(join(site, "api/v1/context.jsonld"))["@context"];
 const linkKeys = new Set(["@id", ...Object.entries(context).filter(([, definition]) => definition && (definition["@type"] === "@id" || definition["@reverse"])).map(([key]) => key)]);
 linkKeys.add("api_record"); // Ordinary health JSON links to existing records; it does not use a JSON-LD context.
 const partsOf = new Map();
@@ -147,35 +166,35 @@ for (const file of files.filter((name) => name.endsWith(".json"))) {
 
 // The health snapshot is ordinary JSON and retains the scope of every claim. A fresh build must not
 // masquerade as a completed check run; final check_all publication is checked again with --health-only.
-const health = read(join(site, "api/health.json"));
-if (health["@context"]) fail("api/health.json: ordinary check evidence must not claim a JSON-LD context");
-if (!read(join(site, "api/meta.json")).hasPart.includes("health.json")) fail("api/meta.json: no link to the health snapshot");
-if (health.live_availability.status !== "unchecked") fail("api/health.json: an offline inventory claims live availability");
-if (health.run.status === "not_run" && (health.generated_at !== null || health.run.jobs.length)) fail("api/health.json: a build inventory claims completed checks");
-if (health.run.status !== "not_run" && (typeof health.generated_at !== "string" || !Number.isFinite(Date.parse(health.generated_at)))) fail("api/health.json: completed run has no actual report timestamp");
-if (health.run.status === "passed" && health.run.jobs.some((job) => ["failed", "blocked"].includes(job.status))) fail("api/health.json: a passed run includes a failed or blocked check");
+const health = read(join(site, "api/v1/health.json"));
+if (health["@context"]) fail("api/v1/health.json: ordinary check evidence must not claim a JSON-LD context");
+if (!read(join(site, "api/v1/index.json")).hasPart.includes("health.json")) fail("api/v1/index.json: no link to the health snapshot");
+if (health.live_availability.status !== "unchecked") fail("api/v1/health.json: an offline inventory claims live availability");
+if (health.run.status === "not_run" && (health.generated_at !== null || health.run.jobs.length)) fail("api/v1/health.json: a build inventory claims completed checks");
+if (health.run.status !== "not_run" && (typeof health.generated_at !== "string" || !Number.isFinite(Date.parse(health.generated_at)))) fail("api/v1/health.json: completed run has no actual report timestamp");
+if (health.run.status === "passed" && health.run.jobs.some((job) => ["failed", "blocked"].includes(job.status))) fail("api/v1/health.json: a passed run includes a failed or blocked check");
 if (health.run.status === "passed" && health.run.jobs.some((job) => job.partial || (job.scripts || []).some((script) =>
-  script.status !== "passed" || script.pending.length || script.skipped.length))) fail("api/health.json: a passed run includes partial browser coverage");
-if (new Set(health.run.jobs.map((job) => job.name)).size !== health.run.jobs.length) fail("api/health.json: duplicate check-run identities");
+  script.status !== "passed" || script.pending.length || script.skipped.length))) fail("api/v1/health.json: a passed run includes partial browser coverage");
+if (new Set(health.run.jobs.map((job) => job.name)).size !== health.run.jobs.length) fail("api/v1/health.json: duplicate check-run identities");
 let failedItems = 0;
 for (const group of health.integrity) {
   const failed = group.items.filter((item) => item.status === "failed").length;
   const passed = group.items.filter((item) => item.status === "passed").length;
   failedItems += failed;
-  if (group.count !== group.items.length || group.failed !== failed || group.passed !== passed) fail(`api/health.json: inconsistent integrity counts for ${group.type}`);
+  if (group.count !== group.items.length || group.failed !== failed || group.passed !== passed) fail(`api/v1/health.json: inconsistent integrity counts for ${group.type}`);
 }
-if (health.integrity_failed !== failedItems) fail("api/health.json: inconsistent total integrity failures");
+if (health.integrity_failed !== failedItems) fail("api/v1/health.json: inconsistent total integrity failures");
 for (const kind of ["clauses", "questions", "advice"]) {
   const counts = health.original_coverage.counts[kind];
   if (!counts) continue; // An unreadable-content diagnostic makes no coverage claim.
   const items = health.original_coverage[kind];
   const withOriginal = items.filter((item) => kind === "clauses" ? item.has_original : item.originals.length > 0).length;
-  if (counts.total !== items.length || counts.with_original !== withOriginal) fail(`api/health.json: inconsistent original-coverage counts for ${kind}`);
+  if (counts.total !== items.length || counts.with_original !== withOriginal) fail(`api/v1/health.json: inconsistent original-coverage counts for ${kind}`);
   if (kind !== "clauses") {
     for (const item of items) {
       const actual = item.originals.length ? item.missing_originals.length ? "partial" : "complete" : item.reviewed_basis ? "reviewed_source_links" : "no_original";
-      if (item.status !== actual) fail(`api/health.json: inaccurate original-coverage status for ${item.id}`);
-      if (new Set([...item.originals, ...item.missing_originals]).size !== item.citations.length) fail(`api/health.json: lost citation coverage for ${item.id}`);
+      if (item.status !== actual) fail(`api/v1/health.json: inaccurate original-coverage status for ${item.id}`);
+      if (new Set([...item.originals, ...item.missing_originals]).size !== item.citations.length) fail(`api/v1/health.json: lost citation coverage for ${item.id}`);
     }
   }
 }

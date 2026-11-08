@@ -272,7 +272,7 @@ Once the merge queue is on ({QUEUE_TASK} of the CI change), queue the PR.
         self.write(
             "docs/ref.md",
             "<!-- type: reference -->\n# Ref\n\nRun `python scripts/check_al.py`, `npm run check:doc`, see "
-            "`deploy.yml`, `publish.yml`, [the guide](missing.md) and the site's `/api/health.json`.\n",
+            "`deploy.yml`, `publish.yml`, [the guide](missing.md) and the site's `/api/v1/health.json`.\n",
         )
         self.assertEqual(
             problems(self.root),

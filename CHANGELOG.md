@@ -8,9 +8,10 @@ All notable changes to this guide are recorded here. The format follows
 ## [Unreleased]
 
 - Breaking: repository API records may omit `url` while planned or in development when they link an NKR record.
-- Breaking: every record is addressed `<kind>/<id>` in plain kind words (`resources/github`, `stations/licence`)
-  instead of the code addresses (`res/tool/github`, `step/licence`); API record files, catalogue routes and
-  `guideRoute` values follow, and the catalogue's groups are `glossary`, `lifecycles` and `models`.
+- Breaking: every record is addressed `<kind>/<id>` in plain kind words (`resources/github`, `stations/licence`),
+  or `<kind>/<scope>/<id>` where scope belongs to its identity, instead of the code addresses
+  (`res/tool/github`, `step/licence`); API record files, catalogue routes and `guideRoute` values follow, and the
+  catalogue's groups are `glossary`, `lifecycles` and `models`.
 - Breaking: every record's `@id` is its IRI under the namespace `https://w3id.org/eosc-cz/fair-guide/`
   (`…/id/stations/licence`), not a crate fragment; the crate drops `catalogueAddress`.
 - Breaking: a registry's record of a thing is a `dcat:CatalogRecord` and `schema:CreativeWork` under it
@@ -48,6 +49,14 @@ All notable changes to this guide are recorded here. The format follows
   entries are `dcat:Relationship` parts linked from the Node by `dcat:qualifiedRelation`, not schema.org members;
   the NRP Data Catch-all Repository is a `service`, not a `registry`.
 - Breaking: the Guide's profile is `0.2`, with shapes for the graph model.
+- Breaking: API v1 replaces role-named collections, code paths and per-record operations with `api/v1/index.json`
+  and one typed list plus unscoped or scoped record template per kind. Compact references share vocabulary-set
+  documents, list entries carry identity and filter fields, health is `api/v1/health.json` under `operations`, and
+  the old tree is not generated.
+- Breaking: saved results use format revision 4: a reader's answer is a `dqv:QualityMeasurement` of its question's
+  persistent IRI, with `dqv:computedOn` and `dqv:value`, rather than an FTR test of a synthetic question-test address.
+  Automated evidence names actual test IRIs. Revisions 1–3 still load, and their `api/tests/<question>.json`
+  support documents describe and link the question without presenting a test.
 - Required step: a question that asks what a cited clause says names it as its `requirement` and states no
   `statement`; the content check refuses a statement that copies a cited clause.
 - Security: render source-controlled refresh diagnostics as bounded literal text in logs, reports and workflow summaries.

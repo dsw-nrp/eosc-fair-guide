@@ -33,7 +33,7 @@ def address_of(identifier: str, namespace: str = GUIDE_NAMESPACE) -> str:
 
 def api_file(address: str) -> str:
     """The API file of a record."""
-    return f"api/{address}.json"
+    return f"api/v1/{address}.json"
 
 
 def route(address: str, lang: str = "cs", lens: str = "V") -> str:

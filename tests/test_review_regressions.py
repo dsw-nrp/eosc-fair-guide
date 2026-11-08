@@ -119,5 +119,5 @@ class ReviewRegressions(unittest.TestCase):
                 (out / "ro-crate-metadata.json").read_text(encoding="utf-8"), generated[build_crate.CRATE_FILE]
             )
             self.assertEqual((out / "ro-crate-preview.html").read_bytes(), (out / "index.html").read_bytes())
-            api = json.loads((out / "api/health.json").read_text(encoding="utf-8"))
+            api = json.loads((out / "api/v1/health.json").read_text(encoding="utf-8"))
             self.assertEqual(api["build"], build_crate.build_identity_facts())

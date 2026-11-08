@@ -52,7 +52,9 @@ class PackageTests(unittest.TestCase):
 
     def health(self, report: dict) -> None:
         report = {"build": self.built, **report}
-        (self.site / package_site.HEALTH).write_text(json.dumps(report), encoding="utf-8")
+        health = self.site / package_site.HEALTH
+        health.parent.mkdir(parents=True, exist_ok=True)
+        health.write_text(json.dumps(report), encoding="utf-8")
 
     def test_a_verified_site_becomes_one_labelled_reproducible_archive(self) -> None:
         output = Path(self.temp.name) / "release"
@@ -66,7 +68,7 @@ class PackageTests(unittest.TestCase):
             self.assertTrue(all(member.mtime == 0 and member.uid == 0 for member in tar.getmembers()))
         self.assertEqual(
             sorted(names),
-            ["api/health.json", "assets/data/ui.js", "index.html", "ro-crate-metadata.json"],
+            ["404.html", "api/v1/health.json", "assets/data/ui.js", "index.html", "ro-crate-metadata.json"],
             "the site's own files, not the marker",
         )
         self.assertEqual(manifest["publication_url"], "https://example.org/guide/")
@@ -90,7 +92,7 @@ class PackageTests(unittest.TestCase):
             with self.subTest(reason), self.assertRaisesRegex(package_site.PackageError, reason):
                 package_site.package(self.site, COMMIT, output, self.root)
         foreign = Path(self.temp.name) / "foreign"
-        (foreign / "api").mkdir(parents=True)
+        (foreign / package_site.HEALTH).parent.mkdir(parents=True)
         (foreign / package_site.HEALTH).write_text(
             '{"generated_at": "x", "run": {"status": "passed"}}', encoding="utf-8"
         )

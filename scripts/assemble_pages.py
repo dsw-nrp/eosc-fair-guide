@@ -157,6 +157,8 @@ def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]
             files[member.name] = stream.read()
     if "index.html" not in files or package_site.HEALTH not in files:
         raise AssemblyError("release archive lacks the Guide or health result")
+    if "404.html" not in files:
+        raise AssemblyError("release archive lacks the bilingual 404 page")
     health = json.loads(files[package_site.HEALTH])
     if health.get("run", {}).get("status") != "passed" or health.get("revision") != commit:
         raise AssemblyError("release archive health does not name the checked commit")
@@ -259,6 +261,8 @@ def assemble(
         path = output / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
+    if production and not (output / "404.html").is_file():
+        raise AssemblyError("assembled output lacks 404.html despite a complete release archive")
     return notices
 
 

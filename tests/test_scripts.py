@@ -349,6 +349,8 @@ class GeneratorTests(FixtureCase):
         links = json.loads(outputs[build_crate.LINKSET_FILE])["linkset"][0]
         self.assertEqual(links["anchor"], "./")
         self.assertEqual(links["describedby"][0]["href"], build_crate.CRATE_FILE)
+        self.assertIn({"href": build_crate.NT_FILE, "type": "application/n-triples"}, links["describedby"])
+        self.assertTrue(outputs[build_crate.NT_FILE])
         self.assertEqual(links["cite-as"], [{"href": "https://doi.org/10.1234/guide"}])
         self.assertNotIn("linkset", links, "the linkset does not list itself")
         head = outputs[build_crate.PAGE_FILE]
@@ -778,10 +780,14 @@ class GeneratorTests(FixtureCase):
         self.assertNotIn("definitionPart", core_ids[iri("lifecycles/rdmkit/plan")])
         self.assertIn("definitionPart", parts["model"]["properties"][iri("lifecycles/rdmkit/plan")])
         self.assertNotIn(iri("crosswalks/lifecycle-stages/rdmkit-plan-other-fund"), core_ids)
-        records = build_crate.api_records(entities, content)["lifecycle"]
+        records = build_crate.api_records(entities, content)
         self.assertEqual(
-            {record for record, _ in records},
-            {"rdmkit", "rdmkit.plan", "other", "other.fund", "lifecycle-stages", "rdmkit-plan-other-fund"},
+            {record for record, _ in records["lifecycles"]},
+            {"rdmkit", "rdmkit/plan", "other", "other/fund"},
+        )
+        self.assertEqual(
+            {record for record, _ in records["crosswalks"]},
+            {"lifecycle-stages", "lifecycle-stages/rdmkit-plan-other-fund"},
         )
 
 
@@ -2616,8 +2622,8 @@ class BuildOutputTests(FixtureCase):
 
         git("init", "-q")
         (self.root / "ro-crate-metadata.json").write_text("{}", encoding="utf-8")
-        (self.root / "api").mkdir()
-        (self.root / "api" / "principles.json").write_text("{}", encoding="utf-8")
+        (self.root / "api" / "v1").mkdir(parents=True)
+        (self.root / "api" / "v1" / "principles.json").write_text("{}", encoding="utf-8")
         (self.root / "api" / "index.html").write_text("<!doctype html>", encoding="utf-8")
         page = self.root / "index.html"
         page.write_text(
@@ -2628,7 +2634,7 @@ class BuildOutputTests(FixtureCase):
         report = check_content.Report()
         check_content.check_no_build_output(report, self.root)
         named = " ".join(report.errors)
-        for expected in ("ro-crate-metadata.json", "api/principles.json", "generated block 'ui'"):
+        for expected in ("ro-crate-metadata.json", "api/v1/principles.json", "generated block 'ui'"):
             self.assertIn(expected, named)
         self.assertNotIn("api/index.html", named, "the API's authored page is not build output")
 
@@ -2742,7 +2748,7 @@ class SiteTests(unittest.TestCase):
                 "assets/js/app.js",
                 "profile/fair-guide/profile.ttl",
                 "openapi.json",
-                "api/principles/R1.1.json",
+                "api/v1/principles/R1.1.json",
                 "api/index.html",
                 "api/swagger-ui/swagger-ui-bundle.js",
                 "profile/0.2/index.html",
@@ -2936,27 +2942,29 @@ class GeneratedMarkupTests(FixtureCase):
         # The fixture carries no interface strings of its own for the API; the guide's are used as they are.
         content["ui"]["api"] = tomllib.loads((build_crate.CONTENT / "ui.toml").read_text(encoding="utf-8"))["api"]
         api = build_api.Api(build_crate.build_crate(content), content)
-        docs = {path: json.loads(text) for path, text in api.files().items()}
+        docs = {path: json.loads(text) for path, text in api.files().items() if path.endswith((".json", ".jsonld"))}
         openapi = docs[build_api.OPENAPI_FILE]
         empty = [name for name in build_crate.API_COLLECTIONS if not api.records[name]]
         self.assertIn("fips", empty, "the fixture exercises an empty snapshot collection")
         self.assertEqual(
             docs[build_api.META_FILE]["hasPart"],
-            [f"{name}.json" for name in build_crate.API_COLLECTIONS] + ["health.json"],
+            [f"{name}.json" for name in build_crate.API_COLLECTIONS]
+            + [f"vocabularies/{record}.json" for record, _ in api.records["vocabularies"]]
+            + ["health.json"],
         )
         for name in build_crate.API_COLLECTIONS:
-            listed = docs[f"api/{name}.json"]
+            listed = docs[f"api/v1/{name}.json"]
             self.assertEqual(listed["numberOfItems"], len(listed["itemListElement"]), name)
-            self.assertIn(f"/api/{name}.json", openapi["paths"])
-            record_path = f"/api/{name}/{{{build_api.PARAMETERS[name]}}}.json"
+            self.assertIn(f"/api/v1/{name}.json", openapi["paths"])
             if name in empty:
                 self.assertEqual(listed["numberOfItems"], 0, name)
-                self.assertNotIn(record_path, openapi["paths"])
+                self.assertNotIn(f"/api/v1/{name}/{{id}}.json", openapi["paths"])
                 continue
             for _, entity_id in api.records[name]:
-                path = api.paths[entity_id]
-                templated = path == f"api/{name}/{Path(path).stem}.json"
-                self.assertIn(record_path if templated else "/" + path, openapi["paths"], name)
+                relative = Path(api.paths[entity_id]).relative_to("api/v1")
+                scope = "{scope}/" if len(relative.parts) == 3 else ""
+                record_path = f"/api/v1/{name}/{scope}{{id}}.json"
+                self.assertIn(record_path, openapi["paths"], name)
 
     def test_link_elements_escape_hostile_quoted_values(self) -> None:
         hostile = {"rel": 'x" onload="alert(1)', "type": "a&b<c>", "href": 'page"><script>alert(1)</script>'}
@@ -3069,31 +3077,32 @@ class ApiTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         content = build_crate.load_content()
         cls.page_url = content["guide"]["guide"]["pageUrl"]
-        cls.files = build_api.Api(build_crate.build_crate(content), content).files()
-        cls.docs = {path: json.loads(text) for path, text in cls.files.items()}
+        cls.api = build_api.Api(build_crate.build_crate(content), content)
+        cls.files = cls.api.files()
+        cls.docs = {path: json.loads(text) for path, text in cls.files.items() if path.endswith(".json")}
 
     @staticmethod
     def target(here: str, link: str) -> str:
         return posixpath.normpath(posixpath.join(posixpath.dirname(here), link))
 
     def test_a_principle_carries_what_is_about_it(self) -> None:
-        here = "api/principles/R1.1.json"
+        here = "api/v1/principles/R1.1.json"
         principle = self.docs[here]
         self.assertEqual(principle["@context"], "../context.jsonld")
         self.assertEqual(set(principle["name"]), {"cs", "en"})
-        self.assertTrue(principle["clauses"] and principle["stations"] and principle["metrics"])
+        self.assertTrue(principle["clauses"] and principle["stations"] and principle["questions"])
         lenses = {
-            audience["audienceType"]
+            audience["termCode"]
             for advice in principle["advice"]
             for audience in build_crate.as_list(advice.get("audience"))
             if isinstance(audience, dict)
         }
         self.assertGreater(len(lenses), 1, "advice for more than one lens")
-        metric = self.docs[self.target(here, principle["metrics"][0])]
+        metric = self.docs[self.target(here, principle["questions"][0])]
         self.assertIn("../principles/R1.1.json", build_crate.as_list(metric["inDimension"]))
 
     def test_checks_are_benchmarks_and_questions_keep_their_saved_result_documents(self) -> None:
-        checks = [path for path in self.docs if path.startswith("api/checks/")]
+        checks = [path for path in self.docs if path.startswith("api/v1/checks/")]
         self.assertTrue(checks)
         for path in checks:
             # The API uses the graph's FTR types as they are.
@@ -3106,7 +3115,7 @@ class ApiTests(unittest.TestCase):
                 for implementation in build_crate.as_list(metric.get("hasImplementation")):
                     test = self.docs[self.target(metric_path, implementation)]
                     self.assertIn("AssessmentCriterion", test["@type"])
-                    self.assertEqual(self.target(metric_path, implementation).split("/")[1], "tests")
+                    self.assertEqual(self.target(metric_path, implementation).split("/")[2], "tests")
                 # The document results saved by earlier releases name as the question's test describes the question.
                 saved = build_crate.API_FILES["test"].format(id=metric["identifier"])
                 self.assertNotIn(
@@ -3115,13 +3124,15 @@ class ApiTests(unittest.TestCase):
                 )
                 self.assertNotIn("Test", build_crate.as_list(self.docs[saved]["@type"]))
                 self.assertEqual(self.target(saved, self.docs[saved]["about"]), metric_path)
-        listed = [self.target("api/tests.json", item["@id"]) for item in self.docs["api/tests.json"]["itemListElement"]]
-        self.assertFalse([path for path in listed if path.count("/") == 2 and path.startswith("api/tests/")])
+        listed = [
+            self.target("api/v1/tests.json", item["@id"]) for item in self.docs["api/v1/tests.json"]["itemListElement"]
+        ]
+        self.assertFalse([path for path in listed if path.count("/") == 3 and path.startswith("api/v1/tests/")])
 
     def test_nothing_names_the_site_by_its_address(self) -> None:
-        # The context's vocabulary terms are absolute by necessity; every link between files is relative.
+        # Vocabulary terms are absolute; all other files stay relative, except 404's required catalogue search.
         for path, text in self.files.items():
-            if path != build_api.CONTEXT_FILE:
+            if path not in (build_api.CONTEXT_FILE, "404.html"):
                 self.assertNotIn(self.page_url, text, path)
 
     def test_the_description_documents_every_file(self) -> None:
@@ -3130,28 +3141,54 @@ class ApiTests(unittest.TestCase):
         self.assertTrue(all("://" not in server["url"] for server in openapi["servers"]))
 
         def documented(path: str) -> bool:
-            for template in openapi["paths"]:
-                prefix, _, rest = template[1:].partition("{")
-                suffix = rest.partition("}")[2]
-                middle = path[len(prefix) : len(path) - len(suffix)]
-                if path == template[1:] or (
-                    rest and path.startswith(prefix) and path.endswith(suffix) and middle and "/" not in middle
-                ):
-                    return True
-            return False
+            parts = path.split("/")
+            return any(
+                len(parts) == len(template[1:].split("/"))
+                and all(
+                    (part.startswith("{") and part.endswith(("}", ".json")) and bool(actual))
+                    or (not part.startswith("{") and part == actual)
+                    for part, actual in zip(template[1:].split("/"), parts, strict=False)
+                )
+                for template in openapi["paths"]
+            )
 
         for path in self.files:
             if path.startswith("api/"):
                 self.assertTrue(documented(path), path)
 
+    def test_every_kind_has_its_v1_list_records_and_filter_fields(self) -> None:
+        for kind, members in self.api.records.items():
+            listing = self.docs[f"api/v1/{kind}.json"]
+            self.assertEqual(listing["numberOfItems"], len(members), kind)
+            for _record, entity_id in members:
+                self.assertIn(self.api.paths[entity_id], self.docs)
+            summary = listing["itemListElement"]
+            self.assertTrue(all({"address", "iri", "label", "identifier"} <= set(item) for item in summary))
+        advice = self.docs["api/v1/advice.json"]
+        for item in advice["itemListElement"]:
+            for key in ("isPartOf", "audience", "disclosureLevel", "adviceKind", "text"):
+                self.assertIn(key, item, item["address"])
+            self.assertTrue(item["address"].startswith("advice/"))
+        self.assertTrue(any(path.startswith("api/tests/") and path.endswith(".json") for path in self.files))
+        for path in self.files:
+            if path.startswith("api/"):
+                self.assertTrue(path.startswith(("api/v1/", "api/tests/")), path)
+
     def test_record_ids_are_unique_and_safe_as_file_names(self) -> None:
         content: dict = {"guide": {"guide": {"recordBase": iri("")}}}
         with self.assertRaises(build_crate.ContentError):
             build_crate.api_records({iri("clauses/a b"): {"@id": iri("clauses/a b")}}, content)
-        # A layer and a seam are records of one API collection, so they cannot share an ID there.
-        twice = {iri("layers/x"): {"@id": iri("layers/x")}, iri("seams/x"): {"@id": iri("seams/x")}}
-        with self.assertRaises(build_crate.ContentError):
+        # Identity distinguishes kinds. A collision inside one kind and scope still cannot create one shared file.
+        distinct = {iri("layers/x"): {"@id": iri("layers/x")}, iri("seams/x"): {"@id": iri("seams/x")}}
+        grouped = build_crate.api_records(distinct, content)
+        self.assertTrue(grouped["layers"] and grouped["seams"])
+        twice = {iri("clauses/x"): {"@id": iri("clauses/x")}, iri("other/x"): {"@id": iri("other/x")}}
+        with (
+            mock.patch.object(build_crate, "record_address", return_value="clauses/x") as canonical,
+            self.assertRaises(build_crate.ContentError),
+        ):
             build_crate.api_records(twice, content)
+        self.assertEqual(canonical.call_count, 2)
 
     def test_output_is_deterministic(self) -> None:
         content = build_crate.load_content()

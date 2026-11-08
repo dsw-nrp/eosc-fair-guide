@@ -20,4 +20,10 @@ def publication_files(base="https://example.org/guide/", *, semantic=None, built
     return {
         "assets/data/ui.js": ("window.FairGuideData.ui = " + json.dumps({"config": config}) + ";\n").encode(),
         "ro-crate-metadata.json": json.dumps(crate).encode(),
+        # The deployment artifact must serve both languages even when a route has no record.
+        "404.html": (
+            b'<!doctype html><html lang="cs"><head><meta name="robots" content="noindex">'
+            b"<title>Nenalezeno / Not found</title></head><body><p>Nenalezeno.</p>"
+            b'<p lang="en">Not found.</p></body></html>'
+        ),
     }

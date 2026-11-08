@@ -42,7 +42,7 @@ export const localId = (address) => String(address).split("#")[0].split("/").sli
 export const term = (set, code) => `vocabularies/${set}/${code}`;
 
 /** The API file of a record. */
-export const apiFile = (address) => `api/${address}.json`;
+export const apiFile = (address) => `api/v1/${address}.json`;
 
 /** The page route of a record's catalogue entry. */
 export const route = (address, lang = "cs", lens = "V") => `#/${lang}/${lens}/catalogue/${address}`;

@@ -151,10 +151,10 @@ class ModelTests(unittest.TestCase):
             for collection, members in api.records.items()
             for record, entity_id in members
         }
-        self.assertIn("api/seams/repository-nma.json", docs)
-        self.assertEqual(docs["api/model-examples/pilot.json"]["statusAsOf"], "2026-09")
-        self.assertEqual(build_api.PARAMETERS["model"], "model_id")
-        record = docs["api/resources/service.json"]
+        self.assertIn("api/v1/seams/repository-nma.json", docs)
+        self.assertEqual(docs["api/v1/model-examples/pilot.json"]["statusAsOf"], "2026-09")
+        self.assertIn("api/v1/models/layers-seams.json", docs)
+        record = docs["api/v1/resources/service.json"]
         self.assertEqual(record["implementationSeams"], "../seams/repository-nma.json")
         health = api.health(check_health.make_report(self.content, today=date(2026, 10, 11)))
         model = next(group for group in health["integrity"] if group["type"] == "implementation model")

@@ -52,6 +52,7 @@ from catalogue_identity import (
 )
 from catalogue_identity import address as issue_address
 from corrections import apply as apply_corrections
+from knowledge_graph import NT_FILE, n_triples
 from nkr_contract import NKR_PILOT_NOT_ACCEPTING, nkr_status
 from publication_location import base_url as publication_base
 
@@ -98,12 +99,14 @@ PART_SCRIPTS = {
     "questions": "assets/data/kb-questions.js",
     "model": "assets/data/kb-model.js",
     "advice": "assets/data/kb-advice.js",
+    "api": "assets/data/kb-api.js",  # Descriptions of the API's kinds, used only by the machines view.
 }
 # View code the page loads when the view first opens, beside the shared code every view needs.
 # Views whose code loads when they first open: the catalogue, and the self-check with its parts and report, which a
 # path page also loads when saved answers mark gaps on its rail.
 VIEW_SCRIPTS = {
     "catalogue": "assets/js/catalogue-view.js",
+    "machines": "assets/js/machines.js",
     "check": "assets/js/selfcheck.js",
     "selfcheck": "assets/js/selfcheck.js",
 }
@@ -3781,7 +3784,10 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
 # Page blocks
 
 
-API_COLLECTIONS = (
+API_COLLECTIONS = tuple(sorted(KINDS))
+# Stored-record groups used only by catalogue_addresses to recover an owned record's identity and kind. These are
+# not published API paths: cataloguing still distinguishes cited works and organisations before the one projection.
+CATALOGUE_RECORD_GROUPS = (
     "principles",
     "stations",
     "checks",
@@ -3800,18 +3806,17 @@ API_COLLECTIONS = (
     "infrastructures",
 )
 API_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
-# Where the API's own files sit in the site; records are `api/<collection>/<record ID>.json`.
+# Where API v1's files sit in the site; records are `api/v1/<kind>/<id>.json`, or scoped under that kind.
 API_FILES = {
-    "health": "api/health.json",
+    "health": "api/v1/health.json",
     "description": "openapi.json",
     "docs": "api/",
-    "context": "api/context.jsonld",
-    "meta": "api/meta.json",
-    "record": "api/{record}.json",  # a list (`principles`) or a canonical record (`pr/R1.1`)
+    "context": "api/v1/context.jsonld",
+    "index": "api/v1/index.json",
+    "record": "api/v1/{record}.json",
 }
-API_FILES["test"] = API_FILES["record"].replace(
-    "{record}", "tests/{id}"
-)  # a question's manual test, which results name
+# Saved-result revisions 1 to 3 retain this support path; it describes a question and is not an FTR test.
+API_FILES["test"] = "api/tests/{id}.json"
 API_PREFIXES = {
     "#station-": "stations",
     "#check-": "checks",
@@ -3857,7 +3862,7 @@ def catalogue_record_keys(
         if not (alternate_id(row, "fip-dashboard") and FIP_DASHBOARD + alternate_id(row, "fip-dashboard") in described)
     }
     sources = part_ids("#sources")
-    records: dict[str, list[tuple[str, str]]] = {name: [] for name in API_COLLECTIONS}
+    records: dict[str, list[tuple[str, str]]] = {name: [] for name in CATALOGUE_RECORD_GROUPS}
     for entity_id, entity in entities.items():
         if "#" in entity_id[1:]:
             continue  # a part of a record, placed under its whole; never a standalone collection record
@@ -3909,29 +3914,8 @@ def catalogue_record_keys(
     return records
 
 
-# The API's collections (until API v1) and the kind of record each publishes. Sources are the resources the Guide
-# cites; organisations and infrastructures are the Guide's own and the national roadmap's.
-API_KIND_COLLECTIONS = {
-    "principles": "principles",
-    "stations": "stations",
-    "checks": "checks",
-    "questions": "metrics",
-    "tests": "tests",
-    "resources": "resources",
-    "repositories": "repositories",
-    "clauses": "clauses",
-    "glossary": "terms",
-    "organizations": "organizations",
-    "fips": "fips",
-    "actions": "changes",
-    "models": "model",
-    "layers": "model",
-    "seams": "model",
-    "model-examples": "model",
-    "lifecycles": "lifecycle",
-    "crosswalks": "lifecycle",
-    "infrastructures": "infrastructures",
-}
+# Every address kind publishes a list under that same kind; sources are resources, and scoped identities stay nested.
+API_KIND_COLLECTIONS = {kind: kind for kind in API_COLLECTIONS}
 
 
 def guide_address(entity_id: str, base: str) -> str | None:
@@ -3958,9 +3942,8 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
     is unique within its collection and safe as a path segment. The manual tests of the check questions are added by
     the API build."""
     base = content["guide"]["guide"]["recordBase"]
-    own_organizations = {row["id"] for row in content["guide"].get("organization", [])} | {"eosc-cz-node"}
+    own_organizations = {row["id"] for row in content["guide"].get("organization", [])}
     roadmap = {row["id"] for row in (content.get("infrastructures") or {}).get("infrastructure", [])}
-    sources = set(ids_of(entities.get("#sources", {}).get("hasPart")))
     records: dict[str, list[tuple[str, str]]] = {name: [] for name in API_COLLECTIONS}
     for entity_id, entity in entities.items():
         address = record_address(entity_id, base)
@@ -3973,15 +3956,13 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
         collection = API_KIND_COLLECTIONS.get(kind)
         if (
             collection is None
+            or (kind == "vocabularies" and "DefinedTermSet" not in as_list(entity.get("@type")))
             or (kind == "organizations" and identifier not in own_organizations)
             or (kind == "infrastructures" and identifier not in roadmap)
         ):
             continue
-        if kind == "resources" and entity_id in sources and not entity.get("resourceType"):
-            collection = "sources"
-        provider = kind == "tests" and scope not in ("guide", CHAMPION_SCOPE)
-        record = f"{scope}.{identifier}" if scope and (kind == "lifecycles" or provider) else identifier
-        if not API_ID.match(record):
+        record = "/".join(address.split("/")[1:])
+        if not all(API_ID.fullmatch(part) for part in record.split("/")):
             raise ContentError(f"{entity_id}: no record ID the API can publish under {collection}/ ({record!r})")
         if any(existing == record for existing, _ in records[collection]):
             raise ContentError(f"{entity_id}: two entities share the API record {collection}/{record}")
@@ -4408,6 +4389,7 @@ LINKSET_FILE = "linkset.json"
 # What the build generates and the repository must not hold; the API's records and its description as well.
 GENERATED = (
     CRATE_FILE,
+    NT_FILE,
     PREVIEW_FILE,
     KB_SCRIPT,
     UI_SCRIPT,
@@ -4425,6 +4407,7 @@ def is_generated(path: str) -> bool:
         path in GENERATED
         or (path.startswith("api/") and path.endswith((".json", ".jsonld")))
         or bool(PROFILE_PAGE.match(path))
+        or (not path.startswith(PROFILE_DIR + "/") and bool(re.fullmatch(r"profile/[^/]+/recipes/.+\.rq", path)))
     )
 
 
@@ -4550,6 +4533,7 @@ def signposts(content: dict[str, Any], crate: dict[str, Any]) -> list[dict[str, 
     root = next(entity for entity in crate["@graph"] if entity["@id"] == "./")
     links = [
         {"rel": "describedby", "href": CRATE_FILE, "type": "application/ld+json", "profile": RO_CRATE},
+        {"rel": "describedby", "href": NT_FILE, "type": "application/n-triples"},
         {
             "rel": "service-desc",
             "href": API_FILES["description"],
@@ -4721,7 +4705,16 @@ def page_config(
                 for section in page.get("section", [])
                 if section.get("details")
             ],
-            "api": {"files": API_FILES, "collections": list(API_COLLECTIONS), "records": api or {}},
+            "api": {
+                "files": API_FILES,
+                "collections": list(API_COLLECTIONS),
+                "records": api or {},
+                "fipCollections": content["ui"]["api"].get("fipCollections", []),
+                "recipes": {
+                    "root": f"profile/{guide.get('profileVersion', '')}/recipes/",
+                    "items": list(content["ui"]["api"].get("recipes", {}).get("labels", {})),
+                },
+            },
             "signposts": links or [],
             "connectors": live.get("connector", []),
             "links": live.get("links", {}),
@@ -4738,6 +4731,7 @@ def page_config(
                 "roCrate": RO_CRATE,
                 "ftr": FTR,
                 "prov": PROV,
+                "dqv": DQV,
                 "fipTerms": FIP_TERMS,
                 "guide": guide["vocabularyBase"],
                 "guideTerms": {term: guide["vocabularyBase"] + term for term in EXPORT_GUIDE_TERMS},
@@ -5173,7 +5167,7 @@ PREVIEW_PATH = "next/"
 CRAWLER_FILES = ("robots.txt", "sitemap.xml")
 
 
-def crawler_files(base: str) -> dict[str, str]:
+def crawler_files(base: str, landing_pages: tuple[str, ...] = ()) -> dict[str, str]:
     """Discovery at the actual publication root. A subpath cannot publish the origin's robots policy.
 
     Preview HTML remains crawlable so its noindex can be read. Only root hosting emits robots.txt; either hosting
@@ -5181,7 +5175,8 @@ def crawler_files(base: str) -> dict[str, str]:
     """
     base = publication_base(base)
     urlset = ElementTree.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
-    for path in SITEMAP_PATHS:
+    preview = urllib.parse.urlsplit(base).path.rstrip("/").endswith("/next")
+    for path in SITEMAP_PATHS + (() if preview else landing_pages):
         ElementTree.SubElement(ElementTree.SubElement(urlset, "url"), "loc").text = base + path
     ElementTree.indent(urlset)
     sitemap = ElementTree.tostring(urlset, encoding="unicode", xml_declaration=True) + "\n"
@@ -5201,11 +5196,19 @@ def outputs(
     content = load_content(root / "content") if content is None else content
     graph = Graph() if graph is None else graph
     crate = build_crate(content, graph) if crate is None else crate
+    initial_ui = dict(content["ui"])
+    api_strings = content["ui"]["api"]
+    # Keep only the shared JSON-link labels initially; the other API documentation belongs to the machines part.
+    initial_ui["api"] = {key: api_strings[key] for key in ("record", "recordTitle")}
     links = signposts(content, crate)
     page = render_page(
-        (root / PAGE_FILE).read_text(encoding="utf-8"), content, crate, icon_sprite(root / "assets" / "icons")
+        (root / PAGE_FILE).read_text(encoding="utf-8"),
+        content | {"ui": initial_ui},
+        crate,
+        icon_sprite(root / "assets" / "icons"),
     )
     core, parts = split_crate(crate, content["guide"]["guide"]["recordBase"])
+    parts["api"]["ui"] = {"api": api_strings}
     # The page names a record by its address and a part by the address and a fragment, relative to the namespace.
     base = content["guide"]["guide"]["recordBase"]
     core = relative_ids(core, base)
@@ -5228,7 +5231,7 @@ def outputs(
         key.removeprefix(base): [link | {"ref": link["ref"].removeprefix(base)} for link in found]
         for key, found in graph.text_links.items()
     }
-    ui = page_config(content, text_links, records, links)
+    ui = page_config(content | {"ui": initial_ui}, text_links, records, links)
     ui["config"]["parts"] = dict(PART_SCRIPTS)
     ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
     ui["config"]["partLanguages"] = dict(PART_LANGUAGE_SCRIPTS)
@@ -5251,9 +5254,13 @@ def outputs(
     localized_core, core_languages, core_search = split_languages(core)
     localized_ui, ui_languages, _ = split_languages(ui)
     localized_parts = {name: split_languages(part) for name, part in parts.items()}
+    # Production discovery follows the same per-record projection as API v1 and the landing pages.
+    record_paths = api_paths(api_records({entity["@id"]: entity for entity in crate["@graph"]}, content))
+    landing_paths = tuple(sorted("id/" + path.removesuffix(".json") + ".html" for path in record_paths.values()))
     return (
         {
             CRATE_FILE: json.dumps(crate, ensure_ascii=False, indent=2) + "\n",
+            NT_FILE: n_triples(crate, page_config(content)["config"]["pageUrl"]),
             KB_SCRIPT: data_script(
                 "kb",
                 localized_core,
@@ -5291,9 +5298,10 @@ def outputs(
             for lang, path in paths.items()
         }
         | profile_shapes(root, vocabulary_base(content["guide"]["guide"]).removesuffix("terms#"))
+        | profile_recipes(root, content["guide"]["guide"])
         | profile_page(root, content["guide"]["guide"])
         | vocabulary_page(root, content["guide"]["guide"])
-        | crawler_files(content["guide"]["guide"]["pageUrl"])
+        | crawler_files(content["guide"]["guide"]["pageUrl"], landing_paths)
     )
 
 
@@ -5635,6 +5643,22 @@ def profile_shapes(root: Path, base: str) -> dict[str, str]:
         None,
     )
     return {path: text.replace(written, base) if written else text for path, text in shapes.items()}
+
+
+def profile_recipes(root: Path, guide: dict[str, Any]) -> dict[str, str]:
+    """Publish each authored SPARQL recipe at the active profile version, with its bilingual description."""
+    recipe_source = root / PROFILE_DIR / "recipes"
+    published: dict[str, str] = {}
+    for path in sorted(recipe_source.glob("*.rq")):
+        text = path.read_text(encoding="utf-8")
+        for language in LANGS:
+            if not re.search(rf"^# {language}: \S", text, re.M):
+                raise ContentError(f"{path.relative_to(root)}: recipe lacks its {language} description")
+        written = re.search(r"^PREFIX guide: <([^>]*)>", text, re.M)
+        if written:
+            text = text.replace(written.group(1), guide["vocabularyBase"])
+        published[f"profile/{guide.get('profileVersion', '')}/recipes/{path.name}"] = text
+    return published
 
 
 def page_payload(generated: dict[str, str], root: Path = ROOT, lang: str = "cs") -> dict[str, int]:

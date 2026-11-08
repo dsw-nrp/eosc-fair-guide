@@ -4,20 +4,17 @@
 The API is a view over the crate that ``build_crate.py`` builds; ``build_crate.api_records`` decides what it
 publishes. It is written into the site directory, which is not committed (``_site/`` by default):
 
-- ``api/<collection>.json`` and ``api/<kind>/<type>/<id>.json``: lists and canonical records, with language maps
-  (``{"cs": …, "en": …}``) and the JSON-LD context ``api/context.jsonld``. Records link each other by relative
-  paths, carry small terms (tiers, lenses, levels) in full, and name the entity's identifier in the crate or outside
-  the guide in ``sameAs``;
-- ``api/meta.json``: what the API is built from;
-- the FTR definitions of the checks: each check is a benchmark (``api/check/``) and each question a metric
-  (``api/q/``); ``api/tests/<question>.json`` keeps describing its question for the results saved by earlier
-  releases, which name it;
+- ``api/v1/<kind>.json`` and ``api/v1/<kind>/<id>.json``: kind lists and records, with nested scope paths where the
+  identity has one, language maps and ``api/v1/context.jsonld``. Records link each other by relative paths, refer to
+  terms in their set documents and name the entity's identifier in the crate or outside the guide in ``sameAs``;
+- ``api/v1/index.json``: what API v1 offers and what it is built from;
+- ``api/tests/<question>.json`` keeps describing its question for results saved by earlier releases, which name it;
 - ``openapi.json``: the OpenAPI 3.1 description, with a server address relative to it;
 - ``api/index.html``: the interactive documentation, the authored files in ``api/`` with the pinned Swagger UI
   package that ``npm ci`` installs.
 
-Paths follow the FIP Dashboard API's names where both describe the same thing (``/api/principles``,
-``/api/resources``, ``/api/organizations``, ``/api/fips``, ``/api/meta``); a static site adds ``.json``.
+Paths are derived from the Guide's kind, scope and identifier addresses. Every kind has one list and one record
+operation in the OpenAPI description; vocabulary terms resolve through their set document.
 
     python scripts/build_api.py [--out DIR]
 
@@ -39,11 +36,12 @@ from typing import Any
 
 import build_crate as kb
 import check_health
+from landing_pages import pages as landing_pages
 
 SITE = kb.ROOT / "_site"
 OPENAPI_FILE = kb.API_FILES["description"]
 CONTEXT_FILE = kb.API_FILES["context"]
-META_FILE = kb.API_FILES["meta"]
+META_FILE = kb.API_FILES["index"]
 HEALTH_FILE = kb.API_FILES["health"]
 DOCS_DIR = kb.ROOT / "api"
 SWAGGER_DIR = kb.ROOT / "node_modules" / "swagger-ui-dist"
@@ -82,12 +80,15 @@ TERMS: dict[str, Any] = {
     "landingPage": {"@id": "dcat:landingPage", "@type": "@id"},
     # A principle's record lists what is about it, which the crate states from the other side.
     "clauses": {"@reverse": SCHEMA_ORG + "about", "@type": "@id"},
-    "advice": {"@reverse": SCHEMA_ORG + "about"},
+    "advice": {"@reverse": SCHEMA_ORG + "about", "@type": "@id"},
     "stations": {"@reverse": SCHEMA_ORG + "about", "@type": "@id"},
-    "metrics": {"@reverse": DQV + "inDimension", "@type": "@id"},
     # A check's record lists the questions that name it as their benchmark; registry records likewise name their thing.
     "questions": {"@reverse": kb.FTR + "hasBenchmark", "@type": "@id"},
     "records": {"@reverse": kb.FOAF + "primaryTopic", "@type": "@id"},
+    "members": {"@reverse": SCHEMA_ORG + "inDefinedTermSet", "@type": "@id"},
+    "address": kb.DCTERMS + "identifier",
+    "iri": {"@type": "@id"},
+    "label": SCHEMA_ORG + "name",
 }
 
 
@@ -124,11 +125,19 @@ class Api:
             for name, members in self.records.items()
             for record, entity_id in members
         }
+        self.term_codes: dict[str, set[str]] = {}
+        for term in self.entities.values():
+            if "DefinedTerm" not in kb.as_list(term.get("@type")) or not term.get("termCode"):
+                continue
+            for set_id in ids(term.get("inDefinedTermSet")):
+                address = kb.record_address(set_id, self.base)
+                if address and address.startswith("vocabularies/"):
+                    self.term_codes.setdefault(address.removeprefix("vocabularies/"), set()).add(term["termCode"])
         # The document each check question had as its test in earlier releases, which saved results still name.
         self.tests = {
-            entity_id: kb.API_FILES["test"].format(id=record) for record, entity_id in self.records["metrics"]
+            entity_id: kb.API_FILES["test"].format(id=record) for record, entity_id in self.records["questions"]
         }
-        clash = {record for record, _ in self.records["tests"]} & {record for record, _ in self.records["metrics"]}
+        clash = {record for record, _ in self.records["tests"]} & {record for record, _ in self.records["questions"]}
         if clash:
             raise kb.ContentError(f"a check question and an automated test share the API record tests/{min(clash)}")
         # Entities without a record of their own in this API (advice and its steps, callouts, FIP declarations) live
@@ -146,7 +155,8 @@ class Api:
                     record if "#" in entity_id and record in self.paths else None
                 )
                 if whole:
-                    fragment = address.replace("/", "-").replace("#", "-")
+                    # The actual part fragment (#knav, #step-2, #action), not a repeated full-path slug.
+                    fragment = address.split("#", 1)[1] if "#" in address else address.rsplit("/", 1)[-1]
                     self.paths[entity_id] = self.paths[whole].split("#")[0] + "#" + fragment
                     placed = True
         self.language_keys: set[str] = set()
@@ -179,6 +189,16 @@ class Api:
     def reference(self, target: str, here: str, depth: int) -> Any:
         """A link to another record, a part of this record (in full where it is first named), a small term in full,
         or an identifier."""
+        term = self.entities.get(target)
+        if term and kb.kind_of(target, self.base) == "vocabularies" and "DefinedTerm" in kb.as_list(term.get("@type")):
+            set_id = ids(term.get("inDefinedTermSet"))[0]
+            set_path = self.paths.get(set_id)
+            if set_path:
+                # One set document per scheme, with a fragment per term: no repeated embedded term records.
+                return {
+                    "@id": self.relative(here, set_path) + "#" + term.get("termCode") or term["identifier"],
+                    "termCode": term.get("termCode") or term["identifier"],
+                }
         path = self.paths.get(target)
         if path and path.startswith(here + "#") and target not in self.given:
             self.given.add(target)
@@ -250,22 +270,37 @@ class Api:
         same = [self.iri(entity_id, here)] + [
             link for link in kb.as_list(node.get("sameAs")) if link != self.iri(entity_id, here)
         ]
-        out = {"@context": self.relative(here, CONTEXT_FILE)} | node | {"@type": types, "sameAs": same}
+        out = (
+            {"@context": self.relative(here, CONTEXT_FILE)}
+            | node
+            | {
+                "@type": types,
+                "identifier": node.get("identifier", Path(record).name),
+                "sameAs": same,
+            }
+        )
         # A record names its registry records in full under their fragments, from the record side's primaryTopic.
         registry = kb.records_by_thing(self.entities).get(entity_id, [])
         if registry:
             out["records"] = [self.node(self.entities[record_id], here, 0, collection) for record_id in registry]
+        if collection == "vocabularies":
+            members = [member for member in self.entities.values() if entity_id in ids(member.get("inDefinedTermSet"))]
+            out["members"] = []
+            for member in members:
+                doc = self.node(member, here, 0)
+                doc["@id"] = "#" + (member.get("termCode") or member["identifier"])
+                out["members"].append(doc)
         if collection == "principles":
             out |= self.about_principle(entity_id, here)
         if collection == "checks":
             questions = [
                 question
-                for _, question in self.records["metrics"]
+                for _, question in self.records["questions"]
                 if entity_id in ids(self.entities[question].get("hasBenchmark"))
             ]
             questions.sort(key=lambda question: self.entities[question].get("position", 0))
             out["questions"] = [self.relative(here, self.paths[question]) for question in questions]
-        if collection == "metrics":
+        if collection == "questions":
             local = [
                 test_id
                 for _, test_id in self.records["tests"]
@@ -302,8 +337,8 @@ class Api:
             "stations": [
                 self.relative(here, self.paths[entity_id]) for entity_id in members("stations") if about(entity_id)
             ],
-            "metrics": [
-                self.relative(here, self.paths[entity_id]) for entity_id in members("metrics") if about(entity_id)
+            "questions": [
+                self.relative(here, self.paths[entity_id]) for entity_id in members("questions") if about(entity_id)
             ],
         }
 
@@ -328,27 +363,57 @@ class Api:
             "landingPage": f"{self.site_root(here)}#/{kb.LANGS[0]}/{lens}/check/{check['identifier']}",
         }
 
+    FILTER_FIELDS = {
+        "advice": ("isPartOf", "audience", "disclosureLevel", "adviceKind", "about", "text"),
+        "questions": ("hasBenchmark", "tier", "inDimension", "appliesTo", "fixAt", "fixedBy", "prefillMapping"),
+        "resources": ("resourceType", "audience", "mentions", "serviceStatus", "statusAsOf", "repositoryFunction"),
+        "repositories": ("repositoryKind", "serviceStatus", "acceptsDeposits", "identifier", "alternateIdentifier"),
+        "clauses": ("isPartOf", "about", "clauseKind", "audience", "clauseStatus"),
+        "tests": ("isImplementationOf", "about", "healthStatus"),
+    }
+
+    def summary(self, entity_id: str, collection: str) -> dict[str, Any]:
+        """A list entry with its ID, address, persistent IRI, label and the fields a client filters on."""
+        entity = self.entities[entity_id]
+        address = kb.record_address(entity_id, self.base)
+        _, scope, identifier = kb.split_address(address)
+        path = self.paths[entity_id]
+        label = next((entity[key] for key in ("name", "headline", "text") if entity.get(key)), identifier)
+        summary = {
+            "@id": self.relative(f"api/v1/{collection}.json", path),
+            "@type": entity["@type"],
+            "identifier": identifier,
+            "address": address,
+            "iri": entity_id,
+            "label": language_map(label) if is_language_list(label) else label,
+        }
+        if scope:
+            summary["scope"] = scope
+        for key in self.FILTER_FIELDS.get(collection, ("position", "termPosition")):
+            if key in entity:
+                summary[key] = self.value(key, entity[key], f"api/v1/{collection}.json", 0)
+        return summary
+
     def collection(self, collection: str, records: dict[str, dict[str, Any]]) -> dict[str, Any]:
-        here = f"api/{collection}.json"
-        paths = [self.paths[entity_id] for _, entity_id in self.records[collection]]
-        summaries = []
-        for path in paths:
-            record = records[path]
-            summary = {"@id": self.relative(here, path), "@type": record["@type"], "identifier": Path(path).stem}
-            label = "name" if "name" in record else "text"
-            summaries.append(summary | ({label: record[label]} if label in record else {}))
-        self.language_keys.update(("name", "description"))
+        here = f"api/v1/{collection}.json"
+        summaries = [self.summary(entity_id, collection) for _, entity_id in self.records[collection]]
+        self.language_keys.update(("name", "description", "label"))
+        strings = self.strings["collection"].get(collection, {})
+        name = strings.get("name", {"cs": collection, "en": collection})
+        description = strings.get("description", {"cs": name["cs"], "en": name["en"]})
         return {
             "@context": self.relative(here, CONTEXT_FILE),
             "@id": posixpath.basename(here),
             "@type": "ItemList",
-            "name": self.strings["collection"][collection]["name"],
-            "description": self.strings["collection"][collection]["description"],
+            "name": name,
+            "description": description,
+            "filterFields": list(self.FILTER_FIELDS.get(collection, ("position", "termPosition"))),
             "numberOfItems": len(summaries),
             "itemListElement": summaries,
         }
 
-    def meta(self) -> dict[str, Any]:
+    def index(self) -> dict[str, Any]:
+        """What API v1 offers: every kind's list, the vocabulary records and the operations health snapshot."""
         root = self.entities["./"]
         self.reference_keys.update(("license", "isBasedOn", "hasPart"))
         return {
@@ -362,7 +427,9 @@ class Api:
             "license": self.iri(ids(root["license"])[0], META_FILE),
             "url": self.site_root(META_FILE),
             "isBasedOn": self.site_root(META_FILE) + kb.CRATE_FILE,
-            "hasPart": [f"{collection}.json" for collection in kb.API_COLLECTIONS] + [posixpath.basename(HEALTH_FILE)],
+            "hasPart": [f"{collection}.json" for collection in kb.API_COLLECTIONS]
+            + [f"vocabularies/{record}.json" for record, _ in self.records["vocabularies"]]
+            + [posixpath.basename(HEALTH_FILE)],
         }
 
     def health(self, report: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -399,10 +466,10 @@ class Api:
                 item["api_record"] = self.relative(HEALTH_FILE, target)
 
         groups = {
-            "cited sources": ("sources", "resources"),
+            "cited sources": ("resources",),
             "ledger clauses": ("clauses",),
             "stations": ("stations",),
-            "questions and source context": ("metrics",),
+            "questions and source context": ("questions",),
             "self-checks": ("checks",),
             "curated repositories": ("repositories", "resources"),
             "snapshot repositories": ("repositories", "resources"),
@@ -410,11 +477,11 @@ class Api:
             "snapshot organisations": ("organizations",),
             "guide organisations": ("organizations",),
             "snapshot profiles": ("fips",),
-            "glossary terms": ("terms",),
+            "glossary terms": ("glossary",),
             "FAIR principles": ("principles",),
             "remote automated tests": ("tests",),
             "guide automated tests": ("tests",),
-            "implementation model": ("model",),
+            "implementation model": ("models", "layers", "seams", "model-examples"),
             "model associations": tuple(kb.API_COLLECTIONS),
         }
         model = ((self.content.get("model") or {}).get("model") or {}).get("id", "")
@@ -457,9 +524,9 @@ class Api:
         coverage = result["original_coverage"]
         for kind, collections, prefix in (
             ("clauses", ("clauses",), ""),
-            ("questions", ("metrics",), ""),
+            ("questions", ("questions",), ""),
             ("advice", (), "advice/"),
-            ("by_source", ("sources", "resources"), ""),
+            ("by_source", ("resources",), ""),
         ):
             for item in coverage[kind]:
                 link(item, collections, prefix)
@@ -491,66 +558,95 @@ class Api:
         for collection, members in self.records.items():
             for record, entity_id in members:
                 docs[self.paths[entity_id]] = self.record(collection, record, entity_id)
-        for record, entity_id in self.records["metrics"]:
+        for record, entity_id in self.records["questions"]:
             docs[self.tests[entity_id]] = self.saved_result_reference(record, entity_id)
         for collection in kb.API_COLLECTIONS:
-            docs[f"api/{collection}.json"] = self.collection(collection, docs)
-        docs[META_FILE] = self.meta()
+            docs[f"api/v1/{collection}.json"] = self.collection(collection, docs)
+        docs[META_FILE] = self.index()
         docs[HEALTH_FILE] = self.health()
         docs[CONTEXT_FILE] = self.context()  # after the records: it names every property they use
         docs[OPENAPI_FILE] = self.openapi(docs)
-        return {path: json.dumps(doc, ensure_ascii=False, indent=2) + "\n" for path, doc in docs.items()}
+        # The records themselves also supply a static bilingual landing page at their issued address.
+        return {
+            path: json.dumps(doc, ensure_ascii=False, indent=2) + "\n" for path, doc in docs.items()
+        } | landing_pages(self, docs)
 
     def openapi(self, docs: dict[str, dict[str, Any]]) -> dict[str, Any]:
-        """The OpenAPI 3.1 description: one path per list and per record, each record's IDs as the parameter's
-        values, and schemas that every file is validated against."""
+        """OpenAPI 3.1: one list plus unscoped and scoped templates per kind, never one operation per record."""
         english = {
             key: value[kb.LANGS[1]]
             for key, value in self.strings.items()
             if isinstance(value, dict) and kb.LANGS[1] in value
         }
         paths: dict[str, Any] = {
-            "/" + META_FILE: operation("getMeta", english["meta"], "Meta", "meta"),
+            "/" + META_FILE: operation("getIndex", english["index"], "Index", "operations"),
             "/" + CONTEXT_FILE: operation(
-                "getContext", english["context"], "Context", "meta", media="application/ld+json"
+                "getContext", english["context"], "Context", "operations", media="application/ld+json"
             ),
-            "/" + HEALTH_FILE: operation("getHealth", english["health"], "Health", "meta"),
+            "/" + HEALTH_FILE: operation("getHealth", english["health"], "Health", "operations"),
         }
         paths["/" + HEALTH_FILE]["get"]["description"] = english["healthDescription"]
-        tags = [{"name": "meta", "description": english["metaTag"]}]
+        tags = [{"name": "operations", "description": english["metaTag"]}]
         for collection in kb.API_COLLECTIONS:
-            strings = {key: value[kb.LANGS[1]] for key, value in self.strings["collection"][collection].items()}
+            strings = self.strings["collection"].get(collection, {})
+            strings = {key: value[kb.LANGS[1]] for key, value in strings.items()}
             schema = SCHEMAS[collection]
-            tags.append({"name": collection, "description": strings["description"]})
-            paths[f"/api/{collection}.json"] = operation(f"list{schema}s", strings["name"], "List", collection)
-            records = [
-                Path(path).stem for path in docs if str(Path(path).parent).replace("\\", "/") == f"api/{collection}"
-            ]
-            if not records:
-                continue  # An empty list is published as it is; there is no record path without a record to name.
-            parameter = {
-                "name": PARAMETERS[collection],
+            tags.append({"name": collection, "description": strings.get("description", collection)})
+            paths[f"/api/v1/{collection}.json"] = operation(
+                f"list{schema}s", strings.get("name", collection), f"{schema}List", collection
+            )
+            members = self.records[collection]
+            for scoped in (False, True):
+                records = [record for record, _ in members if ("/" in record) == scoped]
+                if not records:
+                    continue
+                suffix = "/{scope}" if scoped else ""
+                parameters = []
+                if scoped:
+                    parameters.append(
+                        {
+                            "name": "scope",
+                            "in": "path",
+                            "required": True,
+                            "description": "The scope that is part of the record's identity.",
+                            "schema": {"type": "string", "enum": sorted({record.split("/")[0] for record in records})},
+                            "example": records[0].split("/")[0],
+                        }
+                    )
+                parameters.append(
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": True,
+                        "description": strings.get("parameter", "The record's identifier within its kind and scope."),
+                        "schema": {"type": "string", "pattern": kb.API_ID.pattern},
+                        "example": "R1.1" if "R1.1" in records else records[0].split("/")[-1],
+                    }
+                )
+                path = f"/api/v1/{collection}{suffix}/{{id}}.json"
+                paths[path] = operation(
+                    f"get{schema}{'Scoped' if scoped else ''}",
+                    strings.get("record", collection),
+                    schema,
+                    collection,
+                )
+                paths[path]["get"]["parameters"] = parameters
+        paths["/api/tests/{id}.json"] = operation(
+            "getSavedResultQuestion",
+            self.strings["test"]["name"]["en"].format(id="{id}"),
+            "SavedResultReference",
+            "operations",
+        )
+        paths["/api/tests/{id}.json"]["get"]["parameters"] = [
+            {
+                "name": "id",
                 "in": "path",
                 "required": True,
-                "description": strings["parameter"],
-                "schema": {"type": "string", "enum": records},
-                "example": "R1.1" if "R1.1" in records else records[0],
+                "description": "The check question addressed by a saved result of revision 1 to 3.",
+                "schema": {"type": "string", "pattern": kb.API_ID.pattern},
+                "example": self.records["questions"][0][0],
             }
-            paths[f"/api/{collection}/{{{PARAMETERS[collection]}}}.json"] = operation(
-                f"get{schema}", strings["record"], schema, collection, parameter=parameter
-            )
-        # The canonical addresses may have a subtype and share a family across API collection vocabularies.
-        # Describe concrete paths so their schema always remains that of the record, including cited sources.
-        for collection, members in self.records.items():
-            for _, entity_id in members:
-                path = self.paths[entity_id]
-                if path != kb.API_FILES["record"].format(record=f"{collection}/{Path(path).stem}"):
-                    paths["/" + path] = operation(
-                        "catalogue" + re.sub(r"[^A-Za-z0-9]", "_", path),
-                        "Catalogue record",
-                        SCHEMAS[collection],
-                        collection,
-                    )
+        ]
         return {
             "openapi": "3.1.0",
             "info": {
@@ -563,68 +659,48 @@ class Api:
             "servers": [{"url": ".", "description": english["server"]}],
             "tags": tags,
             "paths": paths,
-            "components": {"schemas": schemas(self.language_keys, self.reference_keys) | health_schemas()},
+            "components": {"schemas": typed_schemas(self, docs) | health_schemas()},
         }
 
 
 # The record kind of the implementation model's items, by the prefix their content IDs carry.
 MODEL_KINDS = {"layer": "layers", "seam": "seams", "example": "model-examples"}
-# The path parameter of each collection, named like the FIP Dashboard's (`resource_id`, `fip_id`), and its schema.
-PARAMETERS = {
-    "principles": "principle_id",
-    "stations": "station_id",
-    "checks": "check_id",
-    "metrics": "metric_id",
-    "tests": "test_id",
-    "resources": "resource_id",
-    "sources": "source_id",
-    "repositories": "repository_id",
-    "clauses": "clause_id",
-    "terms": "term_id",
-    "organizations": "organization_id",
-    "fips": "fip_id",
-    "changes": "change_id",
-    "model": "model_id",
-    "lifecycle": "lifecycle_id",
-    "infrastructures": "infrastructure_id",
+SCHEMA_NAMES = {
+    "advice": "Advice",
+    "checks": "Check",
+    "clauses": "Clause",
+    "fips": "Fip",
+    "glossary": "Glossary",
+    "lifecycles": "Lifecycle",
+    "model-examples": "ModelExample",
+    "models": "Model",
+    "organizations": "Organization",
+    "principles": "Principle",
+    "questions": "Question",
+    "repositories": "Repository",
+    "resources": "Resource",
+    "stations": "Station",
+    "tests": "Test",
+    "vocabularies": "Vocabulary",
 }
 SCHEMAS = {
-    "principles": "Principle",
-    "stations": "Station",
-    "checks": "Check",
-    "metrics": "Metric",
-    "tests": "Test",
-    "resources": "Resource",
-    "sources": "Source",
-    "repositories": "Repository",
-    "clauses": "Clause",
-    "terms": "Term",
-    "organizations": "Organization",
-    "fips": "Fip",
-    "changes": "Change",
-    "model": "Model",
-    "lifecycle": "Lifecycle",
-    "infrastructures": "Infrastructure",
+    kind: SCHEMA_NAMES.get(kind, "".join(part.title() for part in kind.removesuffix("s").split("-")))
+    for kind in kb.API_COLLECTIONS
 }
-# What every record of a collection carries; a record may carry more.
-REQUIRED = {
-    "Principle": ["termCode", "name", "description", "clauses", "advice", "stations", "metrics"],
-    "Station": ["identifier", "name", "headline", "position", "about", "itemListElement"],
-    "Check": ["identifier", "name", "description", "questions"],
-    "Metric": ["identifier", "text", "tier", "hasBenchmark", "citation"],
-    "Test": ["identifier", "name"],
-    "Resource": ["identifier", "name"],
-    "Source": ["identifier", "name"],
-    "Repository": ["name"],
-    "Clause": ["identifier", "text", "isPartOf"],
-    "Term": ["name"],
-    "Organization": ["name"],
-    "Fip": ["identifier", "name", "hasPart"],
-    "Change": ["name"],
-    "Model": ["identifier", "name"],
-    "Lifecycle": ["identifier", "name"],
-    "Infrastructure": ["identifier", "name", "abbreviation", "publisher", "roadmapLocator"],
-    "Meta": ["name", "description", "version", "url", "isBasedOn", "hasPart"],
+KIND_REQUIRED = {
+    "advice": ["text", "isPartOf", "audience", "disclosureLevel", "adviceKind"],
+    "principles": ["name", "description", "termCode", "clauses", "advice", "stations", "questions"],
+    "questions": ["text", "tier", "hasBenchmark", "citation"],
+    "clauses": ["text", "isPartOf", "clauseKind"],
+    "repositories": ["name", "repositoryKind"],
+    "resources": ["name"],
+    "tests": ["name"],
+    "organizations": ["name"],
+    "fips": ["name", "hasPart"],
+    "actions": ["name"],
+    "models": ["name"],
+    "lifecycles": ["name"],
+    "infrastructures": ["name", "abbreviation", "publisher", "roadmapLocator"],
 }
 
 
@@ -658,85 +734,165 @@ def ref(name: str) -> dict[str, str]:
     return {"$ref": f"#/components/schemas/{name}"}
 
 
-def schemas(language_keys: set[str], reference_keys: set[str]) -> dict[str, Any]:
-    """The schemas of the records, a list and the context; `Text` and `Links` cover what every record may hold."""
+def combine_schemas(options: list[dict[str, Any]]) -> dict[str, Any]:
+    unique = list({json.dumps(option, sort_keys=True): option for option in options}.values())
+    if not unique:
+        return {}
+    if len(unique) == 1:
+        return unique[0]
+    if any(not option for option in unique):
+        return {}
+    return {"oneOf": unique}
 
-    def property_schema(key: str) -> dict[str, Any]:
-        if key in language_keys:
-            return ref("Text")
-        if key in reference_keys or key in TERMS:
-            return ref("Links")
-        return {"type": "integer"} if key == "position" else {}
 
+def inferred_schema(api: Api, values: list[Any]) -> dict[str, Any]:
+    """JSON types from the finite documents, keeping a vocabulary reference a distinct typed shape."""
+    if not values:
+        return {}
+    objects = [value for value in values if isinstance(value, dict) and set(value) - {"@id", "termCode"}]
+    object_properties = {
+        key: inferred_schema(api, [item[key] for item in objects if key in item])
+        for key in {key for item in objects for key in item}
+    }
+    object_shape = {"type": "object", "properties": object_properties} if objects else None
+    options = (
+        [
+            {
+                "type": "array",
+                "items": inferred_schema(api, [item for value in values if isinstance(value, list) for item in value]),
+            }
+        ]
+        if any(isinstance(value, list) for value in values)
+        else []
+    )
+    for value in values:
+        if isinstance(value, bool):
+            options.append({"type": "boolean"})
+        elif isinstance(value, int):
+            options.append({"type": "integer"})
+        elif isinstance(value, float):
+            options.append({"type": "number"})
+        elif isinstance(value, str):
+            options.append({"type": "string"})
+        elif isinstance(value, list):
+            continue
+        elif isinstance(value, dict):
+            if set(value) <= set(kb.LANGS):
+                options.append(ref("LocalizedText"))
+            elif set(value) <= {"@id", "termCode"}:
+                match = re.search(r"/vocabularies/([^/]+)[.]json#", value["@id"])
+                codes = [value["termCode"]]
+                if match:
+                    codes = sorted(api.term_codes.get(match.group(1), set())) or codes
+                options.append(
+                    {
+                        "type": "object",
+                        "required": ["@id", "termCode"],
+                        "properties": {"@id": {"type": "string"}, "termCode": {"enum": codes}},
+                        "additionalProperties": False,
+                        **({"x-term-set": match.group(1)} if match else {}),
+                    }
+                )
+            else:
+                options.append(object_shape)
+        else:
+            options.append({"type": "null"})
+    return combine_schemas(options)
+
+
+def typed_schemas(api: Api, docs: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Response shapes share the graph's properties: only list identity/filter summaries are added."""
     out: dict[str, Any] = {
         "LocalizedText": {
-            "description": "A language map: the text in Czech and English, a list where there are several.",
             "type": "object",
             "minProperties": 1,
             "propertyNames": {"enum": list(kb.LANGS)},
             "additionalProperties": {"oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}]},
         },
         "Text": {"oneOf": [{"type": "string"}, ref("LocalizedText")]},
-        "Link": {
-            "description": "A path to another record relative to this one, an identifier, or a small entity in full.",
-            "oneOf": [
-                {"type": "string"},
-                {"type": "object", "required": ["@id"], "properties": {"@id": {"type": "string"}}},
-            ],
-        },
-        "Links": {"oneOf": [ref("Link"), {"type": "array", "items": ref("Link")}]},
         "Types": {"oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}]},
         "Record": {
             "type": "object",
             "required": ["@context", "@id", "@type"],
-            "properties": {
-                "@context": {"type": "string"},
-                "@id": {"type": "string"},
-                "@type": ref("Types"),
-                "sameAs": {"type": "array", "items": {"type": "string"}},
-            },
+            "properties": {"@context": {"type": "string"}, "@id": {"type": "string"}, "@type": ref("Types")},
         },
         "Summary": {
             "type": "object",
-            "required": ["@id", "@type", "identifier"],
+            "required": ["@id", "@type", "identifier", "address", "iri", "label"],
             "properties": {
                 "@id": {"type": "string"},
                 "@type": ref("Types"),
                 "identifier": {"type": "string"},
-                "name": ref("Text"),
-                "text": ref("Text"),
+                "address": {"type": "string"},
+                "iri": {"type": "string"},
+                "label": ref("Text"),
+                "scope": {"type": "string"},
             },
         },
         "List": {
             "allOf": [ref("Record")],
-            "required": ["name", "description", "numberOfItems", "itemListElement"],
+            "required": ["name", "description", "filterFields", "numberOfItems", "itemListElement"],
             "properties": {
                 "name": ref("LocalizedText"),
                 "description": ref("LocalizedText"),
-                "numberOfItems": {"type": "integer"},
+                "filterFields": {"type": "array", "items": {"type": "string"}},
+                "numberOfItems": {"type": "integer", "minimum": 0},
                 "itemListElement": {"type": "array", "items": ref("Summary")},
             },
         },
         "Context": {"type": "object", "required": ["@context"], "properties": {"@context": {"type": "object"}}},
-    }
-    alternatives = {"Model": ("source", "citation")}
-    for schema, required in REQUIRED.items():
-        definition = {
+        "SavedResultReference": {
             "allOf": [ref("Record")],
-            "required": required,
-            "properties": {key: property_schema(key) for key in required},
+            "required": ["identifier", "name", "description", "about"],
+            "properties": {
+                "identifier": {"type": "string"},
+                "name": ref("LocalizedText"),
+                "description": ref("LocalizedText"),
+                "about": {"type": "string"},
+            },
+        },
+        "Index": {
+            "allOf": [ref("Record")],
+            "required": ["name", "description", "version", "url", "isBasedOn", "hasPart"],
+            "properties": {"hasPart": {"type": "array", "items": {"type": "string"}}},
+        },
+    }
+    for kind, schema in SCHEMAS.items():
+        records = [docs[path] for path in (api.paths[entity_id] for _, entity_id in api.records[kind])]
+        out[schema] = {
+            "allOf": [ref("Record")],
+            "required": ["identifier", *KIND_REQUIRED.get(kind, ["name"])],
+            "properties": inferred_schema(api, records).get("properties", {}),
         }
-        if schema in alternatives:
-            definition["allOf"].append({"anyOf": [{"required": [key]} for key in alternatives[schema]]})
-        out[schema] = definition
+        out[f"{schema}Summary"] = {
+            "allOf": [ref("Summary")],
+            "properties": {
+                "scope": (
+                    {"enum": sorted({record.split("/")[0] for record, _ in api.records[kind] if "/" in record})}
+                    if any("/" in record for record, _ in api.records[kind])
+                    else {"type": "string"}
+                ),
+                **inferred_schema(api, list(docs[f"api/v1/{kind}.json"]["itemListElement"])).get("properties", {}),
+            },
+        }
+        out[f"{schema}List"] = copy.deepcopy(out["List"])
+        out[f"{schema}List"]["properties"]["itemListElement"]["items"] = ref(f"{schema}Summary")
+        out[f"{schema}List"]["properties"]["filterFields"]["items"] = {
+            "enum": sorted(api.FILTER_FIELDS.get(kind, ("position", "termPosition")))
+        }
+    out["Model"]["anyOf"] = [{"required": ["source"]}, {"required": ["citation"]}]
     out["Repository"]["description"] = (
-        "A repository requires an HTTPS address, except while planned or in development "
-        "with an NKR record in sameAs, when it has no public address yet."
+        "A repository requires an HTTPS address, except while planned or in development with an NKR record in "
+        "sameAs, when it has no public address yet. Its status refers to the service-status term set."
     )
     out["Repository"]["properties"].update(
         {
             "url": {"type": "string", "pattern": "^https://"},
-            "acceptsDeposits": {"type": "boolean"},
+            "acceptsDeposits": {
+                "type": "boolean",
+                "enum": [False],
+                "description": "False or absent; absence means unknown, never acceptance.",
+            },
         }
     )
     out["Repository"]["if"] = {
@@ -753,7 +909,7 @@ def schemas(language_keys: set[str], reference_keys: set[str]) -> dict[str, Any]
                     "contains": {"type": "string", "pattern": r"^https://repo[.]cz/objects/.+"},
                 },
             },
-        }
+        },
     }
     out["Repository"]["then"] = {"required": ["url"]}
     return out
@@ -764,7 +920,11 @@ def health_schemas() -> dict[str, Any]:
     strings = {"type": "array", "items": {"type": "string"}}
     count = {"type": "integer", "minimum": 0}
     nullable_string = {"type": ["string", "null"]}
-    record_link = {"type": "string", "minLength": 1, "description": "An API record path relative to api/health.json."}
+    record_link = {
+        "type": "string",
+        "minLength": 1,
+        "description": "An API record path relative to api/v1/health.json.",
+    }
     counts = {
         "type": "object",
         "required": ["total", "with_original"],

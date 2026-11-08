@@ -347,12 +347,12 @@ try {
       return { v: portable.v, assessments: portable.assessments.length, logs: portable.assessments.some((entry) => entry.results.some((result) => result.log)),
         restored: SC.readPortable(portable).state.assessments.length, members: SC.ftrCrate(check, st)["@graph"].filter((entity) => String(entity["@id"]).startsWith("#provider-") && [].concat(entity["@type"]).includes("TestResult")).length };
     });
-    assert.deepEqual(saved, { v: 3, assessments: 3, logs: false, restored: 3, members: 12 + 17 + 17 });
+    assert.deepEqual(saved, { v: 4, assessments: 3, logs: false, restored: 3, members: 12 + 17 + 17 });
     await page.locator("#export-format-md").check();
     await page.locator(".export-preview summary").click();
     await page.waitForFunction(() => document.getElementById("export-preview-text").value.length > 0);
     const markdown = await page.locator("#export-preview-text").inputValue();
-    assert(markdown.includes("FsF-F1-02MD") && markdown.includes("R13") && markdown.includes("fair-guide-result v3"));
+    assert(markdown.includes("FsF-F1-02MD") && markdown.includes("R13") && markdown.includes("fair-guide-result v4"));
     await page.locator(".export-preview summary").click();
     const [evidence] = await Promise.all([page.waitForEvent("download"), page.locator("#export-evidence").click()]);
     const complete = readFileSync(await evidence.path(), "utf8");

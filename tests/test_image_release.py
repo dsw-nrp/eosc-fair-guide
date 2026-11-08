@@ -55,13 +55,14 @@ class ImageReleaseTests(unittest.TestCase):
         files = {
             "index.html": "<!doctype html><title>Release fixture</title>",
             "assets/data/ui.js": self.config,
-            "api/health.json": json.dumps(self.health),
+            "api/v1/health.json": json.dumps(self.health),
             "ro-crate-metadata.json": json.dumps(crate),
+            "404.html": publication_files()["404.html"],
         }
         for name, text in files.items():
             path = self.site / name
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(text, encoding="utf-8")
+            path.write_bytes(text.encode("utf-8") if isinstance(text, str) else text)
         self.artifact = self.root / "artifact"
         package_site.package(self.site, COMMIT, self.artifact, self.root)
 

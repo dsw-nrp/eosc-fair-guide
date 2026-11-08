@@ -76,6 +76,10 @@
     checks: "a check is the self-check's own view",
     stations: "a station is the path's own view",
     principles: "a principle is the principle explorer's own view",
+    advice: "advice shows at its station and in each principle explorer it belongs to",
+    callouts: "a callout or helper shows on the guide page it belongs to",
+    pages: "a guide page is its own view",
+    vocabularies: "a controlled term set shows through each of its terms",
     organizations: "an organisation shows where an entry names it, and on the About page",
   };
   /* Records of a listed kind that are not entries themselves, by type: each shows inside the entries named. */

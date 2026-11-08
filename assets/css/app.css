@@ -4037,6 +4037,13 @@ section.datacite-read p {
   font-weight: 400;
 }
 
+.endpoint-patterns {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
 .data-table caption {
   text-align: left;
   font-weight: 600;

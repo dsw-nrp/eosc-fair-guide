@@ -210,7 +210,7 @@ try {
     const result = await page.evaluate(() => { const FG = window.FairGuide; return FG.selfcheck.ftrCrate(FG.get("checks/maturity"), FG.state.answers.maturity); });
     const member = result["@graph"].find((entry) => entry["@id"] === "#result-maturity.09");
     assert(member.implementationSeams.some((reference) => reference["@id"] === model("seams/community-repository")), "JSON-LD results retain the source question's mappings");
-    assert.equal(member["prov:value"], "indeterminate", "an unanswered connection is not declared broken");
+    assert.equal(member["dqv:value"], "indeterminate", "an unanswered connection is not declared broken");
     await page.locator("#export-format-jsonld").check();
     const exported = await download("#export-download");
     await checkPart("evidence", "#load-file");

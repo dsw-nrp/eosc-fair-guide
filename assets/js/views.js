@@ -1469,7 +1469,7 @@
             section.identifier === "credits" ? creditsTable() : null,
             page.identifier === "machines" && section.identifier === "tasks" ? machineTasks() : null,
             page.identifier === "machines" && section.identifier === "practice" ? signpostTable() : null,
-            page.identifier === "machines" && section.identifier === "endpoints" ? endpointTable() : null,
+            page.identifier === "machines" && section.identifier === "endpoints" ? FG.views.endpointTable() : null,
             page.identifier === "machines" && section.identifier === "model-example" ? modelWorkedExample() : null,
             page.identifier === "model" && section.identifier === "national-mapping" ? modelFigure("czech-ndi-layers", FG.text(section.headline)) : null,
             page.identifier === "model" && section.identifier === "metadata-architecture" ? [modelFigure("metadata-architecture", FG.text(section.headline)), FG.publicationFlow()] : null,
@@ -1586,7 +1586,7 @@
       ["crate", [link("ro-crate-metadata.json", null, "application/ld+json"), " · ", link("ro-crate-preview.html", FG.t("machines.preview"))]],
       ["profile", [link(FG.config.vocab.profilePage, FG.t("machines.profile"), "text/html"), " · ", link("profile/fair-guide/profile.ttl", "Turtle", "text/turtle")]],
       ["vocabulary", [link("terms/index.html", FG.t("machines.vocabulary"), "text/html"), " · ", link("terms/fair-guide.ttl", "Turtle", "text/turtle")]],
-      ["record", [h("code", null, files.record.replace("{record}", "<kolekce>/<id>")), " · ", FG.t("machines.example") + ": ", link(files.record.replace("{record}", example), null, "application/json")]],
+      ["record", [h("code", null, files.record.replace("{record}", "{kind}/{id}")), " · ", FG.t("machines.example") + ": ", link(files.record.replace("{record}", example), null, "application/json")]],
       ["service", [link(files.description, null, "application/vnd.oai.openapi+json"), " · ", link(files.docs, FG.t("api.docs"), "text/html")]],
       ["health", [link("health/index.html", FG.t("footer.health"), "text/html"), " · ", link(files.health, "JSON", "application/json")]],
       ["tests", [link("assets/js/tests/index.html" + (FG.state.lang === "en" ? "#english" : ""), FG.t("machines.testDocs"), "text/html"), " · ", link(FG.href("catalogue", "k!tests"), FG.t("catalogue.tab.tests"))]],
@@ -1620,34 +1620,6 @@
         "tbody",
         null,
         FG.list(FG.config.signposts).map((link) => h("tr", null, h("th", { scope: "row" }, h("code", null, link.rel)), h("td", null, target(link.href)), h("td", null, FG.t("machines.rel." + (link.rel === "type" ? "type_" + link.href.split("/").pop() : link.rel.replace("-", "_"))))))
-      )
-    );
-  }
-
-  /** Every endpoint of the API, the accessible counterpart of its interactive documentation. */
-  function endpointTable() {
-    const files = FG.config.api.files;
-    const file = (path, type) => h("a", { href: path, type }, path);
-    return h(
-      "table",
-      { class: "data-table endpoints" },
-      h("caption", { class: "visually-hidden" }, FG.t("api.endpoints")),
-      h("thead", null, h("tr", null, ["collection", "list", "record"].map((key) => h("th", { scope: "col" }, FG.t("machines.column." + key))))),
-      h(
-        "tbody",
-        null,
-        FG.config.api.collections.map((name) =>
-          h(
-            "tr",
-            null,
-            h("th", { scope: "row" }, FG.t("api.collection." + name + ".name"), h("span", { class: "small muted endpoint-description" }, FG.t("api.collection." + name + ".description"))),
-            h("td", null, file(files.record.replace("{record}", name), "application/json")),
-            h("td", null, h("code", null, files.record.replace("{record}", name + "/<id>")))
-          )
-        ),
-        [["meta", files.meta, "application/json"], ["context", files.context, "application/ld+json"], ["health", files.health, "application/json"]].map(([key, path, type]) =>
-          h("tr", null, h("th", { scope: "row" }, FG.t("api." + key)), h("td", null, file(path, type)), h("td", null, ""))
-        )
       )
     );
   }

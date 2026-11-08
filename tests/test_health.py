@@ -431,9 +431,11 @@ class HealthTests(unittest.TestCase):
         self.assertEqual(first["run"]["status"], "not_run")
         self.assertEqual(first["run"]["jobs"], [])
         self.assertNotIn("@context", first)
-        self.assertIn("health.json", api.meta()["hasPart"])
+        self.assertIn("health.json", api.index()["hasPart"])
+        for kind in build_api.kb.API_COLLECTIONS:
+            self.assertIn(f"{kind}.json", api.index()["hasPart"])
         description = json.loads(api.files()[build_api.OPENAPI_FILE])
-        self.assertEqual(description["paths"]["/api/health.json"]["get"]["operationId"], "getHealth")
+        self.assertEqual(description["paths"]["/api/v1/health.json"]["get"]["operationId"], "getHealth")
         self.assertEqual(
             description["components"]["schemas"]["HealthRun"]["properties"]["status"]["enum"],
             ["not_run", "passed", "partial", "failed"],
@@ -455,7 +457,7 @@ class HealthTests(unittest.TestCase):
         )
         self.assertEqual(
             next(item for item in coverage["advice"] if item["id"] == "plan.01")["api_record"],
-            "stations/plan.json#advice-plan.01",
+            "advice/plan.01.json",
         )
         self.assertEqual(linked["generated_at"], report["generated_at"])
         self.assertEqual(report, original)
@@ -464,15 +466,15 @@ class HealthTests(unittest.TestCase):
         api = build_api.Api(build_crate.build_crate(self.content), self.content)
         test = next(item for item in self.content["live"]["test"] if item["id"] == "guide-cdif-01")
         record = api.record("tests", test["id"], iri("tests/guide/" + test["id"]))
-        self.assertEqual(record["url"], "../../../" + test["script"])
+        self.assertEqual(record["url"], "../../../../" + test["script"])
         self.assertIsInstance(record["subjectOf"], dict)
-        self.assertEqual(record["subjectOf"]["url"], "../../../" + test["documentation"])
-        self.assertEqual(record["subjectOf"]["isPartOf"], "../../../" + test["documentation"].split("#")[0])
+        self.assertEqual(record["subjectOf"]["url"], "../../../../" + test["documentation"])
+        self.assertEqual(record["subjectOf"]["isPartOf"], "../../../../" + test["documentation"].split("#")[0])
 
     def test_failed_build_leaves_existing_site_health_bytes_untouched(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             site = Path(temp) / "site"
-            (site / "api").mkdir(parents=True)
+            (site / build_api.HEALTH_FILE).parent.mkdir(parents=True)
             health = site / build_api.HEALTH_FILE
             health.write_text("old site health", encoding="utf-8")
             dashboard = site / "health" / "index.html"
@@ -489,7 +491,7 @@ class HealthTests(unittest.TestCase):
     def test_successful_run_publication_replaces_build_snapshot_with_actual_outcomes(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             site = Path(temp) / "site"
-            (site / "api").mkdir(parents=True)
+            (site / build_api.HEALTH_FILE).parent.mkdir(parents=True)
             build_crate.mark_site(site)
             (site / build_api.HEALTH_FILE).write_text("{}", encoding="utf-8")
             (site / build_api.OPENAPI_FILE).write_text("{}", encoding="utf-8")
@@ -508,7 +510,7 @@ class HealthTests(unittest.TestCase):
             dashboard = (site / "health" / "index.html").read_text(encoding="utf-8")
             self.assertIn(published["generated_at"], dashboard)
             self.assertIn("bad schema", dashboard)
-            self.assertIn('href="../api/health.json"', dashboard)
+            self.assertIn('href="../api/v1/health.json"', dashboard)
             self.assertIn('href="../index.html"', dashboard)
             self.assertIn("failed", (site / "health" / "summary.md").read_text(encoding="utf-8"))
 
@@ -553,7 +555,7 @@ class HealthTests(unittest.TestCase):
     def test_api_publication_refuses_an_api_the_build_did_not_make(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             site = Path(temp)
-            (site / "api").mkdir()
+            (site / build_api.HEALTH_FILE).parent.mkdir(parents=True)
             (site / build_api.HEALTH_FILE).write_text("authored", encoding="utf-8")
             (site / build_api.OPENAPI_FILE).write_text("{}", encoding="utf-8")
             with self.assertRaises(build_crate.UnsafeOutputError):

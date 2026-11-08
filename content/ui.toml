@@ -1163,6 +1163,8 @@ meaning = { cs = "Co říká", en = "What it says" }
 collection = { cs = "Kolekce", en = "Collection" }
 list = { cs = "Seznam", en = "List" }
 record = { cs = "Záznam", en = "Record" }
+fip = { cs = "FIP Dashboard", en = "FIP Dashboard" }
+fipNone = { cs = "—", en = "—" }
 
 [machines.task.crate]
 want = { cs = "celou znalostní bázi i s paradaty", en = "the whole knowledge base with its paradata" }
@@ -1202,14 +1204,14 @@ what = { cs = "Účel, zdrojový kód a volaná funkce každého testu; katalog 
 
 [machines.task.result]
 want = { cs = "uložit a sdílet výsledek kontroly", en = "to save and share a check result" }
-what = { cs = "Výsledek jako sada výsledků testů ve slovníku FAIR Testing Resources (FTR) v RO-Crate; každý výsledek odkazuje na svůj test v API.", en = "The result as a test result set in the FAIR Testing Resources (FTR) vocabulary in an RO-Crate; each result names its test in the API." }
+what = { cs = "Výsledek jako sada výsledků testů ve slovníku FAIR Testing Resources (FTR) v RO-Crate. Odpovědi čtenáře jsou měření DQV na trvalá IRI otázek; testy odkazují na vlastní IRI.", en = "The result as a test result set in the FAIR Testing Resources (FTR) vocabulary in an RO-Crate. Reader answers are DQV quality measurements of persistent question IRIs; tests are named by their persistent IRIs." }
 
 [machines.task.list]
 want = { cs = "seznam z katalogu, jak jsem si ho vyfiltroval", en = "a catalogue list as I filtered it" }
 what = { cs = "Pod seznamem jako CSV, nebo jako data ve tvaru seznamů API s odkazem na záznam každé položky.", en = "Under the list as CSV, or as data in the shape of the API's lists with a link to each entry's record." }
 
 [machines.rel]
-describedby = { cs = "metadata: znalostní báze v RO-Crate", en = "metadata: the knowledge base in RO-Crate" }
+describedby = { cs = "metadata: RO-Crate nebo graf RDF v N-Triples", en = "metadata: the RO-Crate or the RDF graph in N-Triples" }
 service_desc = { cs = "strojově čitelný popis API", en = "the machine-readable description of the API" }
 service_doc = { cs = "dokumentace API pro lidi", en = "the API's documentation for people" }
 license = { cs = "licence obsahu", en = "the content's licence" }
@@ -1318,11 +1320,15 @@ dataset = { cs = "Je datová sada výstupem programu?", en = "Is the dataset the
 # The guide's API: its OpenAPI description (in English), the machines page's endpoint list and the catalogue's links.
 [api]
 title = { cs = "API Průvodce FAIR daty", en = "FAIR Data Guide API" }
-description = { cs = "Znalostní báze Průvodce pro čtení strojem: záznam JSON pro každý princip, zastávku, kontrolu, otázku, zdroj, repozitář, požadavek, citované dílo, pojem, organizaci, profil FIP a změnu obsahu, s texty v obou jazycích a kontextem JSON-LD. Kontroly jsou benchmarky ve slovníku FAIR Testing Resources (FTR), jejich otázky metriky s ručními testy. Cesty odpovídají API FIP Dashboardu tam, kde obě popisují totéž; soubory končí na .json, protože API je statický web.", en = "The Guide's knowledge base for machines to read: a JSON record for each principle, station, check, question, resource, repository, requirement, cited work, glossary term, organisation, FIP profile and content change, with texts in both languages and a JSON-LD context. Checks are benchmarks in the FAIR Testing Resources (FTR) vocabulary, their questions metrics with manual tests. Paths follow the FIP Dashboard API where both describe the same thing; files end in .json because the API is a static site." }
+description = { cs = "Statické API v1 (pouze pro čtení). Seznamy obsahují pole ID, adresa, IRI, štítek a filtr. Záznamy používají pole druh, id a volitelné pole rozsah. OpenAPI využívá šablony, nikoli operace na jednotlivých záznamech. N-Triples a SPARQL recepty zpřístupňují jeden graf.", en = "Read-only API v1. Lists carry ID, address, IRI, label and filter fields. Records use kind, id and optional scope. OpenAPI uses templates, not per-record operations. N-Triples and SPARQL recipes expose one graph." }
 guide = { cs = "Průvodce FAIR daty", en = "The FAIR Data Guide" }
 server = { cs = "Web, který tento popis poskytuje", en = "The site that serves this description" }
-meta = { cs = "Z čeho je API sestaveno", en = "What the API is built from" }
 metaTag = { cs = "Popis API a jeho kontext JSON-LD", en = "The API's provenance and its JSON-LD context" }
+index = { cs = "Soubor indexu API v1", en = "API v1 index file" }
+fipCollections.principles = { cs = "principles", en = "principles" }
+fipCollections.resources = { cs = "resources", en = "resources" }
+fipCollections.organizations = { cs = "organizations", en = "organizations" }
+fipCollections.fips = { cs = "fips", en = "fips" }
 health = { cs = "Výsledky kontrol obsahu a sestavení", en = "Content and build check results" }
 healthDescription = { cs = "Uložený přehled integrity obsahu, původních znění zdrojů a výsledků běhu kontrol. Samotné sestavení neznamená provedení kontrol; jejich běh následně aktualizuje tento soubor. Dostupnost externích služeb zůstává výslovně neověřená. Endpoint /health FIP Dashboardu naproti tomu popisuje dostupnost běžící služby a počty jejích záznamů.", en = "A published snapshot of content integrity, original-source coverage and check-run results. A build alone does not run the checks; a completed check run then updates this file. External-service availability remains explicitly unchecked. The FIP Dashboard's /health endpoint reports the running service's liveness and collection counts." }
 context = { cs = "Kontext JSON-LD", en = "The JSON-LD context" }
@@ -1355,15 +1361,15 @@ description = { cs = "Kontroly sebehodnocení jako benchmarky ve slovníku FAIR 
 record = { cs = "Jedna kontrola", en = "One check" }
 parameter = { cs = "Identifikátor kontroly", en = "The check's identifier" }
 
-[api.collection.metrics]
+[api.collection.questions]
 name = { cs = "Otázky kontrol", en = "Check questions" }
-description = { cs = "Otázky kontrol jako metriky FTR, s požadavky, o které se opírají, a s ručním testem.", en = "The check questions as FTR metrics, with the requirements they rest on and their manual test." }
+description = { cs = "Otázky kontrol jako metriky FTR, s požadavky, o které se opírají, a s tím, které testy je implementují.", en = "The check questions as FTR metrics, with the requirements they rest on and the tests that implement them." }
 record = { cs = "Jedna otázka", en = "One question" }
 parameter = { cs = "Identifikátor otázky, například D02", en = "The question's identifier, such as D02" }
 
 [api.collection.tests]
 name = { cs = "Testy FAIR", en = "FAIR tests" }
-description = { cs = "Ruční test každé otázky kontrol, na který odkazuje uložený výsledek, a vybrané automatické testy FAIR Champion.", en = "The manual test of each check question, which a saved result names, and the curated automated FAIR Champion tests." }
+description = { cs = "Publikované automatické testy a jejich implementace metrik; testovací dokumenty uložených výsledků tvoří samostatnou výjimku.", en = "Published automated tests and their metric implementations; saved-result support documents are a separate exception." }
 record = { cs = "Jeden test", en = "One test" }
 parameter = { cs = "Identifikátor testu: otázky kontroly nebo testu FAIR Champion", en = "The test's identifier: a check question's or a FAIR Champion test's" }
 
@@ -1372,12 +1378,6 @@ name = { cs = "Zdroje", en = "Resources" }
 description = { cs = "Nástroje, služby, standardy a dokumenty, které Průvodce doporučuje, a zdroje z FIP Dashboardu.", en = "The tools, services, standards and documents the Guide recommends, and the resources from the FIP Dashboard." }
 record = { cs = "Jeden zdroj", en = "One resource" }
 parameter = { cs = "Identifikátor zdroje", en = "The resource's identifier" }
-
-[api.collection.sources]
-name = { cs = "Citovaná díla", en = "Cited works" }
-description = { cs = "Publikace a stránky, z nichž obsah Průvodce vychází a které zároveň nedoporučuje jako zdroj.", en = "The publications and pages the Guide's content rests on that it does not also recommend as resources." }
-record = { cs = "Jedno citované dílo", en = "One cited work" }
-parameter = { cs = "Identifikátor díla", en = "The work's identifier" }
 
 [api.collection.repositories]
 name = { cs = "Repozitáře", en = "Repositories" }
@@ -1391,7 +1391,7 @@ description = { cs = "Požadavky, doporučení a zjištění ze zdrojů, na nich
 record = { cs = "Jeden požadavek", en = "One requirement" }
 parameter = { cs = "Identifikátor požadavku, například A.F1.N1", en = "The requirement's identifier, such as A.F1.N1" }
 
-[api.collection.terms]
+[api.collection.glossary]
 name = { cs = "Pojmy", en = "Glossary terms" }
 description = { cs = "Pojmy z Hesláře otevřené vědy, které Průvodce používá.", en = "The terms from the open science glossary that the Guide uses." }
 record = { cs = "Jeden pojem", en = "One term" }
@@ -1409,7 +1409,7 @@ description = { cs = "Profily FAIR implementace ze snímku FIP Dashboardu, s dek
 record = { cs = "Jeden profil", en = "One profile" }
 parameter = { cs = "Identifikátor profilu", en = "The profile's identifier" }
 
-[api.collection.changes]
+[api.collection.actions]
 name = { cs = "Změny obsahu", en = "Content changes" }
 description = { cs = "Změny obsahu Průvodce s tím, co změnily a z čeho vycházejí.", en = "The changes to the Guide's content, with what they changed and what they rest on." }
 record = { cs = "Jedna změna", en = "One change" }
@@ -1608,18 +1608,6 @@ text = { cs = "Citační metadata (CITATION.cff, codemeta.json) odkazují na ver
 title = { cs = "Kdo komu předává informace", en = "Who passes information to whom" }
 publication = { cs = "Od zveřejnění k vykázání výsledku", en = "From publication to reporting the output" }
 
-[api.collection.model]
-name = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
-description = { cs = "Vrstvy, předání informací a doložené příklady modelu Layers and Seams; návaznosti na konkrétní obsah Průvodce.", en = "Layers, information hand-offs and documented examples in the Layers-and-Seams Model, with associations to specific guide content." }
-record = { cs = "Jedna část modelu nebo doložený příklad", en = "One model term or documented example" }
-parameter = { cs = "Identifikátor části modelu nebo příkladu", en = "The model term or example identifier" }
-
-[api.collection.lifecycle]
-name = { cs = "Životní cyklus výzkumných dat", en = "Research data life cycle" }
-description = { cs = "Modely životního cyklu výzkumných dat (RDMkit, MaLDReTH, katalog nástrojů KNAV) s fázemi, jak je zdroje publikují, a převodník mezi nimi, u každé shody s jejím základem.", en = "Research data life-cycle models (RDMkit, MaLDReTH, the KNAV tools catalogue) with their stages as their sources publish them, and the crosswalk between them, each correspondence with its basis." }
-record = { cs = "Jeden model, fáze nebo shoda mezi fázemi", en = "One model, stage or correspondence between stages" }
-parameter = { cs = "Identifikátor modelu, fáze nebo shody", en = "The model, stage or correspondence identifier" }
-
 # A large research infrastructure in the catalogue (content/infrastructures.toml).
 [infrastructure]
 since = { cs = "na cestovní mapě od roku {year}", en = "on the roadmap since {year}" }
@@ -1637,6 +1625,73 @@ checked = { cs = "ověřeno {date}", en = "checked {date}" }
 source = { cs = "charta uzlu", en = "node charter" }
 candidate = { cs = "EOSC CZ Node je kandidátským uzlem Federace EOSC od {date}.", en = "EOSC CZ Node has been a candidate node of the EOSC Federation since {date}." }
 operational = { cs = "EOSC CZ Node je v produkčním provozu Federace EOSC od {date}.", en = "EOSC CZ Node has been in the EOSC Federation's production operations since {date}." }
+
+[api.recipes]
+title = { cs = "Dotazy SPARQL", en = "SPARQL recipes" }
+downloadGraph = { cs = "Stáhnout graf v N-Triples", en = "Download the graph as N-Triples" }
+
+[api.recipes.labels.advice-for-lens-at-station]
+label = { cs = "Rada podle pohledu a zastávky", en = "Advice by lens at a station" }
+
+[api.recipes.labels.questions-of-check-by-tier]
+label = { cs = "Otázky kontroly podle úrovně", en = "Questions of a check by tier" }
+
+[api.recipes.labels.resources-for-principle]
+label = { cs = "Zdroje k principu", en = "Resources for a principle" }
+
+[api.recipes.labels.registry-records-of-thing]
+label = { cs = "Záznamy o objektu", en = "Registry records of a thing" }
+
+[api.recipes.labels.tests-implementing-metric]
+label = { cs = "Testy metriky", en = "Tests implementing a metric" }
+
+[api.recipes.labels.clauses-cited-by-question]
+label = { cs = "Citované požadavky otázky", en = "Clauses cited by a question" }
+
+[api.collection.advice]
+name = { cs = "Rada", en = "Advice" }
+description = { cs = "Rada k jednotlivým zastávkám, pohledům a úrovním, s citovanými požadavky a postupy.", en = "Advice for individual stations, lenses and levels, with cited requirements and procedures." }
+record = { cs = "Jedna rada", en = "One advice item" }
+
+[api.collection.callouts]
+name = { cs = "Upozornění", en = "Callouts" }
+description = { cs = "Praktická upozornění a pomocníci, včetně práce s citlivými daty a identifikátory.", en = "Practical cautions and helpers, including sensitive data and identifier work." }
+record = { cs = "Jedno upozornění nebo pomocník", en = "One callout or helper" }
+
+[api.collection.crosswalks]
+name = { cs = "Odpovídající fáze", en = "Stage correspondences" }
+description = { cs = "Odpovídající fáze životních cyklů vyznačené v převodníku životních cyklů.", en = "Corresponding stages of research-data life cycles recorded by the life-cycle crosswalk." }
+record = { cs = "Jedna odpovídající dvojice fází", en = "One correspondence between two stages" }
+
+[api.collection.layers]
+name = { cs = "Vrstvy modelu", en = "Model layers" }
+description = { cs = "Vrstvy konceptuálního modelu implementace FAIR a jejich role.", en = "Layers of the FAIR implementation conceptual model and their roles." }
+record = { cs = "Jedna vrstva", en = "One layer" }
+
+[api.collection.lifecycles]
+name = { cs = "Životní cykly", en = "Life-cycle models and stages" }
+description = { cs = "Modely životního cyklu výzkumných dat a fáze, jak je zdroje definují.", en = "Research-data life-cycle models and their stages as the sources define them." }
+record = { cs = "Jeden model nebo jedna fáze", en = "One model or one stage" }
+
+[api.collection.model-examples]
+name = { cs = "Příklady implementace", en = "Implementation examples" }
+description = { cs = "Doložené příklady s přesným rozsahem, důkazy a dat pozorování.", en = "Documented implementation examples with their precise scope, evidence and observation date." }
+record = { cs = "Jeden příklad implementace", en = "One implementation example" }
+
+[api.collection.models]
+name = { cs = "Konceptuální model", en = "Conceptual model" }
+description = { cs = "Konceptuální model implementace FAIR, jeho části a vztahy k dalším záznamům Průvodce.", en = "The FAIR implementation conceptual model, its parts and links to other Guide records." }
+record = { cs = "Jeden konceptuální model", en = "One conceptual model" }
+
+[api.collection.pages]
+name = { cs = "Stránky Průvodce", en = "Guide pages" }
+description = { cs = "Stránky Průvodce a jejich části, včetně postupů a vysvětlení.", en = "Guide pages and their sections, including procedures and explanations." }
+record = { cs = "Jedna stránka Průvodce", en = "One Guide page" }
+
+[api.collection.vocabularies]
+name = { cs = "Řízené slovníky", en = "Controlled vocabularies" }
+description = { cs = "Sady řízených pojmů a jejich dvojjazyčné definice, sdílené odkazy záznamů.", en = "Sets of controlled terms and their bilingual definitions, shared by record references." }
+record = { cs = "Jedna sada řízených pojmů", en = "One controlled-term set" }
 
 [api.collection.infrastructures]
 name = { cs = "Velké výzkumné infrastruktury", en = "Large research infrastructures" }

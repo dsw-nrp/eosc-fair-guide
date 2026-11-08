@@ -1,0 +1,15 @@
+# cs: Vybere otázky minimální úrovně kontroly FAIR Implementation Profiles, tedy tři otázky tohoto profilu.
+# en: Selects the minimum-tier questions of the FAIR Implementation Profiles check, its three questions.
+PREFIX ftr: <https://w3id.org/ftr#>
+PREFIX guide: <https://w3id.org/eosc-cz/fair-guide/terms#>
+
+SELECT ?question ?tier
+WHERE {
+  VALUES ?check { <https://w3id.org/eosc-cz/fair-guide/id/checks/fip> }
+  VALUES ?minimum { <https://w3id.org/eosc-cz/fair-guide/id/vocabularies/tiers/minimum> }
+  ?question a ftr:Metric ;
+    ftr:hasBenchmark ?check ;
+    guide:tier ?minimum ;
+    guide:tier ?tier .
+}
+ORDER BY ?question

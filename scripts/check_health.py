@@ -943,7 +943,7 @@ def recorded_text(item: dict[str, Any]) -> str:
 
 def dashboard(report: dict[str, Any], *, site: bool = False) -> str:
     """Render the same report for the CI artifact or the published site, with usable relative links."""
-    report_url = "../api/health.json" if site else "health.json"
+    report_url = "../" + build_crate.API_FILES["health"] if site else "health.json"
     navigation = '<a href="../index.html">FAIR Data Guide</a> · ' if site else ""
     generated = report.get("generated_at") or "No completed check run"
     parts = [

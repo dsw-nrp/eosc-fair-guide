@@ -157,11 +157,11 @@ test("separate Node processes share the same browser-case limit", async () => {
       const child = spawn(process.execPath, ["--input-type=module", "-e", source], {
         cwd: root, env: {...process.env, CHECK_BROWSER_SLOT_DIR: directory, CHECK_BROWSER_WORKERS: String(budget)},
       });
-      let output = "", errors = "";
+      let output = "", errors = "", acquired = 0;
       child.stdout.on("data", (data) => {
         output += data;
-        // At least two slots must be held before measuring; otherwise Windows process startup can serialize the test.
-        if (!overlap && output.includes("acquired")) {
+        // Wait for the whole configured budget before measuring; Windows process startup can be serialized.
+        if (!overlap && output.includes("acquired") && ++acquired >= budget) {
           overlap = true;
           writeFileSync(resolve(directory, "overlap"), "go");
         }

@@ -37,7 +37,7 @@ const addresses = await page.evaluate(() => {
     unsafe: unsafe.map((value) => ({ value, followed: followed(value), safe: FG.safeHref(value),
       link: FG.h("a", { href: value }).hasAttribute("href"), image: FG.h("img", { src: value }).hasAttribute("src") })),
     kept: ["https://example.org/a?b=1#c", " https://example.org/a ", "#/en/V/path/start", "assets/img/eosc-cz-logo.svg",
-      "mailto:info@eosc.cz", "../api/meta.json", "http://doi.org/10.1234/x"].map((value) => [value, FG.safeHref(value)]),
+      "mailto:info@eosc.cz", "../api/v1/index.json", "http://doi.org/10.1234/x"].map((value) => [value, FG.safeHref(value)]),
   };
 });
 for (const entry of addresses.unsafe) {
@@ -51,7 +51,7 @@ assert.deepEqual(addresses.kept, [
   ["#/en/V/path/start", "#/en/V/path/start"],
   ["assets/img/eosc-cz-logo.svg", "assets/img/eosc-cz-logo.svg"],
   ["mailto:info@eosc.cz", "mailto:info@eosc.cz"],
-  ["../api/meta.json", "../api/meta.json"],
+  ["../api/v1/index.json", "../api/v1/index.json"],
   ["http://doi.org/10.1234/x", "https://doi.org/10.1234/x"],
 ]);
 

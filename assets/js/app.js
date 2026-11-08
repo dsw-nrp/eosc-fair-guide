@@ -70,6 +70,7 @@
     if (route.lang !== FG.state.lang) needed.push(...FG.partsLoaded);
     if (route.view === "path" && !FG.landingShown(route)) needed.push("standards", "model", "advice");
     if (route.view === "page" && ["model", "machines", "about"].includes(route.arg)) needed.push("model");
+    if (route.view === "page" && route.arg === "machines") needed.push("api");
     if (route.view === "page" && route.arg === "ai") needed.push("standards", "advice");
     /* A catalogue entry of advice or a page draws on its part. */
     if (route.view === "catalogue" && route.extra && ["advice", "pages"].includes(route.arg)) needed.push(route.arg);
@@ -82,12 +83,14 @@
     const viewName = route.view === "check" ? "selfcheck" : route.view;
     const answered = Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length);
     const checkCode = (route.view === "path" && answered) || (route.view === "page" && route.arg === "about");
-    const viewNeeded = (Boolean(FG.config.views && FG.config.views[route.view]) && !FG.views[viewName]) || (checkCode && !FG.views.selfcheck);
+    const viewNeeded = (Boolean(FG.config.views && FG.config.views[route.view]) && !FG.views[viewName]) || (checkCode && !FG.views.selfcheck)
+      || (route.view === "page" && route.arg === "machines" && !FG.views.endpointTable);
     if (!FG.languagesLoaded.has(route.lang) || missing.length || helperNeeded || viewNeeded) {
       const key = route.lang + "/" + missing.join(",") + (helperNeeded ? "/helper" : "") + (viewNeeded ? "/view" : "");
       if (waitingFor === key) return;
       waitingFor = key;
-      Promise.all([FG.loadLanguage(route.lang), ...missing.map((name) => FG.loadPart(name, route.lang)), ...(helperNeeded ? [FG.loadHelpers()] : []), ...(viewNeeded ? [FG.loadView(checkCode ? "check" : route.view)] : [])]).then(() => {
+      Promise.all([FG.loadLanguage(route.lang), ...missing.map((name) => FG.loadPart(name, route.lang)), ...(helperNeeded ? [FG.loadHelpers()] : []),
+        ...(viewNeeded ? [FG.loadView(checkCode ? "check" : (route.view === "page" && route.arg === "machines" ? "machines" : route.view))] : [])]).then(() => {
         if (waitingFor === key) waitingFor = "";
         FG.render();
       }).catch((error) => {

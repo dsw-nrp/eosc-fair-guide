@@ -307,8 +307,108 @@
 - **Verification:** `python scripts/check_all.py` passes all 36 checks on the final tree. The offline vocabulary,
   graph and profile regressions, full browser suite, API's 1,735 files and 38,592 links, and both publication and
   worker-coordination suites pass. `npm run openspec:validate` passes 6 of 6. The initial Czech payload is 299.3
-  KB and English is 296.9 KB, below the 300 KB budget. `gh pr checks 172` is green on the earlier head; no CI run
-  covers the uncommitted head used for this entry yet. Live checks were not run.
-- **Close-out:** the local M2 work is complete (49 of 71 tracked tasks). Task 3.22 is not checked off until CI
-  verifies a commit containing it; that requires separately authorised staging, commit and push. M3 (API v1 and
-  graph access) is the next implementation milestone.
+  KB and English is 296.9 KB, below the 300 KB budget. `gh pr checks 172` passes in full on `abe4289`, including
+  all lanes and the final collector. Live checks were not run.
+- **Close-out:** M2 is complete (50 of 71 tracked tasks) on `abe4289`, committed and pushed with local and CI
+  verification. M3 (API v1 and graph access) is the next implementation milestone.
+
+## Kilo session, continued (M3 API v1, health and graph access)
+
+- **When:** 2026-11-08 (+01:00)
+- **Agent / runtime:** Kilo Code (VS Code extension)
+- **Model / backend:** e-infra-cz/kimi-k3.1-pro
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** continued the approved `openspec-apply-change` implementation of
+  `unify-identity-model-and-api`; delivered `aiscr-planning-core`, `aiscr-quality-first-execution`,
+  `aiscr-usage-logging` and `aiscr-model-logging` rules; native guide content/surface constraints; the pinned
+  `npx openspec` CLI; offline API, Playwright and health checks.
+- **What:**
+  - Task 4.1: `api/v1/index.json`, one list and record templates per real kind, nested scope paths, an advice
+    collection, compact vocabulary references and index-linked health. Only `api/tests/<question>.json` supports
+    the older saved-result documents; the old API role routes are not emitted.
+  - Task 4.2: OpenAPI 3.1 templates for unscoped/scoped records, typed response/list-summary shapes, vocabulary
+    term-code enums and the NKR planned/in-development address exception. Every JSON file matches one template;
+    no per-record operation survives. Normalised array/object inference avoids overlapping alternatives.
+  - Task 4.3: health consumers, dashboards, deployment/release fixtures, image probing and nginx `no-store` moved
+    to `api/v1/health.json`, under the OpenAPI `operations` tag.
+- **Impacted:** `scripts/build_api.py`, `scripts/build_crate.py`, `scripts/check_health.py`,
+  `scripts/package_site.py`, `scripts/release_versions.py`, `tests/api/check_api.mjs`, `tests/test_scripts.py`,
+  `tests/addresses.py`, `tests/page/addresses.mjs`, health/deployment/release/page-check fixtures,
+  `docker/nginx.conf`, `.github/workflows/publish-image.yml`, the change's `tasks.md`; this entry.
+- **Verification:** `tests.test_scripts.ApiTests` passes 9 tests. `python scripts/build_site.py` and
+  `npm run check:api` pass: 2,067 files and 42,409 links, with the NKR positive/negative probes and Swagger.
+  `python scripts/check_all.py --only health health-api` passes 2 of 2. These narrow green results do not replace
+  M3 close-out. A whole Python-suite attempt exceeded five minutes and showed consumer failures before their
+  migration; it was not treated as a pass. Initial downloads currently exceed the 300 KB budget at 301 KB.
+- **Close-out:** Tasks 4.1 to 4.3 are complete (53 of 71); no new commit or push was made. No CI result is claimed
+  for this working tree. Task 4.4 (an offline N-Triples distribution isomorphic to the crate) is next.
+
+## Kilo session, continued (M3 RDF, recipes, machine docs and result revision 4)
+
+- **When:** 2026-11-08 (+01:00)
+- **Agent / runtime:** Kilo Code (VS Code extension)
+- **Model / backend:** e-infra-cz/kimi-k3.1-pro
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** approved `openspec-apply-change`; offline standard-library JSON-LD expansion and
+  serialization, rdflib graph comparison, Playwright rendering and result loading; native bilingual content and
+  provenance rules; the change's API, recipe and saved-result contracts.
+- **What:**
+  - Task 4.4: `scripts/knowledge_graph.py` writes deterministic N-Triples from the crate through a pinned local
+    RO-Crate 1.2 context, with no network request. `tests/test_knowledge_graph.py` checks isomorphism with rdflib.
+  - Task 4.5: the distribution is linkset and HTML-head `describedby`, with an `application/n-triples` type and
+    deployment verification.
+  - Task 4.6: six bilingual SPARQL recipes publish through `profile_recipes()` under the active profile version;
+    `tests/test_recipes.py` compares actual nonempty results and graph-mutation results against these fixtures,
+    rejecting only unused or renamed relationships.
+  - Task 4.7: bilingual machine text and endpoint labels cover API v1, address/IRI patterns, scoped records,
+    vocabulary references, the four FIP equivalents, N-Triples and recipes. Local file links are generated
+    controls, not unsupported Markdown. Phone and desktop screenshots were inspected; the full page suite passes.
+  - Task 4.8: saved results are revision 4. Reader answers use `dqv:QualityMeasurement`, `isMeasurementOf`,
+    `computedOn` and `value`; they no longer fabricate a test at `api/tests/<question>`. Automated evidence names
+    actual Guide test IRIs. Revisions 1–3 load through explicit allow-listing and new fixture tests.
+- **Impacted:** `scripts/knowledge_graph.py`, recipe sources under `profile/fair-guide/recipes/`,
+  `scripts/build_crate.py`, `scripts/build_api.py`, `assets/js/views.js`, `assets/js/catalogue.js`,
+  `assets/js/catalogue-view.js`, `assets/js/selfcheck.js`, `assets/js/providers.js`,
+  `content/pages.toml`, `content/ui.toml`, `content/provenance.toml`, offline graph, recipe and result fixtures,
+  API, page, model, assessment and deployment checks, the change's `tasks.md`; this entry.
+- **Verification:** `python -m unittest tests.test_knowledge_graph tests.test_recipes` passes (3 and 2 methods);
+  recipe expected results pass and each recipe fails after its relation is renamed in an RDF graph copy.
+  `npm run check:deployment` passes. `npm run check:page` passes in full, as do `check_embed`, `check_catalogue`,
+  `check_questions`, `check_providers` and `check_assessment` with revisions 1–3 loading and revision 4 exports.
+  No live evaluator was called. The build still warns that the initial Czech payload is over 300 KB (about 303),
+  so the budget has not been closed by these narrower completions.
+- **Close-out:** Tasks 4.4 to 4.8 are complete (58 of 71). Work remains uncommitted; no push or new CI result is
+  claimed. Documentation/changelog is next, followed by static record pages and the full M3 gate.
+- **Corrections:** a directory-creation shell command and an inline browser-inspection command were rejected by
+  runtime policy. Required directories/files used the dedicated write tool; visual inspection used the repository's
+  screenshot workflow. Repeated nested-wrapping errors in the endpoint view were corrected by decomposing rows and
+  named elements, validated by `node --check` and the browser suite. The full-suite checkpoint then exposed old API
+  fixtures and an undefined release-identity comparison; all of the Python inventory passed in the final gate after
+  their focused repairs. The shared-slot test now waits for the configured number of acquisitions before measuring,
+  so Windows process startup does not turn a successful budget test into a false failure.
+- **What (M3 close-out):**
+  - Tasks 4.9–4.10: documented API v1, RDF and revision 4; produced bilingual static landing pages with persistent
+    IRIs, API record links, status/dates, related records, part anchors and valid head metadata in the existing
+    stylesheets. They work without JavaScript, including from `file://`, through the Guide's entry route.
+  - Task 4.11: supplied the bilingual `404.html`, nginx handling, production sitemap entries and preview exclusions;
+    release assembly retains the root 404 without falsely requiring it for a preview-only release-less deployment.
+  - Deferred the machine endpoint renderer and API text until that view needs them. Embedded/script/lib queries,
+    results and record links use the same v1/address projection; health, release, image and CI consumers were checked
+    against it. Integrated the landing browser cases into the page checks and typed schema/link coverage.
+- **Impacted (M3 close-out):** `scripts/build_api.py`, `scripts/build_crate.py`, `scripts/landing_pages.py`,
+  `scripts/build_site.py`, `scripts/assemble_pages.py`, `scripts/release_versions.py`, `scripts/knowledge_graph.py`,
+  `assets/js/`, `content/pages.toml`, `content/ui.toml`, `content/provenance.toml`, `docs/`, both READMEs,
+  `CHANGELOG.md`, `AGENTS.md`, `docker/nginx.conf`, deployment workflows, static recipe/result fixtures and `tests/`;
+  this usage entry and the change's `tasks.md`. No runtime scratch was added to the tracked file set.
+- **Verification (M3 close-out):** `python scripts/check_all.py` passes **36 of 36** checks (the Python inventory is
+  865 tests with one skip), including crate/profile/schema validation, full page, landing, deployment, assessment,
+  API and runtime checks. `npm run openspec:validate` passes 6 of 6. `ruff check scripts tests` and
+  `ruff format --check scripts tests` pass. The fresh build emits no initial-payload budget warning. Landing pages
+  were checked in both languages at desktop/phone widths, in print, with JavaScript disabled and through local-file
+  Guide routes. No live service tests were run. No claim of CI on the new M3 work is made yet.
+- **Close-out (M3 close-out):** tasks 4.1–4.11 are complete (61 of 71). The local half of 4.12 passes on this exact
+  source tree except for the provenance/diagnostic bookkeeping added subsequently, which is rechecked separately.
+  Task 4.12 remains open pending the separately approved commit/push and CI on that PR head. No w3id, release,
+  namespace-consent or other M4 action has begun.

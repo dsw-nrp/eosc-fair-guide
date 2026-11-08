@@ -520,9 +520,10 @@ JSON-LD/FTR RO-Crate and Markdown exports carry reloadable state, Guide version,
 targets and evidence. Markdown's hidden comment restores full state; earlier answer-only summaries
 remain readable. Shared links carry compact answers and open as previews. Files also preview before
 replacing that check's answers on request. Foreign, damaged, newer-format and unknown-check files get
-different explanations; unknown historical question IDs are skipped with notice. Share links and exported
-references use the address serving the Guide; from a local file they use the recorded publication location or stay
-relative, never a filesystem path. Result reuse licensing is chosen by the person exporting,
+different explanations; unknown historical question IDs are skipped with notice. Share links use the address serving
+the Guide, but a result's question and test identities are persistent IRIs under its namespace. Older result support
+documents keep their legacy paths. Any ordinary serving links use the recorded publication location or stay relative,
+never a filesystem path. Result reuse licensing is chosen by the person exporting,
 not assigned by the Guide. Delete-all removes saved state and visit-only reports after confirmation.
 
 ## Visuals, accessibility and machine interfaces
@@ -544,11 +545,16 @@ targets, and compact toggles stay square. Alignment, padding, separation and lon
 checked across views. Measured rules need planted-regression proof and a visual pass through empty,
 partial, complete, expanded and imported states in both languages at desktop/phone widths.
 
-**The static API is a crate view.** `build_api.py` emits collection/entity JSON with language maps,
-JSON-LD context, OpenAPI 3.1 and pinned local Swagger UI. Records link relatively. Checks are FTR
-benchmarks and questions metrics; a person answering a question is not an FTR test, and the `api/tests/<question>.json`
-documents kept for saved results in format revisions 1 to 3 are not presented as tests. The API uses the graph's
-types and relations as they are, without renaming them. Paths align with the Dashboard's published vocabulary. Data
+**The static API is a crate view.** `build_api.py` emits under `_site/api/v1/` one list per kind and a record at its
+address, with language maps and relative links. `index.json` names every kind and the health snapshot, which has
+its own Operations tag. Scoped identities add a scope segment, not a second collection vocabulary. Every entry
+names its ID, address, IRI and label beside filter fields. Compact term references resolve to one vocabulary-set
+document, with the term code constrained by OpenAPI. Typed list/record schemas describe one template per kind and
+scope shape, never one operation per record. Checks are FTR benchmarks and questions metrics; a reader's answer is a
+DQV quality measurement of its question, not an FTR test, so `api/tests/<question>.json` remains only a compatibility
+document for revisions 1 to 3. `knowledge_graph.py` publishes the isomorphic graph in N-Triples with an offline
+standard-library writer, and published SPARQL recipes let clients exercise the same relations. FIP-compatible kinds
+principles, resources, organisations and fips are mapped explicitly; other kinds keep their own identity. Data
 for machines teaches from real task-to-data links, FAIR Signposting, profile, licensing, paradata and saved result
 examples. Head and linkset share one discovery list. Views offer their own data, cards their record, checks their
 result; filtered exports retain order/filters. Print exposes closed content and relevant addresses. Swagger UI is the
@@ -561,7 +567,7 @@ endpoints.
 fresh provenance, duplicates, metadata, unit/browser contracts, accessibility, API, diagrams, licensing,
 assets and crate validators. Opt-in live checks stay separate. Health distinguishes passed, failed,
 blocked and unrun jobs; offline success establishes no live availability. Initial builds are inventory;
-completed runs expose their actual revision and outcomes through the dashboard and `_site/api/health.json`.
+completed runs expose their actual revision and outcomes through the dashboard and `_site/api/v1/health.json`.
 Repository hygiene scans the guide's own text and the delivered tooling: a machine-specific path, a hub-internal
 name or a private planning reference fails with its file and line, while the repository's own relative runtime
 scratch convention does not. That scratch area is a declared runtime path, so hand-offs stay outside ownership and

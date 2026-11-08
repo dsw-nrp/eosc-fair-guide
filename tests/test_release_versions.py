@@ -161,8 +161,8 @@ class ReleaseVersions(unittest.TestCase):
         ui = site / release.BUILD_UI
         ui.parent.mkdir(parents=True)
         ui.write_text("window.FairGuideData.ui = " + json.dumps({"config": {"build": built}}) + ";\n")
-        health = site / "api/health.json"
-        health.parent.mkdir()
+        health = site / "api/v1/health.json"
+        health.parent.mkdir(parents=True)
         health.write_text(json.dumps({"build": built}))
         path = site / "ro-crate-metadata.json"
         path.write_text(json.dumps({"@graph": nodes}))
@@ -634,8 +634,8 @@ class ReleaseVersions(unittest.TestCase):
         ui = site / release.BUILD_UI
         ui.parent.mkdir(parents=True)
         ui.write_text("window.FairGuideData.ui = " + json.dumps({"config": {"build": built}}) + ";\n")
-        health = site / "api/health.json"
-        health.parent.mkdir()
+        health = site / "api/v1/health.json"
+        health.parent.mkdir(parents=True)
         health.write_text(json.dumps({"build": built}))
         self.assertEqual(release.check(self.root, site), [])
 

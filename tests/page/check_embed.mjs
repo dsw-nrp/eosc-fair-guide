@@ -166,7 +166,7 @@ try {
           assert(payload["@id"].startsWith(target + "#"), "the exported list's address retains its actual page");
           assert(payload.itemListElement.length > 0);
           assert(payload.itemListElement.every((entry) => entry["@id"].startsWith(origin + prefix + "api/")));
-          assert.equal(payload["@context"], origin + prefix + "api/context.jsonld");
+          assert.equal(payload["@context"], origin + prefix + "api/v1/context.jsonld");
           // API consumption happens outside the Guide: its CSP deliberately does not permit page fetches here.
           const records = await Promise.all([payload["@context"], payload.itemListElement[0]["@id"]].map(async (url) => {
             const response = await fetch(url); return { ok: response.ok, data: await response.json() };
@@ -180,13 +180,14 @@ try {
           await embedded.locator("#export-format-jsonld").check();
           const [result] = await Promise.all([view.waitForEvent("download"), embedded.locator("#export-download").click()]);
           const crate = JSON.parse(readFileSync(await result.path(), "utf8"));
-          const test = crate["@graph"].find((entry) => entry["ftr:outputFromTest"]);
-          assert(test, "the result export includes a test reference");
-          assert(test["ftr:outputFromTest"]["@id"].startsWith(origin + prefix + "api/"), "test references use the current channel");
-          const response = await fetch(test["ftr:outputFromTest"]["@id"]);
+          const measurement = crate["@graph"].find((entry) => entry["dqv:isMeasurementOf"]);
+          assert(measurement, "the result export includes a reader's quality measurement");
+          const questionIri = await embedded.evaluate(() => window.FairGuide.iri("questions/fip.01"));
+          assert.equal(measurement["dqv:isMeasurementOf"]["@id"], questionIri, "the question's persistent IRI is preserved");
+          const response = await fetch(origin + prefix + "api/v1/questions/fip.01.json");
           const record = await response.json();
-          // The document an exported result names as the question's test describes and links the question.
-          assert(response.ok && record.about, "the named document links its question");
+          assert(response.ok && record["@type"].includes("ftr:Metric"), "the built v1 document is a metric");
+          assert(record.sameAs.includes(questionIri), "the metric record names the same persistent question IRI");
         }
       }
     }

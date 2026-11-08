@@ -113,10 +113,10 @@ try {
       const old = structuredClone(saved); old.v = 1; delete old.inspection; delete old.champion; for (const entry of Object.values(old.items)) delete entry.observations;
       return { v: saved.v, manual: loaded.state.items["software.04"].origin, value: loaded.state.items["software.04"].value,
         commit: loaded.state.targetInfo.commit, observations: loaded.state.items["software.04"].observations.length,
-        legacy: SC.readPortable(old).error || null, newer: SC.readPortable({ ...saved, v: 4 }).error,
+        legacy: SC.readPortable(old).error || null, newer: SC.readPortable({ ...saved, v: 5 }).error,
         bytes: new TextEncoder().encode(JSON.stringify(SC.ftrCrate(check, st))).length };
     });
-    assert.equal(roundTrip.v, 2); assert.equal(roundTrip.manual, "user"); assert.equal(roundTrip.value, "no");
+    assert.equal(roundTrip.v, 4); assert.equal(roundTrip.manual, "user"); assert.equal(roundTrip.value, "no");
     assert.equal(roundTrip.commit, "a".repeat(40)); assert(roundTrip.observations > 0); assert.equal(roundTrip.legacy, null); assert.equal(roundTrip.newer, "newer"); assert(roundTrip.bytes < 2 * 1024 * 1024);
     await details("software-04");
     await page.locator("#item-software-04 .evidence-details > summary").click();

@@ -31,7 +31,7 @@ import build_identity  # noqa: E402
 from publication_location import site_identity  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
-HEALTH = "api/health.json"
+HEALTH = build_crate.API_FILES["health"]
 
 
 class PackageError(Exception):

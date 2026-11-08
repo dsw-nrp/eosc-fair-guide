@@ -429,9 +429,9 @@ sections.push(["page", async () => {
       ["#/cs/V/explorer", "export-print"],
       ["#/cs/V/page/about", "export-print"],
       ["#/cs/V/tools", "export-print"],
-      ["#/cs/V/check", "export-data,export-print", "api/checks.json"],
-      ["#/cs/V/explorer/R1.1", "export-data,export-print", "api/principles/R1.1.json"],
-      ["#/cs/V/path/licence", "export-markdown,export-data,export-print", "api/stations/licence.json"],
+      ["#/cs/V/check", "export-data,export-print", "api/v1/checks.json"],
+      ["#/cs/V/explorer/R1.1", "export-data,export-print", "api/v1/principles/R1.1.json"],
+      ["#/cs/V/path/licence", "export-markdown,export-data,export-print", "api/v1/stations/licence.json"],
     ]) {
       await gotoView(view, pageUrl + hash);
       await view.waitForSelector("#main h1");
@@ -446,7 +446,7 @@ sections.push(["page", async () => {
     if (await view.locator(".export-bar").count()) fail("exports: a single check shows the shared export bar beside its own exports");
     await gotoView(view, pageUrl + "#/cs/DS/check/institution/report");
     await view.waitForSelector("#export-data");
-    if ((await view.locator("#export-data").getAttribute("href")) !== "api/checks/institution.json") fail("exports: a single check does not offer its benchmark record as data");
+    if ((await view.locator("#export-data").getAttribute("href")) !== "api/v1/checks/institution.json") fail("exports: a single check does not offer its benchmark record as data");
     const saved = async (id) => {
       const [download] = await Promise.all([view.waitForEvent("download"), view.locator("#export-" + id).click()]);
       return { name: download.suggestedFilename(), text: readFileSync(await download.path(), "utf8") };
@@ -463,7 +463,7 @@ sections.push(["page", async () => {
     // local file is the configured one and maps onto the built site.
     const configured = await view.evaluate(() => window.FairGuide.config.pageUrl);
     const inBuilt = (id) => String(id).startsWith(configured) && existsSync(resolve(root, "_site", String(id).slice(configured.length)));
-    if (json["@type"] !== "ItemList" || json.numberOfItems !== listed || json.itemListElement.length !== listed || !String(json["@id"]).includes("s!licence") || !String(json["@context"]).endsWith("api/context.jsonld")) fail("exports: the list as data is not an ItemList of the filtered entries naming its filters");
+    if (json["@type"] !== "ItemList" || json.numberOfItems !== listed || json.itemListElement.length !== listed || !String(json["@id"]).includes("s!licence") || !String(json["@context"]).endsWith("api/v1/context.jsonld")) fail("exports: the list as data is not an ItemList of the filtered entries naming its filters");
     if (!json.itemListElement.every((item) => item.identifier && item.name && inBuilt(item["@id"]))) fail("exports: an entry of the list as data does not name its record in the API");
     await gotoView(view, pageUrl + "#/en/DS/path/licence");
     await view.waitForSelector("#main h1");
@@ -512,7 +512,7 @@ sections.push(["page", async () => {
     // A data steward who wants one record finds its address pattern and a working example, and how the guide itself
     // uses the same means: its signposts, read from the same list as the head and the linkset.
     const example = await view.locator(".machine-tasks a[href$='principles/R1.1.json']").getAttribute("href");
-    if (!example || !existsSync(resolve(root, "_site", example)) || !(await view.locator(".machine-tasks code", { hasText: "<id>.json" }).count())) fail("machines: the task table does not show a record's pattern and a working example");
+    if (!example || !existsSync(resolve(root, "_site", example)) || !(await view.locator(".machine-tasks code", { hasText: "{id}.json" }).count())) fail("machines: the task table does not show a record's pattern and a working example");
     // The page offers every machine-facing surface the Guide publishes, one row each with its description, so
     // nothing important is missing (crate, profile, vocabulary, record, service, health, tests, harvest,
     // requirements, result, list).
@@ -537,6 +537,8 @@ sections.push(["page", async () => {
       if (!head.some((link) => link.startsWith(rel + " "))) fail("signposting: the head has no " + rel + " link");
     }
     if (!(await view.locator('head link[rel="describedby"][href="ro-crate-metadata.json"]').count())) fail("machines: the head does not carry the describedby link");
+    if (!(await view.locator('head link[rel="describedby"][href="knowledge-graph.nt"][type="application/n-triples"]').count())) fail("signposting: the head lacks the N-Triples distribution");
+    if (!existsSync(resolve(site, "knowledge-graph.nt"))) fail("signposting: the N-Triples file is missing");
     // The API (built into _site/ by scripts/build_site.py): typed links in the head lead to its description and its
     // documentation, and the page lists every collection as an accessible counterpart of the documentation.
     const inSite = (href) => Boolean(href) && !/^[a-z]+:/i.test(href) && existsSync(resolve(site, href.endsWith("/") ? href + "index.html" : href));
@@ -547,9 +549,18 @@ sections.push(["page", async () => {
     const endpoints = await view.locator(".endpoints tbody td:first-of-type a").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
     const expectedEndpoints = await view.evaluate(() => {
       const api = window.FairGuide.config.api;
-      return [...api.collections.map((collection) => api.files.record.replace("{record}", collection)), api.files.meta, api.files.context, api.files.health];
+      return [...api.collections.map((collection) => api.files.record.replace("{record}", collection)), api.files.index, api.files.context, api.files.health];
     });
     if (endpoints.slice().sort().join("|") !== expectedEndpoints.sort().join("|") || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
+    for (const kind of ["principles", "resources", "organizations", "fips"]) {
+      if ((await view.locator(`.endpoints tr[data-kind="${kind}"] td:last-child`).textContent()).trim() !== kind) fail(`machines: the FIP mapping for ${kind} is wrong`);
+    }
+    if ((await view.locator('.endpoints tr[data-kind="advice"] td:last-child').textContent()).trim() !== "—") fail("machines: a Guide-only kind wrongly names a FIP Dashboard collection");
+    if (!(await view.locator(".endpoints .endpoint-patterns code", { hasText: "<scope>/<id>" }).count())) fail("machines: scoped record templates are missing");
+    const recipeLinks = await view.locator('#endpoints a[href^="profile/"][href$=".rq"]').evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    if (recipeLinks.length !== 6 || !recipeLinks.every(inSite)) fail("machines: the six SPARQL recipes are not linked to built files");
+    const practiceText = (await practice.textContent()) || "";
+    if (!practiceText.includes("cite-as") || !practiceText.includes("#/id/{adresa}")) fail("machines: the persistent IRI and typed record links are not explained: " + practiceText);
     // The crate's HTML preview is the guide page: opened as the preview it shows the machine-readable data, not the
     // path landing, so a reader following the crate's preview link sees the crate, not an unrelated view.
     await view.goto(new URL("ro-crate-preview.html", pageUrl).href);
@@ -1766,30 +1777,34 @@ sections.push(["self-check", async () => {
   const exportedGraph = exported["@graph"];
   const typed = (type) => (entity) => [].concat(entity["@type"]).includes(type);
   const set = exportedGraph.find(typed("TestResultSet"));
-  const results = exportedGraph.filter(typed("TestResult"));
+  const memberIds = new Set([].concat(set ? set["prov:hadMember"] : []).map((reference) => reference["@id"]));
+  const results = exportedGraph.filter((entity) => memberIds.has(entity["@id"]));
   if (!set || set["prov:hadMember"].length !== results.length || !results.length) fail("export: the result set does not hold the results");
   if (!set || !String((set["ftr:assessmentTarget"] || {})["@id"]).includes("/profiles/ndi-baseline")) fail("export: the assessment target is not the chosen profile");
-  if (results.some((result) => !["pass", "fail", "indeterminate"].includes(result["prov:value"]))) fail("export: a result has an unexpected value");
+  if (results.some((result) => !["pass", "fail", "indeterminate"].includes(result["dqv:value"] ?? result["prov:value"]))) fail("export: a result has an unexpected value");
   const k01 = results.find((result) => result["@id"] === "#result-fip.01") || {};
   if (!String(k01["ftr:log"]).includes("Doklad") || !k01["prov:used"]) fail("export: the fip.01 result does not record its evidence: " + JSON.stringify(k01));
   if (!md.includes("Deklarované")) fail("export: the Markdown summary does not carry the evidence behind the answers");
   if (JSON.stringify(exported).includes("file:")) fail("export: the JSON-LD names a local file");
-  // A result of this format names the document the question had as its test in the guide's API, which describes and
-  // links the question. From a local file the page names the configured address, which maps onto the built site.
-  const configured = await page.evaluate(() => window.FairGuide.config.pageUrl);
-  const testRef = String((k01["ftr:outputFromTest"] || {})["@id"] || "");
-  const testFile = testRef.startsWith(configured) ? resolve(root, "_site", testRef.slice(configured.length)) : null;
-  const testRecord = testFile && existsSync(testFile) ? JSON.parse(readFileSync(testFile, "utf8")) : null;
-    if (!testRecord || testRecord.about !== "../questions/fip.01.json") fail("export: the fip.01 result does not name its question's document in the guide's API: " + testRef);
+  // A reader's answer is a quality measurement of the question, not of a fabricated test at api/tests/<question>.
+  // Its IRI stays under the Guide's persistent namespace even when this page is opened from a local file.
+  const questionIri = await page.evaluate(() => window.FairGuide.iri("questions/fip.01"));
+  const measured = (k01["dqv:isMeasurementOf"] || {})["@id"];
+  if (measured !== questionIri || k01["ftr:outputFromTest"] || String(k01["dqv:value"]) !== "indeterminate") {
+    fail("export: the fip.01 result is not the question's DQV measurement: " + JSON.stringify(k01));
+  }
+  if (!k01["@type"].includes("dqv:QualityMeasurement")) fail("export: an answer does not carry dqv:QualityMeasurement");
+  const questionRecord = JSON.parse(readFileSync(resolve(root, "_site/api/v1/questions/fip.01.json"), "utf8"));
+  if (!questionRecord["@type"].includes("ftr:Metric")) fail("export: the measured persistent IRI does not name a metric");
 
   // Local data: each check says where the answers are kept, and how it works.
   await at("K", "fip", "evidence");
   const note = await page.locator(".local-data").textContent();
   if (!note.includes("zůstávají jen v tomto prohlížeči") || !note.includes("Co odchází")) fail("local data: the statement or its explanation is missing on the check");
-  if (!/<!-- fair-guide-result v2 guide=\S+: fip a2\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
+  if (!/<!-- fair-guide-result v4 guide=\S+: fip a2\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
   if (!/<!-- fair-guide-state\n[A-Za-z0-9+/=\n]+\n-->/.test(md)) fail("export: the Markdown summary does not carry the state for loading back");
   const state = JSON.parse(exportedGraph.find((entity) => entity.guideState).guideState);
-  if (state.format !== "eosc-fair-guide-result" || state.v !== 2 || !state.guideVersion) fail("export: the JSON-LD does not declare its format and the guide's version");
+  if (state.format !== "eosc-fair-guide-result" || state.v !== 4 || !state.guideVersion) fail("export: the JSON-LD does not declare its format and the guide's version");
   if (state.fip !== "ndi-baseline" || !state.targetInfo) fail("export: the JSON-LD does not carry the chosen profile and what it is");
 
   // A saved result loads in another browser as a preview, keeps its evidence, and is adopted only on request; a
@@ -1823,7 +1838,7 @@ sections.push(["self-check", async () => {
       }
     };
     await tryLoad(variant("damaged.jsonld", (data) => { data.items["fip.01"].value = "maybe"; }), "poškozený", "load: a damaged file is not reported as damaged");
-    await tryLoad(variant("newer.jsonld", (data) => { data.v = 4; data.guideVersion = "9.0.0"; }), "novější verze", "load: a file from a newer format is not reported");
+    await tryLoad(variant("newer.jsonld", (data) => { data.v = 5; data.guideVersion = "9.0.0"; }), "novější verze", "load: a file from a newer format is not reported");
     /* Revision 3 is assessments; a revision 2 file that claims them is damaged rather than silently partial. */
     await tryLoad(variant("claimed.jsonld", (data) => { data.assessments = [{ id: "f-uji:sha256-00", provider: "f-uji" }]; }), "poškozený", "load: a revision 2 file with assessments is not reported as damaged");
     await view.locator("#load-file-overview").setInputFiles(variant("unknown-item.jsonld", (data) => { data.items["fip.99"] = { value: "yes", origin: "user", prefill: null }; }));
@@ -2024,7 +2039,7 @@ sections.push(["research practice", async () => {
         const saved = fg.selfcheck.portableState(check, state);
         const read = fg.selfcheck.readPortable(saved);
         const crate = fg.selfcheck.ftrCrate(check, state);
-        return { read: Boolean(read.check && read.state), saved: saved.check, results: crate["@graph"].filter((node) => [].concat(node["@type"]).includes("TestResult")).length };
+        return { read: Boolean(read.check && read.state), saved: saved.check, results: crate["@graph"].filter((node) => [].concat(node["@type"]).some((type) => ["TestResult", "dqv:QualityMeasurement"].includes(type))).length };
       }, id);
       if (!roundTrip.read || roundTrip.saved !== id || !roundTrip.results) fail(`${id}: export/import contract failed: ${JSON.stringify(roundTrip)}`);
       await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/check/${id}/report`));
@@ -2095,7 +2110,7 @@ sections.push(["research station links", async () => {
 
 sections.push(["published health and documentation links", async () => {
   const { context, page, external, problems } = await openPage();
-  const health = JSON.parse(readFileSync(resolve(site, "api/health.json"), "utf8"));
+  const health = JSON.parse(readFileSync(resolve(site, "api/v1/health.json"), "utf8"));
   const documents = ["health/index.html", "ro-crate-preview.html", publishedUi.config.vocab.profilePage, "profile/fair-guide/profile.ttl", "terms/index.html", "terms/fair-guide.ttl", "assets/js/tests/index.html"];
   // Data for machines runs from what it offers to what a reader is looking for, a worked example, the Guide's own
   // practice and the endpoints. Each section's IRI ends in its own id, so the order moves none of them.
