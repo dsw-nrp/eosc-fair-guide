@@ -3,7 +3,7 @@
 [glossary]
 source = "Heslář Open Science"
 url = "https://heslar.openscience.cz/"
-retrieved = 2026-10-18
+retrieved = 2026-11-08
 license = "https://creativecommons.org/licenses/by/4.0/"
 # Original Czech definitions, rendered as plain text; English labels are supplied by Heslář.
 
@@ -670,7 +670,7 @@ alternateIds = [{ "scheme" = "heslar", "value" = "211" }]
 guideRoute = "term"
 label = { cs = "repozitář", en = "Repository" }
 url = "https://heslar.openscience.cz/heslo.php?id=211"
-definition = "Informační systém (úložiště) určený k dlouhodobému uchovávání a zpřístupňování digitálních objektů, tj. zajišťující uložení, ochranu, integritu, autenticitu a šíření digitálních objektů v dlouhodobém horizontu, společně s jejich metadatovými záznamy. Odpovědnost za integritu a autenticitu vkládaného objektu nese vkladatel. Repozitář zpravidla objektům přiděluje perzistentní / trvalé identifikátory."
+definition = "Informační systém (úložiště) určený k dlouhodobému uchovávání a zpřístupňování digitálních objektů, tj. zajišťující uložení, ochranu, integritu, autenticitu a šíření digitálních objektů v dlouhodobém horizontu, společně s jejich metadatovými záznamy. Odpovědnost za integritu a autenticitu vkládaného objektu nese vkladatel. Repozitář zpravidla objektům přiděluje perzistentní / trvalé identifikátory.\n\nV ČR, zejména v NRP, jsou obvyklé tři softwarové nástroje:\n\nCESNET Invenio,\n\nCLARIN DSpace,\n\nASEP/ARL."
 definitionLanguage = "cs"
 
 [[term]]
@@ -1003,7 +1003,7 @@ alternateIds = [{ "scheme" = "heslar", "value" = "398" }]
 guideRoute = "term"
 label = { cs = "Národní repozitářová platforma", en = "National Repository Platform" }
 url = "https://heslar.openscience.cz/heslo.php?id=398"
-definition = "Distribuované multiplatformní prostředí pro vytváření a provoz datových repozitářů, opatření ukládaných dat metadaty a napojení na související systémy (výpočetní, analytické, agregační). Účelem platformy je umožnit dlouhodobé uložení a zpřístupnění výzkumných dat s důrazem na jejich strojovou čitelnost a opětovnou využitelnost.\n\nHeslo rovněž figuruje jako část názvu projektu OP JAK Open Science I realizovaný v období 2024–2028: Národní repozitářová platforma pro výzkumná data."
+definition = "Distribuované multiplatformní prostředí pro vytváření a provoz datových repozitářů, opatření ukládaných dat metadaty a napojení na související systémy (výpočetní, analytické, agregační). Účelem platformy je umožnit dlouhodobé uložení a zpřístupnění výzkumných dat s důrazem na jejich strojovou čitelnost a opětovnou využitelnost.\n\nProvozovatelem NRP je CESNET, zájmové sdružení právnických osob.\n\nHeslo rovněž figuruje jako část názvu projektu OP JAK Open Science I realizovaný v období 2024–2028: Národní repozitářová platforma pro výzkumná data."
 definitionLanguage = "cs"
 
 [[term]]
@@ -1121,6 +1121,15 @@ guideRoute = "term"
 label = { cs = "International Generic Sample Number", en = "International Generic Sample Number" }
 url = "https://heslar.openscience.cz/heslo.php?id=411"
 definition = "*nemá český ekvivalent\n\nGlobální persistentní identifikátor hmotných vzorků používaný ve vědě, zejména v geologii, biologii, archeologii a dalších oborech pracujících s hmotnými vzorky. Každému vzorku organizace IGSN e. V. (International Generic Sample Number Organization) přidělí jedinečný a trvalý identifikátor, kterým je zaručeno jeho jednoznačné označení, sdílení a citování v digitálním prostředí. Vyhledání zprostředkuje systém Handle. Organizace IGSN e. V. zajišťuje standardy a koordinaci mezi národními registry.\n\nHlavní charakteristiky:\n\n• Jedinečnost: každý vzorek má unikátní alfanumerický kód.\n\n• Trvalost: IGSN funguje jako perzistentní identifikátor (PID) podobně jako DOI u publikací.\n\n• Interoperabilita: umožňuje propojení vzorků napříč databázemi, institucemi a vědeckými obory.\n\n• Sledovatelnost: umožňuje dohledat původ, umístění, vlastnosti a historii využití vzorku."
+definitionLanguage = "cs"
+
+[[term]]
+id = "git-2"
+alternateIds = [{ "scheme" = "heslar", "value" = "413" }]
+guideRoute = "term"
+label = { cs = "Git", en = "Git" }
+url = "https://heslar.openscience.cz/heslo.php?id=413"
+definition = "Distribuovaný systém správy verzí (Version Control System, VCS), který slouží ke sledování změn v počítačových souborech a ke koordinaci práce více lidí na těchto souborech. Původně byl vytvořen v roce 2005 Linusem Torvaldsem pro vývoj jádra operačního systému Linux.\n\nZákladním principem Gitu je, že se nejedná o centralizovaný, ale o distribuovaný systém. To znamená, že každý uživatel má na svém počítači kompletní kopii celého repozitáře (ICT projektu), včetně úplné historie všech změn. Díky tomu je možné pracovat i offline a zároveň se zvyšuje bezpečnost dat, protože neexistuje jediný bod selhání.\n\nGit se dnes běžně používá ve spojení se softwarovými platformami pro hostování repozitářů (ve smyslu ICT) a týmovou spolupráci, jako jsou GitHub, GitLab, Gitea. Tyto platformy nad samotným Gitem poskytují další funkce, například správu uživatelů, přehledné webové rozhraní, správu issues, code review (revize kódu), CI/CD nebo dokumentaci projektů. Kromě Gitu existují nebo historicky existovaly také další systémy a nástroje pro správu verzí, například Mercurial, CVS (Concurrent Versions System) nebo Subversion (SVN)."
 definitionLanguage = "cs"
 
 [[term]]
@@ -1250,6 +1259,15 @@ definition = "Technologické nástroje, služby, formy spolupráce a zabezpečen
 definitionLanguage = "cs"
 
 [[term]]
+id = "authenticity"
+alternateIds = [{ "scheme" = "heslar", "value" = "432" }]
+guideRoute = "term"
+label = { cs = "autenticita", en = "Authenticity" }
+url = "https://heslar.openscience.cz/heslo.php?id=432"
+definition = "Označuje původnost (pravost, hodnověrnost, ověřenou vlastnost) jakéhokoli objektu nebo subjektu, tj. že jsou tím, za co se prohlašují nebo jak se jeví. Vztahuje se na různé entity (např. uživatele, procesy, objekt včetně digitálního, umělecké dílo, systém, informace aj.)."
+definitionLanguage = "cs"
+
+[[term]]
 id = "data-curator"
 alternateIds = [{ "scheme" = "heslar", "value" = "433" }]
 guideRoute = "term"
@@ -1367,6 +1385,33 @@ definition = "Systém budovaný podle referenčního modelu v souladu s normou I
 definitionLanguage = "cs"
 
 [[term]]
+id = "succession-plan"
+alternateIds = [{ "scheme" = "heslar", "value" = "446" }]
+guideRoute = "term"
+label = { cs = "plán nástupnictví", en = "Succession Plan" }
+url = "https://heslar.openscience.cz/heslo.php?id=446"
+definition = "Plán, jak a kdy bude správa, vlastnictví a / nebo kontrola nad obsahem repozitáře předána následnému repozitáři s cílem zajistit pokračující efektivní uchování tohoto obsahu.\n\nZpravidla se jedná o dokument v podobě například samostatného interního dokumentu, dokumentu jako součásti širší dokumentace nebo formální smlouvy / dohody mezi repozitářem a „nástupnickým\" repozitářem."
+definitionLanguage = "cs"
+
+[[term]]
+id = "appraisal"
+alternateIds = [{ "scheme" = "heslar", "value" = "447" }]
+guideRoute = "term"
+label = { cs = "posouzení", en = "Appraisal" }
+url = "https://heslar.openscience.cz/heslo.php?id=447"
+definition = "Proces určující, zda mají záznamy a jiné materiály trvalou (archivní) hodnotu. Proběhnout může před darováním a před vlastním převodem, při příjmu nebo po něm."
+definitionLanguage = "cs"
+
+[[term]]
+id = "preferred-formats"
+alternateIds = [{ "scheme" = "heslar", "value" = "448" }]
+guideRoute = "term"
+label = { cs = "preferované formáty", en = "Preferred Formats" }
+url = "https://heslar.openscience.cz/heslo.php?id=448"
+definition = "Formáty doporučované nebo vyžadované při ukládání a / nebo sdílení dat, případně formáty, do nichž jsou data konvertována za účelem uchování nebo zpřístupnění s cílem snížení rizika, že se v průběhu času stanou méně čitelnými nebo použitelnými. Mohou zahrnovat de facto standardy používané v rámci konkrétní disciplíny. Často se může jednat o otevřené formáty."
+definitionLanguage = "cs"
+
+[[term]]
 id = "corresponding-author"
 alternateIds = [{ "scheme" = "heslar", "value" = "45" }]
 guideRoute = "term"
@@ -1376,12 +1421,57 @@ definition = "Osoba, která zpracovává rukopis a korespondenci během publika�
 definitionLanguage = "cs"
 
 [[term]]
+id = "fair-implementation-profile"
+alternateIds = [{ "scheme" = "heslar", "value" = "459" }]
+guideRoute = "term"
+label = { cs = "FAIR Implementation Profile", en = "FAIR Implementation Profile" }
+url = "https://heslar.openscience.cz/heslo.php?id=459"
+definition = "*nemá český ekvivalent\n\nSoubor implementačních rozhodnutí – odpovědí na otázky o využití konkrétních zdrojů (FER: slovníků, identifikátorů, standardů, technologií, schémat atd.) společně přijatých specifickou komunitou pro naplnění jednotlivých principů FAIR."
+definitionLanguage = "cs"
+
+[[term]]
 id = "hybrid-journal"
 alternateIds = [{ "scheme" = "heslar", "value" = "46" }]
 guideRoute = "term"
 label = { cs = "hybridní časopis", en = "Hybrid Journal" }
 url = "https://heslar.openscience.cz/heslo.php?id=46"
 definition = "Časopis s běžným předplatným, u kterého vydavatel dává možnost autorům zpřístupnit publikaci v režimu otevřeného přístupu za APC a pod některou z licencí Creative Commons. Část archivu časopisu je tak přístupná pouze pro předplatitele, část může být přístupná veřejně."
+definitionLanguage = "cs"
+
+[[term]]
+id = "fair-enabling-resource"
+alternateIds = [{ "scheme" = "heslar", "value" = "460" }]
+guideRoute = "term"
+label = { cs = "FAIR-Enabling Resource", en = "FAIR-Enabling Resource" }
+url = "https://heslar.openscience.cz/heslo.php?id=460"
+definition = "*nemá český ekvivalent\n\nKonkrétní služba, specifikace nebo datová politika, která slouží k zavedení principů FAIR do praxe, tj. jejich uplatnění. FER poskytuje funkci potřebnou k dosažení určitého aspektu chování FAIR a je výslovně spojena s jedním nebo více principy FAIR.\n\nPříkladem může být DataCite DOI jakožto FER pro zajištění F1, kdy (meta)datům je přiřazen jedinečný a perzistentní identifikátor DOI.\n\nFER jsou zpravidla užívány při definici FIP."
+definitionLanguage = "cs"
+
+[[term]]
+id = "repository-policy"
+alternateIds = [{ "scheme" = "heslar", "value" = "461" }]
+guideRoute = "term"
+label = { cs = "politika repozitáře", en = "Repository Policy" }
+url = "https://heslar.openscience.cz/heslo.php?id=461"
+definition = "Politika repozitáře vydaná jeho zřizovatelem stanoví pravidla a procesy pro ukládání výzkumných dat (např. kdy je uložený záznam v repozitáři považován za finalizovaný a jaké změny záznamu jsou přípustné, či přípustnost ukládání výzkumných dat, která jsou osobními údaji), jejich správu po dobu uložení v repozitáři, ochranu, zpřístupnění a dlouhodobé uchování dat a metadat. Politika obvykle zahrnuje vymezení rolí, odpovědností a podmínek přístupu; bývá nastavena dle potřeb a zvyklostí uživatelské komunity."
+definitionLanguage = "cs"
+
+[[term]]
+id = "nanopublication"
+alternateIds = [{ "scheme" = "heslar", "value" = "462" }]
+guideRoute = "term"
+label = { cs = "nanopublikace", en = "Nanopublication" }
+url = "https://heslar.openscience.cz/heslo.php?id=462"
+definition = "Strojově čitelná a jednoznačně citovatelná jednotka vědecké informace, která obsahuje jeden konkrétní tvrzený fakt, jeho kontext a metadata o jeho původu. Slouží k přesnému a spolehlivému sdílení vědeckých poznatků. Nanopublikace se mj. používá pro zajištění decentralizované důvěryhodnosti publikovaných FER a FIP."
+definitionLanguage = "cs"
+
+[[term]]
+id = "provenance-2"
+alternateIds = [{ "scheme" = "heslar", "value" = "464" }]
+guideRoute = "term"
+label = { cs = "provenience", en = "Provenance" }
+url = "https://heslar.openscience.cz/heslo.php?id=464"
+definition = "Informace dokumentující historii obsahu. Uvádějí původ nebo zdroj obsahu a změny, ke kterým došlo od jeho vzniku, včetně správce obsahu. Pomáhají doložit autenticitu a posilují opětovné použití dat.\n\nRepozitář je odpovědný za vytváření a uchovávání informací o provenienci od okamžiku uložení dat. Informace o předchozí provenienci by měl poskytnout producent."
 definitionLanguage = "cs"
 
 [[term]]
