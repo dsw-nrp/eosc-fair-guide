@@ -412,3 +412,11 @@
   source tree except for the provenance/diagnostic bookkeeping added subsequently, which is rechecked separately.
   Task 4.12 remains open pending the separately approved commit/push and CI on that PR head. No w3id, release,
   namespace-consent or other M4 action has begun.
+- **Verification (M3 CI):** the separately approved commit `3bedc50` was pushed to
+  [dsw-nrp/eosc-fair-guide#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172). The
+  [workflow run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/42472866854) completed successfully with
+  head SHA `3bedc5022acd0e67b3e07de3b2ab33b705ae3ee3`; quick checks, build, all six lanes and the final collector
+  passed.
+- **Close-out (M3 complete):** tasks 4.1–4.12 are complete (**62 of 71**), with local and CI verification on the
+  pushed commit. M4 begins with its separately gated EOSC CZ consent and exact-content registry approval; neither
+  has started, and no live service requests or release action were made here.

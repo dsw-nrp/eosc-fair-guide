@@ -334,7 +334,7 @@ before any M3 task starts.
     `error_page` rule in `docker/nginx.conf`;
   - `npm run check:deployment`, whose server answers a missing path as Pages does, gets status 404 and the page for
     an unknown address.
-- [ ] 4.12 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
+- [x] 4.12 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
   head.
 
 ## 5. w3id registration and release (M4)
