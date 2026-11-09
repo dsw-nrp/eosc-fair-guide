@@ -50,6 +50,7 @@ import argparse
 import difflib
 import hashlib
 import json
+import os
 import re
 import shutil
 import sys
@@ -248,9 +249,21 @@ def rename(work: Path) -> None:
     for name, names in by_file.items():
         path = work / name
         pattern = re.compile("|".join(re.escape(old) for old in sorted(names, key=len, reverse=True)))
-        path.write_text(
-            pattern.sub(lambda match, names=names: names[match[0]], path.read_text(encoding="utf-8")), encoding="utf-8"
-        )
+
+        def replace(match, names=names):
+            return names[match[0]]
+
+        text = path.read_text(encoding="utf-8")
+        sources = {old for old in names if old not in set(names.values())}
+        if any(source in text for source in sources):
+            renamed = pattern.sub(replace, text)
+            if renamed != text:
+                path.write_text(renamed, encoding="utf-8", newline="\n")
+            continue
+        once = pattern.sub(replace, text)
+        if once == text or once == pattern.sub(replace, once):
+            continue  # nothing to rename, or a completed transition: a second application would change the meaning.
+        raise ValueError(f"{name}: cannot determine whether dependent renames are needed")
 
 
 STATEMENTS = tomllib.loads((HERE / "statements.toml").read_text(encoding="utf-8"))
@@ -605,6 +618,23 @@ def copy_checkout(root: Path, work: Path) -> None:
         shutil.copy2(registry, work / ".github" / "source-registry.json")
 
 
+def replace_text(path: Path, text: str) -> None:
+    """Replace one checkout file atomically; a failed write or replacement keeps the previous target intact."""
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w", encoding="utf-8", newline="\n", dir=path.parent, prefix=path.name + ".", suffix=".tmp", delete=False
+        ) as stream:
+            temporary = Path(stream.name)
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
 def migrate(root: Path, dry_run: bool) -> list[str]:
     """Migrate a copy, then write back what changed; return the unified diff."""
     diff: list[str] = []
@@ -620,7 +650,7 @@ def migrate(root: Path, dry_run: bool) -> list[str]:
             name = relative.as_posix()
             diff.extend(difflib.unified_diff(before.splitlines(True), after.splitlines(True), name, name))
             if not dry_run:
-                path.write_text(after, encoding="utf-8", newline="\n")
+                replace_text(path, after)
     return diff
 
 

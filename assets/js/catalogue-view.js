@@ -33,7 +33,7 @@
       excluded: { acceptsDeposits: "derived deposit availability controls the deposit facet; functions and dated status remain visible" },
     },
     infrastructures: {
-      shown: ["abbreviation", "esfriStatus", "infrastructureCharacter", "infrastructurePhase", "source", "memberOf", "name", "nationalNodeOf", "publisher", "researchField", "roadmapLocator", "roadmapSince", "sameAs", "subjectOf", "url"],
+      shown: ["abbreviation", "czechMembershipSince", "esfriStatus", "infrastructureCharacter", "infrastructurePhase", "source", "memberOf", "name", "nationalNodeOf", "publisher", "researchField", "roadmapLocator", "roadmapSince", "sameAs", "subjectOf", "url"],
       excluded: {},
     },
     clauses: {
@@ -269,7 +269,12 @@
       acronym, the facts the roadmap states with where it states them, and three relations kept apart: the European
       infrastructures each is the Czech node of, its ERIC memberships, and the entries it operates. */
   function infrastructureEntries() {
-    return FG.refs(FG.get("#infrastructures"), "about").map((infra) => {
+    const roadmap = FG.refs(FG.get("#infrastructures"), "about");
+    // Registry/roadmap-created European infrastructures also have an entry, not merely a record behind the curated annex.
+    const others = FG.graph.filter(
+      (entity) => FG.kind(FG.apiRecord(entity)) === "infrastructures" && !FG.fragment(FG.apiRecord(entity)) && !roadmap.includes(entity)
+    );
+    return [...roadmap, ...others].map((infra) => {
       const researchField = FG.id(infra.researchField);
       const phase = FG.id(infra.infrastructurePhase);
       const character = FG.id(infra.infrastructureCharacter);
@@ -295,7 +300,12 @@
             title: infra.url ? FG.external(infra.url, name) : name,
             titleFields: "name abbreviation url",
             /* The host is who operates the infrastructure, in the Operated by row as for every kind. */
-            details: [otherName(infra), field("roadmapSince", FG.t("infrastructure.since", { year: infra.roadmapSince })), field("infrastructureCharacter", character ? categoryLabel(character) : null)],
+            details: [
+              otherName(infra),
+              field("czechMembershipSince", infra.czechMembershipSince === "expected" ? FG.t("infrastructure.ericExpected", { name: FG.text(infra.name) }) : infra.czechMembershipSince ? FG.t("infrastructure.ericSince", { name: FG.text(infra.name), year: infra.czechMembershipSince }) : null),
+              field("roadmapSince", infra.roadmapSince ? FG.t("infrastructure.since", { year: infra.roadmapSince }) : null),
+              field("infrastructureCharacter", character ? categoryLabel(character) : null),
+            ],
             states: FG.refIds(infra, "esfriStatus").map((id) => h("span", { class: "badge", "data-field": "esfriStatus" }, FG.termName(id))),
             fields: { basedOn: "source roadmapLocator" },
             relations: {
@@ -717,7 +727,7 @@
             states: FG.verificationBadges(fip),
             fields: { basedOn: "isBasedOn" },
             relations: {
-              declarations: declarationsRow(fip, FG.config.api.records[fip["@id"]].split("/").slice(1).join("/")),
+              declarations: declarationsRow(fip, FG.apiRecord(fip).split("/").slice(1).join("/")),
               basedOn: FG.sourceCredits(fip),
               identifiers: FG.pidItems(fip),
             },
@@ -962,7 +972,7 @@
     };
     kinds.actions = actionEntries(reachOf(kinds));
     for (const entry of Object.values(kinds).flat()) {
-      const address = FG.config.api.records[FG.id(entry.entity)];
+      const address = FG.apiRecord(entry.entity);
       if (!address) throw new Error("Catalogue entry has no build-issued address: " + FG.id(entry.entity));
       entry.address = address;
       entry.kind = FG.catalogueGroup(FG.kind(address));
@@ -1070,7 +1080,7 @@
   /** One entry as a row of an exported list, in the reader's language. */
   function exportRow(entry) {
     const out = entry.export || {};
-    const row = { id: FG.config.api.records[FG.id(entry.entity)], name: out.name || entry.name, text: out.text || "", url: out.url || "", date: String(entry.date || "").slice(0, 10) };
+    const row = { id: FG.apiRecord(entry.entity), name: out.name || entry.name, text: out.text || "", url: out.url || "", date: String(entry.date || "").slice(0, 10) };
     if (out.license) row.license = out.license;
     for (const facet of (KIND_FACETS[entry.kind] || []).filter((item) => !item.hidden)) row[facet.key] = (entry.facets[facet.key] || []).map(facet.label);
     row.stations = entry.stations.map((id) => FG.text((FG.get(FG.address("stations", id)) || {}).name));
@@ -1103,7 +1113,7 @@
       const definition = entry.kind === "glossary" ? FG.refs(entity, "definitionPart")[0] || {} : {};
       const record = FG.recordHref(entity);
       const label = entity.text !== undefined && entity.name === entity.identifier ? "text" : "name";
-      return { "@id": record ? site + record : FG.pageAddress() + FG.catalogueHref(entry.address), "@type": entity["@type"], identifier: FG.config.api.records[FG.id(entity)], [label]: FG.languageMap(entity[label]) || entry.name,
+      return { "@id": record ? site + record : FG.pageAddress() + FG.catalogueHref(entry.address), "@type": entity["@type"], identifier: FG.apiRecord(entity), [label]: FG.languageMap(entity[label]) || entry.name,
         ...(entry.kind === "glossary" && definition.description ? { description: FG.languageMap(definition.description), url: entity.url, license: FG.id(definition.license) } : {}),
         implementationLayers: entry.layers.map((id) => ({ "@id": FG.iri(id) })),
         implementationSeams: entry.seams.map((id) => ({ "@id": FG.iri(id) })) };

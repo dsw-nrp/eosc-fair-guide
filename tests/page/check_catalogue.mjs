@@ -61,7 +61,7 @@ const problems = await page.evaluate(() => {
     }
   }
   /* Every addressed record is a list entry, or the catalogue says where else it shows. */
-  for (const entity of FG.graph.filter((item) => FG.config.api.records[item["@id"]] && !listed.has(item["@id"]))) {
+  for (const entity of FG.graph.filter((item) => FG.apiRecord(item) && !listed.has(item["@id"]))) {
     const kind = FG.kind(entity);
     const types = [].concat(entity["@type"]);
     if (outside[kind] || types.some((type) => (within[FG.catalogueGroup(kind)] || {})[type])) continue;

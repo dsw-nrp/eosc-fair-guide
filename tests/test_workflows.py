@@ -296,6 +296,12 @@ class WorkflowContracts(unittest.TestCase):
         )
         self.assertEqual(steps[0]["with"]["ref"], "${{ github.event.repository.default_branch }}")
 
+    def test_image_health_probe_uses_the_prepared_artifacts_health_path(self) -> None:
+        workflow = (ROOT / ".github/workflows/publish-image.yml").read_text(encoding="utf-8")
+        self.assertIn("HEALTH_PATH=$(cat .cache/image/health-path.txt)", workflow)
+        self.assertIn('"http://127.0.0.1:8080/${HEALTH_PATH}"', workflow)
+        self.assertNotIn("curl -fsS http://127.0.0.1:8080/api/v1/health.json", workflow)
+
     def test_application_package_and_citation_versions_agree(self) -> None:
         guide = tomllib.loads((ROOT / "content/guide.toml").read_text(encoding="utf-8"))["guide"]
         expected = guide["version"]

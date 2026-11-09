@@ -122,6 +122,17 @@ def safe_name(name: str) -> bool:
     )
 
 
+def health_path(files: dict[str, bytes]) -> str:
+    """The one health document layout recognized in this release archive, current or documented predecessor."""
+    candidates = [name for name in (package_site.HEALTH, "api/health.json") if name in files]
+    if len(candidates) != 1:
+        raise AssemblyError(
+            "release archive must contain exactly one recognized health result: "
+            f"{package_site.HEALTH} or api/health.json"
+        )
+    return candidates[0]
+
+
 def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]:
     if not TAG.fullmatch(tag) or not SHA.fullmatch(commit):
         raise AssemblyError("production requires a release tag and full commit SHA")
@@ -155,11 +166,12 @@ def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]
             if stream is None:
                 raise AssemblyError("release archive member is unreadable")
             files[member.name] = stream.read()
-    if "index.html" not in files or package_site.HEALTH not in files:
-        raise AssemblyError("release archive lacks the Guide or health result")
-    if "404.html" not in files:
-        raise AssemblyError("release archive lacks the bilingual 404 page")
-    health = json.loads(files[package_site.HEALTH])
+    health_name = health_path(files)
+    if "index.html" not in files:
+        raise AssemblyError("release archive lacks the Guide")
+    if health_name == package_site.HEALTH and "404.html" not in files:
+        raise AssemblyError("release archive lacks the bilingual 404 page required by the current layout")
+    health = json.loads(files[health_name])
     if health.get("run", {}).get("status") != "passed" or health.get("revision") != commit:
         raise AssemblyError("release archive health does not name the checked commit")
     try:
@@ -261,8 +273,8 @@ def assemble(
         path = output / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
-    if production and not (output / "404.html").is_file():
-        raise AssemblyError("assembled output lacks 404.html despite a complete release archive")
+    if production and package_site.HEALTH in files and not (output / "404.html").is_file():
+        raise AssemblyError("assembled output lacks 404.html despite a complete current-layout release archive")
     return notices
 
 

@@ -22,6 +22,13 @@ the IRI pattern, the profile and the licence.
 - **WHEN** they read what the page offers for queries
 - **THEN** they find the RDF distribution, the profile that defines what they may query and a recipe that answers that question
 
+#### Scenario: A data steward needs a saved-result question definition
+
+- **GIVEN** a saved result from revisions 1 to 3 that names a question-support document
+- **WHEN** the reader compares the accessible endpoint table with the OpenAPI operations
+- **THEN** `/api/tests/{id}.json` appears there alongside the other operations and resolves to the question's retained
+  support document
+
 ### Requirement: The guide signposts itself
 
 The guide's HTML head SHALL carry FAIR Signposting links: the crate and the RDF distribution (`describedby`), the API
@@ -226,10 +233,10 @@ lens, and SHALL replace itself with the full route. An unknown address SHALL say
 
 ### Requirement: Every record has a landing page
 
-Every address the build issues SHALL have a static landing page, `id/<address>.html`, readable without JavaScript.
-It SHALL present the record in both languages, each marked with its language, with one section per part anchored by
-the part's fragment, and SHALL link into the Guide through `#/id/<address>`. A request for an address no record has
-SHALL be answered as not found, with a bilingual page that offers the catalogue search.
+Every address the build issues SHALL have a static bilingual landing page, `id/<address>.html`, readable without
+JavaScript and marked with each language. Every issued direct or nested part and term-set member SHALL have one
+anchored section, and the page SHALL link into the Guide through `#/id/<address>`. A request for an unknown address
+SHALL return a bilingual not-found page that offers the catalogue search and resolves its styles at any depth.
 
 #### Scenario: A reader without scripts
 
@@ -253,6 +260,19 @@ SHALL be answered as not found, with a bilingual page that offers the catalogue 
 - **WHEN** a browser requests the landing page of an address the build has not issued
 - **THEN** the response is not found, and its page says so in both languages and links to the catalogue search
 
+#### Scenario: A nested part has one static target
+
+- **GIVEN** a record whose API issues a nested action or a term-set member under a fragment
+- **WHEN** a reader opens its landing page at that fragment
+- **THEN** exactly one anchored section presents that part, including its nested action or term content
+
+#### Scenario: A deeply nested missing address keeps its styling
+
+- **GIVEN** a browser requesting `/id/resources/no-such-record`
+- **WHEN** the server answers with the shared `404.html`
+- **THEN** the response is not found, its text appears in both languages and both stylesheets resolve and load from the
+  publication's actual root instead of below the missing record
+
 ### Requirement: Landing pages signpost their record
 
 A landing page's head SHALL carry FAIR Signposting links for its record: its persistent IRI (`cite-as`), its API
@@ -263,3 +283,10 @@ record (`describedby`), its type (`type`), its licence (`license`) and the Guide
 - **GIVEN** a harvester that does not run JavaScript
 - **WHEN** it reads the head of DMP.eosc.cz's landing page
 - **THEN** it finds the record's persistent IRI as `cite-as` and its API record as `describedby`, without fetching the Guide page
+
+#### Scenario: An action's type expands to its vocabulary
+
+- **GIVEN** a provenance action whose API record carries `prov:Activity`
+- **WHEN** a harvester reads the action page's `type` links
+- **THEN** it finds `http://www.w3.org/ns/prov#Activity`, and every other compact class expands through its actual
+  established-vocabulary mapping rather than a schema.org fallback

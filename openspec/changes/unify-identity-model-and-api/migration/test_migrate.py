@@ -73,6 +73,55 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(self.results("objects"), ["resources/report"])
         self.assertEqual(migrate.migrate(self.root, dry_run=False), [])
 
+    def test_dependent_renames_do_not_reapply_a_completed_transition(self) -> None:
+        path = self.root / "content" / "duplicates.toml"
+        before = '"term:research-infrastructure"\n"term:research-infrastructure-2"\n'
+        after = '"term:large-research-infrastructure"\n"term:research-infrastructure"\n'
+        path.write_text(before, encoding="utf-8")
+        migrate.rename(self.root)
+        self.assertEqual(path.read_text(encoding="utf-8"), after)
+        # A mixed checkout may request this transition again; a completed result cannot be renamed again.
+        migrate.rename(self.root)
+        self.assertEqual(path.read_text(encoding="utf-8"), after)
+
+    def test_every_interrupted_write_boundary_has_a_byte_identical_retry(self) -> None:
+        source = Path(self.temporary.name) / "legacy"
+        expected_root = Path(self.temporary.name) / "expected"
+        shutil.copytree(self.root, source)
+        shutil.copytree(source, expected_root)
+        migrate.migrate(expected_root, dry_run=False)
+
+        def state(root: Path) -> dict[str, bytes]:
+            return {path.relative_to(root).as_posix(): path.read_bytes() for path in (root / "content").rglob("*.toml")}
+
+        legacy, expected = state(source), state(expected_root)
+        changed = [name for name in expected if expected[name] != legacy[name]]
+        self.assertTrue(changed)
+        actual_replace = migrate.os.replace
+        for boundary in range(1, len(changed) + 1):
+            with self.subTest(boundary=boundary, files=len(changed)):
+                candidate = Path(self.temporary.name) / f"retry-{boundary}"
+                shutil.copytree(source, candidate)
+                calls = 0
+
+                def interrupt(source_path, target_path, boundary=boundary):
+                    nonlocal calls
+                    calls += 1
+                    if calls == boundary:
+                        raise OSError(f"planted interruption at boundary {boundary}")
+                    actual_replace(source_path, target_path)
+
+                with (
+                    mock.patch.object(migrate.os, "replace", side_effect=interrupt),
+                    self.assertRaisesRegex(OSError, "planted interruption"),
+                ):
+                    migrate.migrate(candidate, dry_run=False)
+                for name, data in state(candidate).items():
+                    self.assertIn(data, (legacy[name], expected[name]), f"{name} was only partially written")
+                migrate.migrate(candidate, dry_run=False)
+                self.assertEqual(state(candidate), expected)
+                self.assertEqual(migrate.migrate(candidate, dry_run=False), [])
+
     def test_a_result_that_names_nothing_stops_the_migration(self) -> None:
         provenance = self.root / "content" / "provenance.toml"
         provenance.write_text(

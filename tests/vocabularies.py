@@ -520,10 +520,6 @@ def relation_problems(graphs: Iterable[Graph], base: str) -> list[str]:
         for first, second in pinned_graph().subject_objects(predicate):
             if isinstance(first, URIRef) and isinstance(second, URIRef):
                 declared.add((first, second))
-    declared |= {
-        (URIRef(base + "operates"), URIRef(base + "operatedBy")),
-        (URIRef(base + "operatedBy"), URIRef(base + "operates")),
-    }
     declared = {tuple(sorted(pair, key=str)) for pair in declared}
     found = set()
     for graph in graphs:

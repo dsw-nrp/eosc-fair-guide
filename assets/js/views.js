@@ -1581,7 +1581,7 @@
   function machineTasks() {
     const files = FG.config.api.files;
     const link = (href, label, type) => h("a", { href, type: type || null }, label || href);
-    const example = FG.config.api.records[FG.graph.find((entity) => entity.termCode === "R1.1")["@id"]];
+    const example = FG.apiRecord(FG.graph.find((entity) => entity.termCode === "R1.1"));
     const rows = [
       ["crate", [link("ro-crate-metadata.json", null, "application/ld+json"), " · ", link("ro-crate-preview.html", FG.t("machines.preview"))]],
       ["profile", [link(FG.config.vocab.profilePage, FG.t("machines.profile"), "text/html"), " · ", link("profile/fair-guide/profile.ttl", "Turtle", "text/turtle")]],

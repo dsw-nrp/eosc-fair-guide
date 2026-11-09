@@ -15,6 +15,7 @@ const records = [
   { address: "resources/rdmkit", route: "/catalogue/resources/rdmkit", title: "RDMkit" },
   { address: "stations/plan", route: "/catalogue/stations/plan", title: "Plán" },
   { address: "repositories/zenodo", route: "/catalogue/repositories/zenodo", title: "Zenodo" },
+  { address: "infrastructures/hl-lhc", route: "/catalogue/infrastructures/hl-lhc", title: "HL-LHC" },
 ];
 const results = [];
 
@@ -59,6 +60,17 @@ for (const width of [1280, 390]) {
   }
 }
 
+for (const width of [1280, 390]) {
+  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width, height: 1000 } });
+  const actionPage = await context.newPage();
+  await actionPage.goto(pathToFileURL(resolve(site, "id/pages/live-check.html")).href + "#quick-deep-action");
+  assert(await actionPage.locator("#quick-deep-action").isVisible(), `nested quick-deep action is visible at ${width}px`);
+  await actionPage.screenshot({ path: resolve(shots, `pages-live-check-action-${width}.png`), fullPage: false });
+  await actionPage.emulateMedia({ media: "print" });
+  assert(await actionPage.locator("#quick-deep-action").isVisible(), `nested action remains visible in print at ${width}px`);
+  await context.close();
+}
+
 for (const record of records) {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const staticPage = await context.newPage();
@@ -80,6 +92,7 @@ for (const record of records) {
   }
   await page.waitForSelector("#main h1");
   assert((await page.locator("#main").innerText()).includes(record.title), `${record.address}: the record content is visible`);
+  await page.screenshot({ path: resolve(shots, `${record.address.replace("/", "-")}-catalogue.png`), fullPage: false });
   assert.deepEqual(problem, [], `${record.address}: Guide route has no JavaScript error`);
   await page.close();
 }

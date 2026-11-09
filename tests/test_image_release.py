@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import io
 import json
 import shutil
 import sys
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,6 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import assemble_pages  # noqa: E402
 import build_crate  # noqa: E402
 import image_release  # noqa: E402
 import package_site  # noqa: E402
@@ -66,6 +70,36 @@ class ImageReleaseTests(unittest.TestCase):
         self.artifact = self.root / "artifact"
         package_site.package(self.site, COMMIT, self.artifact, self.root)
 
+    def rewrite_artifact(self, files: dict[str, bytes]) -> None:
+        """Replace the packaged bytes and digest together, keeping the release's verified identity intact."""
+        manifest_path = self.artifact / "manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode="w:gz") as packed:
+            for name, data in sorted(files.items()):
+                entry = tarfile.TarInfo(name)
+                entry.size = len(data)
+                packed.addfile(entry, io.BytesIO(data))
+        data = buffer.getvalue()
+        digest = hashlib.sha256(data).hexdigest()
+        (self.artifact / manifest["archive"]).write_bytes(data)
+        (self.artifact / (manifest["archive"] + ".sha256")).write_text(f"{digest}  {manifest['archive']}\n")
+        manifest["sha256"] = digest
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    def predecessor_files(self) -> dict[str, bytes]:
+        """A real predecessor-shaped archive: old health and status, with no generated 404."""
+        files = assemble_pages.production_files(self.artifact, TAG, COMMIT)
+        files["api/health.json"] = files.pop(package_site.HEALTH)
+        del files["404.html"]
+        crate = json.loads(files[build_crate.CRATE_FILE])
+        for node in crate["@graph"]:
+            node.pop("releaseStatus", None)
+            if node["@id"] in ("./", "#guide-software"):
+                node["creativeWorkStatus"] = self.built["status"]
+        files[build_crate.CRATE_FILE] = json.dumps(crate).encode()
+        return files
+
     def test_exact_verified_bytes_and_repeat_preparation(self) -> None:
         context = self.root / "image"
         for _ in range(2):
@@ -75,7 +109,27 @@ class ImageReleaseTests(unittest.TestCase):
                     self.assertEqual((context / "site" / path.relative_to(self.site)).read_bytes(), path.read_bytes())
             self.assertFalse((context / "site" / build_crate.SITE_MARKER).exists())
             self.assertEqual((context / "publication-url.txt").read_text().strip(), self.publication_url)
+            self.assertEqual((context / "health-path.txt").read_text(), "api/v1/health.json\n")
         image_release.verify(self.health, self.built, COMMIT, self.config)
+
+    def test_predecessor_schema_preparation_and_health_probe(self) -> None:
+        files = self.predecessor_files()
+        self.rewrite_artifact(files)
+        context = self.root / "image"
+        for _ in range(2):
+            self.assertEqual(image_release.prepare(self.artifact, context, TAG, COMMIT, self.root), self.built)
+            self.assertEqual((context / "health-path.txt").read_text(), "api/health.json\n")
+            for name, data in files.items():
+                self.assertEqual((context / "site" / name).read_bytes(), data, name)
+            self.assertFalse((context / "site/404.html").exists())
+        image_release.verify(self.health, self.built, COMMIT, self.config)
+
+    def test_ambiguous_health_layout_is_refused(self) -> None:
+        files = self.predecessor_files()
+        files[package_site.HEALTH] = json.dumps(self.health).encode()
+        self.rewrite_artifact(files)
+        with self.assertRaisesRegex(ValueError, "exactly one recognized health result"):
+            image_release.prepare(self.artifact, self.root / "image", TAG, COMMIT, self.root)
 
     def test_publication_url_is_verified_and_legacy_archives_are_not_rewritten(self) -> None:
         path = self.artifact / "manifest.json"

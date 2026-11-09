@@ -1337,6 +1337,7 @@ docs = { cs = "Interaktivní dokumentace API", en = "Interactive API documentati
 endpoints = { cs = "Koncové body API", en = "API endpoints" }
 record = { cs = "JSON", en = "JSON" }
 recordTitle = { cs = "Záznam v API Průvodce", en = "Record in the Guide's API" }
+savedResult = { cs = "Otázka v uloženém výsledku", en = "Question in a saved result" }
 
 [api.test]
 contextDescription = { cs = "Tato položka vysvětluje kontext původního zdroje. Nepředstavuje samostatné hodnotitelné kritérium.", en = "This item explains the original source's context. It does not represent a separate assessable criterion." }

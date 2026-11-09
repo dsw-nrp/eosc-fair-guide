@@ -164,15 +164,25 @@ assert(reused.firstScans > 0 && reused.changedScans > 0, "initial and invalidate
 assert.equal(reused.repeatedScans, 0, "unchanged filters do not rebuild catalogue entries");
 assert(reused.fresh, "cached descriptors must not reuse live card nodes");
 console.log("catalogue reuse measurement: " + JSON.stringify(reused));
-const searches = await page.evaluate(() => {
+  const searches = await page.evaluate(async () => {
   const FG = window.FairGuide, original = FG.search.find;
   let calls = 0;
   FG.search.find = (...args) => { calls++; return original(...args); };
   try {
     const form = FG.search.form();
     form.querySelector("input").value = "metadata";
+    const results = form.querySelector("#search-results");
+    const complete = new Promise((resolve) => {
+      const observer = new MutationObserver(() => {
+        if (!results.childElementCount) return;
+        observer.disconnect();
+        resolve();
+      });
+      observer.observe(results, { childList: true });
+    });
     form.dispatchEvent(new Event("submit", { cancelable: true }));
-    return { calls, rendered: Boolean(form.querySelector("#search-results").childElementCount) };
+    await complete;
+    return { calls, rendered: Boolean(results.childElementCount) };
   } finally { FG.search.find = original; }
 });
 assert.equal(searches.calls, 1, "result rendering and the announced count share one search");

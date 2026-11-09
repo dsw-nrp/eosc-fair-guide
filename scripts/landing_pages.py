@@ -11,8 +11,10 @@ import html
 import posixpath
 import re
 from typing import Any
+from urllib.parse import urlsplit
 
-LANGUAGES = ("cs", "en")
+import build_crate as kb
+
 LABELS = {
     "kind": {"cs": "Druh", "en": "Kind"},
     "identifier": {"cs": "Identifikátor Průvodce", "en": "Guide identifier"},
@@ -25,19 +27,8 @@ LABELS = {
     "guide": {"cs": "Otevřít v Průvodci", "en": "Open in the Guide"},
     "source": {"cs": "Vychází z", "en": "Based on"},
     "license": {"cs": "Licence", "en": "Licence"},
-    "description": {"cs": "Text", "en": "Text"},
 }
-PART_PROPERTIES = (
-    "hasPart",
-    "records",
-    "potentialAction",
-    "alternateIdentifier",
-    "definitionPart",
-    "quotedDefinition",
-    "prefillMapping",
-    "qualifiedRelation",
-    "review",
-)
+COMPACT_PREFIXES = {prefix.removesuffix(":"): base for base, prefix in kb.CLASS_PREFIXES if prefix}
 IDENTITY_PROPERTIES = {
     "@context",
     "@id",
@@ -71,15 +62,25 @@ class RecordPages:
             if not (path.startswith("api/v1/") and path.endswith(".json")):
                 continue
             self.records[path] = record
-            for key in PART_PROPERTIES:
-                for part in self.items(record.get(key)):
-                    local = self.resolve(path, part)
-                    if local and local[1]:
-                        self.parts[local] = part
+            for part in self.walk(record):
+                local = self.resolve(path, part)
+                if local and local[1]:
+                    self.parts[local] = part
 
     @staticmethod
     def items(value: Any) -> list[Any]:
         return value if isinstance(value, list) else [value]
+
+    @staticmethod
+    def walk(value: Any):
+        """Every nested object, in document order, so the same part set drives labels, links and anchored sections."""
+        if isinstance(value, dict):
+            yield value
+            for child in value.values():
+                yield from RecordPages.walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                yield from RecordPages.walk(child)
 
     def text(self, value: Any, language: str, here: str = "api/v1/index.json") -> str:
         """Localized text from an API value, without inventing a translation."""
@@ -163,6 +164,8 @@ class RecordPages:
             prefix, _, local = value.partition(":")
             if prefix == "guide":
                 return self.api.content["guide"]["guide"]["vocabularyBase"] + local
+            if prefix in COMPACT_PREFIXES:
+                return COMPACT_PREFIXES[prefix] + local
             context = self.api.crate["@context"][1]
             if prefix in context:
                 return context[prefix] + local
@@ -223,19 +226,17 @@ class RecordPages:
         )
 
     def render_parts(self, here: str, record: dict[str, Any]) -> str:
-        """One anchored section per owned fragment; its two language versions sit inside, without duplicate IDs."""
+        """One anchored section per issued direct or nested fragment; the shared languages share no duplicate ID."""
         groups: dict[str, dict[str, Any]] = {}
-        for key in PART_PROPERTIES:
-            for part in self.items(record.get(key)):
-                if not isinstance(part, dict):
-                    continue
-                local = self.resolve(here, part)
-                if local and local[1] and local[0] == self.api_location(here):
-                    groups.setdefault(local[1], part)
+        for part in self.walk(record):
+            if not isinstance(part, dict):
+                continue
+            local = self.resolve(here, part)
+            if local and local[1] and local[0] == self.api_location(here):
+                groups.setdefault(local[1], part)
         return "".join(
             f'<section class="detail-record part" id="{html.escape(fragment, quote=True)}">'
-            + self.part_section(here, part, fragment, "cs", wrapper="div")
-            + self.part_section(here, part, fragment, "en", wrapper="div")
+            + "".join(self.part_section(here, part, fragment, language, wrapper="div") for language in kb.LANGS)
             + "</section>"
             for fragment, part in groups.items()
         )
@@ -344,16 +345,20 @@ class RecordPages:
             + html.escape(self.relative(page, "assets/css/app.css"), quote=True)
             + '">\n'
             '</head>\n<body>\n<main class="wrap">\n'
-            + self.language_record(page, record, address, "cs")
-            + self.language_record(page, record, address, "en")
+            + "".join(self.language_record(page, record, address, language) for language in kb.LANGS)
             + parts
             + f'<nav aria-label="Guide"><p>{guide}</p></nav>\n</main>\n</body>\n</html>\n'
         )
 
 
 def error_page(api: Any) -> str:
-    """The channel-neutral not-found page. Its catalogue link is absolute by publication policy."""
+    """The channel-neutral not-found page. Its catalogue link and assets use the publication's actual root."""
+    root = urlsplit(api.content["guide"]["guide"]["pageUrl"]).path
     catalogue = api.content["guide"]["guide"]["pageUrl"] + "index.html#/cs/V/catalogue"
+    stylesheets = "".join(
+        f'<link rel="stylesheet" href="{html.escape(root + path, quote=True)}">'
+        for path in ("assets/css/tokens.css", "assets/css/app.css")
+    )
     return (
         '<!doctype html>\n<html lang="cs"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
@@ -361,8 +366,8 @@ def error_page(api: Any) -> str:
         '<meta http-equiv="Content-Security-Policy" content='
         "\"default-src 'self'; style-src 'self'; script-src 'none'; object-src 'none'; base-uri 'none'\">"
         "<title>404 — Nenalezeno / Not found</title>"
-        '<link rel="stylesheet" href="assets/css/tokens.css"><link rel="stylesheet" href="assets/css/app.css">'
-        '</head><body><main class="wrap"><h1>404 — Nenalezeno / Not found</h1>'
+        + stylesheets
+        + '</head><body><main class="wrap"><h1>404 — Nenalezeno / Not found</h1>'
         '<p lang="cs">Zadaná adresa nevede k žádnému záznamu v katalogu Průvodce.</p>'
         '<p lang="en">This address does not identify an entry in the Guide’s catalogue.</p>'
         f'<p><a href="{html.escape(catalogue, quote=True)}">Hledat v katalogu / Search the catalogue</a></p>'

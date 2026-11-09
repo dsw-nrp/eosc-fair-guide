@@ -68,6 +68,13 @@ failure, and no node falls in two disjoint classes. Decisions 4, 6, 8, 13, 14 an
   `tests.ostrails.eu` use SIO's `http` IRI, so neither a SIO consumer nor a consumer of real FTR records finds the
   Guide's links.
 
+**Implementation review (2026-11-08, head `623b5f7`).** Eighteen verified findings cover incomplete identity and
+fragment publication, mixed-version release and migration failures, and smaller integration, performance and retired-code
+issues. The independent coverage checks exposed a shared weakness in the existing tests: several expected sets came from
+the same filtered projection as the implementation, so omitted records stayed invisible. Decision 24 records the release
+layout transition; decisions 11, 17 and 19 now include the corresponding independent guards. CORR-002 is pre-existing
+and is not assigned to this change.
+
 The approach is bound by these constraints:
 
 - **Static hosting.** GitHub Pages serves files only and ignores query strings. Anything that filters or shapes a
@@ -389,6 +396,18 @@ openapi.json                          one list and one record operation per kind
 | tests | scope (provider), metric, principles |
 | principles, stations, checks, others | their position and a summary label |
 
+- **Every issued address is published.** One enumeration covers organizations and infrastructures created by registry
+  joins, named agents and the roadmap just as it covers curated entries; no curated-ID filter narrows it. An independent
+  test derives the expected API record and landing-page set from the crate's issued IRIs rather than from that
+  enumeration itself.
+- **Filter metadata is truthful.** A collection advertises a default filter field only where its summaries supply it;
+  the OpenAPI enum comes from the same decision. This prevents position and term-position fields becoming documented
+  filters when no summary can supply them.
+- **Build work is bounded by the graph, not repeated per record.** The registry-record index is constructed once per API
+  instance. Schema options repeated by object identity are removed before the existing structural JSON deduplication,
+  preserving semantic equality and byte-identical generated files. Tests assert both call counts and unchanged output.
+- **Generated HTML stays out of sources.** The generated-output guard covers the root `404.html` and every
+  `id/<address>.html`, with negative fixtures at the repository root and at a nested record path.
 - **`acceptsDeposits`** is `false` or absent. Absence means unknown, never acceptance (*Repository and registry
   functions*), so no list entry carries `true`, and the schema and the documentation say so.
 - **Records** refer to vocabulary terms by address, with the term set published once, instead of embedding them;
@@ -535,6 +554,11 @@ openapi.json                          one list and one record operation per kind
   - provenance `results` and `objects`, model association targets and the worked example's steps, as addresses
     that name the same published items;
   - the 55 statement merges through `requirement` (decision 10).
+- **Retry is safe from mixed states.** Reassignment and dependent renames accept a file only in a recognized old or new
+  state, so a completed rename cannot be applied a second time after interruption leaves old and new files together.
+  Every changed file is written to a same-directory temporary file and replaced atomically. Fault injection at each
+  write boundary proves that retry completes byte-for-byte like an uninterrupted run; the existing second-run test is
+  not sufficient evidence of this.
 - **The register** keys every issued ID by its record kind, and its value is the address without the kind:
   `vocabularies` holds `lenses/V`, `modes-dataset/before` and `profiles-gate/core-system`; `callouts` holds
   `sensitive-data` and its items as parts, `sensitive-data#steward`; `stations` holds the model contexts as
@@ -593,21 +617,30 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=30
 ### 19. Record landing pages
 
 - **One document per address.** The build writes `id/<address>.html` for every address it issues, in the same loop
-  that writes the API records. It is static and bilingual: Czech first, each language marked with `lang`, as the
-  page's `noscript` text already is. It needs no JavaScript and makes no request beyond its own stylesheet.
+  that writes the API records. It is static and bilingual from the builder's shared language configuration, Czech first,
+  each language marked with `lang`, as the page's `noscript` text already is. It needs no JavaScript and makes no
+  request beyond its own stylesheet.
 - **Content.** A fixed set of fields taken from the API record it signposts:
   - name, text and kind, the Guide-identifier chip and external identifiers;
   - status with its date, where the kind has one;
-  - one section per part, anchored by the part's fragment (`#knav`, `#step-2`, `#action`), with each registry
+  - one section per issued part, anchored by the part's fragment (`#knav`, `#step-2`, `#action`), with each registry
     record's attribution and licence;
   - links to related records' landing pages.
+- **Every nested fragment exists.** One recursive walker indexes and renders direct and nested parts, including nested
+  actions and vocabulary members. An independent test compares every fragment the API issues with exactly one static
+  target, instead of looking only at direct record parts. Ineffective secondary language and description settings go.
 - **Signposting.** The head carries `cite-as` (the record's IRI), `describedby` (its API record, typed
-  `application/ld+json`), `type`, `license` and `collection` (the Guide). The Guide root keeps its own links.
+  `application/ld+json`), `type`, `license` and `collection` (the Guide). The Guide root keeps its own links. Compact
+  classes expand through the established class-prefix mappings, so `prov:Activity` becomes
+  `http://www.w3.org/ns/prov#Activity`, never a fabricated schema.org IRI; the other compact types follow the same
+  mappings.
 - **Into the Guide.** "Otevřít v Průvodci" / "Open in the Guide" links to `<root>index.html#/id/<address>` with an
   explicit `index.html`, so it works from `file://` too; the route applies the reader's language and lens (decision
   15).
 - **Unknown addresses.** The build writes a bilingual `404.html` that says no catalogue entry has the address and
-  links to the catalogue search. Pages serves it for any missing path; `docker/nginx.conf` adds
+  links to the catalogue search. Stylesheets resolve from the validated publication path, including a project subpath,
+  rather than below the missing record's URL. A nested missing-address check requires the 404 status, bilingual text and
+  successful loading of both stylesheets. Pages serves it for any missing path; `docker/nginx.conf` adds
   `error_page 404 /404.html`.
 - **Discovery.** The production sitemap lists every landing page with an absolute, fragment-free URL. Preview pages
   under `next/` get `noindex` and the preview notice from assembly, like every preview page, and stay out of it.
@@ -725,11 +758,27 @@ resources/eosc-cz-node
 - **Alternative rejected:** following FTR's `https` form. It matches one ontology file's error, while SIO and the
   FTR records published by FAIR Champion use the `http` form.
 
+### 24. Verified artifacts across schema transitions
+
+- **One recognized layout at a time.** Current artifacts carry `api/v1/health.json`, `releaseStatus` and the generated
+  bilingual 404. Documented predecessor artifacts carry `api/health.json` and `creativeWorkStatus`, and need no 404.
+  Assembly and image preparation accept either layout, preserve the verified bytes and reject a mixed or missing
+  layout before replacing output. A current 404 is required only for the current layout.
+- **The artifact supplies its own contract.** Release identity reads the status field found in that layout, and the
+  candidate image probes the health path found in the archive instead of assuming API v1. These are readers of
+  already verified artifacts, not compatibility API documents, so the route-baseline rule is unchanged.
+- **Independent old/new evidence.** Tests supply genuine current-shape and predecessor-shape archives through Pages
+  assembly, image preparation and health verification, including the previous health path and no-404 case. No live
+  release establishes this compatibility.
+- **Alternative rejected:** invoking historical tooling for each old artifact. That adds another checkout and trust
+  boundary and makes an ordinary retry more complex without improving byte preservation.
+
 ## Risks / Trade-offs
 
-- [The migration touches almost every content file, and review cannot read it line by line] → It is one idempotent
-  script with a dry-run. The reviewer checks the script, its tests and a sampled diff per kind. The build refuses
-  dangling or ambiguous addresses.
+- [The migration touches almost every content file, and interruption can leave a mixed checkout] → It is one
+  state-aware, idempotent script with a dry-run and atomic replacement per changed file. Fault injection covers every
+  write boundary and retry; the reviewer also checks the script and a sampled diff per kind. The build refuses dangling
+  or ambiguous addresses.
 - [The w3id merge is in other people's hands, and EOSC CZ must agree to the `eosc-cz` folder] → Ask EOSC CZ first,
   together with #32's address question. Production keeps its namespace until the redirect is merged (spec: *A
   namespace switch is released only with a registered redirect*), so the release waits rather than shipping IRIs
@@ -742,8 +791,9 @@ resources/eosc-cz-node
 - [Pages serves one `404.html` for the whole site, preview included, and production's bytes come from the release]
   → The page names no channel. It is served at any depth, so it links to the catalogue search by an absolute
   address from the build's publication location, never relative to itself.
-- [About as many small HTML files as API records enlarge the site] → They are static and short; task 1.1's recount
-  gives the number, and the release size is checked in the M3 pull request.
+- [Complete identity enumeration adds records the initial API projection omitted] → Independent graph-to-document
+  coverage tests prove that every issued address exists without deriving the expected set from that same projection;
+  the normal page-payload budget, both-language views and release size are checked again.
 - [A third-party SKOS alignment in our vocabulary document could be read as overreach] → It is stated as
   subclass/subproperty axioms in the Guide's own document, never as equivalence, and the document says so.
 - [Dropping `name` where it repeats the identifier removes a label some tools display] → The `identifier` and the
@@ -752,6 +802,9 @@ resources/eosc-cz-node
   remaining prefix test. The full browser suite runs in both languages, at phone width and in print.
 - [Saved results from alpha releases point at the old host path] → `api/tests/<question>.json` keeps being generated
   at the same relative path, and the loader maps them.
+- [The default branch changes while previous production still uses the predecessor layout] → Assembly and image
+  preparation recognize current and predecessor artifacts independently, reject ambiguous layouts before output, and
+  test both through their own health and status evidence. Verified production bytes are never rewritten.
 - [The build figures were measured on `1ec02bd`, before its last review rounds] → Task 1.1 recounted both builds
   with one script and found no change (*Context*). Later tasks verify their counts against the actual build.
 - [A named agent that resolves to a service makes a resource or repository the `publisher` of a work, where a reader
@@ -789,7 +842,8 @@ resources/eosc-cz-node
                     measurements, the EOSC CZ Node as a platform
       |
  M3 access          API v1, OpenAPI templates, health under operations, N-Triples, recipes and their CI,
-                    record landing pages, 404 page and sitemap, machines page, saved-result revision 4
+                    record landing pages, 404 page and sitemap, machines page, saved-result revision 4;
+                    complete issued records, nested fragment guards, compatible release readers and safe retries
       |
  M4 w3id + release  EOSC CZ consent, approved submission, registry merge, probe and runbook,
                     the release that switches production

@@ -430,10 +430,18 @@
   FG.exports = [];
   FG.offerExport = (entry) => FG.exports.push(entry);
 
+  /* The namespace is shared configuration, not a prefix in every lookup key; both local addresses and full IRIs work. */
+  FG.apiRecord = function (value) {
+    const id = String(FG.id(value) || "");
+    if (id.includes("#")) return undefined;
+    const base = FG.config.namespace ? FG.config.namespace + "id/" : "";
+    const key = id.startsWith(base) ? id.slice(base.length) : id;
+    return FG.config.api?.records[key];
+  };
   /** An entity's record in the guide's API, as a path under the page; null where it has none. */
   FG.recordHref = function (entity) {
     const api = FG.config.api;
-    const record = api && api.records[FG.id(entity)];
+    const record = api && FG.apiRecord(entity);
     return record ? api.files.record.replace("{record}", record) : null;
   };
 

@@ -142,6 +142,11 @@ class LocalTestRecords(unittest.TestCase):
     def test_individual_documentation_is_generated_from_the_registry_in_both_languages(self) -> None:
         template = (ROOT / build_site.LOCAL_TEST_DOC).read_text(encoding="utf-8")
         self.assertTrue(all(not match.group("body").strip() for match in build_crate.BLOCK.finditer(template)))
+        for identifier in ("&lt;identifikátor&gt;", "&lt;identifier&gt;"):
+            self.assertIn(f"api/v1/tests/guide/{identifier}.json", template)
+        self.assertIn('href="../../../api/v1/tests.json"', template)
+        self.assertNotIn("api/tests/&lt;", template)
+        self.assertNotIn('href="../../../api/tests.json"', template)
         document = build_site.render_test_docs(template, self.content)
         for test in self.content["live"]["test"]:
             self.assertEqual(test["documentation"], f"assets/js/tests/index.html#{test['id']}")

@@ -27,6 +27,20 @@ operation per kind and response.
 - **WHEN** a developer opens the OpenAPI description
 - **THEN** each kind has one list and one record operation with a path parameter, every published record file matches one described template, and no operation names a single record
 
+#### Scenario: Every issued identity has an API record
+
+- **GIVEN** an organization or infrastructure identity issued through a registry join, named agent or roadmap relation
+- **WHEN** the API is built
+- **THEN** its kind's list contains that identity and its record resolves at the issued address, without depending on a
+  separate curated entry
+
+#### Scenario: Filter metadata matches list summaries
+
+- **GIVEN** a kind whose compact summaries do not supply a default position or term-position field
+- **WHEN** a client reads its list metadata and the corresponding OpenAPI schema
+- **THEN** only fields the summaries can filter on are advertised, both surfaces agree, and no position is invented to
+  fill the gap
+
 ### Requirement: Content addressed relative to the site
 
 API files SHALL link the guide's own records and each other relative to the referring file, never by the site's
@@ -76,6 +90,51 @@ definitions in both.
 - **GIVEN** F-UJI, whose results the Guide reads from imported reports
 - **WHEN** the graph is built
 - **THEN** each F-UJI criterion is published as F-UJI's FTR metric, not as an FTR test
+
+### Requirement: Local automated criteria are inspectable test records
+
+Every local automated criterion SHALL have a stable issued identifier, bilingual description of its
+observations and limits, a named callable implementation and links to the question it supports.
+The catalogue and API SHALL expose these Test records. Executable source and documentation SHALL be
+attached files in the RO-Crate. Shared algorithm files MAY implement multiple named criteria.
+
+#### Scenario: Inspecting a local software test
+
+- **GIVEN** a software question with a local prefill rule
+- **WHEN** the reader inspects its test record
+- **THEN** the record identifies the criterion, its source code and documentation and the limited evidence it derives, without claiming external certification or successful execution of the inspected software
+
+#### Scenario: Following local-test documentation
+
+- **GIVEN** the bilingual local-test documentation and one of its criteria
+- **WHEN** a reader follows the criterion's API record or the test collection link
+- **THEN** the record resolves at `api/v1/tests/guide/<id>.json` and the collection at `api/v1/tests.json`, while the
+  separate saved-result support documents remain distinct from local criteria
+
+### Requirement: Content is authored in source files and generated
+
+Content SHALL be authored in TOML source files. A generator that uses only the Python standard library SHALL
+produce the crate, the page's data scripts, the crate preview and the API files. Generated files SHALL NOT be
+committed: pull requests carry authored files only, and the site is built from them in the pull-request checks
+and at deployment. Reviewed snapshots of external sources are authored input and stay committed.
+
+#### Scenario: Edited source
+
+- **GIVEN** a pull request that changes a TOML source file
+- **WHEN** the checks run
+- **THEN** they build the site from the sources, validate the built crate, API and page, and fail with the reason if the build or a validation fails
+
+#### Scenario: Generated file in a pull request
+
+- **GIVEN** a pull request that adds a built crate or API file to the repository
+- **WHEN** the hygiene check runs
+- **THEN** it fails and names the generated file
+
+#### Scenario: Generated HTML in a pull request
+
+- **GIVEN** a pull request that adds root `404.html` or a nested `id/<address>.html` built alongside API records
+- **WHEN** the content check examines tracked files
+- **THEN** it refuses the generated HTML and does not reject an authored HTML page
 
 ### Requirement: One entry per real-world thing
 
@@ -476,6 +535,12 @@ change in place; from `1.0.0` a change SHALL follow the published deprecation ru
 - **GIVEN** a clause without its kind, a resource without its type, or a repository without its kind, address and NKR page
 - **WHEN** the profile validates the graph
 - **THEN** it refuses the node, because its shape selects it by class and requires what it lacks
+
+#### Scenario: A declaration loses its required status
+
+- **GIVEN** a FIP whose `hasPart` names a declaration without `declarationStatus`
+- **WHEN** the profile validates the graph
+- **THEN** it refuses the declaration, because the nested status is required as well as the FIP's own status
 
 #### Scenario: A consumer starts from a recipe
 

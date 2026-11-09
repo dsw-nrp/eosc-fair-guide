@@ -77,6 +77,12 @@ class ProfileModelTests(unittest.TestCase):
         status = URIRef(self.terms + "fipStatus")
         self.planted(removed=tuple((fip, status, value) for value in self.crate.objects(fip, status)))
 
+    def test_a_fip_declaration_without_its_own_status_is_refused(self) -> None:
+        fip = next(self.crate.subjects(URIRef(self.terms + "fipStatus"), None))
+        declaration = next(self.crate.objects(fip, URIRef(SCHEMA + "hasPart")))
+        status = URIRef(self.terms + "declarationStatus")
+        self.planted(removed=tuple((declaration, status, value) for value in self.crate.objects(declaration, status)))
+
     def test_a_status_string_is_refused(self) -> None:
         clause = URIRef(iri("clauses/A.F1.R1"))
         status = URIRef(self.terms + "clauseStatus")

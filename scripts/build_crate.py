@@ -3942,8 +3942,6 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
     is unique within its collection and safe as a path segment. The manual tests of the check questions are added by
     the API build."""
     base = content["guide"]["guide"]["recordBase"]
-    own_organizations = {row["id"] for row in content["guide"].get("organization", [])}
-    roadmap = {row["id"] for row in (content.get("infrastructures") or {}).get("infrastructure", [])}
     records: dict[str, list[tuple[str, str]]] = {name: [] for name in API_COLLECTIONS}
     for entity_id, entity in entities.items():
         address = record_address(entity_id, base)
@@ -3954,12 +3952,7 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
         except ValueError as error:
             raise ContentError(f"{entity_id}: {error}") from error
         collection = API_KIND_COLLECTIONS.get(kind)
-        if (
-            collection is None
-            or (kind == "vocabularies" and "DefinedTermSet" not in as_list(entity.get("@type")))
-            or (kind == "organizations" and identifier not in own_organizations)
-            or (kind == "infrastructures" and identifier not in roadmap)
-        ):
+        if collection is None or (kind == "vocabularies" and "DefinedTermSet" not in as_list(entity.get("@type"))):
             continue
         record = "/".join(address.split("/")[1:])
         if not all(API_ID.fullmatch(part) for part in record.split("/")):
@@ -4274,7 +4267,6 @@ def part_fragment(key: str, entity: dict[str, Any], whole: str) -> str:
     """A part's fragment under its whole: a name for what it is to the whole, or the rest of its build key after the
     whole's, which for a page section is its own id."""
     named = {
-        "#entry-localtest-": lambda: "entry-point",
         "#mapping-": lambda: "mapping-" + key.removeprefix("#mapping-" + whole.removeprefix("#criterion-") + "-"),
         "#node-membership-": lambda: "membership-" + key.removeprefix("#node-membership-"),
         "#model-context-": lambda: "context-" + str(entity.get("identifier", "")).rsplit(".", 1)[-1],
@@ -4405,6 +4397,8 @@ def is_generated(path: str) -> bool:
     """Whether a repository path is build output: a generated file, or a JSON file of the API."""
     return (
         path in GENERATED
+        or path == "404.html"
+        or (path.startswith("id/") and path.endswith(".html"))
         or (path.startswith("api/") and path.endswith((".json", ".jsonld")))
         or bool(PROFILE_PAGE.match(path))
         or (not path.startswith(PROFILE_DIR + "/") and bool(re.fullmatch(r"profile/[^/]+/recipes/.+\.rq", path)))
@@ -5222,11 +5216,16 @@ def outputs(
         for name, part in parts.items()
     }
     entities = {entity["@id"]: entity for entity in crate["@graph"]}
+    # Keep the namespace in config, not in every key: lookup normalizes full IRIs back to this same local address.
     records = {
-        entity_id.removeprefix(base): record_address(entity_id, base)
+        record_address(entity_id, base): record_address(entity_id, base)
         for members in api_records(entities, content).values()
         for _, entity_id in members
     }
+    infrastructure_records = {
+        address: path for address, path in records.items() if address.startswith("infrastructures/")
+    }
+    records = {address: path for address, path in records.items() if address not in infrastructure_records}
     text_links = {
         key.removeprefix(base): [link | {"ref": link["ref"].removeprefix(base)} for link in found]
         for key, found in graph.text_links.items()
@@ -5235,6 +5234,14 @@ def outputs(
     ui["config"]["parts"] = dict(PART_SCRIPTS)
     ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
     ui["config"]["partLanguages"] = dict(PART_LANGUAGE_SCRIPTS)
+    parts["fips"]["config"] = {"api": {"records": infrastructure_records}}
+    parts["api"]["config"] = {"api": {"records": infrastructure_records}}
+    parts["pages"]["config"] = {"signposts": ui["config"].pop("signposts")}
+    api_metadata = ui["config"]["api"]
+    parts["api"]["config"]["api"] |= {
+        key: api_metadata.pop(key) for key in ("recipes", "fipCollections") if key in api_metadata
+    }
+    api_metadata.pop("collections", None)
     # Helper labels belong with the pages that use them, not the initial download.
     # Helper and machine-data labels belong with the pages that use them: they load with the pages part rather
     # than the initial download, which stays within its budget.

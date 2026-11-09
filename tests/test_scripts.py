@@ -2622,6 +2622,9 @@ class BuildOutputTests(FixtureCase):
 
         git("init", "-q")
         (self.root / "ro-crate-metadata.json").write_text("{}", encoding="utf-8")
+        (self.root / "404.html").write_text("<!doctype html>", encoding="utf-8")
+        (self.root / "id" / "resources").mkdir(parents=True)
+        (self.root / "id" / "resources" / "example.html").write_text("<!doctype html>", encoding="utf-8")
         (self.root / "api" / "v1").mkdir(parents=True)
         (self.root / "api" / "v1" / "principles.json").write_text("{}", encoding="utf-8")
         (self.root / "api" / "index.html").write_text("<!doctype html>", encoding="utf-8")
@@ -2634,7 +2637,13 @@ class BuildOutputTests(FixtureCase):
         report = check_content.Report()
         check_content.check_no_build_output(report, self.root)
         named = " ".join(report.errors)
-        for expected in ("ro-crate-metadata.json", "api/v1/principles.json", "generated block 'ui'"):
+        for expected in (
+            "ro-crate-metadata.json",
+            "api/v1/principles.json",
+            "404.html",
+            "id/resources/example.html",
+            "generated block 'ui'",
+        ):
             self.assertIn(expected, named)
         self.assertNotIn("api/index.html", named, "the API's authored page is not build output")
 
@@ -3156,6 +3165,43 @@ class ApiTests(unittest.TestCase):
             if path.startswith("api/"):
                 self.assertTrue(documented(path), path)
 
+    def test_every_issued_identity_has_list_api_record_and_landing_page(self) -> None:
+        """The expectation starts from issued crate IRIs, not from the filtered publication projection."""
+        lists: dict[str, set[str]] = {}
+        for entity_id, entity in self.api.entities.items():
+            address = build_crate.record_address(entity_id, self.api.base)
+            if address is None:
+                continue
+            types = set(build_crate.as_list(entity.get("@type")))
+            if "DefinedTerm" in types and "DefinedTermSet" not in types:
+                # Guide vocabulary terms live inside their owned set; FAIR's external term sets keep their own records.
+                owned_sets = [
+                    set_id
+                    for set_id in build_crate.ids_of(entity.get("inDefinedTermSet"))
+                    if (build_crate.record_address(set_id, self.api.base) or "").startswith("vocabularies/")
+                ]
+                for set_id in owned_sets:
+                    parent = self.docs[self.api.paths[set_id].split("#", 1)[0]]
+                    self.assertIn(
+                        "#" + (entity.get("termCode") or entity["identifier"]),
+                        {member["@id"] for member in parent["members"]},
+                    )
+                    parent_address = build_crate.record_address(set_id, self.api.base)
+                    self.assertIn("id/" + parent_address + ".html", self.files)
+                if owned_sets:
+                    continue
+            collection, _, _ = build_crate.split_address(address)
+            if collection not in lists:
+                lists[collection] = {
+                    item["address"] for item in self.docs[f"api/v1/{collection}.json"]["itemListElement"]
+                }
+            self.assertIn(address, lists[collection])
+            self.assertIn(self.api.paths[entity_id], self.docs)
+            self.assertIn("id/" + address + ".html", self.files)
+        for address in ("infrastructures/hl-lhc", "infrastructures/ctao"):
+            self.assertIn("api/v1/" + address + ".json", self.docs)
+            self.assertIn("id/" + address + ".html", self.files)
+
     def test_every_kind_has_its_v1_list_records_and_filter_fields(self) -> None:
         for kind, members in self.api.records.items():
             listing = self.docs[f"api/v1/{kind}.json"]
@@ -3173,6 +3219,34 @@ class ApiTests(unittest.TestCase):
         for path in self.files:
             if path.startswith("api/"):
                 self.assertTrue(path.startswith(("api/v1/", "api/tests/")), path)
+
+    def test_default_filter_fields_exist_in_every_summary_and_openapi_agrees(self) -> None:
+        openapi = self.docs[build_api.OPENAPI_FILE]
+        for kind in self.api.records:
+            if kind in self.api.FILTER_FIELDS:
+                continue
+            listing = self.docs[f"api/v1/{kind}.json"]
+            fields = listing["filterFields"]
+            for item in listing["itemListElement"]:
+                self.assertTrue(set(fields) <= set(item), f"{kind}: advertised filter missing from {item['address']}")
+            schema = openapi["components"]["schemas"][f"{build_api.SCHEMAS[kind]}List"]
+            expected = {"enum": sorted(fields)} if fields else {"type": "string"}
+            self.assertEqual(schema["properties"]["filterFields"]["items"], expected, kind)
+
+    def test_registry_record_index_is_built_once_with_identical_output(self) -> None:
+        content = build_crate.load_content()
+        with mock.patch.object(build_api.kb, "records_by_thing", wraps=build_api.kb.records_by_thing) as index:
+            generated = build_api.Api(build_crate.build_crate(content), content).files()
+        self.assertEqual(index.call_count, 1)
+        self.assertEqual(generated, self.files)
+
+    def test_combining_schemas_deduplicates_identity_before_serialization(self) -> None:
+        shared = {"type": "object", "properties": {"value": {"type": "string"}}}
+        equal_but_distinct = dict(shared)
+        with mock.patch.object(build_api.json, "dumps", wraps=build_api.json.dumps) as serialized:
+            combined = build_api.combine_schemas([shared, shared, equal_but_distinct, {"type": "null"}])
+        self.assertEqual(serialized.call_count, 3)
+        self.assertEqual(combined, {"oneOf": [shared, {"type": "null"}]})
 
     def test_record_ids_are_unique_and_safe_as_file_names(self) -> None:
         content: dict = {"guide": {"guide": {"recordBase": iri("")}}}

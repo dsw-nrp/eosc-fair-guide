@@ -163,10 +163,33 @@ class LandingPageTests(unittest.TestCase):
         document = self.document(path)
         self.assertGreater(len(document.ids), 2)
 
-    def test_fragments_are_unique_and_parts_are_represented(self) -> None:
+    def test_every_api_fragment_has_one_static_target(self) -> None:
         for path in self.paths:
             document = self.document(path)
             self.assertEqual(len(document.ids), len(set(document.ids)), f"duplicate id in {path}: {document.ids}")
+            api_path = "api/v1" + path.removeprefix("id").removesuffix(".html") + ".json"
+            expected = set()
+
+            def collect(value, expected=expected):
+                if isinstance(value, dict):
+                    if isinstance(value.get("@id"), str) and value["@id"].startswith("#"):
+                        expected.add(value["@id"][1:])
+                    for child in value.values():
+                        collect(child)
+                elif isinstance(value, list):
+                    for child in value:
+                        collect(child)
+
+            collect(self.documents[api_path])
+            self.assertFalse(expected - set(document.ids), f"missing anchors in {path}: {expected - set(document.ids)}")
+
+    def test_compact_action_types_expand_to_prov(self) -> None:
+        path = next(path for path in self.paths if "/actions/" in path)
+        self.assertIn("/actions/", path)
+        document = self.document(path)
+        types = {link.get("href") for link in document.links if link.get("rel") == "type"}
+        self.assertIn("http://www.w3.org/ns/prov#Activity", types)
+        self.assertFalse(any(value and value.startswith("http://schema.org/prov:") for value in types))
 
     def test_nginx_uses_the_bilingual_not_found_page(self) -> None:
         config = (ROOT / "docker" / "nginx.conf").read_text(encoding="utf-8")
@@ -179,6 +202,8 @@ class LandingPageTests(unittest.TestCase):
         self.assertIn("does not identify an entry", self.files["404.html"])
         self.assertIn("/index.html#/cs/V/catalogue", self.files["404.html"])
         self.assertIn("Nenalezeno / Not found", self.files["404.html"])
+        self.assertIn('href="/eosc-fair-guide/assets/css/tokens.css"', self.files["404.html"])
+        self.assertIn('href="/eosc-fair-guide/assets/css/app.css"', self.files["404.html"])
 
     def test_production_sitemap_lists_every_landing_page_but_not_preview(self) -> None:
         expected = sorted(self.paths)

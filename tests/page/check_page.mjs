@@ -541,16 +541,20 @@ sections.push(["page", async () => {
     if (!existsSync(resolve(site, "knowledge-graph.nt"))) fail("signposting: the N-Triples file is missing");
     // The API (built into _site/ by scripts/build_site.py): typed links in the head lead to its description and its
     // documentation, and the page lists every collection as an accessible counterpart of the documentation.
-    const inSite = (href) => Boolean(href) && !/^[a-z]+:/i.test(href) && existsSync(resolve(site, href.endsWith("/") ? href + "index.html" : href));
+    const inSite = (href) => {
+      if (!href || /^[a-z]+:/i.test(href)) return false;
+      const concrete = href.replace(/\{[^}]+\}/g, "dataset.01");
+      return existsSync(resolve(site, concrete.endsWith("/") ? concrete + "index.html" : concrete));
+    };
     for (const rel of ["service-desc", "service-doc"]) {
       const href = await view.locator(`head link[rel="${rel}"]`).getAttribute("href");
       if (!inSite(href)) fail(`machines: the ${rel} link does not lead to the built API: ${href}`);
     }
     const endpoints = await view.locator(".endpoints tbody td:first-of-type a").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-    const expectedEndpoints = await view.evaluate(() => {
-      const api = window.FairGuide.config.api;
-      return [...api.collections.map((collection) => api.files.record.replace("{record}", collection)), api.files.index, api.files.context, api.files.health];
-    });
+    const description = JSON.parse(readFileSync(resolve(site, "openapi.json"), "utf8"));
+    const expectedEndpoints = Object.entries(description.paths)
+      .filter(([, item]) => item.get.operationId.startsWith("list") || ["getIndex", "getContext", "getHealth", "getSavedResultQuestion"].includes(item.get.operationId))
+      .map(([path]) => path.slice(1));
     if (endpoints.slice().sort().join("|") !== expectedEndpoints.sort().join("|") || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
     for (const kind of ["principles", "resources", "organizations", "fips"]) {
       if ((await view.locator(`.endpoints tr[data-kind="${kind}"] td:last-child`).textContent()).trim() !== kind) fail(`machines: the FIP mapping for ${kind} is wrong`);

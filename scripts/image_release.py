@@ -9,7 +9,6 @@ from pathlib import Path
 import assemble_pages
 import build_crate
 import build_identity
-import package_site
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -26,7 +25,8 @@ def prepare(artifact: Path, output: Path, tag: str, commit: str, root: Path = RO
     built = build_identity.config_identity(config)
     publication_url = build_identity.config_publication_url(config)
     manifest = json.loads((artifact / "manifest.json").read_text(encoding="utf-8"))
-    health = json.loads(files[package_site.HEALTH])
+    health_name = assemble_pages.health_path(files)
+    health = json.loads(files[health_name])
     if manifest.get("build") != built or health.get("build") != built:
         raise ValueError("release page, health and manifest build identities disagree")
     if "publication_url" in manifest and manifest["publication_url"] != publication_url:
@@ -40,7 +40,10 @@ def prepare(artifact: Path, output: Path, tag: str, commit: str, root: Path = RO
         raise ValueError("release build identity does not match the tag and commit")
     crate = json.loads(files[build_crate.CRATE_FILE])
     nodes = {entity["@id"]: entity for entity in crate["@graph"]}
-    statuses = (build_crate.status_code(nodes.get(key, {}).get("releaseStatus")) for key in ("./", "#guide-software"))
+    statuses = (
+        build_crate.status_code(nodes.get(key, {}).get("releaseStatus")) or nodes.get(key, {}).get("creativeWorkStatus")
+        for key in ("./", "#guide-software")
+    )
     if any(status != built["status"] for status in statuses):
         raise ValueError("crate status differs from release identity")
     templates = {name: (root / "docker" / name).read_bytes() for name in ("Dockerfile", "nginx.conf")}
@@ -53,6 +56,7 @@ def prepare(artifact: Path, output: Path, tag: str, commit: str, root: Path = RO
         (target / name).write_bytes(data)
     (target / "identity.json").write_text(json.dumps(built, indent=2) + "\n", encoding="utf-8")
     (target / "publication-url.txt").write_text(publication_url + "\n", encoding="utf-8")
+    (target / "health-path.txt").write_text(health_name + "\n", encoding="utf-8")
     return built
 
 

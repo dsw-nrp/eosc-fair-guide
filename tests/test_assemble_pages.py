@@ -250,6 +250,22 @@ class AssemblyTests(unittest.TestCase):
         self.assertEqual((self.out / "index.html").read_bytes(), self.files["index.html"])
         self.assertIn("New preview", (self.out / "next/index.html").read_text(encoding="utf-8"))
 
+    def test_predecessor_layout_is_preserved_and_ambiguous_health_is_rejected(self) -> None:
+        self.files["api/health.json"] = self.files.pop("api/v1/health.json")
+        del self.files["404.html"]
+        self.write_release(self.files)
+        self.assemble()
+        for name, data in self.files.items():
+            self.assertEqual((self.out / name).read_bytes(), data, name)
+        self.assertFalse((self.out / "404.html").exists(), "a predecessor archive is not required to gain a 404")
+        self.files["api/v1/health.json"] = self.files["api/health.json"]
+        self.write_release(self.files)
+        with self.assertRaisesRegex(assemble_pages.AssemblyError, "exactly one recognized health result"):
+            self.assemble()
+        for name, data in self.files.items():
+            if name != "api/v1/health.json":
+                self.assertEqual((self.out / name).read_bytes(), data, name)
+
     def test_a_preview_built_from_the_release_commit_says_it_is_that_release(self) -> None:
         # Tag release tags a commit the preview already serves; the preview's own footer predates the tag.
         (self.stage / "api/v1/health.json").write_text(json.dumps(self.health(PRODUCTION)), encoding="utf-8")

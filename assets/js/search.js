@@ -68,7 +68,7 @@
   function guideEntry(value) {
     const base = FG.config.namespace ? FG.config.namespace + "id/" : null;
     const address = FG.recordOf(base && value.startsWith(base) ? value.slice(base.length) : value);
-    if (FG.kind(address) && (FG.config.api.records[address] || FG.get(address))) return { type: "guide", kind: FG.kind(address), value: FG.localId(address) };
+    if (FG.kind(address) && (FG.apiRecord(address) || FG.get(address))) return { type: "guide", kind: FG.kind(address), value: FG.localId(address) };
     if (!/^[A-Za-z][\w.-]{1,40}$/.test(value)) return null;
     const clause = FG.get(FG.address("clauses", value)) || FG.get(FG.address("clauses", value.toUpperCase()));
     if (clause) return { type: "guide", kind: "clauses", value: clause.identifier };
@@ -327,15 +327,12 @@
       clearTimeout(typingTimer);
       typingTimer = setTimeout(() => show(false), TYPING_DELAY);
     };
-    const run = (event) => {
-      event.preventDefault();
-      clearTimeout(typingTimer);
-      show(true);
-    };
+
     input.addEventListener("input", typed);
     /* The standards' requirements are searched too: their part loads when the field is first used. */
+    const preload = () => Promise.all([FG.loadPart("standards"), FG.loadPart("questions"), FG.loadPart("advice"), FG.loadPart("fips")]);
     input.addEventListener("focus", () =>
-      Promise.all([FG.loadPart("standards"), FG.loadPart("questions"), FG.loadPart("advice")]).then(
+      preload().then(
         () => input.value.trim() && show(results.dataset.confirmed === "true" && results.dataset.query === input.value.trim()),
         () => null
       )
@@ -345,6 +342,12 @@
     const waiting = () => { submit.disabled = !input.value.trim(); };
     input.addEventListener("input", waiting);
     waiting();
+    const run = async (event) => {
+      event.preventDefault();
+      clearTimeout(typingTimer);
+      await preload();
+      show(true);
+    };
     return h(
       "form",
       { class: "search", role: "search", onsubmit: run },

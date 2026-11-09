@@ -122,9 +122,10 @@ jobs:
         run: |
           trap 'docker rm -f guide >/dev/null 2>&1 || true' EXIT
           docker run --rm -d --name guide -p 8080:8080 "$IMAGE@$DIGEST"
+          HEALTH_PATH=$(cat .cache/image/health-path.txt)
           HEALTH=""
           for attempt in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:8080/api/v1/health.json -o health.json; then HEALTH=1; break; fi
+            if curl -fsS "http://127.0.0.1:8080/${HEALTH_PATH}" -o health.json; then HEALTH=1; break; fi
             sleep 2
           done
           test -n "$HEALTH"

@@ -132,7 +132,9 @@ None. The changed behaviour belongs to the existing capabilities below.
   pages and `404.html`. The sitemap in `build_crate.py` lists the landing pages.
 - **Checks:** `scripts/check_content.py`, `scripts/check_duplicates.py`, `scripts/check_health.py`,
   `scripts/refresh_snapshots.py`, and `scripts/check_docs.py`, which refuses a citation of any change.
-- **Release:** release assembly and packaging stamps (`scripts/assemble_pages.py`, `scripts/package_site.py`).
+- **Release:** release assembly, image preparation and packaging stamps (`scripts/assemble_pages.py`,
+  `scripts/image_release.py`, `scripts/package_site.py`), including reusable current and documented predecessor
+  artifacts.
 - **Page:** the scripts in `assets/js/` (213 fragment-prefix literals in 10 files), including the self-check's
   evidence export (`selfcheck.js`, `providers.js`) and the EOSC CZ Node badge and facet, and the API documentation
   page in `api/`.
@@ -175,6 +177,10 @@ None. The changed behaviour belongs to the existing capabilities below.
   - the new checks that every kind has a selector, that the vocabulary's declarations hold, that no relation is
     stated both ways, that schema.org properties stay within their domains, and that every shape refuses a real node
     missing what it requires;
+  - independent coverage from every issued address to its API record and landing page, plus generated-HTML rejection;
+  - current and documented predecessor artifact assembly and image retries, and interrupted migration retries;
+  - recursive fragment anchors and nested-404 stylesheet resolution;
+  - byte-identical output after registry-index caching and schema-option deduplication;
   - the w3id probe once the redirect is live;
   - inspection of the catalogue, records, landing pages and machines page in both languages, at phone width and in
     print.

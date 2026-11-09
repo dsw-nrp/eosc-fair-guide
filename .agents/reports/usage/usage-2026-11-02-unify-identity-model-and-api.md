@@ -418,5 +418,31 @@
   head SHA `3bedc5022acd0e67b3e07de3b2ab33b705ae3ee3`; quick checks, build, all six lanes and the final collector
   passed.
 - **Close-out (M3 complete):** tasks 4.1–4.12 are complete (**62 of 71**), with local and CI verification on the
-  pushed commit. M4 begins with its separately gated EOSC CZ consent and exact-content registry approval; neither
-  has started, and no live service requests or release action were made here.
+  pushed commit. M4 begins with its separately gated EOSC CZ consent and exact-content registry approval; neither has
+  started, and no live service requests or release action were made here.
+
+## M3 review remediation (2026-11-09)
+
+- **When:** 2026-11-09, local implementation session.
+- **Agent / runtime:** Kilo.
+- **Model / backend:** `e-infra-cz/kimi-k3.1-pro`.
+- **What:** Addressed all 18 verified findings from the PR review through OpenSpec tasks 4.13–4.18. Accepted predecessor and
+  current release layouts independently, made migration retries safe from mixed checkpoints, published every issued
+  identity, guarded generated HTML, aligned list filters, cached the registry index and deduplicated schemas, completed
+  nested static targets and deep-404 assets, and corrected profile, local-test and accessible machine documentation.
+  The interactive visual pass then exposed removal of curated annex assumptions and an `undefined` roadmap-year branch,
+  which is now conditional.
+- **Impacted:** `scripts/assemble_pages.py`, `scripts/image_release.py`, `scripts/build_crate.py`, `scripts/build_api.py`,
+  `scripts/landing_pages.py`, `openspec/changes/unify-identity-model-and-api/migration/`, `content/ui.toml`,
+  `content/provenance.toml`, `profile/fair-guide/must/2_model.ttl`, `assets/js/catalogue-view.js`,
+  `assets/js/machines.js`, `assets/js/tests/index.html`, `.github/workflows/publish-image.yml`, the OpenSpec planning
+  artifacts, focused unit/browser/deployment tests and this usage entry.
+- **Workflow context used:** approved OpenSpec change `unify-identity-model-and-api`, M3 review remediation 4.13–4.19.
+- **Verification:** mixed-layout release unit tests, migration boundary interruption tests, 206 script tests, profile and
+  helper suites, 2,170 API files with 42,921 links, catalogue completeness, and complete page/deployment suites.
+  `python scripts/check_all.py` passes **36 of 36** checks and `npm run openspec:validate` passes **6 of 6**.
+  Both language paths fit the initial-payload budget: Czech is 299.9 KB and English 297.6 KB compressed, versus 300 KB.
+  Visual review covered HL-LHC, nested quick-deep action and nested 404 at desktop and phone widths and in print.
+- **Close-out:** tasks 4.13–4.18 are complete (68 of 78). Every required local check passes; task 4.19 remains open only
+  for a separately authorized commit, push and passing CI on the resulting head. No live evaluator or release action was
+  performed here.

@@ -120,6 +120,7 @@ class Api:
         self.entities = {entity["@id"]: entity for entity in crate["@graph"]}
         self.base = content["guide"]["guide"]["recordBase"]
         self.records = kb.api_records(self.entities, content)
+        self.registry_records = kb.records_by_thing(self.entities)
         self.paths = {
             entity_id: kb.API_FILES["record"].format(record=kb.record_address(entity_id, self.base))
             for name, members in self.records.items()
@@ -280,7 +281,7 @@ class Api:
             }
         )
         # A record names its registry records in full under their fragments, from the record side's primaryTopic.
-        registry = kb.records_by_thing(self.entities).get(entity_id, [])
+        registry = self.registry_records.get(entity_id, [])
         if registry:
             out["records"] = [self.node(self.entities[record_id], here, 0, collection) for record_id in registry]
         if collection == "vocabularies":
@@ -371,6 +372,18 @@ class Api:
         "clauses": ("isPartOf", "about", "clauseKind", "audience", "clauseStatus"),
         "tests": ("isImplementationOf", "about", "healthStatus"),
     }
+    DEFAULT_FILTER_FIELDS = ("position", "termPosition")
+
+    def filter_fields(self, collection: str) -> tuple[str, ...]:
+        """Fields every summary in this list can actually be filtered on; an absent optional field is not a filter."""
+        if collection in self.FILTER_FIELDS:
+            return self.FILTER_FIELDS[collection]
+        records = self.records[collection]
+        return tuple(
+            key
+            for key in self.DEFAULT_FILTER_FIELDS
+            if records and all(key in self.entities[entity_id] for _, entity_id in records)
+        )
 
     def summary(self, entity_id: str, collection: str) -> dict[str, Any]:
         """A list entry with its ID, address, persistent IRI, label and the fields a client filters on."""
@@ -389,7 +402,7 @@ class Api:
         }
         if scope:
             summary["scope"] = scope
-        for key in self.FILTER_FIELDS.get(collection, ("position", "termPosition")):
+        for key in self.filter_fields(collection):
             if key in entity:
                 summary[key] = self.value(key, entity[key], f"api/v1/{collection}.json", 0)
         return summary
@@ -407,7 +420,7 @@ class Api:
             "@type": "ItemList",
             "name": name,
             "description": description,
-            "filterFields": list(self.FILTER_FIELDS.get(collection, ("position", "termPosition"))),
+            "filterFields": list(self.filter_fields(collection)),
             "numberOfItems": len(summaries),
             "itemListElement": summaries,
         }
@@ -700,7 +713,8 @@ KIND_REQUIRED = {
     "actions": ["name"],
     "models": ["name"],
     "lifecycles": ["name"],
-    "infrastructures": ["name", "abbreviation", "publisher", "roadmapLocator"],
+    # A name defines every infrastructure, including European records without the curated national-roadmap annex fields.
+    "infrastructures": ["name"],
 }
 
 
@@ -735,7 +749,9 @@ def ref(name: str) -> dict[str, str]:
 
 
 def combine_schemas(options: list[dict[str, Any]]) -> dict[str, Any]:
-    unique = list({json.dumps(option, sort_keys=True): option for option in options}.values())
+    # Cheap object-identity deduplication precedes structural serialization; all option objects stay alive in `options`.
+    distinct = list({id(option): option for option in options}.values())
+    unique = list({json.dumps(option, sort_keys=True): option for option in distinct}.values())
     if not unique:
         return {}
     if len(unique) == 1:
@@ -877,9 +893,10 @@ def typed_schemas(api: Api, docs: dict[str, dict[str, Any]]) -> dict[str, Any]:
         }
         out[f"{schema}List"] = copy.deepcopy(out["List"])
         out[f"{schema}List"]["properties"]["itemListElement"]["items"] = ref(f"{schema}Summary")
-        out[f"{schema}List"]["properties"]["filterFields"]["items"] = {
-            "enum": sorted(api.FILTER_FIELDS.get(kind, ("position", "termPosition")))
-        }
+        fields = api.filter_fields(kind)
+        out[f"{schema}List"]["properties"]["filterFields"]["items"] = (
+            {"enum": sorted(fields)} if fields else {"type": "string"}
+        )
     out["Model"]["anyOf"] = [{"required": ["source"]}, {"required": ["citation"]}]
     out["Repository"]["description"] = (
         "A repository requires an HTTPS address, except while planned or in development with an NKR record in "

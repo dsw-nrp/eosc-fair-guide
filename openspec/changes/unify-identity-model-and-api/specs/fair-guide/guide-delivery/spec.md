@@ -86,3 +86,29 @@ profile and a record IRI resolve as JSON and HTML to it, and a failure SHALL be 
 - **GIVEN** a registered redirect pointing at production
 - **WHEN** the release that adopts the namespace is published and the probe runs
 - **THEN** the probed terms, profile and record IRIs resolve to that release, or the digest reports the IRI that does not
+
+### Requirement: Verified release artifacts remain reusable across schema transitions
+
+Deployment and image tooling SHALL accept verified current and documented predecessor layouts without rewriting
+verified bytes or requiring compatibility API documents. It SHALL read health evidence and release status from the
+artifact's own layout and SHALL reject missing or ambiguous layouts before replacing output.
+
+#### Scenario: Previous production beside a new preview
+
+- **GIVEN** a verified predecessor archive with `api/health.json`, `creativeWorkStatus` and no generated 404
+- **WHEN** it is assembled beside a preview built under API v1
+- **THEN** assembly accepts the archive, preserves every production byte and publishes the preview without requiring
+  the predecessor to gain new paths or pages
+
+#### Scenario: An image retry uses the previous schema
+
+- **GIVEN** that same verified predecessor archive selected for an image retry
+- **WHEN** the candidate image is prepared and its health is verified
+- **THEN** preparation reads the predecessor release status and the probe uses `api/health.json`, without rebuilding or
+  rewriting the archive
+
+#### Scenario: An ambiguous artifact is rejected
+
+- **GIVEN** an archive carrying both health layouts, or neither recognized layout
+- **WHEN** assembly or image preparation validates it
+- **THEN** validation fails with the layout named and no output is replaced

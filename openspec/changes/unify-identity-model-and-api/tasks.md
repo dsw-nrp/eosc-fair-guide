@@ -337,6 +337,49 @@ before any M3 task starts.
 - [x] 4.12 Run `python scripts/check_all.py`. Verify: the full run passes locally, and CI passes on the pull request's
   head.
 
+Tasks 4.13 to 4.19 answer the 2026-11-08 implementation review. All 18 findings have a repair and regression proof;
+CORR-002 stays out of scope because the shared provider-form identity predates this change.
+
+- [x] 4.13 Keep verified current and documented predecessor artifacts reusable through assembly and image retries
+  (DEPLOY-001 and DEPLOY-002). Recognize `api/v1/health.json` with `releaseStatus` and the generated 404 separately from
+  `api/health.json` with `creativeWorkStatus` and no 404, require exactly one layout, preserve verified bytes and reject
+  ambiguous or missing layouts before replacing output. Propagate the selected health path into the candidate image's
+  probe. Verify: genuine old-shape and new-shape archives pass through Pages assembly, image preparation and health
+  verification, and an ambiguous artifact fails before output replacement.
+- [x] 4.14 Make the content migration retry safe from mixed old/new checkouts (DEPLOY-003). Accept reassignment and
+  dependent renames only in recognized old or new states, write every changed TOML file through a same-directory
+  temporary file and replace it atomically. Verify: fault injection at each write boundary leaves only complete old or
+  new bytes, and a retry completes byte-for-byte like the uninterrupted migration; the repeated rename cannot collapse
+  accepted duplicate identities.
+- [x] 4.15 Publish every issued identity and guard every generated HTML output (CORR-001 and INT-004). Remove the
+  curated organization/infrastructure ID filters from `api_records()` and extend `is_generated()` to root `404.html`
+  and `id/**/*.html`. Verify: an independent crate-IRI-to-document check finds one list entry, API record and landing
+  page for every issued address, including `infrastructures/hl-lhc` and `infrastructures/ctao`; staged root and nested
+  generated HTML files fail the repository content check, while authored HTML remains accepted.
+- [x] 4.16 Align list filter metadata and remove repeated API build work (INT-001, PERF-001 and PERF-002). Advertise
+  only default filter fields supplied by summaries and derive the OpenAPI enum from the same decision; construct the
+  registry-record index once per `Api` instance; deduplicate repeated schema-object identities before structural JSON
+  deduplication. Verify: generic tests cover every default-field kind, call counts show one registry-index build and
+  fewer serializations, and generated JSON/OpenAPI files are byte-identical.
+- [x] 4.17 Complete static landing pages and deep-404 handling (INT-002, INT-003, INT-005, DEAD-002 and DEAD-003).
+  Expand compact class IRIs through established prefix mappings; use one recursive walker for part indexing and
+  rendering, including nested actions and vocabulary members; derive 404 stylesheet paths from the validated
+  publication path; use shared `LANGS` and delete the unused description label. Verify: tests find exactly one anchor per
+  issued fragment, `prov:Activity` expands to `http://www.w3.org/ns/prov#Activity`, a nested action and vocabulary term
+  have static targets, and a nested missing address returns bilingual 404 text with both stylesheets loaded successfully.
+- [x] 4.18 Correct profile and machine documentation contracts and remove retired residue (CORR-003, REF-INT-001,
+  INT-006, DEAD-001 and DEAD-004). Require one declaration status with a planted status-free profile test; update both
+  local-test documentation languages to `api/v1/tests/guide/<id>.json` and `api/v1/tests.json`; add the retained
+  `/api/tests/{id}.json` operation to the accessible endpoint table and compare that surface with OpenAPI; delete the
+  `#entry-localtest-` and Guide `operates` mappings. Verify: focused profile, local-test, endpoint and source searches
+  pass, and every advertised endpoint and documented local-test link resolves to an emitted record.
+- [ ] 4.19 Reconcile this change's evidence and close review remediation. Update the existing provenance action and
+  rolling usage entry with the actual work and verification, without moving times merely to satisfy checks. Inspect all
+  affected views in both languages, at desktop and phone widths and in print, including a newly enumerated organization,
+  nested action anchors and nested 404 styling. Run `npm run openspec:validate` and `python scripts/check_all.py`.
+  Verify: every review scenario and the complete local run pass and, after separately authorized commit/push, CI passes
+  on the pull request's resulting head.
+
 ## 5. w3id registration and release (M4)
 
 - [ ] 5.1 **Hand-off (maintainer):** obtain EOSC CZ's agreement to the `ids/eosc-cz/` folder, together with

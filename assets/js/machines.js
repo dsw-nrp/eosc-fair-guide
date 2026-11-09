@@ -56,9 +56,9 @@
       h("thead", null, h("tr", null,
         ["collection", "list", "record", "fip"].map((key) => h("th", { scope: "col" }, FG.t("machines.column." + key))))),
       h("tbody", null,
-        FG.config.api.collections.map(kindRow),
+        FG.config.kinds.map(kindRow),
         [["index", files.index, "application/json"], ["context", files.context, "application/ld+json"],
-          ["health", files.health, "application/json"]].map(operationRow))
+          ["savedResult", files.test, "application/json"], ["health", files.health, "application/json"]].map(operationRow))
     );
     return [table, recipeLinks];
   };

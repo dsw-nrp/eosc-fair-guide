@@ -16,7 +16,7 @@
   FG.catalogueHref = (kind, item) => FG.href("catalogue") + "/" + [...String(kind).split("/"), ...(item ? item.split("/") : [])].map(encodeURIComponent).join("/");
   /** A record's catalogue entry, by its address; null for what has none. */
   FG.entryHref = (entity) => {
-    const address = FG.config.api.records[FG.id(entity)];
+    const address = FG.apiRecord(entity);
     return address ? FG.catalogueHref(address) : null;
   };
 
@@ -26,7 +26,7 @@
 
   /** An identifier as a small chip that leads to its entry in the catalogue. */
   FG.idChip = function (entity) {
-    const address = FG.config.api.records[FG.id(entity)];
+    const address = FG.apiRecord(entity);
     const id = address?.split("/").at(-1) || entity?.identifier || "";
     return h(address ? "a" : "span", { class: "id-chip", href: address ? FG.entryHref(entity) : null,
       title: address ? FG.t("catalogue.openEntry", { id: address }) : null }, id);
@@ -174,7 +174,7 @@
     operates: "",
     qualifiedRelation: "qualifiedRelation",
     nationalNodeOf: "nationalNodeOf",
-    memberOf: "memberOf",
+    memberOf: "memberOf czechMembershipSince",
     fips: "subjectOf",
     license: "license",
     basedOn: "isBasedOn source",
@@ -249,7 +249,7 @@
     for (const fip of FG.refs(FG.get("#fips"), "hasPart")) for (const declaration of FG.refs(fip, "hasPart")) for (const id of FG.refIds(declaration, "mentions")) add(declaredIn, id, { fip, declaration });
     /* An enabling resource the Guide also lists as a resource or repository has that entry, not one of its own. */
     const standsFor = new Map();
-    for (const entity of FG.graph.filter((item) => FG.config.api.records[item["@id"]] && FG.refIds(item, "sameAs").length)) {
+    for (const entity of FG.graph.filter((item) => FG.apiRecord(item) && FG.refIds(item, "sameAs").length)) {
       const record = FG.dashboardRecord(entity);
       if (record && record.fer && !standsFor.has(record.fer["@id"])) standsFor.set(record.fer["@id"], entity);
     }
@@ -307,7 +307,7 @@
   /** What kind of record something is, for grouping a change's records: its catalogue kind, or the part of the Guide
       it belongs to. */
   FG.recordGroup = function (entity) {
-    const address = FG.config.api.records[FG.id(entity)];
+    const address = FG.apiRecord(entity);
     if (address) return FG.catalogueGroup(FG.kind(address));
     if (FG.id(entity) === "./") return "guide";
     if (FG.kind(entity) === "stations" && FG.fragment(entity).startsWith("context-")) return "model-context";
@@ -410,7 +410,7 @@
       its title; one quiet line of details; its text; badges for its state only; then its relations, one row each,
       in a fixed order, each drawn one way everywhere. */
   function entryCard(spec) {
-    const address = FG.config.api.records[FG.id(spec.entity)];
+    const address = FG.apiRecord(spec.entity);
     if (address) spec = { ...spec, kind: FG.catalogueGroup(FG.kind(address)), id: FG.localId(address) };
     const kind = spec.kind || null;
     const what = FG.list(spec.what).filter(Boolean);
