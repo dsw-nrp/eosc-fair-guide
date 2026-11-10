@@ -458,7 +458,7 @@
   `fair-guide-editor` routes; the native content/surface rules; the pinned `npx openspec` CLI; repository unit and
   browser suites; local Docker for real health-header probes.
 - **What:**
-  - Captured the second review's ten findings and the chosen route contract, then completed tasks 4.20–4.25. The bare
+  - Captured the second review's ten findings and the chosen route contract, then completed tasks 4.20–4.26. The bare
     Guide URL now selects `path/start` for every reader, including those with saved station history; the Path menu,
     resume action, explicit station-free path and crate-preview exception retain their prior behavior.
   - Retained only text-referenced infrastructure addresses in the initial record map. Search now classifies before
@@ -475,17 +475,19 @@
   `landing_pages.py`, `assemble_pages.py`, `image_release.py`), `docker/nginx.conf`,
   `.github/workflows/publish-image.yml`, release/publication fixtures and focused browser/Python tests, `docs/design.md`,
   `content/provenance.toml`, the five planning/specification artifacts named in the approved capture, and this usage
-  entry. Fixture preparers wrote only ignored caches and the containers used for the probes. No branch, remote issue or
-  release was changed.
+  entry. Fixture preparers wrote only ignored caches and containers used for the probes. `9c7a124` was pushed to the
+  existing change branch; no other issue or release was changed.
 - **Verification:** focused station-reference and bare-route cases, complete language and safety suites, 22 landing and
   language tests, 25 assembly/image layout tests and 41 workflow tests all pass. Both real containers returned
   `Cache-Control: no-store` with correct identities. Visual review covered both languages, desktop/phone widths, print,
   station references, independent identifiers, Search failure/retry, saved-result row, infrastructure card and HL-LHC.
   `npm run openspec:validate` passes **6 of 6**, and `python scripts/check_all.py` passes **36 of 36**. Ruff lint and
   format pass on the final code. These checks do not establish behavior on a new CI head.
-- **Close-out:** tasks 4.20–4.25 are complete (**75 of 85**). Task 4.26 remains open only for separately authorized
-  commit/push and CI on the resulting PR head. The next implementation dependency is then M4's human EOSC CZ consent;
-  it has not started and was not purported to be complete in this session.
+- **Verification (CI):** [workflow run 42793764603](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/42793764603)
+  completed successfully at `9c7a124e1ab65b9d9d3417e07f860945c5bc66a9`; `quick`, build, all six lanes, unit, the final
+  collector and the required `checks` job passed. No live external service tests or deployment was initiated here.
+- **Close-out:** tasks 4.20–4.26 are complete (**76 of 85**), including the separately authorized commit/push and green
+  CI on the resulting pull-request head. The next dependency is M4's human EOSC CZ consent; it has not started.
 - **Corrections:** the maintainer selected the existing lifecycle `path/start` for every bare-URL visit, rather than the
   initially discussed last-station or first-station variants. The final scenarios explicitly cover both fresh and
   returning readers.

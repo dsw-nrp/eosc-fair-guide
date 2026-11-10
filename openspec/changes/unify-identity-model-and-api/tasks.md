@@ -411,7 +411,7 @@ the 2026-11-09 follow-up review and make the bare Guide URL predictable.
   health paths and assert the selected response header in the container probe. Verify: full current, predecessor,
   missing, mixed and split-node matrices fail or pass as required before output replacement, and both real container
   health paths return their identity with `no-store`.
-- [ ] 4.26 Reconcile this change's evidence and close the follow-up remediation. Update the existing provenance action
+- [x] 4.26 Reconcile this change's evidence and close the follow-up remediation. Update the existing provenance action
   and rolling usage entry with the actual work and verification, without moving times merely to satisfy checks. Inspect
   the bare-URL landing, affected station references, search failure/recovery, saved-result links, infrastructure cards
   and updated record landing pages in both languages, at desktop and phone widths and in print. Run

@@ -10,7 +10,7 @@ agent = "david-novak"
 instruments = ["claude-code", "kilo-code", "claude-opus-5-5", "einfra-kimi-k3-1-pro"]
 objects = ["resources/knav-dm-tools-catalogue", "resources/fip-dashboard", "resources/nrp-conditions", "resources/analyza-fair-1.2", "resources/eosc-federation-handbook", "resources/ro-crate", "resources/fair-signposting", "repositories/datarepo"]
 results = ["*"]
-endTime = 2026-11-10T02:34:06+00:00
+endTime = 2026-11-10T09:56:30+00:00
 
 [[action]]
 id = "2026-11-02-nkr-integration"
