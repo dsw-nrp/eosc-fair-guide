@@ -2,6 +2,58 @@
 
 ## MODIFIED Requirements
 
+### Requirement: Named resources link from text
+
+A catalogue entry named in a text body SHALL be a link to its entry where one exists, styled so that reading is not
+disturbed. Editors SHALL mark such references explicitly in the content, and the content checks SHALL reject a
+reference to an unknown entry. The knowledge base SHALL keep the text clean, with the referenced entities recorded
+as mentions. Addresses required by these synchronous references SHALL remain available without loading an unrelated
+catalogue part.
+
+#### Scenario: DataCite in a step
+
+- **GIVEN** a step whose text names DataCite
+- **WHEN** the step is shown
+- **THEN** "DataCite" links to its resource entry, and the crate records the resource as mentioned by the step without markup in the text
+
+#### Scenario: An infrastructure named before its graph part loads
+
+- **GIVEN** a reader at a station whose advice names CSDA/ESS-CZ, LINDAT/CLARIAH-CZ or ELIXIR CZ while `fips` has not loaded
+- **WHEN** the advice is shown
+- **THEN** each name links to its infrastructure entry from the initially available issued address
+
+### Requirement: Universal search
+
+The landing's search box SHALL search text locally over the knowledge base and route identifiers by what they denote.
+Text results SHALL end with a link that opens the catalogue with the same query, which is the full results page.
+Matching SHALL ignore diacritics and cover both languages. Typing SHALL send nothing to any service; a service is
+called only after the user picks an identifier result. A recognised identifier SHALL route independently of unrelated
+text-index parts, and a failed required part SHALL expose a visible retry rather than leaving the search silent.
+
+#### Scenario: Searching a term
+
+- **GIVEN** a user who types "licence"
+- **WHEN** the results appear
+- **THEN** they include the licence station, the principle R1.1 and licence resources and terms in both languages, and no request has left the browser
+
+#### Scenario: Pasting a DOI
+
+- **GIVEN** a user who pastes a DOI that the guide cannot place by its form
+- **WHEN** they press Enter
+- **THEN** the first result offers to find out what the DOI is, and nothing is sent until the user chooses it
+
+#### Scenario: A text-search part fails
+
+- **GIVEN** a text search whose required deferred part fails to load
+- **WHEN** the reader confirms the search
+- **THEN** a visible error offers retry and a later successful retry shows the results
+
+#### Scenario: An identifier search needs no text index
+
+- **GIVEN** a recognised identifier while an unrelated text-index part cannot load
+- **WHEN** the reader confirms the search
+- **THEN** its routes still appear and the part failure is not treated as an identifier result
+
 ### Requirement: The machine-readable side is visible
 
 A page for machines SHALL teach machine-actionability by example, for data stewards first. It SHALL start from what a
@@ -26,8 +78,8 @@ the IRI pattern, the profile and the licence.
 
 - **GIVEN** a saved result from revisions 1 to 3 that names a question-support document
 - **WHEN** the reader compares the accessible endpoint table with the OpenAPI operations
-- **THEN** `/api/tests/{id}.json` appears there alongside the other operations and resolves to the question's retained
-  support document
+- **THEN** `/api/tests/{id}.json` appears alongside the other operations as the displayed template, and its actual link
+  opens a concrete retained question-support document without requiring URI-template substitution by the reader
 
 ### Requirement: The guide signposts itself
 
@@ -170,6 +222,30 @@ move the shared Kind facet.
 
 ## ADDED Requirements
 
+### Requirement: The bare Guide URL opens the path's start predictably
+
+Opening `index.html` without a hash SHALL select the existing `#/<lang>/<lens>/path/start` lifecycle landing for every
+reader, regardless of saved station history. The Path menu and resume action SHALL still use the last-read station.
+Changing the default SHALL NOT alter an explicit route without a station or the crate preview's machines exception.
+
+#### Scenario: A first visit opens the bare URL
+
+- **GIVEN** a reader with no saved station history
+- **WHEN** they open the Guide at `index.html` without a hash
+- **THEN** they see the existing search-and-lifecycle landing selected by `#/<lang>/<lens>/path/start`
+
+#### Scenario: A returning reader opens the bare URL
+
+- **GIVEN** a reader whose saved last-read station is the licence step
+- **WHEN** they open the same bare URL
+- **THEN** they see that same lifecycle landing rather than automatically opening the licence station
+- **AND** the Path menu and resume action still lead to the licence step
+
+#### Scenario: The crate preview remains the exception
+
+- **WHEN** a reader opens `ro-crate-preview.html` without a hash
+- **THEN** the machines page appears instead of the lifecycle landing
+
 ### Requirement: An entry credits the catalogues that supplied it
 
 A catalogue entry's sources SHALL name the Guide's selection where the entry is curated and the catalogue of every
@@ -272,6 +348,23 @@ SHALL return a bilingual not-found page that offers the catalogue search and res
 - **WHEN** the server answers with the shared `404.html`
 - **THEN** the response is not found, its text appears in both languages and both stylesheets resolve and load from the
   publication's actual root instead of below the missing record
+
+### Requirement: Landing pages present statuses through one model
+
+Every status property specialising `adms:status` SHALL use the landing page's Status field. An API record's actual
+status date SHALL accompany the value where present, and no date SHALL be invented for an undated record.
+
+#### Scenario: A registry-created infrastructure shows its ESFRI status
+
+- **GIVEN** HL-LHC's API record naming `esfriStatus = landmark` without an observation date
+- **WHEN** its landing page is read without JavaScript
+- **THEN** landmark appears in the Status field rather than merely as a related-record link, and no date is fabricated
+
+#### Scenario: A dated status keeps its date
+
+- **GIVEN** an API record whose status includes `statusAsOf`, `nodeStateSince` or `reviewedDate`
+- **WHEN** its landing page is shown
+- **THEN** that actual date accompanies the value in the Status field
 
 ### Requirement: Landing pages signpost their record
 

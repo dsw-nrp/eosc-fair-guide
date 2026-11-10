@@ -4701,7 +4701,6 @@ def page_config(
             ],
             "api": {
                 "files": API_FILES,
-                "collections": list(API_COLLECTIONS),
                 "records": api or {},
                 "fipCollections": content["ui"]["api"].get("fipCollections", []),
                 "recipes": {
@@ -5222,14 +5221,19 @@ def outputs(
         for members in api_records(entities, content).values()
         for _, entity_id in members
     }
-    infrastructure_records = {
-        address: path for address, path in records.items() if address.startswith("infrastructures/")
-    }
-    records = {address: path for address, path in records.items() if address not in infrastructure_records}
     text_links = {
         key.removeprefix(base): [link | {"ref": link["ref"].removeprefix(base)} for link in found]
         for key, found in graph.text_links.items()
     }
+    # Synchronous references need their target address before the infrastructure graph arrives. Keep only those
+    # addresses initially visible; the remaining infrastructure records still load with fips or the machines page.
+    referenced = {link["ref"] for found in text_links.values() for link in found}
+    infrastructure_records = {
+        address: path
+        for address, path in records.items()
+        if address.startswith("infrastructures/") and address not in referenced
+    }
+    records = {address: path for address, path in records.items() if address not in infrastructure_records}
     ui = page_config(content | {"ui": initial_ui}, text_links, records, links)
     ui["config"]["parts"] = dict(PART_SCRIPTS)
     ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
@@ -5241,7 +5245,6 @@ def outputs(
     parts["api"]["config"]["api"] |= {
         key: api_metadata.pop(key) for key in ("recipes", "fipCollections") if key in api_metadata
     }
-    api_metadata.pop("collections", None)
     # Helper labels belong with the pages that use them, not the initial download.
     # Helper and machine-data labels belong with the pages that use them: they load with the pages part rather
     # than the initial download, which stays within its budget.

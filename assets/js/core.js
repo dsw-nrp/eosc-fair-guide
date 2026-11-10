@@ -920,7 +920,8 @@
       if (/ro-crate-preview\.html$/.test(window.location.pathname)) {
         return Object.assign(route, FG.parseHash(FG.href("page", "machines")));
       }
-      return route;
+      // A bare Guide URL opens the lifecycle landing; saved station history belongs to the Path menu and resume.
+      return Object.assign(route, { arg: "start" });
     }
     if (!hash.startsWith("#/")) {
       const target = FG.entityRoute(hash);

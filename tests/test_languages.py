@@ -166,6 +166,7 @@ class LanguageTests(unittest.TestCase):
         ui = assignment(self.generated[build_crate.UI_SCRIPT], "window.FairGuideData.ui = ")
         self.assertEqual(ui["config"]["languages"], build_crate.LANGUAGE_SCRIPTS)
         self.assertEqual(ui["config"]["partLanguages"], build_crate.PART_LANGUAGE_SCRIPTS)
+        self.assertNotIn("collections", ui["config"]["api"])
 
     def test_generated_languages_and_parts_reconstruct_full_crate(self) -> None:
         for order in (("cs", "en"), ("en", "cs")):

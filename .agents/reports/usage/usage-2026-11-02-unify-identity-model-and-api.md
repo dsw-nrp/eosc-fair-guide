@@ -443,6 +443,49 @@
   `python scripts/check_all.py` passes **36 of 36** checks and `npm run openspec:validate` passes **6 of 6**.
   Both language paths fit the initial-payload budget: Czech is 299.9 KB and English 297.6 KB compressed, versus 300 KB.
   Visual review covered HL-LHC, nested quick-deep action and nested 404 at desktop and phone widths and in print.
-- **Close-out:** tasks 4.13–4.18 are complete (68 of 78). Every required local check passes; task 4.19 remains open only
-  for a separately authorized commit, push and passing CI on the resulting head. No live evaluator or release action was
-  performed here.
+- **Close-out:** tasks 4.13–4.19 are complete (69 of 78), with local **36 of 36** checks passing and every CI lane green
+  in [workflow run 42576972665](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/42576972665). The next work is
+  M4's separately gated EOSC CZ consent and exact-content registry approval; neither has started here.
+
+## Kilo session, continued (review R2 and predictable bare URL)
+
+- **When:** 2026-11-10 (+00:00).
+- **Agent / runtime:** Kilo Code (VS Code extension).
+- **Model / backend:** e-infra-cz/kimi-k3.1-pro.
+- **Subagents used:** none.
+- **MCP servers used:** none (the pull-request review was read through the `gh` CLI).
+- **Workflow context used:** `openspec-explore`, then the separately approved `openspec-apply-change` and native
+  `fair-guide-editor` routes; the native content/surface rules; the pinned `npx openspec` CLI; repository unit and
+  browser suites; local Docker for real health-header probes.
+- **What:**
+  - Captured the second review's ten findings and the chosen route contract, then completed tasks 4.20–4.25. The bare
+    Guide URL now selects `path/start` for every reader, including those with saved station history; the Path menu,
+    resume action, explicit station-free path and crate-preview exception retain their prior behavior.
+  - Retained only text-referenced infrastructure addresses in the initial record map. Search now classifies before
+    preloading, so identifiers remain routeable when unrelated parts fail, while text-search failure displays the
+    shared retry and recovers without losing results.
+  - Saved-result documentation now links a concrete support document beside its displayed URI template. Infrastructure
+    cards share one reverse `operatedBy` index. Landing pages derive status fields from declared ADMS properties, show
+    HL-LHC's `landmark` without inventing a date, and drop the obsolete walker/wrapper/configuration alternatives.
+  - Added one release-layout gate: the health layout selects the status property for both status-bearing nodes, with
+    current/predecessor/missing/mixed/split/dual refusal before replacement. Both health paths use `no-store`, and the
+    image workflow verifies the header. Genuine current and predecessor containers passed direct header and identity
+    probes.
+- **Impacted:** `assets/js/` (app, core, search, machines, catalogue-view), `scripts/` (`build_crate.py`,
+  `landing_pages.py`, `assemble_pages.py`, `image_release.py`), `docker/nginx.conf`,
+  `.github/workflows/publish-image.yml`, release/publication fixtures and focused browser/Python tests, `docs/design.md`,
+  `content/provenance.toml`, the five planning/specification artifacts named in the approved capture, and this usage
+  entry. Fixture preparers wrote only ignored caches and the containers used for the probes. No branch, remote issue or
+  release was changed.
+- **Verification:** focused station-reference and bare-route cases, complete language and safety suites, 22 landing and
+  language tests, 25 assembly/image layout tests and 41 workflow tests all pass. Both real containers returned
+  `Cache-Control: no-store` with correct identities. Visual review covered both languages, desktop/phone widths, print,
+  station references, independent identifiers, Search failure/retry, saved-result row, infrastructure card and HL-LHC.
+  `npm run openspec:validate` passes **6 of 6**, and `python scripts/check_all.py` passes **36 of 36**. Ruff lint and
+  format pass on the final code. These checks do not establish behavior on a new CI head.
+- **Close-out:** tasks 4.20–4.25 are complete (**75 of 85**). Task 4.26 remains open only for separately authorized
+  commit/push and CI on the resulting PR head. The next implementation dependency is then M4's human EOSC CZ consent;
+  it has not started and was not purported to be complete in this session.
+- **Corrections:** the maintainer selected the existing lifecycle `path/start` for every bare-URL visit, rather than the
+  initially discussed last-station or first-station variants. The final scenarios explicitly cover both fresh and
+  returning readers.

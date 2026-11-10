@@ -543,19 +543,19 @@ sections.push(["page", async () => {
     // documentation, and the page lists every collection as an accessible counterpart of the documentation.
     const inSite = (href) => {
       if (!href || /^[a-z]+:/i.test(href)) return false;
-      const concrete = href.replace(/\{[^}]+\}/g, "dataset.01");
-      return existsSync(resolve(site, concrete.endsWith("/") ? concrete + "index.html" : concrete));
+      return existsSync(resolve(site, href.endsWith("/") ? href + "index.html" : href));
     };
     for (const rel of ["service-desc", "service-doc"]) {
       const href = await view.locator(`head link[rel="${rel}"]`).getAttribute("href");
       if (!inSite(href)) fail(`machines: the ${rel} link does not lead to the built API: ${href}`);
     }
-    const endpoints = await view.locator(".endpoints tbody td:first-of-type a").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    const endpoints = await view.locator(".endpoints tbody td:first-of-type a").evaluateAll((links) => links.map((link) => ({ href: link.getAttribute("href"), text: link.textContent })));
     const description = JSON.parse(readFileSync(resolve(site, "openapi.json"), "utf8"));
     const expectedEndpoints = Object.entries(description.paths)
       .filter(([, item]) => item.get.operationId.startsWith("list") || ["getIndex", "getContext", "getHealth", "getSavedResultQuestion"].includes(item.get.operationId))
       .map(([path]) => path.slice(1));
-    if (endpoints.slice().sort().join("|") !== expectedEndpoints.sort().join("|") || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
+    const operationPaths = endpoints.map((entry) => entry.text === "api/tests/{id}.json" ? entry.text : entry.href);
+    if (operationPaths.slice().sort().join("|") !== expectedEndpoints.sort().join("|") || !endpoints.every((entry) => inSite(entry.href))) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.map((entry) => entry.href).join(" "));
     for (const kind of ["principles", "resources", "organizations", "fips"]) {
       if ((await view.locator(`.endpoints tr[data-kind="${kind}"] td:last-child`).textContent()).trim() !== kind) fail(`machines: the FIP mapping for ${kind} is wrong`);
     }
@@ -2304,6 +2304,27 @@ sections.push(["life cycle", async () => {
   }, 1);
 }]);
 
+// The bare URL always opens the lifecycle landing. Explicit path routes still resume, and the crate preview stays machines.
+sections.push(["bare URL landing", async () => {
+  const { context, page, problems } = await openPage();
+  await gotoView(page, pageUrl);
+  await rendered(page);
+  if (!(await page.locator("#journey-title").count())) fail("bare URL: a first visit does not open the lifecycle landing");
+  await navigationRendered(page, () => page.evaluate(() => { window.location.hash = "#/cs/V/path/licence"; }));
+  await gotoView(page, pageUrl);
+  await rendered(page);
+  if (!(await page.locator("#journey-title").count())) fail("bare URL: saved station history replaces the lifecycle landing");
+  if ((await page.locator(".main-nav a", { hasText: "Cesta k FAIR" }).getAttribute("href")) !== "#/cs/V/path/licence") fail("bare URL: the Path menu no longer resumes the last station");
+  if (!(await page.locator(".resume a").textContent()).includes("Licence")) fail("bare URL: the resume action no longer names the last station");
+  await navigationRendered(page, () => page.evaluate(() => { window.location.hash = "#/cs/V/path"; }));
+  if (!(await page.locator(".now-actions").count())) fail("bare URL: an explicit station-free path route no longer resumes");
+  await gotoView(page, new URL("ro-crate-preview.html", pageUrl).href);
+  await rendered(page);
+  if ((await page.locator("#main h1").textContent()).trim() !== "Data pro stroje") fail("bare URL: the crate preview no longer opens machines");
+  for (const problem of problems) fail(`bare URL: ${problem}`);
+  await context.close();
+}]);
+
 // A stage chosen and stored by an earlier version of the guide is ignored: the path's start shows the journey with no
 // stage marked, and the next save drops the stored choice.
 sections.push(["stored stage", async () => {
@@ -2885,6 +2906,29 @@ sections.push(["entry routes", async () => {
     for (const problem of problems) fail(`entry routes ${lang}: ${problem}`);
     await context.close();
   }
+}]);
+
+sections.push(["deferred station references", async () => {
+  const { context, page, problems } = await openPage();
+  await gotoView(page, pageUrl + "#/cs/K/path/repository");
+  await rendered(page);
+  const fipsLoaded = () => page.evaluate(() => window.FairGuide.partHasLanguage("fips", "cs"));
+  if (await fipsLoaded()) fail("deferred station references: fips loaded before the infrastructure reference test");
+  await page.locator('details[data-key="L1"] > summary').click();
+  for (const id of ["csda-ess-cz", "lindat-clariah-cz"]) {
+    const href = `#/cs/K/catalogue/infrastructures/${id}`;
+    if (!(await page.locator(`#main a.text-ref[href="${href}"]`).count())) fail(`deferred station references: repository.23 does not link ${id}`);
+  }
+  await gotoView(page, pageUrl + "#/cs/K/path/metadata");
+  await rendered(page);
+  await page.locator('details[data-key="L1"] > summary').click();
+  for (const id of ["csda-ess-cz", "lindat-clariah-cz", "elixir-cz"]) {
+    const href = `#/cs/K/catalogue/infrastructures/${id}`;
+    if (!(await page.locator(`#main a.text-ref[href="${href}"]`).count())) fail(`deferred station references: metadata.39 does not link ${id}`);
+  }
+  if (await fipsLoaded()) fail("deferred station references: the references depended on loading fips");
+  for (const problem of problems) fail(`deferred station references: ${problem}`);
+  await context.close();
 }]);
 
 sections.push(["catalogue text reference", async () => {

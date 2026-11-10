@@ -82,6 +82,8 @@ submission.
   - Documented SPARQL recipes, each run in CI as a contract test.
 - **Page.**
   - Catalogue routes use addresses and keep the reader's lens (`#/<lang>/<lens>/catalogue/resources/dmp-eosc`).
+  - The bare Guide URL opens the existing `#/<lang>/<lens>/path/start` landing for every reader, independently of
+    saved station history. The Path menu and resume action still lead to the last-read station.
   - Every record IRI opens a static landing page, `id/<address>.html`, readable without JavaScript and signposted,
     with a section for each part. Its link into the Guide, `#/id/<address>`, opens the entry in the reader's saved
     language and lens.
@@ -119,7 +121,8 @@ None. The changed behaviour belongs to the existing capabilities below.
   - new requirements that every kind is selected by its class, that the vocabulary's declarations hold for the
     graph, that each relation is stated once and that schema.org properties stay within their domains.
 - `fair-guide/guide-experience`: the machine-readable page, signposting, identifier routing, identifier chips, the
-  credited sources, the repository family and its facets, catalogue routes and record landing pages.
+  credited sources, the repository family and its facets, catalogue routes, the predictable bare-URL landing and record
+  landing pages, including synchronous references, recoverable search and shared status presentation.
 - `fair-guide/guide-delivery`: health snapshot publication, the production sitemap, namespace alignment between
   channels, and monitoring and maintaining the w3id redirect.
 - `fair-guide/guide-self-check`: result format revision 4, which records answers as measurements of persistent
@@ -178,9 +181,14 @@ None. The changed behaviour belongs to the existing capabilities below.
     stated both ways, that schema.org properties stay within their domains, and that every shape refuses a real node
     missing what it requires;
   - independent coverage from every issued address to its API record and landing page, plus generated-HTML rejection;
-  - current and documented predecessor artifact assembly and image retries, and interrupted migration retries;
+  - current and documented predecessor artifact assembly and image retries, coherent mixed/split-layout rejection,
+    `no-store` health responses and interrupted migration retries;
   - recursive fragment anchors and nested-404 stylesheet resolution;
   - byte-identical output after registry-index caching and schema-option deduplication;
+  - synchronous infrastructure links before their deferred graph arrives, and visible search recovery after a planted
+    part failure that leaves independent identifier routing available;
+  - bare-URL landing for fresh and returning readers, while explicit path resumption and the crate preview exception
+    retain their existing meanings;
   - the w3id probe once the redirect is live;
   - inspection of the catalogue, records, landing pages and machines page in both languages, at phone width and in
     print.

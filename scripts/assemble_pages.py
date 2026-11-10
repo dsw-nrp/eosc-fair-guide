@@ -133,6 +133,21 @@ def health_path(files: dict[str, bytes]) -> str:
     return candidates[0]
 
 
+def release_statuses(files: dict[str, bytes], health_name: str) -> tuple[object, object]:
+    """Read release status only from the schema generation selected by the artifact's health layout."""
+    current = health_name == package_site.HEALTH
+    selected, retired = ("releaseStatus", "creativeWorkStatus") if current else ("creativeWorkStatus", "releaseStatus")
+    crate = json.loads(files[build_crate.CRATE_FILE])
+    nodes = {entity["@id"]: entity for entity in crate["@graph"]}
+    statuses = []
+    for key in ("./", "#guide-software"):
+        node = nodes.get(key, {})
+        if selected not in node or retired in node:
+            raise AssemblyError(f"release archive status layout does not match {health_name}")
+        statuses.append(build_crate.status_code(node[selected]) if current else node[selected])
+    return tuple(statuses)
+
+
 def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]:
     if not TAG.fullmatch(tag) or not SHA.fullmatch(commit):
         raise AssemblyError("production requires a release tag and full commit SHA")
@@ -174,6 +189,7 @@ def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]
     health = json.loads(files[health_name])
     if health.get("run", {}).get("status") != "passed" or health.get("revision") != commit:
         raise AssemblyError("release archive health does not name the checked commit")
+    release_statuses(files, health_name)
     try:
         verify_declaration(files, manifest)
     except ValueError as error:

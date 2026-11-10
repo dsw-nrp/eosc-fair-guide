@@ -329,7 +329,7 @@
     };
 
     input.addEventListener("input", typed);
-    /* The standards' requirements are searched too: their part loads when the field is first used. */
+    /* Text search loads its data parts on demand. */
     const preload = () => Promise.all([FG.loadPart("standards"), FG.loadPart("questions"), FG.loadPart("advice"), FG.loadPart("fips")]);
     input.addEventListener("focus", () =>
       preload().then(
@@ -337,7 +337,6 @@
         () => null
       )
     );
-    /* The button waits for something to search for; the field's visible label says what that is. */
     const submit = h("button", { type: "submit", class: "button button-primary", "aria-describedby": "search-label" }, FG.icon ? FG.icon("search") : null, FG.t("search.button"));
     const waiting = () => { submit.disabled = !input.value.trim(); };
     input.addEventListener("input", waiting);
@@ -345,7 +344,9 @@
     const run = async (event) => {
       event.preventDefault();
       clearTimeout(typingTimer);
-      await preload();
+      if (S.classify(input.value).type === "text") {
+        await preload().catch((error) => FG.dataLoadError(error, () => run(event)));
+      }
       show(true);
     };
     return h(

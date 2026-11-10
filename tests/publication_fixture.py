@@ -9,12 +9,21 @@ def publication_files(base="https://example.org/guide/", *, semantic=None, built
     config = {"pageUrl": base, "vocab": {"guide": vocab}}
     if built is not None:
         config["build"] = built
+    status = (built or {}).get("status", "production")
+    release_status = {"@id": base + "id/vocabularies/release-statuses/" + status}
     crate = {
         "@context": ["https://w3id.org/ro/crate/1.2/context", {"scope": vocab + "scope"}],
         "@graph": [
-            {"@id": "./", "@type": "Dataset", "version": version, "conformsTo": {"@id": profile}},
+            {
+                "@id": "./",
+                "@type": "Dataset",
+                "version": version,
+                "conformsTo": {"@id": profile},
+                "releaseStatus": release_status,
+            },
             {"@id": profile, "@type": "Profile"},
             {"@id": vocab + "scope", "@type": "rdf:Property"},
+            {"@id": "#guide-software", "@type": "SoftwareApplication", "releaseStatus": release_status},
         ],
     }
     return {

@@ -8,7 +8,7 @@
   /** Every endpoint of the API, the accessible counterpart of its interactive documentation. */
   FG.views.endpointTable = function () {
     const files = FG.config.api.files;
-    const file = (path, type) => h("a", { href: path, type }, path);
+    const file = (path, type, label = path) => h("a", { href: path, type }, label);
     const recipes = FG.config.api.recipes || { root: "", items: [] };
     const labels = FG.ui.api.recipes?.labels || {};
     const recipeLinks = h(
@@ -41,14 +41,15 @@
         h("td", null, fip)
       );
     };
-    const operationRow = ([key, path, type]) => h(
+    const operationRow = ([key, path, type, label]) => h(
       "tr",
       null,
       h("th", { scope: "row" }, FG.t("api." + key)),
-      h("td", null, file(path, type)),
+      h("td", null, file(path, type, label)),
       h("td", null, ""),
       h("td", null, FG.t("machines.column.fipNone"))
     );
+    const savedResult = Object.keys(FG.config.api.records).filter((address) => address.startsWith("questions/")).sort()[0];
     const table = h(
       "table",
       { class: "data-table endpoints" },
@@ -58,7 +59,8 @@
       h("tbody", null,
         FG.config.kinds.map(kindRow),
         [["index", files.index, "application/json"], ["context", files.context, "application/ld+json"],
-          ["savedResult", files.test, "application/json"], ["health", files.health, "application/json"]].map(operationRow))
+          ["savedResult", files.test.replace("{id}", savedResult.split("/").pop()), "application/json", files.test],
+          ["health", files.health, "application/json"]].map(operationRow))
     );
     return [table, recipeLinks];
   };

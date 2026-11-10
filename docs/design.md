@@ -161,7 +161,9 @@ verification, a Guide IRI or address to its catalogue entry. A generic DOI or Ha
 that names its object and source; other suitable helpers remain available. The catalogue is the complete
 search-results view. Every route names the reader's language and lens (`#/<lang>/<lens>/catalogue/<kind>/<id>`),
 so a shared link opens as its sender saw it; the one route without them, `#/id/<address>`, is how a record's
-landing page links into the Guide, and it becomes the full route in the reader's saved language and lens. Source
+landing page links into the Guide, and it becomes the full route in the reader's saved language and lens. The bare
+Guide URL always selects the lifecycle landing, never a saved station; last-station memory belongs to the Path menu
+and resume action, while an explicit station-free path route keeps its resume semantics. Source
 and privacy information remain visible without dominating entry.
 
 The journey draws seven life-cycle stages as a cycle, reuse returning to planning, with a numbered

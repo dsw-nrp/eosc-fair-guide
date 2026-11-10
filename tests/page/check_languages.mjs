@@ -94,7 +94,7 @@ try {
   await savedPage.goto(file);
   await rendered(savedPage, "en", "#search-input");
   assert.equal(languageFiles(savedObserved.requests, "cs").length, 0, "a saved language is selected before the first download");
-  assert.equal(languageFiles(savedObserved.requests, "en").length, 1);
+  assert.equal(languageFiles(savedObserved.requests, "en").length, 1, savedObserved.requests.join(" | "));
   await savedContext.close();
 
   // Public static hosts work like file://. A missing translation leaves the current view readable and retryable.
@@ -170,6 +170,35 @@ try {
   await rendered(delayedPage, 'en', '#search-input');
   assert(await delayedPage.evaluate(() => window.FairGuide.partHasLanguage('advice', 'en')));
   await delayed.close();
+
+  // A failed text-search part offers a working retry, while identifier routing remains available independently.
+  const failure = await browser.newContext();
+  const failedPage = await failure.newPage();
+  const failedObserved = watched(failedPage);
+  let failStandards = true;
+  await failure.route(origin + "/**", async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (failStandards && pathname === "/assets/data/kb-standards-cs.js") return route.abort("failed");
+    const path = resolve(site, "." + pathname);
+    const type = pathname.endsWith(".js") ? "text/javascript" : pathname.endsWith(".css") ? "text/css" : pathname.endsWith(".svg") ? "image/svg+xml" : "text/html";
+    await route.fulfill({ body: readFileSync(path), contentType: type });
+  });
+  await failedPage.goto(origin + "/index.html#/cs/V/path/start");
+  await rendered(failedPage, "cs", "#search-input");
+  await failedPage.fill("#search-input", "10.5281/zenodo.21726258");
+  await failedPage.locator("form.search").evaluate((form) => form.requestSubmit());
+  await failedPage.waitForFunction(() => document.querySelector("#search-results")?.dataset.confirmed === "true" && document.querySelector("#search-results")?.dataset.query === "10.5281/zenodo.21726258");
+  assert(await failedPage.locator("#search-results .result-primary").count(), "an identifier route does not wait for unrelated text-index parts");
+  await failedPage.fill("#search-input", "licence");
+  await failedPage.locator("form.search").evaluate((form) => form.requestSubmit());
+  await failedPage.locator(".data-load-error").waitFor();
+  failStandards = false;
+  await failedPage.locator(".data-load-error button").click();
+  await failedPage.waitForFunction(() => document.querySelector("#search-results")?.dataset.confirmed === "true" && document.querySelector("#search-results")?.dataset.query === "licence");
+  assert(await failedPage.locator('#search-results a[href$="/path/licence"]').count(), "search retry renders the recovered text results");
+  assert.equal(await failedPage.locator(".data-load-error").count(), 0);
+  assert.deepEqual(failedObserved.errors, []);
+  await failure.close();
   console.log("language checks: selected downloads, both directions, exact graph, bilingual exports/search and failed-file retry passed");
 } finally {
   await browser.close();

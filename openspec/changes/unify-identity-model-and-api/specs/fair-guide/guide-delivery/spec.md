@@ -90,8 +90,9 @@ profile and a record IRI resolve as JSON and HTML to it, and a failure SHALL be 
 ### Requirement: Verified release artifacts remain reusable across schema transitions
 
 Deployment and image tooling SHALL accept verified current and documented predecessor layouts without rewriting
-verified bytes or requiring compatibility API documents. It SHALL read health evidence and release status from the
-artifact's own layout and SHALL reject missing or ambiguous layouts before replacing output.
+verified bytes or requiring compatibility API documents. Both status-bearing nodes SHALL use only the status property
+of the selected layout, with no per-node fallback. Missing, mixed, split or ambiguous layouts SHALL be rejected before
+replacing output.
 
 #### Scenario: Previous production beside a new preview
 
@@ -112,3 +113,21 @@ artifact's own layout and SHALL reject missing or ambiguous layouts before repla
 - **GIVEN** an archive carrying both health layouts, or neither recognized layout
 - **WHEN** assembly or image preparation validates it
 - **THEN** validation fails with the layout named and no output is replaced
+
+#### Scenario: Mixed status generations are rejected
+
+- **GIVEN** current health with only predecessor status properties, predecessor health with current status properties,
+  or current and predecessor status properties split between `./` and `#guide-software`
+- **WHEN** assembly or image preparation validates the archive
+- **THEN** it rejects the mixed or split layout before replacing any managed output
+
+### Requirement: Release health responses bypass intermediary caches
+
+Every health path supported for release images SHALL return `Cache-Control: no-store`. The candidate-image probe SHALL
+verify that header together with the served identity.
+
+#### Scenario: Both health layouts bypass intermediary caches
+
+- **GIVEN** a current or documented predecessor artifact prepared into a candidate image
+- **WHEN** its selected health path is requested through the container
+- **THEN** the response carries `Cache-Control: no-store` and the probe verifies that header as well as the JSON identity

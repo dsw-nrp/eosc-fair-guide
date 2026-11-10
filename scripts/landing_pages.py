@@ -41,15 +41,7 @@ IDENTITY_PROPERTIES = {
     "description",
     "text",
 }
-STATUS_PROPERTIES = (
-    "serviceStatus",
-    "healthStatus",
-    "preparationStatus",
-    "nodeState",
-    "clauseStatus",
-    "fipStatus",
-    "declarationStatus",
-)
+STATUS_PROPERTIES = tuple(prop for prop, shape in kb.GUIDE_TERM_SHAPES.items() if shape[0] == kb.ADMS + "status")
 
 
 class RecordPages:
@@ -175,9 +167,7 @@ class RecordPages:
     def paragraphs(self, value: str) -> str:
         return "".join("<p>" + html.escape(part) + "</p>" for part in re.split(r"\n\s*\n", value) if part)
 
-    def part_section(
-        self, here: str, part: dict[str, Any], fragment: str, language: str, wrapper: str = "section"
-    ) -> str:
+    def part_section(self, here: str, part: dict[str, Any], fragment: str, language: str) -> str:
         title = self.text(
             {key: part[key] for key in ("name", "headline", "text", "description", "identifier") if key in part},
             language,
@@ -210,10 +200,7 @@ class RecordPages:
                 if linked:
                     relations.append(f'<li data-field="{html.escape(key)}">{linked}</li>')
         return (
-            f'<{wrapper} class="detail-record part"'
-            + (f' lang="{language}"' if wrapper == "div" else "")
-            + (f' id="{html.escape(fragment, quote=True)}"' if wrapper == "section" else "")
-            + "><h3>"
+            f'<div class="detail-record part" lang="{language}"><h3>'
             + html.escape(title)
             + "</h3>"
             + ("<dl>" + "".join(fields) + "</dl>" if fields else "")
@@ -222,21 +209,19 @@ class RecordPages:
                 if relations
                 else ""
             )
-            + f"</{wrapper}>"
+            + "</div>"
         )
 
     def render_parts(self, here: str, record: dict[str, Any]) -> str:
         """One anchored section per issued direct or nested fragment; the shared languages share no duplicate ID."""
         groups: dict[str, dict[str, Any]] = {}
         for part in self.walk(record):
-            if not isinstance(part, dict):
-                continue
             local = self.resolve(here, part)
             if local and local[1] and local[0] == self.api_location(here):
                 groups.setdefault(local[1], part)
         return "".join(
             f'<section class="detail-record part" id="{html.escape(fragment, quote=True)}">'
-            + "".join(self.part_section(here, part, fragment, language, wrapper="div") for language in kb.LANGS)
+            + "".join(self.part_section(here, part, fragment, language) for language in kb.LANGS)
             + "</section>"
             for fragment, part in groups.items()
         )

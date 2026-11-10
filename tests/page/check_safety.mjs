@@ -145,25 +145,33 @@ await page.waitForSelector(".catalogue-results");
 const reused = await page.evaluate(async () => {
   const FG = window.FairGuide;
   await Promise.all(Object.keys(FG.config.parts).map((name) => FG.loadPart(name, "en")));
-  const route = FG.parseHash(location.hash), original = FG.ofType;
-  let scans = 0;
+  const route = FG.parseHash(location.hash), original = FG.ofType, originalHasRef = FG.hasRef;
+  let scans = 0, relationScans = 0;
   FG.ofType = (type) => { if (type === "Quiz") scans++; return original(type); };
+  FG.hasRef = (entity, property, id) => { if (property === "operatedBy") relationScans++; return originalHasRef(entity, property, id); };
   try {
     FG.invalidateData();
     const start = performance.now(), first = FG.views.catalogue(route);
-    const firstCard = first.querySelector(".catalogue-results li"), firstScans = scans;
+    const firstCard = first.querySelector(".catalogue-results li"), firstScans = scans, firstRelations = relationScans;
     const firstMs = performance.now() - start;
     const again = performance.now(), second = FG.views.catalogue(route);
-    const secondMs = performance.now() - again, repeatedScans = scans - firstScans;
+    const secondMs = performance.now() - again, repeatedScans = scans - firstScans, repeatedRelations = relationScans - firstRelations;
     const secondCard = second.querySelector(".catalogue-results li");
     FG.invalidateData(); FG.views.catalogue(route);
-    return { firstScans, repeatedScans, changedScans: scans - firstScans, fresh: Boolean(firstCard && secondCard && firstCard !== secondCard), firstMs, secondMs };
-  } finally { FG.ofType = original; }
+    return { firstScans, repeatedScans, changedScans: scans - firstScans, firstRelations, repeatedRelations,
+      changedRelations: relationScans - firstRelations, fresh: Boolean(firstCard && secondCard && firstCard !== secondCard), firstMs, secondMs };
+  } finally { FG.ofType = original; FG.hasRef = originalHasRef; }
 });
 assert(reused.firstScans > 0 && reused.changedScans > 0, "initial and invalidated catalogue derive their questions");
-assert.equal(reused.repeatedScans, 0, "unchanged filters do not rebuild catalogue entries");
+assert.equal(reused.repeatedScans, 0, "unchanged filters do not rebuild catalogue entries: " + JSON.stringify(reused));
 assert(reused.fresh, "cached descriptors must not reuse live card nodes");
+assert.equal(reused.firstRelations, 0, "infrastructure cards share one reverse operatedBy index");
+assert.equal(reused.repeatedRelations, 0, "unchanged filters do not rescan operatedBy relations");
+assert.equal(reused.changedRelations, 0, "invalidation rebuilds the relation index once, not once per card");
 console.log("catalogue reuse measurement: " + JSON.stringify(reused));
+await page.goto(base + "#/en/V/catalogue/infrastructures/csda-ess-cz");
+await page.waitForSelector("#main .entry-card");
+assert(await page.locator('#main .entry-card a[href$="/catalogue/repositories/csda"]').count(), "indexed infrastructure cards retain their operated-entry links");
   const searches = await page.evaluate(async () => {
   const FG = window.FairGuide, original = FG.search.find;
   let calls = 0;

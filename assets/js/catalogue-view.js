@@ -274,6 +274,13 @@
     const others = FG.graph.filter(
       (entity) => FG.kind(FG.apiRecord(entity)) === "infrastructures" && !FG.fragment(FG.apiRecord(entity)) && !roadmap.includes(entity)
     );
+    const operated = new Map();
+    for (const entry of FG.graph) {
+      for (const id of FG.refIds(entry, "operatedBy")) {
+        if (!operated.has(id)) operated.set(id, []);
+        operated.get(id).push(entry);
+      }
+    }
     return [...roadmap, ...others].map((infra) => {
       const researchField = FG.id(infra.researchField);
       const phase = FG.id(infra.infrastructurePhase);
@@ -311,7 +318,7 @@
             relations: {
               operatedBy: operatorRow(infra),
               /* The entries that name this infrastructure as their operator. */
-              operates: FG.graph.filter((entry) => FG.hasRef(entry, "operatedBy", infra["@id"])).map(entryLink),
+              operates: (operated.get(infra["@id"]) || []).map(entryLink),
               identifiers: FG.identifierItems(infra),
               nationalNodeOf: nodes.map((ri) => h("span", null, ri.name + (FG.id(ri.esfriStatus) ? " (" + FG.termName(FG.id(ri.esfriStatus)) + ")" : ""))),
               fips: FG.id(infra.subjectOf) ? [h("a", { href: FG.entryHref(FG.get(infra.subjectOf)) }, FG.text((FG.get(FG.id(infra.subjectOf)) || {}).name) || FG.localId(infra.subjectOf))] : [],

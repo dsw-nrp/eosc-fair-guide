@@ -300,6 +300,8 @@ class WorkflowContracts(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/publish-image.yml").read_text(encoding="utf-8")
         self.assertIn("HEALTH_PATH=$(cat .cache/image/health-path.txt)", workflow)
         self.assertIn('"http://127.0.0.1:8080/${HEALTH_PATH}"', workflow)
+        self.assertIn("-D health-headers.txt", workflow)
+        self.assertIn('line.casefold() == "cache-control: no-store"', workflow)
         self.assertNotIn("curl -fsS http://127.0.0.1:8080/api/v1/health.json", workflow)
 
     def test_application_package_and_citation_versions_agree(self) -> None:

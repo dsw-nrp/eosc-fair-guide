@@ -38,12 +38,7 @@ def prepare(artifact: Path, output: Path, tag: str, commit: str, root: Path = RO
         or not commit.startswith(built["commit"])
     ):
         raise ValueError("release build identity does not match the tag and commit")
-    crate = json.loads(files[build_crate.CRATE_FILE])
-    nodes = {entity["@id"]: entity for entity in crate["@graph"]}
-    statuses = (
-        build_crate.status_code(nodes.get(key, {}).get("releaseStatus")) or nodes.get(key, {}).get("creativeWorkStatus")
-        for key in ("./", "#guide-software")
-    )
+    statuses = assemble_pages.release_statuses(files, health_name)
     if any(status != built["status"] for status in statuses):
         raise ValueError("crate status differs from release identity")
     templates = {name: (root / "docker" / name).read_bytes() for name in ("Dockerfile", "nginx.conf")}

@@ -253,6 +253,12 @@ class AssemblyTests(unittest.TestCase):
     def test_predecessor_layout_is_preserved_and_ambiguous_health_is_rejected(self) -> None:
         self.files["api/health.json"] = self.files.pop("api/v1/health.json")
         del self.files["404.html"]
+        crate = json.loads(self.files[build_crate.CRATE_FILE])
+        for node in crate["@graph"]:
+            node.pop("releaseStatus", None)
+            if node["@id"] in ("./", "#guide-software"):
+                node["creativeWorkStatus"] = "production"
+        self.files[build_crate.CRATE_FILE] = json.dumps(crate).encode()
         self.write_release(self.files)
         self.assemble()
         for name, data in self.files.items():
@@ -265,6 +271,34 @@ class AssemblyTests(unittest.TestCase):
         for name, data in self.files.items():
             if name != "api/v1/health.json":
                 self.assertEqual((self.out / name).read_bytes(), data, name)
+
+    def test_mixed_and_missing_status_layouts_are_rejected_without_replacing_output(self) -> None:
+        self.assemble()
+        before = {path.relative_to(self.out): path.read_bytes() for path in self.out.rglob("*") if path.is_file()}
+        original = json.loads(self.files[build_crate.CRATE_FILE])
+        for kind in ("current-legacy", "predecessor-current", "split", "missing", "dual"):
+            crate = json.loads(json.dumps(original))
+            nodes = {node["@id"]: node for node in crate["@graph"]}
+            files = dict(self.files)
+            if kind == "predecessor-current":
+                files["api/health.json"] = files.pop("api/v1/health.json")
+                del files["404.html"]
+            if kind == "current-legacy":
+                for key in ("./", "#guide-software"):
+                    nodes[key].pop("releaseStatus")
+                    nodes[key]["creativeWorkStatus"] = "production"
+            if kind == "split":
+                nodes["./"]["creativeWorkStatus"] = "production"
+            if kind == "missing":
+                del nodes["#guide-software"]["releaseStatus"]
+            if kind == "dual":
+                nodes["./"]["creativeWorkStatus"] = "production"
+            files[build_crate.CRATE_FILE] = json.dumps(crate).encode()
+            self.write_release(files)
+            with self.subTest(kind=kind), self.assertRaisesRegex(assemble_pages.AssemblyError, "status layout"):
+                self.assemble()
+            after = {path.relative_to(self.out): path.read_bytes() for path in self.out.rglob("*") if path.is_file()}
+            self.assertEqual(after, before, kind)
 
     def test_a_preview_built_from_the_release_commit_says_it_is_that_release(self) -> None:
         # Tag release tags a commit the preview already serves; the preview's own footer predates the tag.

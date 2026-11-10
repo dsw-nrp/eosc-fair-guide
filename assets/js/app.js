@@ -75,7 +75,7 @@
     /* A catalogue entry of advice or a page draws on its part. */
     if (route.view === "catalogue" && route.extra && ["advice", "pages"].includes(route.arg)) needed.push(route.arg);
     if (route.view === "page" && ["model", "machines"].includes(route.arg)) needed.push("standards", "questions");
-    if (route.view === "path" && (route.arg || Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length))) needed.push("questions");
+    if (route.view === "path" && (!FG.landingShown(route) || Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length))) needed.push("questions");
     const missing = [...new Set(needed)].filter((name) => !FG.partHasLanguage(name, route.lang));
     const helperNeeded = route.view === "page" && FG.list(FG.config.helpers?.pages).includes(route.arg) && !(FG.helpers && FG.helpers[route.arg]);
     /* A check and the checks' overview are both the self-check's view; a path with saved answers and the about page's

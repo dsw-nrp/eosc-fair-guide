@@ -55,7 +55,6 @@ class ImageReleaseTests(unittest.TestCase):
         crate = json.loads(evidence["ro-crate-metadata.json"])
         production = {"@id": "https://published.example/guide/id/vocabularies/release-statuses/production"}
         crate["@graph"][0]["releaseStatus"] = production
-        crate["@graph"].append({"@id": "#guide-software", "releaseStatus": production})
         files = {
             "index.html": "<!doctype html><title>Release fixture</title>",
             "assets/data/ui.js": self.config,
@@ -100,6 +99,27 @@ class ImageReleaseTests(unittest.TestCase):
         files[build_crate.CRATE_FILE] = json.dumps(crate).encode()
         return files
 
+    def status_files(self, layout: str, root_status: str, software_status: str, dual=False) -> dict[str, bytes]:
+        files = (
+            assemble_pages.production_files(self.artifact, TAG, COMMIT)
+            if layout == "current"
+            else self.predecessor_files()
+        )
+        crate = json.loads(files[build_crate.CRATE_FILE])
+        nodes = {node["@id"]: node for node in crate["@graph"]}
+        production = {"@id": "https://published.example/guide/id/vocabularies/release-statuses/production"}
+        for key, prop in (("./", root_status), ("#guide-software", software_status)):
+            nodes[key].pop("releaseStatus", None)
+            nodes[key].pop("creativeWorkStatus", None)
+            if prop is not None:
+                nodes[key][prop] = production if prop == "releaseStatus" else self.built["status"]
+            if dual:
+                nodes[key]["creativeWorkStatus" if prop == "releaseStatus" else "releaseStatus"] = (
+                    self.built["status"] if prop == "releaseStatus" else production
+                )
+        files[build_crate.CRATE_FILE] = json.dumps(crate).encode()
+        return files
+
     def test_exact_verified_bytes_and_repeat_preparation(self) -> None:
         context = self.root / "image"
         for _ in range(2):
@@ -124,12 +144,40 @@ class ImageReleaseTests(unittest.TestCase):
             self.assertFalse((context / "site/404.html").exists())
         image_release.verify(self.health, self.built, COMMIT, self.config)
 
+    def test_mixed_missing_and_split_status_layouts_are_refused_before_replacement(self) -> None:
+        context = self.root / "image"
+        image_release.prepare(self.artifact, context, TAG, COMMIT, self.root)
+        before = {path.relative_to(context): path.read_bytes() for path in context.rglob("*") if path.is_file()}
+        valid = assemble_pages.production_files(self.artifact, TAG, COMMIT)
+        cases = (
+            ("current", "creativeWorkStatus", "creativeWorkStatus", False),
+            ("predecessor", "releaseStatus", "releaseStatus", False),
+            ("current", "releaseStatus", "creativeWorkStatus", False),
+            ("predecessor", "creativeWorkStatus", "releaseStatus", False),
+            ("current", "releaseStatus", None, False),
+            ("current", "releaseStatus", "releaseStatus", True),
+        )
+        for layout, root_status, software_status, dual in cases:
+            with self.subTest(layout=layout, root=root_status, software=software_status, dual=dual):
+                self.rewrite_artifact(self.status_files(layout, root_status, software_status, dual))
+                with self.assertRaisesRegex(ValueError, "status layout"):
+                    image_release.prepare(self.artifact, context, TAG, COMMIT, self.root)
+                after = {path.relative_to(context): path.read_bytes() for path in context.rglob("*") if path.is_file()}
+                self.assertEqual(after, before)
+                self.rewrite_artifact(valid)
+
     def test_ambiguous_health_layout_is_refused(self) -> None:
         files = self.predecessor_files()
         files[package_site.HEALTH] = json.dumps(self.health).encode()
         self.rewrite_artifact(files)
         with self.assertRaisesRegex(ValueError, "exactly one recognized health result"):
             image_release.prepare(self.artifact, self.root / "image", TAG, COMMIT, self.root)
+
+    def test_nginx_protects_every_supported_health_layout(self) -> None:
+        config = (ROOT / "docker" / "nginx.conf").read_text(encoding="utf-8")
+        self.assertEqual(config.count('add_header Cache-Control "no-store";'), 2)
+        for path in ("/api/v1/health.json", "/api/health.json"):
+            self.assertIn(f"location = {path} {{", config)
 
     def test_publication_url_is_verified_and_legacy_archives_are_not_rewritten(self) -> None:
         path = self.artifact / "manifest.json"

@@ -338,7 +338,8 @@ before any M3 task starts.
   head.
 
 Tasks 4.13 to 4.19 answer the 2026-11-08 implementation review. All 18 findings have a repair and regression proof;
-CORR-002 stays out of scope because the shared provider-form identity predates this change.
+CORR-002 stays out of scope because the shared provider-form identity predates this change. Tasks 4.20 to 4.26 answer
+the 2026-11-09 follow-up review and make the bare Guide URL predictable.
 
 - [x] 4.13 Keep verified current and documented predecessor artifacts reusable through assembly and image retries
   (DEPLOY-001 and DEPLOY-002). Recognize `api/v1/health.json` with `releaseStatus` and the generated 404 separately from
@@ -373,12 +374,49 @@ CORR-002 stays out of scope because the shared provider-form identity predates t
   `/api/tests/{id}.json` operation to the accessible endpoint table and compare that surface with OpenAPI; delete the
   `#entry-localtest-` and Guide `operates` mappings. Verify: focused profile, local-test, endpoint and source searches
   pass, and every advertised endpoint and documented local-test link resolves to an emitted record.
-- [ ] 4.19 Reconcile this change's evidence and close review remediation. Update the existing provenance action and
+- [x] 4.19 Reconcile this change's evidence and close review remediation. Update the existing provenance action and
   rolling usage entry with the actual work and verification, without moving times merely to satisfy checks. Inspect all
   affected views in both languages, at desktop and phone widths and in print, including a newly enumerated organization,
   nested action anchors and nested 404 styling. Run `npm run openspec:validate` and `python scripts/check_all.py`.
   Verify: every review scenario and the complete local run pass and, after separately authorized commit/push, CI passes
   on the pull request's resulting head.
+
+- [x] 4.20 Make the bare Guide URL open the existing `#/<lang>/<lens>/path/start` landing for every reader, regardless
+  of saved station history (design.md decision 15). Change only the empty-hash default: the Path menu and resume action
+  still open the last-read station, an explicit route without a station keeps its current behaviour, and the crate
+  preview still opens machines. Verify: page tests cover fresh and returning readers opening `index.html` without a
+  hash, prove the lifecycle landing appears in both cases, and confirm those two route exceptions are unchanged.
+- [x] 4.21 Keep deferred references and Search usable (CORR-R2-001 and CORR-R2-002). Derive the minimal set of
+  infrastructure addresses named by initial text references and retain that set in the initial record map while
+  deferring the other infrastructure addresses. Classify a search before preloading, let recognised identifiers render
+  without text-index parts, and expose the shared visible retry state when a required text-search part fails. Verify:
+  direct station cases link CSDA/ESS-CZ, LINDAT/CLARIAH-CZ and ELIXIR CZ before `fips` loads; a planted part rejection
+  offers a working retry for text search and leaves independent identifier routing available.
+- [x] 4.22 Make every saved-result support link real (INT-R2-001). Keep `api/tests/{id}.json` as the displayed
+  operation template but derive a concrete emitted question-support document for its href. Verify: the endpoint table
+  still matches OpenAPI by operation/template, while every emitted anchor is checked directly with no placeholder
+  substitution.
+- [x] 4.23 Index infrastructure operation relations once per catalogue derivation (PERF-R2-001). Reuse one reverse
+  `operatedBy` map across infrastructure cards instead of filtering the whole graph per card. Verify: current relation
+  links are retained and call counts prove no per-entry `hasRef` scans on the initial or unchanged-filter render.
+- [x] 4.24 Complete the shared landing-status model and remove retired alternatives (DUP-R2-001, DEAD-R2-001,
+  DEAD-R2-002 and DEAD-R2-003). Derive landing status properties from the shared `adms:status` declarations, remove the
+  non-dictionary walker guard and unused section-wrapper branch, and drop the construction and compensating removal of
+  `config.api.collections`. Verify: HL-LHC's `landmark` uses the dated Status field's status slot, a record with an
+  actual status date shows it, no date is invented for an undated API record, recursive anchor tests stay green, and no
+  runtime consumer of the removed configuration remains.
+- [x] 4.25 Select each release layout coherently and protect every supported health response (DEPLOY-R2-001 and
+  INT-R2-002). Validate health and status evidence through one shared layout gate: both status-bearing nodes use only
+  the selected generation's property, with no per-node fallback. Apply `Cache-Control: no-store` to both recognized
+  health paths and assert the selected response header in the container probe. Verify: full current, predecessor,
+  missing, mixed and split-node matrices fail or pass as required before output replacement, and both real container
+  health paths return their identity with `no-store`.
+- [ ] 4.26 Reconcile this change's evidence and close the follow-up remediation. Update the existing provenance action
+  and rolling usage entry with the actual work and verification, without moving times merely to satisfy checks. Inspect
+  the bare-URL landing, affected station references, search failure/recovery, saved-result links, infrastructure cards
+  and updated record landing pages in both languages, at desktop and phone widths and in print. Run
+  `npm run openspec:validate` and `python scripts/check_all.py`. Verify: every review and bare-URL scenario and the
+  complete local run pass and, after separately authorized commit/push, CI passes on the pull request's resulting head.
 
 ## 5. w3id registration and release (M4)
 

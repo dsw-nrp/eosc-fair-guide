@@ -75,6 +75,12 @@ the same filtered projection as the implementation, so omitted records stayed in
 layout transition; decisions 11, 17 and 19 now include the corresponding independent guards. CORR-002 is pre-existing
 and is not assigned to this change.
 
+**Follow-up implementation review (2026-11-09, head `e9c8a14`).** Ten new findings cover deferred station references,
+search failure recovery, a literal saved-result template used as an href, mixed release-schema acceptance, missing
+health cache protection and smaller landing, performance and retired-code issues. The review independently confirmed
+all 18 earlier repairs and left CORR-002 unchanged in provenance and scope. The additional routing decision makes the
+bare Guide URL open the existing path start for every reader instead of depending on stored station history.
+
 The approach is bound by these constraints:
 
 - **Static hosting.** GitHub Pages serves files only and ignores query strings. Anything that filters or shapes a
@@ -111,8 +117,9 @@ The approach is bound by these constraints:
 - A query runtime of any kind (B and C in the exploration), SQL or tabular distributions, and an in-browser query
   console.
 - Changing what any advice, question or requirement says, except the 55 statements merged into their clauses.
-- Re-shaping the page beyond addressing, identifier chips, credited sources, the repository family's name, the
-  `#/id/` entry route, the record landing pages (decision 19) and the machines page's outline (decision 15).
+- Re-shaping the page beyond addressing, the predictable bare-URL landing, identifier chips, credited sources, the
+  repository family's name, the `#/id/` entry route, the record landing pages (decision 19) and the machines page's
+  outline (decision 15).
 
 ## Decisions
 
@@ -422,6 +429,10 @@ openapi.json                          one list and one record operation per kind
   - the per-record operations;
   - the old `api/<code>/...` tree, removed without compatibility documents because it is unreleased.
 - **The health snapshot** moves to `api/v1/health.json`. `docker/nginx.conf` moves its `no-store` rule with it.
+- **Endpoint documentation shows a real target.** The machines page keeps the saved-result support template
+  `api/tests/{id}.json` as text while its link opens a concrete emitted question-support document. Its OpenAPI coverage
+  is compared through the operation/template, and each emitted href is checked directly rather than made valid only
+  inside the test.
 
 ### 12. RDF distribution
 
@@ -508,6 +519,20 @@ openapi.json                          one list and one record operation per kind
     published to an embedding page.
   - An unknown address says so and offers search.
 - **Identifier input.** Search and the identifier input accept a Guide IRI or an address.
+- **The bare Guide URL is predictable.** An empty hash selects the existing `#/<lang>/<lens>/path/start` landing,
+  independently of stored station history. The Path menu and resume action still use the last-read station; an
+  explicit route without a station keeps its existing behaviour, and `ro-crate-preview.html` keeps its machines
+  exception. Only the default changes, not the landing or station views.
+- **Deferred data cannot break synchronous references.** Infrastructure addresses named by the build's text links stay
+  in the initial record map; only the remaining infrastructure addresses wait for `fips` or `api`. The set is derived
+  from the references rather than maintained as another ID list. Station tests exercise the references before `fips`
+  has loaded.
+- **Search fails openly and independently.** Classification happens before text-index preloading, so a recognised
+  identifier needs no unrelated part. A failed text-search part exposes the shared visible alert and retry action;
+  retry resubmits after recovery. A planted failure test also proves that an identifier route still renders.
+- **Infrastructure relations are indexed once.** A reverse `operatedBy` map is built with the infrastructure entries
+  and reused by their cards, rather than scanning the whole graph for every card on every render. Unchanged filters
+  continue to reuse the existing catalogue derivation cache.
 - **Chips.** An ID chip still shows the record ID; its title names the full address. Every catalogue entry, of every
   kind and in the list as well as alone, shows its own persistent IRI first among its identifiers. No identifier chip
   carries a label: an identifier is shown in full, and its address already says what issued it ("Identifikátor
@@ -626,6 +651,10 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=30
   - one section per issued part, anchored by the part's fragment (`#knav`, `#step-2`, `#action`), with each registry
     record's attribution and licence;
   - links to related records' landing pages.
+- **Statuses share one declaration.** Landing-page status properties come from the shared properties that specialise
+  `adms:status`, including `infrastructurePhase` and `esfriStatus`; a second manually filtered list cannot silently
+  omit a new status kind. HL-LHC proves that `landmark` occupies the Status field. A date appears only when the API
+  record actually supplies one; no observation date is invented for an undated record.
 - **Every nested fragment exists.** One recursive walker indexes and renders direct and nested parts, including nested
   actions and vocabulary members. An independent test compares every fragment the API issues with exactly one static
   target, instead of looking only at direct record parts. Ineffective secondary language and description settings go.
@@ -764,12 +793,20 @@ resources/eosc-cz-node
   bilingual 404. Documented predecessor artifacts carry `api/health.json` and `creativeWorkStatus`, and need no 404.
   Assembly and image preparation accept either layout, preserve the verified bytes and reject a mixed or missing
   layout before replacing output. A current 404 is required only for the current layout.
+- **Health and status select together.** One shared gate derives the accepted status property from the selected health
+  layout and requires it on both `./` and `#guide-software`. Neither node may fall back independently to the other
+  generation's property. Current health with legacy status, predecessor health with current status, and a split crate
+  are all mixed layouts, not compatibility cases.
+- **Every health response is fresh.** The image's nginx template applies `Cache-Control: no-store` to both
+  `/api/v1/health.json` and `/api/health.json`. The candidate container's probe checks that header along with the
+  served revision and build identity, so a body-only smoke check cannot conceal a stale intermediary response.
 - **The artifact supplies its own contract.** Release identity reads the status field found in that layout, and the
   candidate image probes the health path found in the archive instead of assuming API v1. These are readers of
   already verified artifacts, not compatibility API documents, so the route-baseline rule is unchanged.
 - **Independent old/new evidence.** Tests supply genuine current-shape and predecessor-shape archives through Pages
-  assembly, image preparation and health verification, including the previous health path and no-404 case. No live
-  release establishes this compatibility.
+  assembly, image preparation and health verification, including the previous health path and no-404 case. A full
+  current, predecessor, missing, mixed and split-node matrix proves rejection before managed output is replaced. No
+  live release establishes this compatibility.
 - **Alternative rejected:** invoking historical tooling for each old artifact. That adds another checkout and trust
   boundary and makes an ordinary retry more complex without improving byte preservation.
 

@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_api  # noqa: E402
 import build_crate  # noqa: E402
+import landing_pages  # noqa: E402
 
 
 class Document(HTMLParser):
@@ -149,6 +150,18 @@ class LandingPageTests(unittest.TestCase):
             )
         )
         self.assertIn("knav", document.ids)
+
+    def test_status_fields_follow_shared_declarations_and_real_dates(self) -> None:
+        expected = {
+            prop for prop, shape in build_crate.GUIDE_TERM_SHAPES.items() if shape[0] == build_crate.ADMS + "status"
+        }
+        self.assertEqual(set(landing_pages.STATUS_PROPERTIES), expected)
+        content = self.files["id/infrastructures/hl-lhc.html"]
+        self.assertIn('<dd data-field="esfriStatus">ESFRI Landmark</dd>', content)
+        self.assertNotIn('<dd data-field="esfriStatus">ESFRI Landmark (', content)
+        record = self.documents["api/v1/repositories/zenodo.json"]
+        dated = self.files["id/repositories/zenodo.html"]
+        self.assertIn(f'<dd data-field="serviceStatus">operational (as of {record["statusAsOf"]})</dd>', dated)
 
     def test_a_resource_page_keeps_types_languages_parts_and_no_site_address(self) -> None:
         path = "id/resources/rdmkit.html"
