@@ -1,8 +1,4 @@
-/* Universal search of the FAIR Data Guide. Text is searched in the guide's own knowledge base as it is typed,
-   ignoring diacritics and covering both languages. An identifier is routed by what it denotes: its form places
-   most identifiers, the knowledge base places the guide's own identifiers and addresses it lists, and for a DOI or
-   Handle one explicit lookup says what it is. Searching sends nothing anywhere: a service is called only when the
-   user picks an identifier result. Text results hand over to the catalogue. */
+/* Local bilingual search. Identifier results start services only on request; text results open the catalogue. */
 (function () {
   "use strict";
 
@@ -15,6 +11,7 @@
   const STATUS_DELAY = 800;
   const ID_NAMES = { doi: "DOI", handle: "Handle", orcid: "ORCID iD", ror: "ROR ID", url: "URL" };
   const KINDS = ["station", "check", "principle", "resource", "repository", "term", "page", "clause"];
+  const TEXT_PARTS = ["standards", "questions", "advice", "fips"];
   /* Identifiers placed by the knowledge base alone: their routes send nothing, so they answer while typing. */
   const LOCAL = ["guide", "known"];
   const URL = /^https:\/\/\S+$/i;
@@ -303,7 +300,7 @@
       const value = input.value;
       const found = S.classify(value);
       // Focus loads these parts and calls show again; a partial language graph cannot be indexed yet.
-      if (found.type === "text" && !["standards", "questions", "advice"].every((part) => FG.partHasLanguage(part, FG.state.lang))) return;
+      if (found.type === "text" && !TEXT_PARTS.every((part) => FG.partHasLanguage(part, FG.state.lang))) return;
       let content = [];
       let message = "";
       if (found.type === "text" && (confirmed || found.value.length >= MIN_TYPED)) {
@@ -330,7 +327,7 @@
 
     input.addEventListener("input", typed);
     /* Text search loads its data parts on demand. */
-    const preload = () => Promise.all([FG.loadPart("standards"), FG.loadPart("questions"), FG.loadPart("advice"), FG.loadPart("fips")]);
+    const preload = () => Promise.all(TEXT_PARTS.map((part) => FG.loadPart(part)));
     input.addEventListener("focus", () =>
       preload().then(
         () => input.value.trim() && show(results.dataset.confirmed === "true" && results.dataset.query === input.value.trim()),
@@ -344,9 +341,20 @@
     const run = async (event) => {
       event.preventDefault();
       clearTimeout(typingTimer);
-      if (S.classify(input.value).type === "text") {
-        await preload().catch((error) => FG.dataLoadError(error, () => run(event)));
-      }
+      const retry = () => {
+        const form = document.querySelector("#main form.search");
+        if (!form) return null;
+        if (form === input.form) return run(event);
+        const current = form.querySelector("#search-input");
+        if (!current.value.trim()) {
+          current.value = input.value;
+          current.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        form.requestSubmit();
+        return true;
+      };
+      if (S.classify(input.value).type === "text" && !(await preload().catch((error) => FG.dataLoadError(error, retry)))) return;
+      if (!input.isConnected && retry()) return;
       show(true);
     };
     return h(

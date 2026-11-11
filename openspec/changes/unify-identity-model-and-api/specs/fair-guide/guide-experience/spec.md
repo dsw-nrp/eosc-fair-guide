@@ -28,7 +28,11 @@ The landing's search box SHALL search text locally over the knowledge base and r
 Text results SHALL end with a link that opens the catalogue with the same query, which is the full results page.
 Matching SHALL ignore diacritics and cover both languages. Typing SHALL send nothing to any service; a service is
 called only after the user picks an identifier result. A recognised identifier SHALL route independently of unrelated
-text-index parts, and a failed required part SHALL expose a visible retry rather than leaving the search silent.
+text-index parts. Text results SHALL wait for all four indexed parts—`standards`, `questions`, `advice` and `fips`—in
+the selected language. A missing or failed part SHALL NOT let partial or empty results be confirmed as complete. A
+failed required part SHALL expose a visible retry rather than leaving the search silent. After navigation, retry
+SHALL act on the currently attached form and current route, not a detached predecessor, and SHALL NOT replace newer
+reader input.
 
 #### Scenario: Searching a term
 
@@ -47,6 +51,21 @@ text-index parts, and a failed required part SHALL expose a visible retry rather
 - **GIVEN** a text search whose required deferred part fails to load
 - **WHEN** the reader confirms the search
 - **THEN** a visible error offers retry and a later successful retry shows the results
+
+#### Scenario: Only the FIP text-search part fails
+
+- **GIVEN** a query matching a record supplied only by `fips`, with `standards`, `questions` and `advice` loaded
+- **AND** loading `fips` fails
+- **WHEN** the reader confirms the search
+- **THEN** a visible error offers retry and neither partial nor empty results are confirmed as complete
+- **AND** a successful retry includes the FIP-supplied match
+
+#### Scenario: Navigation replaces a failed search form before retry
+
+- **GIVEN** a failed text search whose original form has been replaced by lens navigation
+- **WHEN** the reader retries without entering a newer query
+- **THEN** the currently attached form shows recovered results for the pending query in the current route, not the detached predecessor
+- **AND** completion of an older retry does not overwrite a query entered after navigation
 
 #### Scenario: An identifier search needs no text index
 
@@ -352,7 +371,9 @@ SHALL return a bilingual not-found page that offers the catalogue search and res
 ### Requirement: Landing pages present statuses through one model
 
 Every status property specialising `adms:status` SHALL use the landing page's Status field. An API record's actual
-status date SHALL accompany the value where present, and no date SHALL be invented for an undated record.
+status date SHALL accompany the value where present, and no date SHALL be invented for an undated record. Each status
+SHALL retain its date's role: ordinary statuses use `statusAsOf`, while `nodeState` prefers `nodeStateSince` when both
+are present, so a later verification date cannot replace the Node's operational-state date.
 
 #### Scenario: A registry-created infrastructure shows its ESFRI status
 
@@ -365,6 +386,12 @@ status date SHALL accompany the value where present, and no date SHALL be invent
 - **GIVEN** an API record whose status includes `statusAsOf`, `nodeStateSince` or `reviewedDate`
 - **WHEN** its landing page is shown
 - **THEN** that actual date accompanies the value in the Status field
+
+#### Scenario: The Node's state keeps its own date
+
+- **GIVEN** the EOSC CZ Node API record with `nodeStateSince = 2026-10-08` and `statusAsOf = 2026-10-16`
+- **WHEN** its landing page is read without JavaScript
+- **THEN** the `nodeState` Status field shows the operational-state date, 2026-10-08, rather than the later check date
 
 ### Requirement: Landing pages signpost their record
 

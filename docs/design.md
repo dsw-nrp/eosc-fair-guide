@@ -55,7 +55,9 @@ Together they reconstruct the complete crate. Language changes preserve answers 
 Missing language files leave the usable view in place with retry. Originals, published titles and
 vocabulary labels retain their languages. Compact aliases support local cross-language search.
 L1-L3 advice text uses property patches; station views and the AI advice page wait for it. Text search waits
-for requirements, questions and advice in the selected language before publishing a complete index.
+for requirements, questions, detailed advice and FIP records in the selected language before publishing a complete
+index. A failed load offers retry without confirming partial results; navigation moves retry to the current form,
+and a newer reader query is never replaced by completion of an older retry.
 
 ## Authoring and build
 

@@ -19,7 +19,7 @@ def prepare(artifact: Path, output: Path, tag: str, commit: str, root: Path = RO
     source = artifact.resolve()
     if target == source or target in source.parents or source in target.parents:
         raise ValueError("image context overlaps the release artifact")
-    files = assemble_pages.production_files(artifact, tag, commit)
+    files, statuses = assemble_pages.production_release(artifact, tag, commit)
     assemble_pages.validate_files(files)
     config = files["assets/data/ui.js"].decode("utf-8")
     built = build_identity.config_identity(config)
@@ -38,7 +38,6 @@ def prepare(artifact: Path, output: Path, tag: str, commit: str, root: Path = RO
         or not commit.startswith(built["commit"])
     ):
         raise ValueError("release build identity does not match the tag and commit")
-    statuses = assemble_pages.release_statuses(files, health_name)
     if any(status != built["status"] for status in statuses):
         raise ValueError("crate status differs from release identity")
     templates = {name: (root / "docker" / name).read_bytes() for name in ("Dockerfile", "nginx.conf")}

@@ -167,6 +167,10 @@ class LanguageTests(unittest.TestCase):
         self.assertEqual(ui["config"]["languages"], build_crate.LANGUAGE_SCRIPTS)
         self.assertEqual(ui["config"]["partLanguages"], build_crate.PART_LANGUAGE_SCRIPTS)
         self.assertNotIn("collections", ui["config"]["api"])
+        self.assertNotIn("fipCollections", ui["config"]["api"])
+        api_part = assignment(self.generated[build_crate.PART_SCRIPTS["api"]], 'window.FairGuideData.parts["api"] = ')
+        self.assertNotIn("fipCollections", api_part["config"]["api"])
+        self.assertEqual(set(api_part["config"]["api"]["recipes"]), {"root"})
 
     def test_generated_languages_and_parts_reconstruct_full_crate(self) -> None:
         for order in (("cs", "en"), ("en", "cs")):

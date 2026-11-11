@@ -339,7 +339,8 @@ before any M3 task starts.
 
 Tasks 4.13 to 4.19 answer the 2026-11-08 implementation review. All 18 findings have a repair and regression proof;
 CORR-002 stays out of scope because the shared provider-form identity predates this change. Tasks 4.20 to 4.26 answer
-the 2026-11-09 follow-up review and make the bare Guide URL predictable.
+the 2026-11-09 follow-up review and make the bare Guide URL predictable. Tasks 4.27 to 4.29 answer the 2026-11-10
+follow-up review and add its regression evidence before M3 closes again.
 
 - [x] 4.13 Keep verified current and documented predecessor artifacts reusable through assembly and image retries
   (DEPLOY-001 and DEPLOY-002). Recognize `api/v1/health.json` with `releaseStatus` and the generated 404 separately from
@@ -417,6 +418,26 @@ the 2026-11-09 follow-up review and make the bare Guide URL predictable.
   and updated record landing pages in both languages, at desktop and phone widths and in print. Run
   `npm run openspec:validate` and `python scripts/check_all.py`. Verify: every review and bare-URL scenario and the
   complete local run pass and, after separately authorized commit/push, CI passes on the pull request's resulting head.
+
+- [x] 4.27 Complete search recovery and status-date selection (CORR-R3-SEARCH and INT-R3-001). Drive text-search
+  preload and readiness from one `standards`/`questions`/`advice`/`fips` list, return after a failed load instead of
+  confirming partial output, and retry through the currently attached form and current route without replacing newer
+  reader input. Prefer `nodeStateSince` for `nodeState` ahead of its separate `statusAsOf` verification date on landing
+  pages. Verify: a FIP-only failure never confirms partial or empty results, successful retry includes the FIP match
+  and works after navigation, an older retry cannot overwrite a newer query, identifier routing remains independent,
+  and the real Node landing shows `2026-10-08` while `2026-10-16` remains its verification date.
+- [x] 4.28 Reuse release-status parsing and remove the remaining dead inputs (PERF-R3-001 and DEAD-R3-001 to
+  DEAD-R3-004). Share validated files and statuses with image preparation so status selection runs once, while the
+  existing files-only assembly interface stays stable. Remove the unused `Api.node` collection argument, the unused
+  `Api.collection` records argument, `config.api.fipCollections` and `recipes.items`, including their deferred-transfer
+  and fallback residue. Verify: invocation counts show one status parse for current and predecessor image preparation,
+  generated API output and assembly behaviour remain unchanged, all six recipe links still resolve, and generated
+  configuration contains none of the removed fields.
+- [ ] 4.29 Reconcile this change's evidence and close the R3 remediation. Extend the existing provenance action and
+  rolling usage entry with the actual work and verification, without moving times merely to satisfy checks. Inspect
+  recovered search, the updated Node landing page and the machines view in both languages, at desktop and phone widths
+  and in print. Run `npm run openspec:validate` and `python scripts/check_all.py`. Verify: every R3 regression scenario
+  and the complete local run pass and, after separately authorized commit/push, CI passes on the resulting head.
 
 ## 5. w3id registration and release (M4)
 

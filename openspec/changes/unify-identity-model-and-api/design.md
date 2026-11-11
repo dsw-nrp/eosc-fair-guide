@@ -81,6 +81,12 @@ health cache protection and smaller landing, performance and retired-code issues
 all 18 earlier repairs and left CORR-002 unchanged in provenance and scope. The additional routing decision makes the
 bare Guide URL open the existing path start for every reader instead of depending on stored station history.
 
+**Implementation review (2026-11-10, head `1530935`).** Seven new findings cover complete text-search readiness and
+live-form retry, the Node's distinct operational-state and verification dates, repeated release-status parsing during
+image preparation, and four unread inputs and configuration fields. The review independently confirmed all earlier
+repairs and left CORR-002 unchanged in provenance and scope. Decisions 15, 19 and 24 and tasks 4.27 to 4.29 record
+the repairs.
+
 The approach is bound by these constraints:
 
 - **Static hosting.** GitHub Pages serves files only and ignores query strings. Anything that filters or shapes a
@@ -528,8 +534,12 @@ openapi.json                          one list and one record operation per kind
   from the references rather than maintained as another ID list. Station tests exercise the references before `fips`
   has loaded.
 - **Search fails openly and independently.** Classification happens before text-index preloading, so a recognised
-  identifier needs no unrelated part. A failed text-search part exposes the shared visible alert and retry action;
-  retry resubmits after recovery. A planted failure test also proves that an identifier route still renders.
+  identifier needs no unrelated part. Text search uses one required-part list—`standards`, `questions`, `advice` and
+  `fips`—and indexes only once all four are available in the selected language. A missing or failed part cannot leave
+  partial or empty results confirmed as complete; the shared visible alert offers retry instead. Retry resubmits
+  against the currently attached search form and current route after navigation, never a detached predecessor, and
+  does not overwrite newer reader input. Failure tests cover each part, including FIP-only rejection and replacement
+  of the original form, while an identifier route still renders independently.
 - **Infrastructure relations are indexed once.** A reverse `operatedBy` map is built with the infrastructure entries
   and reused by their cards, rather than scanning the whole graph for every card on every render. Unchanged filters
   continue to reuse the existing catalogue derivation cache.
@@ -654,7 +664,10 @@ RewriteRule ^id/(.+)$ https://dsw-nrp.github.io/eosc-fair-guide/id/$1.html [R=30
 - **Statuses share one declaration.** Landing-page status properties come from the shared properties that specialise
   `adms:status`, including `infrastructurePhase` and `esfriStatus`; a second manually filtered list cannot silently
   omit a new status kind. HL-LHC proves that `landmark` occupies the Status field. A date appears only when the API
-  record actually supplies one; no observation date is invented for an undated record.
+  record actually supplies one; no observation date is invented for an undated record. Dates retain their meaning:
+  ordinary statuses retain `statusAsOf`, while `nodeState` prefers `nodeStateSince`, which dates the operational state
+  itself rather than the later verification check. Where both dates are present, the static landing page shows the
+  same operational-state date as the interactive Node note.
 - **Every nested fragment exists.** One recursive walker indexes and renders direct and nested parts, including nested
   actions and vocabulary members. An independent test compares every fragment the API issues with exactly one static
   target, instead of looking only at direct record parts. Ineffective secondary language and description settings go.
@@ -796,7 +809,10 @@ resources/eosc-cz-node
 - **Health and status select together.** One shared gate derives the accepted status property from the selected health
   layout and requires it on both `./` and `#guide-software`. Neither node may fall back independently to the other
   generation's property. Current health with legacy status, predecessor health with current status, and a split crate
-  are all mixed layouts, not compatibility cases.
+  are all mixed layouts, not compatibility cases. Production-file validation computes the selected statuses once and
+  shares them with image preparation, while the existing files-only assembly interface remains unchanged. Image
+  preparation therefore makes no second full-crate parse and graph index; invocation-count tests cover current and
+  predecessor layouts.
 - **Every health response is fresh.** The image's nginx template applies `Cache-Control: no-store` to both
   `/api/v1/health.json` and `/api/health.json`. The candidate container's probe checks that header along with the
   served revision and build identity, so a body-only smoke check cannot conceal a stale intermediary response.

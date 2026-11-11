@@ -241,7 +241,7 @@ class Api:
             return {inner: self.value(inner, item, here, depth) for inner, item in value.items()}
         return value
 
-    def node(self, entity: dict[str, Any], here: str, depth: int, collection: str = "") -> dict[str, Any]:
+    def node(self, entity: dict[str, Any], here: str, depth: int) -> dict[str, Any]:
         entity_id = entity["@id"]
         path = self.paths.get(entity_id)
         own = self.relative(here, path) if path else self.iri(entity_id, here)
@@ -266,7 +266,7 @@ class Api:
         here = here or self.paths[entity_id]
         entity = self.entities[entity_id]
         self.given = set()
-        node = self.node(entity, here, 0, collection)
+        node = self.node(entity, here, 0)
         types = kb.as_list(node["@type"])
         same = [self.iri(entity_id, here)] + [
             link for link in kb.as_list(node.get("sameAs")) if link != self.iri(entity_id, here)
@@ -283,7 +283,7 @@ class Api:
         # A record names its registry records in full under their fragments, from the record side's primaryTopic.
         registry = self.registry_records.get(entity_id, [])
         if registry:
-            out["records"] = [self.node(self.entities[record_id], here, 0, collection) for record_id in registry]
+            out["records"] = [self.node(self.entities[record_id], here, 0) for record_id in registry]
         if collection == "vocabularies":
             members = [member for member in self.entities.values() if entity_id in ids(member.get("inDefinedTermSet"))]
             out["members"] = []
@@ -407,7 +407,7 @@ class Api:
                 summary[key] = self.value(key, entity[key], f"api/v1/{collection}.json", 0)
         return summary
 
-    def collection(self, collection: str, records: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    def collection(self, collection: str) -> dict[str, Any]:
         here = f"api/v1/{collection}.json"
         summaries = [self.summary(entity_id, collection) for _, entity_id in self.records[collection]]
         self.language_keys.update(("name", "description", "label"))
@@ -574,7 +574,7 @@ class Api:
         for record, entity_id in self.records["questions"]:
             docs[self.tests[entity_id]] = self.saved_result_reference(record, entity_id)
         for collection in kb.API_COLLECTIONS:
-            docs[f"api/v1/{collection}.json"] = self.collection(collection, docs)
+            docs[f"api/v1/{collection}.json"] = self.collection(collection)
         docs[META_FILE] = self.index()
         docs[HEALTH_FILE] = self.health()
         docs[CONTEXT_FILE] = self.context()  # after the records: it names every property they use

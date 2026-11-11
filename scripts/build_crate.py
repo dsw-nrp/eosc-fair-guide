@@ -4702,11 +4702,7 @@ def page_config(
             "api": {
                 "files": API_FILES,
                 "records": api or {},
-                "fipCollections": content["ui"]["api"].get("fipCollections", []),
-                "recipes": {
-                    "root": f"profile/{guide.get('profileVersion', '')}/recipes/",
-                    "items": list(content["ui"]["api"].get("recipes", {}).get("labels", {})),
-                },
+                "recipes": {"root": f"profile/{guide.get('profileVersion', '')}/recipes/"},
             },
             "signposts": links or [],
             "connectors": live.get("connector", []),
@@ -5242,9 +5238,7 @@ def outputs(
     parts["api"]["config"] = {"api": {"records": infrastructure_records}}
     parts["pages"]["config"] = {"signposts": ui["config"].pop("signposts")}
     api_metadata = ui["config"]["api"]
-    parts["api"]["config"]["api"] |= {
-        key: api_metadata.pop(key) for key in ("recipes", "fipCollections") if key in api_metadata
-    }
+    parts["api"]["config"]["api"]["recipes"] = api_metadata.pop("recipes")
     # Helper labels belong with the pages that use them, not the initial download.
     # Helper and machine-data labels belong with the pages that use them: they load with the pages part rather
     # than the initial download, which stays within its budget.

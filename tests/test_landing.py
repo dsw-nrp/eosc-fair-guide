@@ -162,6 +162,20 @@ class LandingPageTests(unittest.TestCase):
         record = self.documents["api/v1/repositories/zenodo.json"]
         dated = self.files["id/repositories/zenodo.html"]
         self.assertIn(f'<dd data-field="serviceStatus">operational (as of {record["statusAsOf"]})</dd>', dated)
+        node = self.documents["api/v1/resources/eosc-cz-node.json"]
+        landing = self.files["id/resources/eosc-cz-node.html"]
+        self.assertEqual(node["nodeStateSince"], "2026-10-08")
+        self.assertEqual(node["statusAsOf"], "2026-10-16")
+        self.assertIn(
+            f'<dd data-field="nodeState">v produkčním provozu (k datu {node["nodeStateSince"]})</dd>', landing
+        )
+        self.assertIn(
+            f'<dd data-field="nodeState">in production operations (as of {node["nodeStateSince"]})</dd>', landing
+        )
+        self.assertNotIn(f'<dd data-field="nodeState">v produkčním provozu (k datu {node["statusAsOf"]})</dd>', landing)
+        self.assertNotIn(
+            f'<dd data-field="nodeState">in production operations (as of {node["statusAsOf"]})</dd>', landing
+        )
 
     def test_a_resource_page_keeps_types_languages_parts_and_no_site_address(self) -> None:
         path = "id/resources/rdmkit.html"

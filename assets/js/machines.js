@@ -9,7 +9,7 @@
   FG.views.endpointTable = function () {
     const files = FG.config.api.files;
     const file = (path, type, label = path) => h("a", { href: path, type }, label);
-    const recipes = FG.config.api.recipes || { root: "", items: [] };
+    const recipes = FG.config.api.recipes || { root: "" };
     const labels = FG.ui.api.recipes?.labels || {};
     const recipeLinks = h(
       "section",

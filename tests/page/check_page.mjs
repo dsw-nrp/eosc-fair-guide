@@ -563,6 +563,8 @@ sections.push(["page", async () => {
     if (!(await view.locator(".endpoints .endpoint-patterns code", { hasText: "<scope>/<id>" }).count())) fail("machines: scoped record templates are missing");
     const recipeLinks = await view.locator('#endpoints a[href^="profile/"][href$=".rq"]').evaluateAll((links) => links.map((link) => link.getAttribute("href")));
     if (recipeLinks.length !== 6 || !recipeLinks.every(inSite)) fail("machines: the six SPARQL recipes are not linked to built files");
+    const collectionLabels = await view.locator(".endpoints tbody tr").allTextContents();
+    if (collectionLabels.some((text) => text.includes("api.collection."))) fail("machines: a collection label or description is an untranslated key");
     const practiceText = (await practice.textContent()) || "";
     if (!practiceText.includes("cite-as") || !practiceText.includes("#/id/{adresa}")) fail("machines: the persistent IRI and typed record links are not explained: " + practiceText);
     // The crate's HTML preview is the guide page: opened as the preview it shows the machine-readable data, not the

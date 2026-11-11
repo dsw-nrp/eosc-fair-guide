@@ -148,7 +148,8 @@ def release_statuses(files: dict[str, bytes], health_name: str) -> tuple[object,
     return tuple(statuses)
 
 
-def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]:
+def production_release(directory: Path, tag: str, commit: str) -> tuple[dict[str, bytes], tuple[object, object]]:
+    """Validate the production archive once and return its files and layout-selected statuses."""
     if not TAG.fullmatch(tag) or not SHA.fullmatch(commit):
         raise AssemblyError("production requires a release tag and full commit SHA")
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
@@ -189,12 +190,17 @@ def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]
     health = json.loads(files[health_name])
     if health.get("run", {}).get("status") != "passed" or health.get("revision") != commit:
         raise AssemblyError("release archive health does not name the checked commit")
-    release_statuses(files, health_name)
+    statuses = release_statuses(files, health_name)
     try:
         verify_declaration(files, manifest)
     except ValueError as error:
         raise AssemblyError(str(error)) from error
-    return files
+    return files, statuses
+
+
+def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]:
+    """Return the validated files for assembly, whose caller does not consume the selected statuses."""
+    return production_release(directory, tag, commit)[0]
 
 
 def validate_files(files: dict[str, bytes]) -> None:

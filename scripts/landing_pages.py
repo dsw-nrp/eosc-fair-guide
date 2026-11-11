@@ -263,7 +263,12 @@ class RecordPages:
         for key in STATUS_PROPERTIES:
             if key in record:
                 value = record[key]
-                date = record.get("statusAsOf") or record.get("nodeStateSince") or record.get("reviewedDate")
+                date_fields = (
+                    ("nodeStateSince", "statusAsOf", "reviewedDate")
+                    if key == "nodeState"
+                    else ("statusAsOf", "nodeStateSince", "reviewedDate")
+                )
+                date = next((record[field] for field in date_fields if record.get(field)), None)
                 content = self.value(value, language, here) + (f" ({LABELS['as-of'][language]} {date})" if date else "")
                 fields.append(
                     f"<dt>{html.escape(LABELS['status'][language])}</dt>"

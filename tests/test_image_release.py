@@ -12,6 +12,7 @@ import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -131,6 +132,17 @@ class ImageReleaseTests(unittest.TestCase):
             self.assertEqual((context / "publication-url.txt").read_text().strip(), self.publication_url)
             self.assertEqual((context / "health-path.txt").read_text(), "api/v1/health.json\n")
         image_release.verify(self.health, self.built, COMMIT, self.config)
+
+    def test_status_layout_is_parsed_once_per_image_preparation(self) -> None:
+        for layout in ("current", "predecessor"):
+            with self.subTest(layout=layout):
+                if layout == "predecessor":
+                    self.rewrite_artifact(self.predecessor_files())
+                with mock.patch.object(
+                    assemble_pages, "release_statuses", wraps=assemble_pages.release_statuses
+                ) as statuses:
+                    image_release.prepare(self.artifact, self.root / ("image-" + layout), TAG, COMMIT, self.root)
+                self.assertEqual(statuses.call_count, 1)
 
     def test_predecessor_schema_preparation_and_health_probe(self) -> None:
         files = self.predecessor_files()

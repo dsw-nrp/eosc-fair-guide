@@ -1669,6 +1669,11 @@ name = { cs = "Vrstvy modelu", en = "Model layers" }
 description = { cs = "Vrstvy konceptuálního modelu implementace FAIR a jejich role.", en = "Layers of the FAIR implementation conceptual model and their roles." }
 record = { cs = "Jedna vrstva", en = "One layer" }
 
+[api.collection.seams]
+name = { cs = "Návaznosti modelu", en = "Model seams" }
+description = { cs = "Předávání informací uvnitř jedné vrstvy i mezi vrstvami konceptuálního modelu FAIR.", en = "Information hand-offs within one layer and across layers of the FAIR implementation conceptual model." }
+record = { cs = "Jedna návaznost", en = "One seam" }
+
 [api.collection.lifecycles]
 name = { cs = "Životní cykly", en = "Life-cycle models and stages" }
 description = { cs = "Modely životního cyklu výzkumných dat a fáze, jak je zdroje definují.", en = "Research-data life-cycle models and their stages as the sources define them." }

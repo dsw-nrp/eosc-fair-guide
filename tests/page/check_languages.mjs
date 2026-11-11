@@ -199,6 +199,102 @@ try {
   assert.equal(await failedPage.locator(".data-load-error").count(), 0);
   assert.deepEqual(failedObserved.errors, []);
   await failure.close();
+
+  // A FIP-only failure cannot confirm an incomplete index. Recovery follows the pending query to the replacement form.
+  const fipFailure = await browser.newContext();
+  const fipPage = await fipFailure.newPage();
+  const fipObserved = watched(fipPage);
+  const fipQuery = "ArchaeoVault";
+  let failFips = true;
+  let holdFipsRetry = false;
+  let releaseFipsRetry, announceFipsRetry;
+  const fipRetryGate = new Promise((resolve) => { releaseFipsRetry = resolve; });
+  const fipRetryRequested = new Promise((resolve) => { announceFipsRetry = resolve; });
+  await fipFailure.route(origin + "/**", async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === "/assets/data/kb-fips-cs.js") {
+      if (failFips) return route.abort("failed");
+      if (holdFipsRetry) {
+        announceFipsRetry();
+        await fipRetryGate;
+      }
+    }
+    const path = resolve(site, "." + pathname);
+    const type = pathname.endsWith(".js") ? "text/javascript" : pathname.endsWith(".css") ? "text/css" : pathname.endsWith(".svg") ? "image/svg+xml" : "text/html";
+    await route.fulfill({ body: readFileSync(path), contentType: type });
+  });
+  await fipPage.goto(origin + "/index.html#/cs/V/path/start");
+  await rendered(fipPage, "cs", "#search-input");
+  await fipPage.fill("#search-input", fipQuery);
+  await fipPage.locator("form.search").evaluate((form) => form.requestSubmit());
+  await fipPage.locator(".data-load-error").waitFor();
+  assert(await fipPage.evaluate(() => ["standards", "questions", "advice"].every((part) => window.FairGuide.partHasLanguage(part, "cs"))));
+  assert.equal(await fipPage.evaluate(() => window.FairGuide.partHasLanguage("fips", "cs")), false);
+  assert.notEqual(await fipPage.locator("#search-results").getAttribute("data-query"), fipQuery, "a missing FIP part never produces confirmed empty or partial results");
+  assert.notEqual(await fipPage.locator("#search-results").getAttribute("data-confirmed"), "true");
+  failFips = false;
+  holdFipsRetry = true;
+  await fipPage.locator(".data-load-error button").click();
+  await fipRetryRequested;
+  await fipPage.evaluate(() => { location.hash = "#/cs/DS/path/start"; });
+  await rendered(fipPage, "cs", "#search-input");
+  releaseFipsRetry();
+  await fipPage.waitForFunction((query) => {
+    const results = document.querySelector("#search-results");
+    return results?.isConnected && results.dataset.confirmed === "true" && results.dataset.query === query;
+  }, fipQuery);
+  assert.equal(await fipPage.evaluate(() => window.FairGuide.state.lens), "DS");
+  assert.equal(await fipPage.locator("#search-input").inputValue(), fipQuery, "retry restores the pending query when no newer query was entered");
+  const fipLinks = await fipPage.locator("#search-results a").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+  assert(fipLinks.some((href) => (href || "").includes("/catalogue/repositories/archaeovault")), "successful retry includes the FIP-supplied match: " + fipLinks.join(" | "));
+  assert.equal(await fipPage.locator(".data-load-error").count(), 0);
+  assert.deepEqual(fipObserved.errors, []);
+  await fipFailure.close();
+
+  // A later query entered after navigation wins over completion of an older retry.
+  const navigationFailure = await browser.newContext();
+  const navigationPage = await navigationFailure.newPage();
+  const navigationObserved = watched(navigationPage);
+  let failNavigationStandards = true;
+  let holdNavigationRetry = false;
+  let releaseNavigationRetry, announceNavigationRetry;
+  const navigationRetryGate = new Promise((resolve) => { releaseNavigationRetry = resolve; });
+  const navigationRetryRequested = new Promise((resolve) => { announceNavigationRetry = resolve; });
+  await navigationFailure.route(origin + "/**", async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === "/assets/data/kb-standards-cs.js") {
+      if (failNavigationStandards) return route.abort("failed");
+      if (holdNavigationRetry) {
+        announceNavigationRetry();
+        await navigationRetryGate;
+      }
+    }
+    const path = resolve(site, "." + pathname);
+    const type = pathname.endsWith(".js") ? "text/javascript" : pathname.endsWith(".css") ? "text/css" : pathname.endsWith(".svg") ? "image/svg+xml" : "text/html";
+    await route.fulfill({ body: readFileSync(path), contentType: type });
+  });
+  await navigationPage.goto(origin + "/index.html#/cs/V/path/start");
+  await rendered(navigationPage, "cs", "#search-input");
+  await navigationPage.fill("#search-input", fipQuery);
+  await navigationPage.locator("form.search").evaluate((form) => form.requestSubmit());
+  await navigationPage.locator(".data-load-error").waitFor();
+  failNavigationStandards = false;
+  holdNavigationRetry = true;
+  await navigationPage.locator(".data-load-error button").click();
+  await navigationRetryRequested;
+  await navigationPage.evaluate(() => { location.hash = "#/cs/DS/path/start"; });
+  await rendered(navigationPage, "cs", "#search-input");
+  await navigationPage.fill("#search-input", "licence");
+  releaseNavigationRetry();
+  await navigationPage.waitForFunction(() => {
+    const results = document.querySelector("#search-results");
+    return results?.isConnected && results.dataset.confirmed === "true" && results.dataset.query === "licence";
+  });
+  assert.equal(await navigationPage.locator("#search-input").inputValue(), "licence", "an older retry does not replace newer reader input");
+  assert(await navigationPage.locator('#search-results a[href$="/path/licence"]').count(), "the live form renders the newer query");
+  assert.equal(await navigationPage.locator(".data-load-error").count(), 0);
+  assert.deepEqual(navigationObserved.errors, []);
+  await navigationFailure.close();
   console.log("language checks: selected downloads, both directions, exact graph, bilingual exports/search and failed-file retry passed");
 } finally {
   await browser.close();

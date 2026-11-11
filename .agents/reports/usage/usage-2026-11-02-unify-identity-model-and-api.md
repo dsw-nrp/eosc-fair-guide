@@ -491,3 +491,47 @@
 - **Corrections:** the maintainer selected the existing lifecycle `path/start` for every bare-URL visit, rather than the
   initially discussed last-station or first-station variants. The final scenarios explicitly cover both fresh and
   returning readers.
+
+## Kilo session, continued (review R3)
+
+- **When:** 2026-11-10 to 2026-11-11 (+00:00).
+- **Agent / runtime:** Kilo Code (VS Code extension).
+- **Model / backend:** e-infra-cz/kimi-k3.1-pro.
+- **Subagents used:** none.
+- **MCP servers used:** none (the pull-request review was read through the `gh` CLI).
+- **Workflow context used:** `openspec-explore`, separately approved `openspec-update-change` and
+  `openspec-apply-change`, `fair-guide-editor`; the delivered planning/quality rules and native content/surface rules;
+  the pinned OpenSpec CLI; planted Python/Playwright regressions, aggregate `check_all.py`, Ruff and local screenshot
+  inspection.
+- **What:** completed tasks 4.27 and 4.28. Text search now indexes only after `standards`, `questions`, `advice` and
+  `fips` are ready in the selected language; a failed load cannot confirm partial or empty results. Retry works through
+  the current attached form after navigation, restores the pending query only when the reader supplied no newer one,
+  and still completes a programmatic form with no live search to redirect to. Static EOSC CZ Node pages now prefer
+  `nodeStateSince = 2026-10-08` over the separate verification date `statusAsOf = 2026-10-16`. Image preparation reuses
+  one validated status extraction per layout. Unused API arguments and the duplicate `fipCollections`/`recipes.items`
+  configuration are gone. A visual pass also supplied the missing bilingual `api.collection.seams` labels and a page
+  assertion that no endpoint row exposes an `api.collection.*` key.
+- **Impacted:** `assets/js/search.js`, `assets/js/machines.js`, `docs/design.md`, `scripts/landing_pages.py`,
+  `scripts/assemble_pages.py`, `scripts/image_release.py`, `scripts/build_api.py`, `scripts/build_crate.py`,
+  `tests/page/check_languages.mjs`, `tests/page/navigation.mjs`, `tests/page/check_page.mjs`, `tests/test_landing.py`,
+  `tests/test_languages.py`, `tests/test_image_release.py`, `content/ui.toml`, `content/provenance.toml`, the change's
+  `design.md`, guide-experience spec delta and `tasks.md`; this entry. Generated `_site/` is not committed;
+  `.cache/r3-visual.mjs` and `.cache/screenshots/r3/` are ignored visual-review artifacts only.
+- **Verification:** planted regressions failed as expected before repair: FIP-only search confirmed an incomplete index,
+  the Node landing showed the check date, and image preparation called `release_statuses` twice for both layouts. The
+  navigation retry then timed out on its detached form, proving the second defect independently. After repair, the
+  standalone programmatic form exposed and required the no-live-form fallback. `python scripts/check_all.py` passes
+  **36 of 36** checks in 236.3 seconds, including all 880 unit tests, API/profile validation, health publication and
+  browser groups. `npm run openspec:validate` passes **6 of 6**, Ruff passes and reports **110 files already formatted**,
+  `python -m unittest tests/test_scripts.py` passes **206 tests**, and `npm run check:api` passes **2,170 files with
+  42,921 links**. Both retry/navigation regressions, `check_safety`, `check_helpers`, the six recipe links and both
+  languages' landing tests pass. The 300.0 KB Czech initial download and 297.7 KB English initial download fit the
+  300 KB budget. Reviewed 24 screen/print captures covering recovered search, the Node landing and machines recipes in
+  both languages at desktop and phone widths; the seams-label defect is fixed and no remaining alignment, wrapping,
+  collision or print defect was found. Live external service and deployment checks were not initiated.
+- **Close-out:** R3 implementation and its local evidence are complete; task 4.29 remains open until independently
+  authorized commit/push and green CI on that resulting pull-request head. No new CI run is claimed here. M4's human
+  EOSC CZ consent and exact-content registry approval have not started.
+- **Corrections:** the aggregate stalled once in `helpers`, not in health publication. Isolating it exposed the detached
+  programmatic-form regression; the retry now redirects only when a live replacement form exists, and the isolated
+  helper suite and the full aggregate subsequently pass.
