@@ -529,9 +529,12 @@
   300 KB budget. Reviewed 24 screen/print captures covering recovered search, the Node landing and machines recipes in
   both languages at desktop and phone widths; the seams-label defect is fixed and no remaining alignment, wrapping,
   collision or print defect was found. Live external service and deployment checks were not initiated.
-- **Close-out:** R3 implementation and its local evidence are complete; task 4.29 remains open until independently
-  authorized commit/push and green CI on that resulting pull-request head. No new CI run is claimed here. M4's human
-  EOSC CZ consent and exact-content registry approval have not started.
+- **Verification (CI):** [workflow run 42938711227](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/42938711227)
+  completed successfully at `305dfc75299627409c5bf975c069741e9f38e36c`; `quick`, build, all six lanes, unit, both
+  collectors and the required `checks` job passed.
+- **Close-out:** R3 tasks 4.27–4.29 are complete (**79 of 88**). Commit `305dfc7` carries local and CI verification
+  with the authorized push to the existing change branch. M4's human EOSC CZ consent and exact-content registry
+  approval have not started.
 - **Corrections:** the aggregate stalled once in `helpers`, not in health publication. Isolating it exposed the detached
   programmatic-form regression; the retry now redirects only when a live replacement form exists, and the isolated
   helper suite and the full aggregate subsequently pass.

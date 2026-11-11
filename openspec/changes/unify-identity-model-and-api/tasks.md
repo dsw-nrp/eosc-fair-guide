@@ -433,7 +433,7 @@ follow-up review and add its regression evidence before M3 closes again.
   and fallback residue. Verify: invocation counts show one status parse for current and predecessor image preparation,
   generated API output and assembly behaviour remain unchanged, all six recipe links still resolve, and generated
   configuration contains none of the removed fields.
-- [ ] 4.29 Reconcile this change's evidence and close the R3 remediation. Extend the existing provenance action and
+- [x] 4.29 Reconcile this change's evidence and close the R3 remediation. Extend the existing provenance action and
   rolling usage entry with the actual work and verification, without moving times merely to satisfy checks. Inspect
   recovered search, the updated Node landing page and the machines view in both languages, at desktop and phone widths
   and in print. Run `npm run openspec:validate` and `python scripts/check_all.py`. Verify: every R3 regression scenario
