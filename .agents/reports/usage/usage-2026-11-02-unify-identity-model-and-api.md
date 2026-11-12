@@ -637,10 +637,13 @@
   Ruff and formatting checks. OpenSpec passes **6 of 6**. Initial gzip payloads are **307,196 bytes Czech** and
   **304,833 bytes English**, both within the unchanged 307,200-byte budget; the Czech payload has four bytes of
   remaining headroom. Final whitespace and usage-entry checks pass.
-- **Close-out:** implementation tasks 4.35–4.39 are complete (**89 of 99**). Task 4.40's local implementation,
-  regressions, visual evidence and full verification are complete; its checkbox remains open for the separately
-  authorized commit/push and resulting-head CI evidence. The maintainer has now authorized commit and push to the
-  existing change branch; delivery and CI verification are in progress. No live evaluator call or release operation
+- **Verification (CI):** [workflow run 43330444412](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43330444412)
+  passed at `c84f4196350ac11c93f83048f530b910143edfb0`. Quick checks, build, all six lanes (unit, CPU and four
+  browser lanes), the final collector and the required `checks` job succeeded.
+- **Close-out:** tasks 4.35–4.40 are complete (**90 of 99**) with local regression/visual verification and CI
+  evidence. Commit `c84f419` carries the repairs, tests, documentation and planning artifacts and was pushed to the
+  existing change branch under the maintainer's explicit commit/push authorization. This evidence-only follow-up
+  records the verified code-head run and closes the remediation checkbox. No live evaluator call or release operation
   has been performed. Groups 5 and 6 retain their existing gates.
 - **Corrections:** the maintainer explicitly selected the advisory retry repair, confirmed artifact capture, then
   separately authorized apply. Its pre-existing, non-verdict-bearing origin remains distinct from the four new

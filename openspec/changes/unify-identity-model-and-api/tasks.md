@@ -512,7 +512,7 @@ behavior, then apply the repair and retain the earlier search and loading regres
   first, a corrected payload is requested on Retry and applied once for each of those three payload types, overlapping
   part retries share work, graph entries are not duplicated, accepted neutral files are reused, and valid cached
   loads add no work. The usable view, answers and complete-search readiness survive.
-- [ ] 4.40 Reconcile evidence and close the R5 remediation and advisory repair. Extend the existing rolling usage
+- [x] 4.40 Reconcile evidence and close the R5 remediation and advisory repair. Extend the existing rolling usage
   entry with actual work and verification; update the existing provenance action only for content actually changed,
   without advancing times merely to pass checks. Inspect pending-search recovery, visible failure followed by DOI
   success or clear, cold confirmation and corrected-script retry in Czech and English, at desktop and phone widths
