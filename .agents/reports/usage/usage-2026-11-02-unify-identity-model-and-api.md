@@ -538,3 +538,53 @@
 - **Corrections:** the aggregate stalled once in `helpers`, not in health publication. Isolating it exposed the detached
   programmatic-form regression; the retry now redirects only when a live replacement form exists, and the isolated
   helper suite and the full aggregate subsequently pass.
+
+## Kilo session, continued (review R4 and CORR-002)
+
+- **When:** 2026-11-11 (+00:00).
+- **Agent / runtime:** Kilo Code (VS Code extension).
+- **Model / backend:** e-infra-cz/kimi-k3.1-pro.
+- **Subagents used:** none.
+- **MCP servers used:** none (the pull-request review was read through the `gh` CLI).
+- **Workflow context used:** `openspec-explore`, maintainer-confirmed expansion of the existing change through
+  `openspec-update-change`, `/openspec-apply-change unify-identity-model-and-api`; `fair-guide-editor`, the delivered
+  planning and quality
+  rules and the native guide rules; planted Playwright/Python regressions, the aggregate close-out and reviewed captures.
+- **What:** completed tasks 4.30–4.33. Asynchronous search now follows current input, route and data revisions:
+  a deliberate clear wins over an older query, an outgoing connected Czech form cannot consume a retry before the
+  delayed English render, and a current identifier renders even after the text part it replaced fails. Complete
+  part/language loading and identical rendering are single-flight, so focus plus submission does not repeat merges,
+  invalidations or identical searches. `core.js` builds one ordered-question index per data revision;
+  `catalogue-view.js` reuses one stage-correspondence index and each stage's match list. Production assembly and
+  image preparation now preserve one parsed crate and its verified publication identity for status selection and
+  declaration checks. Every known evaluator criterion in either import or service mode uses its persistent record IRI
+  as exported test identity, its actual invocation stays as `url`, and an unregistered result gets a result-specific
+  fragment instead of the provider form. The first official payload has no remaining warning.
+- **Impacted:** `assets/js/search.js`, `assets/js/core.js`, `assets/js/catalogue-view.js`, `assets/js/providers.js`,
+  `scripts/assemble_pages.py`, `scripts/publication_location.py`, `scripts/image_release.py`,
+  `tests/page/check_languages.mjs`, `tests/page/check_providers.mjs`, `tests/page/check_safety.mjs`,
+  `tests/runtime.test.mjs`, `tests/test_assemble_pages.py`, `tests/test_image_release.py`, the change's `design.md`,
+  guide-experience, guide-delivery and guide-self-check spec deltas and `tasks.md`, `content/provenance.toml` and this
+  entry. The ignored `.cache/r3-visual.mjs` captured `.cache/screenshots/r4/`; existing provider captures under
+  `.cache/screenshots/providers/` supplied evaluator visual evidence.
+- **Verification:** before repair, repeated part work failed first, all nine checks scanned independently, the catalogue
+  called correspondence filtering 468 times, current assembly decoded four crate inputs, and a FAIR-Checker metric
+  exported its endpoint instead of its persistent IRI. After repair, the full `check_languages` scenario set passes,
+  `npm run check:runtime` passes 12 tests with one question derivation per revision and correct invalidation, full
+  `npm run check:page` passes, `npm run check:assessment` and its provider/export/older-revision checks pass, and
+  `npm run check:providers` keeps distinct criteria and invocation URLs while an unregistered metric cannot collide
+  with the provider form. Release discovery suites pass 18 assembly, 8 image and 7 publication-location cases.
+  `python scripts/check_all.py` then passes **36 of 36 checks in 242.4 seconds**, including all 880 unit tests,
+  crate/profile/API/browser checks and both decode-count assertions. `npm run openspec:validate` passes **6 of 6**;
+  Ruff reports **All checks passed! 110 files already formatted**. Initial download is 300.0 KB Czech and 297.7 KB
+  English compressed. Visual review covers 24 search captures plus the provider overview/export evidence: explicit
+  blank input, recovered FIP text, independent DOI routing and evaluator hierarchy, in both languages, desktop/phone
+  widths and print. No alignment, collision or print defect remains. Live services, deployment, commit and push were
+  not performed here; no CI outcome on the R4 working tree is claimed yet.
+- **Close-out:** tasks 4.30–4.33 are complete (**83 of 93**), with the complete local aggregate verified. Task 4.34
+  remains open until its separately authorized commit/push and CI on that particular head. M4's EOSC CZ consent and
+  exact registry-content approval remain separate human gates and have not started here.
+- **Corrections:** the maintainer explicitly added the pre-existing CORR-002 observation to R4 scope. Intermediate
+  regressions, a successful `Promise.all()` array mishandled as an error, test-realm mismatches and capture readiness
+  mistakes were isolated and fixed through the original tests, not hidden by suppressing assertions. The first empty
+  screenshots showed old results until the debounced empty render; those captures were taken again and are confirmed.

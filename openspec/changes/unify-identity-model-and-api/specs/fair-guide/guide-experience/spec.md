@@ -30,9 +30,10 @@ Matching SHALL ignore diacritics and cover both languages. Typing SHALL send not
 called only after the user picks an identifier result. A recognised identifier SHALL route independently of unrelated
 text-index parts. Text results SHALL wait for all four indexed parts—`standards`, `questions`, `advice` and `fips`—in
 the selected language. A missing or failed part SHALL NOT let partial or empty results be confirmed as complete. A
-failed required part SHALL expose a visible retry rather than leaving the search silent. After navigation, retry
-SHALL act on the currently attached form and current route, not a detached predecessor, and SHALL NOT replace newer
-reader input.
+failed required part SHALL expose a visible retry rather than leaving the search silent. Asynchronous completion
+SHALL follow the current route's form, never an outgoing form that remains connected, and SHALL preserve every newer
+input revision, including a deliberate clear. It SHALL reclassify the current value, so failure of a text-only part
+SHALL NOT suppress a current identifier route or a deliberate empty state.
 
 #### Scenario: Searching a term
 
@@ -66,6 +67,24 @@ reader input.
 - **WHEN** the reader retries without entering a newer query
 - **THEN** the currently attached form shows recovered results for the pending query in the current route, not the detached predecessor
 - **AND** completion of an older retry does not overwrite a query entered after navigation
+
+#### Scenario: A replacement was deliberately cleared before retry completed
+
+- **GIVEN** a failed search whose replacement form received a new query that the reader then cleared while retry was pending
+- **WHEN** the older retry completes
+- **THEN** the replacement stays empty and the older query and its results are not restored
+
+#### Scenario: Retry completes during a deferred language render
+
+- **GIVEN** a Czech text-search retry and a switch to English whose language scripts are still pending
+- **WHEN** retry completes before the English form is ready and the scripts then finish
+- **THEN** no recovered result is rendered into the outgoing Czech form and the current English form shows the pending query's recovered results
+
+#### Scenario: Text changes to an identifier while its part fails
+
+- **GIVEN** a text submission waiting for a required part whose input the reader replaces with a recognised identifier on the same form
+- **WHEN** that text-only part fails
+- **THEN** the current identifier's routes appear without another submission and the obsolete text-part failure does not suppress them
 
 #### Scenario: An identifier search needs no text index
 

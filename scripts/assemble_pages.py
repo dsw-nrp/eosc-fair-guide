@@ -133,11 +133,11 @@ def health_path(files: dict[str, bytes]) -> str:
     return candidates[0]
 
 
-def release_statuses(files: dict[str, bytes], health_name: str) -> tuple[object, object]:
+def release_statuses(files: dict[str, bytes], health_name: str, crate: dict | None = None) -> tuple[object, object]:
     """Read release status only from the schema generation selected by the artifact's health layout."""
     current = health_name == package_site.HEALTH
     selected, retired = ("releaseStatus", "creativeWorkStatus") if current else ("creativeWorkStatus", "releaseStatus")
-    crate = json.loads(files[build_crate.CRATE_FILE])
+    crate = crate if crate is not None else json.loads(files[build_crate.CRATE_FILE])
     nodes = {entity["@id"]: entity for entity in crate["@graph"]}
     statuses = []
     for key in ("./", "#guide-software"):
@@ -148,8 +148,10 @@ def release_statuses(files: dict[str, bytes], health_name: str) -> tuple[object,
     return tuple(statuses)
 
 
-def production_release(directory: Path, tag: str, commit: str) -> tuple[dict[str, bytes], tuple[object, object]]:
-    """Validate the production archive once and return its files and layout-selected statuses."""
+def production_release(
+    directory: Path, tag: str, commit: str
+) -> tuple[dict[str, bytes], tuple[object, object], dict[str, str]]:
+    """Validate the archive once and return its files, selected statuses and verified publication identity."""
     if not TAG.fullmatch(tag) or not SHA.fullmatch(commit):
         raise AssemblyError("production requires a release tag and full commit SHA")
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
@@ -190,12 +192,13 @@ def production_release(directory: Path, tag: str, commit: str) -> tuple[dict[str
     health = json.loads(files[health_name])
     if health.get("run", {}).get("status") != "passed" or health.get("revision") != commit:
         raise AssemblyError("release archive health does not name the checked commit")
-    statuses = release_statuses(files, health_name)
+    crate = json.loads(files[build_crate.CRATE_FILE])
+    statuses = release_statuses(files, health_name, crate)
     try:
-        verify_declaration(files, manifest)
+        identity = verify_declaration(files, manifest, crate)
     except ValueError as error:
         raise AssemblyError(str(error)) from error
-    return files, statuses
+    return files, statuses, identity
 
 
 def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]:
@@ -234,10 +237,11 @@ def assemble(
         raise AssemblyError("staging health does not name the checked commit")
     if production is None and (production_tag or production_commit):
         raise AssemblyError("production tag/commit require a release artifact")
-    files = production_files(production, production_tag or "", production_commit or "") if production else {}
+    files, _, active = (
+        production_release(production, production_tag or "", production_commit or "") if production else ({}, (), {})
+    )
     if production:
         preview = built_for(stage)
-        active = site_identity(files)
         manifest = json.loads((production / "manifest.json").read_text("utf-8"))
         # A stamped release names the root it was built for; an older archive's recorded address may be a predicted
         # host, so only stamped releases are compared.

@@ -121,6 +121,17 @@ replacing output.
 - **WHEN** assembly or image preparation validates the archive
 - **THEN** it rejects the mixed or split layout before replacing any managed output
 
+### Requirement: Production identity derives from one crate decoding
+
+Status validation, declaration verification and active publication identity SHALL consume one shared decoding of the
+production crate rather than independently reparsing it. Verified bytes SHALL remain unchanged.
+
+#### Scenario: Assembly reuses the production-crate identity
+
+- **GIVEN** a verified current or predecessor archive whose statuses and declaration share its crate
+- **WHEN** assembly validates the archive and compares its publication identity with the preview
+- **THEN** those derivations share one crate decoding and production bytes remain unchanged
+
 ### Requirement: Release health responses bypass intermediary caches
 
 Every health path supported for release images SHALL return `Cache-Control: no-store`. The candidate-image probe SHALL

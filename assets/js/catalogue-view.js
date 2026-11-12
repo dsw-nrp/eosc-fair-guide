@@ -1016,8 +1016,18 @@
   const lifecycleModels = () => FG.graph.filter((entity) => FG.isRecord(entity, "lifecycles") && FG.list(entity["@type"]).includes("DefinedTermSet")).sort(FG.byPosition);
   const modelSource = (model) => FG.refs(model, "citation")[0];
   const crosswalk = () => FG.graph.find((entity) => FG.isRecord(entity, "crosswalks") && FG.localId(entity).split("/").length === 1);
-  /* A correspondence names its crosswalk; the crosswalk does not list them. */
-  const correspondences = (stageId) => { const whole = FG.id(crosswalk()); return FG.graph.filter((item) => whole && FG.hasRef(item, "isPartOf", whole) && FG.refIds(item, "about").includes(stageId)); };
+  let correspondenceIndex = { revision: -1, stages: new Map() };
+  /* A correspondence names its crosswalk; the stage map follows the loaded graph revision. */
+  const correspondences = (stageId) => {
+    if (correspondenceIndex.revision !== FG.dataRevision) {
+      const stages = new Map(), whole = FG.id(crosswalk());
+      for (const item of FG.graph) if (whole && FG.hasRef(item, "isPartOf", whole)) {
+        for (const id of FG.refIds(item, "about")) stages.set(id, (stages.get(id) || []).concat(item));
+      }
+      correspondenceIndex = { revision: FG.dataRevision, stages };
+    }
+    return correspondenceIndex.stages.get(stageId) || [];
+  };
 
   /* Each basis of a correspondence by its icon, beside its name. */
   const BASIS_ICONS = { published: "met", reviewed: "search", unconfirmed: "unknown" };
@@ -1038,8 +1048,9 @@
   function lifecycleEntries() {
     const stations = FG.stations();
     return lifecycleModels().flatMap((model) => FG.termsOf(model).map((stage) => {
-      /* A path stage holds its stations; another model's stage reaches them through the path stages it matches. */
-      const pathStages = model["@id"] === FG.id(FG.get("#path").isBasedOn) ? [stage["@id"]] : correspondences(stage["@id"]).flatMap((item) => FG.refIds(item, "about")).filter((id) => id !== stage["@id"]);
+      /* A path stage holds its stations; another model's stage reaches them through its shared matches. */
+      const matches = correspondences(stage["@id"]);
+      const pathStages = model["@id"] === FG.id(FG.get("#path").isBasedOn) ? [stage["@id"]] : matches.flatMap((item) => FG.refIds(item, "about")).filter((id) => id !== stage["@id"]);
       const holders = stations.filter((station) => pathStages.includes(FG.id(station.lifecycleStage)));
       const translated = FG.list(stage.nameTranslation).includes(FG.state.lang);
       const primary = FG.refs(stage, "definitionPart")[0] || {};
@@ -1073,7 +1084,7 @@
           ],
           fields: { basedOn: "definitionPart quotedDefinition" },
           relations: {
-            correspondsTo: correspondences(stage["@id"]).length ? h("ul", { class: "relation-group crosswalk relation-list" }, correspondences(stage["@id"]).map((item) => correspondenceItem(item, stage["@id"]))) : [],
+            correspondsTo: matches.length ? h("ul", { class: "relation-group crosswalk relation-list" }, matches.map((item) => correspondenceItem(item, stage["@id"]))) : [],
             basedOn: FG.refs(primary, "citation").concat(FG.refs(secondary, "citation")).map(FG.sourceLink),
             inGuide: inGuide(holders),
           },

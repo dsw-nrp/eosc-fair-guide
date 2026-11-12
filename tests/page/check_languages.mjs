@@ -155,6 +155,11 @@ try {
   await delayedPage.goto(origin + '/index.html#/cs/V/path/start');
   await rendered(delayedPage, 'cs', '#search-input');
   assert.equal(await delayedPage.evaluate(() => window.FairGuide.partsLoaded.has('advice')), false);
+  await delayedPage.evaluate(() => {
+    const FG = window.FairGuide, invalidate = FG.invalidateData;
+    window.partInvalidations = 0;
+    FG.invalidateData = () => { window.partInvalidations += 1; invalidate(); };
+  });
   await delayedPage.fill('#search-input', 'deferredadviceprobe');
   await requested;
   await delayedPage.locator('form.search').evaluate((form) => form.requestSubmit());
@@ -162,6 +167,20 @@ try {
   releaseAdvice();
   await delayedPage.waitForFunction(() => document.querySelector('#search-results')?.dataset.query === 'deferredadviceprobe');
   assert(await delayedPage.locator('#search-results a[href*="/path/"]').count(), 'the deferred advice is in the completed index');
+  assert.equal(await delayedPage.evaluate(() => window.partInvalidations), 8, 'overlapping focus and submission merge and invalidate each part/language operation once');
+  const repeated = await delayedPage.evaluate(async () => {
+    const FG = window.FairGuide, find = FG.search.find;
+    let calls = 0;
+    FG.search.find = (...args) => { calls += 1; return find(...args); };
+    try {
+      const input = document.querySelector('#search-input');
+      input.dispatchEvent(new Event('focus', { bubbles: false }));
+      document.querySelector('form.search').requestSubmit();
+      await new Promise((done) => setTimeout(done, 0));
+      return calls;
+    } finally { FG.search.find = find; }
+  });
+  assert.equal(repeated, 0, 'identical query, confirmation and data revision do not evaluate results again');
   await delayedPage.getByRole('link', { name: 'English', exact: true }).click();
   await delayedPage.locator('.data-load-error').waitFor();
   assert.equal(await delayedPage.evaluate(() => window.FairGuide.state.lang), 'cs');
@@ -295,6 +314,120 @@ try {
   assert.equal(await navigationPage.locator(".data-load-error").count(), 0);
   assert.deepEqual(navigationObserved.errors, []);
   await navigationFailure.close();
+
+  // A clear entered after navigation is a newer revision, not an untouched field waiting for the old query.
+  const clearFailure = await browser.newContext();
+  const clearPage = await clearFailure.newPage();
+  const clearObserved = watched(clearPage);
+  let failClearStandards = true, holdClearRetry = false;
+  let releaseClearRetry, announceClearRetry;
+  const clearRetryGate = new Promise((resolve) => { releaseClearRetry = resolve; });
+  const clearRetryRequested = new Promise((resolve) => { announceClearRetry = resolve; });
+  await clearFailure.route(origin + "/**", async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === "/assets/data/kb-standards-cs.js") {
+      if (failClearStandards) return route.abort("failed");
+      if (holdClearRetry) { announceClearRetry(); await clearRetryGate; }
+    }
+    const path = resolve(site, "." + pathname);
+    const type = pathname.endsWith(".js") ? "text/javascript" : pathname.endsWith(".css") ? "text/css" : pathname.endsWith(".svg") ? "image/svg+xml" : "text/html";
+    await route.fulfill({ body: readFileSync(path), contentType: type });
+  });
+  await clearPage.goto(origin + "/index.html#/cs/V/path/start");
+  await rendered(clearPage, "cs", "#search-input");
+  await clearPage.fill("#search-input", "licence");
+  await clearPage.locator("form.search").evaluate((form) => form.requestSubmit());
+  await clearPage.locator(".data-load-error").waitFor();
+  failClearStandards = false;
+  holdClearRetry = true;
+  await clearPage.locator(".data-load-error button").click();
+  await clearRetryRequested;
+  await clearPage.evaluate(() => { location.hash = "#/cs/DS/path/start"; });
+  await rendered(clearPage, "cs", "#search-input");
+  await clearPage.fill("#search-input", "replacement");
+  await clearPage.fill("#search-input", "");
+  releaseClearRetry();
+  await clearPage.waitForFunction(() => document.querySelector("#search-results")?.dataset.confirmed === "true");
+  assert.equal(await clearPage.locator("#search-input").inputValue(), "", "an older retry does not replace a deliberate clear");
+  assert.equal(await clearPage.locator("#search-results").getAttribute("data-query"), "", "an old query is not restored or submitted after a deliberate clear");
+  assert.deepEqual(clearObserved.errors, []);
+  await clearFailure.close();
+
+  // A retry that finishes while the next language is loading must follow the route, not the still-connected old form.
+  const languageFailure = await browser.newContext();
+  const languagePage = await languageFailure.newPage();
+  const languageObserved = watched(languagePage);
+  let failLanguageStandards = true, holdLanguageRetry = false;
+  let releaseLanguageRetry, announceLanguageRetry, releaseEnglish, announceEnglish;
+  const languageRetryGate = new Promise((resolve) => { releaseLanguageRetry = resolve; });
+  const languageRetryRequested = new Promise((resolve) => { announceLanguageRetry = resolve; });
+  const englishGate = new Promise((resolve) => { releaseEnglish = resolve; });
+  const englishRequested = new Promise((resolve) => { announceEnglish = resolve; });
+  await languageFailure.route(origin + "/**", async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === "/assets/data/kb-standards-cs.js") {
+      if (failLanguageStandards) return route.abort("failed");
+      if (holdLanguageRetry) { announceLanguageRetry(); await languageRetryGate; }
+    }
+    if (pathname === "/assets/data/kb-en.js") { announceEnglish(); await englishGate; }
+    const path = resolve(site, "." + pathname);
+    const type = pathname.endsWith(".js") ? "text/javascript" : pathname.endsWith(".css") ? "text/css" : pathname.endsWith(".svg") ? "image/svg+xml" : "text/html";
+    await route.fulfill({ body: readFileSync(path), contentType: type });
+  });
+  await languagePage.goto(origin + "/index.html#/cs/V/path/start");
+  await rendered(languagePage, "cs", "#search-input");
+  await languagePage.fill("#search-input", "licence");
+  await languagePage.locator("form.search").evaluate((form) => form.requestSubmit());
+  await languagePage.locator(".data-load-error").waitFor();
+  failLanguageStandards = false;
+  holdLanguageRetry = true;
+  await languagePage.locator(".data-load-error button").click();
+  await languageRetryRequested;
+  await languagePage.getByRole("link", { name: "English", exact: true }).click();
+  await englishRequested;
+  releaseLanguageRetry();
+  await languagePage.waitForTimeout(0);
+  assert.notEqual(await languagePage.locator("#search-results").getAttribute("data-confirmed"), "true", "an outgoing Czech form does not accept the completed retry");
+  releaseEnglish();
+  await rendered(languagePage, "en", "#search-input");
+  await languagePage.waitForFunction(() => document.querySelector("#search-results")?.dataset.confirmed === "true" && document.querySelector("#search-results")?.dataset.query === "licence");
+  assert.equal(await languagePage.locator("#search-input").inputValue(), "licence", "the current English form receives the pending query");
+  assert(await languagePage.locator('#search-results a[href$="/path/licence"]').count(), "the current English form receives the recovered results");
+  assert.equal(await languagePage.locator(".data-load-error").count(), 0);
+  assert.deepEqual(languageObserved.errors, []);
+  await languageFailure.close();
+
+  // The latest classification wins: a failed part for obsolete text cannot suppress a newer identifier.
+  const identifierFailure = await browser.newContext();
+  const identifierPage = await identifierFailure.newPage();
+  const identifierDOI = "10.5281/zenodo.21726258";
+  const identifierObserved = watched(identifierPage);
+  let releaseTextPart, announceTextPart;
+  const textPartGate = new Promise((resolve) => { releaseTextPart = resolve; });
+  const textPartRequested = new Promise((resolve) => { announceTextPart = resolve; });
+  await identifierFailure.route(origin + "/**", async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === "/assets/data/kb-standards-cs.js") { announceTextPart(); await textPartGate; return route.abort("failed"); }
+    const path = resolve(site, "." + pathname);
+    const type = pathname.endsWith(".js") ? "text/javascript" : pathname.endsWith(".css") ? "text/css" : pathname.endsWith(".svg") ? "image/svg+xml" : "text/html";
+    await route.fulfill({ body: readFileSync(path), contentType: type });
+  });
+  await identifierPage.goto(origin + "/index.html#/cs/V/path/start");
+  await rendered(identifierPage, "cs", "#search-input");
+  await identifierPage.fill("#search-input", "licence");
+  await textPartRequested;
+  await identifierPage.locator("form.search").evaluate((form) => form.requestSubmit());
+  await identifierPage.fill("#search-input", identifierDOI);
+  releaseTextPart();
+  await identifierPage.waitForFunction((query) => {
+    const results = document.querySelector("#search-results");
+    return results?.dataset.confirmed === "true" && results.dataset.query === query;
+  }, identifierDOI);
+  assert(await identifierPage.locator("#search-results .result-primary").count(), "the newer identifier renders without a second submission");
+  assert.equal(await identifierPage.locator(".data-load-error").count(), 0, "the obsolete text-part failure is not an identifier error");
+  assert.deepEqual(identifierObserved.errors, []);
+  await identifierFailure.close();
+
   console.log("language checks: selected downloads, both directions, exact graph, bilingual exports/search and failed-file retry passed");
 } finally {
   await browser.close();

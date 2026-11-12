@@ -348,6 +348,30 @@ try {
         restored: SC.readPortable(portable).state.assessments.length, members: SC.ftrCrate(check, st)["@graph"].filter((entity) => String(entity["@id"]).startsWith("#provider-") && [].concat(entity["@type"]).includes("TestResult")).length };
     });
     assert.deepEqual(saved, { v: 4, assessments: 3, logs: false, restored: 3, members: 12 + 17 + 17 });
+    const identities = await page.evaluate(() => {
+      const FG = window.FairGuide, P = FG.providers, SC = FG.selfcheck, check = FG.get("checks/dataset"), st = FG.state.answers.dataset;
+      const graph = SC.ftrCrate(check, st)["@graph"];
+      const rows = graph.filter((entity) => String(entity["@id"]).startsWith("#provider-") && entity["ftr:outputFromTest"]).map((member) => {
+        const index = Number(member["@id"].match(/^#provider-(\d+)-/)[1]);
+        const resultId = member["@id"].replace(`#provider-${index}-`, "");
+        const assessment = st.assessments[index], criterion = P.criterion(assessment.provider, resultId);
+        const expected = FG.iri(criterion), actual = member["ftr:outputFromTest"]["@id"], test = graph.find((entity) => entity["@id"] === actual);
+        return { actual, expected, invocation: criterion.url, exportedInvocation: test && test.url };
+      });
+      const uniqueResults = new Set(st.assessments.flatMap((assessment) => assessment.results.map((result) => assessment.provider + "/" + result.id)));
+      const unknown = { mode: "after", items: {}, target: "https://doi.org/10.1234/example", assessments: [{ provider: "fair-checker", target: "https://doi.org/10.1234/example", results: [{ id: "unregistered-native-metric", verdict: "pass" }] }] };
+      const unknownGraph = SC.ftrCrate(check, unknown)["@graph"], unknownMember = unknownGraph.find((entity) => String(entity["@id"]).startsWith("#provider-") && entity["ftr:outputFromTest"]);
+      return { rows, distinct: new Set(rows.map((row) => row.actual)).size, expectedDistinct: uniqueResults.size,
+        fallback: unknownMember && unknownMember["ftr:outputFromTest"]["@id"], form: P.provider("fair-checker").form };
+    });
+    assert.equal(identities.rows.length, 12 + 17 + 17, "the export contains every provider result");
+    for (const row of identities.rows) {
+      assert.equal(row.actual, row.expected, "known criteria use persistent identity rather than an endpoint or shared form");
+      assert.equal(row.exportedInvocation, row.invocation, "the invocation stays as a separate link");
+    }
+    assert.equal(identities.distinct, identities.expectedDistinct, "distinct criteria do not collapse onto a provider form");
+    assert.equal(identities.fallback, "#provider-0-test-unregistered-native-metric", "an unregistered result gets a result-specific fragment");
+    assert.notEqual(identities.fallback, identities.form, "the provider form is not a fallback test identity");
     await page.locator("#export-format-md").check();
     await page.locator(".export-preview summary").click();
     await page.waitForFunction(() => document.getElementById("export-preview-text").value.length > 0);

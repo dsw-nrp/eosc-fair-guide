@@ -19,7 +19,7 @@ def prepare(artifact: Path, output: Path, tag: str, commit: str, root: Path = RO
     source = artifact.resolve()
     if target == source or target in source.parents or source in target.parents:
         raise ValueError("image context overlaps the release artifact")
-    files, statuses = assemble_pages.production_release(artifact, tag, commit)
+    files, statuses, _ = assemble_pages.production_release(artifact, tag, commit)
     assemble_pages.validate_files(files)
     config = files["assets/data/ui.js"].decode("utf-8")
     built = build_identity.config_identity(config)

@@ -136,13 +136,23 @@ class ImageReleaseTests(unittest.TestCase):
     def test_status_layout_is_parsed_once_per_image_preparation(self) -> None:
         for layout in ("current", "predecessor"):
             with self.subTest(layout=layout):
+                files = (
+                    assemble_pages.production_files(self.artifact, TAG, COMMIT)
+                    if layout == "current"
+                    else self.predecessor_files()
+                )
                 if layout == "predecessor":
-                    self.rewrite_artifact(self.predecessor_files())
-                with mock.patch.object(
-                    assemble_pages, "release_statuses", wraps=assemble_pages.release_statuses
-                ) as statuses:
+                    self.rewrite_artifact(files)
+                with (
+                    mock.patch.object(
+                        assemble_pages, "release_statuses", wraps=assemble_pages.release_statuses
+                    ) as statuses,
+                    mock.patch.object(assemble_pages.json, "loads", wraps=assemble_pages.json.loads) as loads,
+                ):
                     image_release.prepare(self.artifact, self.root / ("image-" + layout), TAG, COMMIT, self.root)
                 self.assertEqual(statuses.call_count, 1)
+                crate_loads = [call for call in loads.call_args_list if call.args[0] == files[build_crate.CRATE_FILE]]
+                self.assertEqual(len(crate_loads), 1, "image preparation decodes the complete crate once")
 
     def test_predecessor_schema_preparation_and_health_probe(self) -> None:
         files = self.predecessor_files()

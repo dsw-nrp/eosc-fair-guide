@@ -916,7 +916,7 @@
         const provider = P.provider(assessment.provider) || { name: assessment.provider };
         for (const result of assessment.results) {
           const criterion = P.criterion(assessment.provider, result.id);
-          const testId = (criterion && (criterion.url || FG.iri(criterion))) || provider.form || "#provider-" + index + "-test-" + result.id;
+          const testId = (criterion && FG.iri(criterion)) || "#provider-" + index + "-test-" + result.id;
           members.push({
             "@id": "#provider-" + index + "-" + result.id,
             "@type": ["CreativeWork", "TestResult"],
@@ -927,7 +927,7 @@
             "ftr:assessmentTarget": assessment.target ? { "@id": web(assessment.target) || assessment.target } : target,
             "prov:wasGeneratedBy": { "@id": "#provider-run-" + index },
           });
-          tests.push({ "@id": testId, "@type": "CreativeWork", additionalType: { "@id": FG.config.vocab.ftr + (provider.mode === "service" ? "Test" : "Metric") }, identifier: result.id, name: result.name || (criterion && FG.text(criterion.name)) || result.id });
+          tests.push({ "@id": testId, "@type": "CreativeWork", additionalType: { "@id": FG.config.vocab.ftr + (provider.mode === "service" ? "Test" : "Metric") }, identifier: result.id, name: result.name || (criterion && FG.text(criterion.name)) || result.id, url: criterion && criterion.url ? criterion.url : undefined });
         }
         activities.push({ "@id": "#provider-run-" + index, "@type": ["Action", "TestExecutionActivity"], name: provider.name, endTime: assessment.assessed || assessment.retrieved, object: assessment.target ? { "@id": web(assessment.target) || assessment.target } : target, instrument: { "@id": provider.form }, description: versionText(assessment) });
         tests.push({ "@id": provider.form, "@type": "CreativeWork", name: provider.name });

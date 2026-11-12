@@ -338,9 +338,10 @@ before any M3 task starts.
   head.
 
 Tasks 4.13 to 4.19 answer the 2026-11-08 implementation review. All 18 findings have a repair and regression proof;
-CORR-002 stays out of scope because the shared provider-form identity predates this change. Tasks 4.20 to 4.26 answer
-the 2026-11-09 follow-up review and make the bare Guide URL predictable. Tasks 4.27 to 4.29 answer the 2026-11-10
-follow-up review and add its regression evidence before M3 closes again.
+CORR-002 initially stayed out of scope because the shared provider-form identity predates this change. Tasks 4.20
+to 4.26 answer the 2026-11-09 follow-up review and make the bare Guide URL predictable. Tasks 4.27 to 4.29 answer
+the 2026-11-10 follow-up review. Tasks 4.30 to 4.34 answer the 2026-11-11 follow-up review and add their regression
+evidence before M3 closes again; the maintainer explicitly added CORR-002 to this remediation.
 
 - [x] 4.13 Keep verified current and documented predecessor artifacts reusable through assembly and image retries
   (DEPLOY-001 and DEPLOY-002). Recognize `api/v1/health.json` with `releaseStatus` and the generated 404 separately from
@@ -438,6 +439,38 @@ follow-up review and add its regression evidence before M3 closes again.
   recovered search, the updated Node landing page and the machines view in both languages, at desktop and phone widths
   and in print. Run `npm run openspec:validate` and `python scripts/check_all.py`. Verify: every R3 regression scenario
   and the complete local run pass and, after separately authorized commit/push, CI passes on the resulting head.
+
+- [x] 4.30 Make asynchronous search completion follow the latest input, route and loaded-data revision (CORR-R4-001,
+  CORR-R4-002, INT-R4-001 and PERF-R4-004). Track deliberate empty edits, reclassify current input after waiting,
+  prevent an outgoing connected form from consuming completion, and hand a pending query to the current route's form
+  without overwriting its edits; preserve the detached programmatic-form fallback. Single-flight complete
+  part/language loading through merge, configuration and invalidation, and suppress identical result evaluation.
+  Verify: regression tests cover a cleared replacement, retry completing before delayed Czech-to-English rendering,
+  same-form text-to-identifier replacement during a failed part, and overlapping focus and submission; existing
+  part-failure, new-query and no-live-form recovery tests still pass, and identical work is not repeated.
+- [x] 4.31 Derive question and lifecycle-correspondence projections once per data revision (PERF-R4-001 and
+  PERF-R4-002). Build a check-address to ordered-questions map and a stage-address to correspondences map in one
+  graph pass each; share them across citations, catalogue entries, test mappings and self-check readers, and reuse
+  each lifecycle entry's matches for presence, station derivation and rendering. Verify: invocation counts show one
+  graph derivation per revision, no per-check or per-stage whole-graph scans, correct invalidation after data changes,
+  unchanged question ordering and unchanged correspondence links in both languages.
+- [x] 4.32 Decode the production crate once for status, declaration and active-identity validation (PERF-R4-003).
+  Preserve and pass the parsed crate, selected statuses and verified identity through declaration checking, assembly
+  and image preparation, while the existing files-only interface stays available. Verify: complete-crate decode counts
+  are one for current and predecessor assembly and image preparation, declaration and publication-root comparisons
+  still run, mixed/missing/split/dual layouts are refused before output replacement, and verified bytes stay unchanged.
+- [x] 4.33 Separate evaluator-criterion identity from invocation and provider-form links (CORR-002). Name every known
+  exported evaluator test and `ftr:outputFromTest` reference by its persistent criterion IRI in service and import
+  modes; retain the actual endpoint or form as a separate link, and use a result-specific fragment for an unregistered
+  criterion rather than the provider form as fallback identity. Verify: distinct F-UJI criteria sharing one form have
+  distinct persistent identities and test nodes, repeated assessments reuse the criterion IRI, FAIR-Checker endpoints
+  remain invocation links, an unregistered criterion cannot collide with it, and revisions 1–3 still load.
+- [ ] 4.34 Reconcile this change's evidence and close the R4 remediation, including CORR-002. Extend the existing
+  provenance action and rolling usage entry with the actual work and verification, without moving times merely to
+  satisfy checks. Inspect recovered search states and evaluator exports in both languages, at desktop and phone widths
+  and in print. Run `npm run openspec:validate` and `python scripts/check_all.py`. Verify: every R4 and CORR-002
+  regression scenario and the complete local run pass and, after separately authorized commit/push, CI passes on the
+  resulting head.
 
 ## 5. w3id registration and release (M4)
 

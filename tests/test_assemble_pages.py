@@ -224,7 +224,10 @@ class AssemblyTests(unittest.TestCase):
         self.assertFalse(self.out.exists())
 
     def test_both_trees_are_combined_without_changing_a_production_byte(self) -> None:
-        self.assemble()
+        with patch.object(assemble_pages.json, "loads", wraps=assemble_pages.json.loads) as loads:
+            self.assemble()
+        crate_loads = [call for call in loads.call_args_list if call.args[0] == self.files[build_crate.CRATE_FILE]]
+        self.assertEqual(len(crate_loads), 2, "the production and byte-identical preview inputs each decode once")
         for name, data in self.files.items():
             self.assertEqual((self.out / name).read_bytes(), data, name)
         pages = list((self.out / "next").rglob("*.html"))
@@ -260,7 +263,13 @@ class AssemblyTests(unittest.TestCase):
                 node["creativeWorkStatus"] = "production"
         self.files[build_crate.CRATE_FILE] = json.dumps(crate).encode()
         self.write_release(self.files)
-        self.assemble()
+        with patch.object(assemble_pages.json, "loads", wraps=assemble_pages.json.loads) as loads:
+            self.assemble()
+        crate_loads = [call for call in loads.call_args_list if call.args[0] == self.files[build_crate.CRATE_FILE]]
+        preview_crate = (self.stage / build_crate.CRATE_FILE).read_bytes()
+        preview_loads = [call for call in loads.call_args_list if call.args[0] == preview_crate]
+        self.assertEqual(len(crate_loads), 1, "the modified predecessor decodes once")
+        self.assertEqual(len(preview_loads), 1, "its independently serialized preview decodes once")
         for name, data in self.files.items():
             self.assertEqual((self.out / name).read_bytes(), data, name)
         self.assertFalse((self.out / "404.html").exists(), "a predecessor archive is not required to gain a 404")

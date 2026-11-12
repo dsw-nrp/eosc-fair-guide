@@ -48,6 +48,36 @@ test("source lookup indexes a real graph once and invalidates misses, ambiguity 
   for (const [input, expected] of fixture.addresses) assert.equal(FG.bareUrl(input), expected);
 });
 
+test("check questions share one ordered index per data revision", () => {
+  const window = {};
+  runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });
+  const FG = window.FairGuide;
+  window.FairGuideData = { kb: JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8")), ui: { ui: {}, config: { links: {} } } };
+  FG.load();
+  const checks = FG.ofType("Quiz");
+  const expected = new Map(checks.map((check) => [check["@id"], FG.graph.filter((entity) => entity.hasBenchmark && FG.id(entity.hasBenchmark) === check["@id"]).sort(FG.byPosition)]));
+  const filter = FG.graph.filter, iterator = FG.graph[Symbol.iterator];
+  let scans = 0;
+  FG.graph.filter = function (...args) { scans += 1; return filter.apply(this, args); };
+  FG.graph[Symbol.iterator] = function (...args) { scans += 1; return iterator.apply(this, args); };
+  try {
+    const idsOf = (items) => Array.from(items, (item) => item["@id"]);
+    for (const check of checks) assert.deepEqual(idsOf(FG.questionsOf(check)), idsOf(expected.get(check["@id"])));
+    assert.equal(scans, 1, "all checks share one graph derivation");
+    for (const check of checks) for (let repeat = 0; repeat < 5; repeat++) assert.deepEqual(idsOf(FG.questionsOf(check)), idsOf(expected.get(check["@id"])));
+    assert.equal(scans, 1, "unchanged data does not rescan");
+    FG.invalidateData();
+    FG.questionsOf(checks[0]);
+    assert.equal(scans, 2, "a data revision rebuilds once on demand");
+    const added = { "@id": "questions/index-fixture", hasBenchmark: checks[0]["@id"], position: -1 };
+    FG.graph.push(added);
+    FG.byId.set(added["@id"], added);
+    FG.invalidateData();
+    assert.equal(FG.questionsOf(checks[0])[0], added, "a new question appears in position order");
+    assert.equal(scans, 3, "new graph membership rebuilds once");
+  } finally { FG.graph.filter = filter; FG.graph[Symbol.iterator] = iterator; }
+});
+
 test("JSON connectors bound every body and preserve request options, cancellation and retry", async () => {
   const FG = { config: { connectors: [{ id: "fixture", name: "Fixture", origin: "https://example.test" }] } };
   const context = { window: { FairGuide: FG }, URL, AbortController, TextEncoder, TextDecoder, setTimeout, clearTimeout };

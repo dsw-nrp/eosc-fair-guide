@@ -1,4 +1,3 @@
-/* Local bilingual search. Identifier results start services only on request; text results open the catalogue. */
 (function () {
   "use strict";
 
@@ -20,15 +19,15 @@
   const DATA = ["Dataset", "Collection", "Image", "Audiovisual", "Sound", "Model", "PhysicalObject", "InteractiveResource"];
   const SOFTWARE = ["Software", "ComputationalNotebook", "Workflow"];
   const TEXT = ["Text", "JournalArticle", "Book", "BookChapter", "ConferencePaper", "ConferenceProceeding", "Preprint", "Report", "Dissertation", "Journal", "PeerReview", "Standard"];
-  /* The index holds titles in the reader's language and links into the current lens, so it is rebuilt when either
-     changes; the language and lens change in place, without reloading the page. */
+  /* Titles and links follow the current language, lens and data revision. */
   let index = null;
   let indexFor = "";
+  let handoff = null;
 
   const fold = FG.fold;
   const bothLanguages = FG.bothLanguages;
 
-  /** Every searchable entity with its title, the text it is found by, and where it leads. */
+  /** Every searchable entity. */
   function buildIndex() {
     const entries = [];
     const add = (kind, title, extra, target) => entries.push({ kind, title, target, key: fold(bothLanguages(title)), extra: fold(extra) });
@@ -57,11 +56,10 @@
     return entries;
   }
 
-  /** What the query is: an identifier for a tool, or text for the knowledge base. */
+  /** Query classification. */
   const bare = (url) => FG.bareUrl(url);
 
-  /** An identifier of the guide's own: a Guide IRI or a record address (`stations/licence`), a requirement (A.F1.N1)
-      or a check question (maturity.18). */
+  /** A Guide IRI, record address or bare Guide identifier. */
   function guideEntry(value) {
     const base = FG.config.namespace ? FG.config.namespace + "id/" : null;
     const address = FG.recordOf(base && value.startsWith(base) ? value.slice(base.length) : value);
@@ -112,7 +110,7 @@
 
   const idName = (type) => ID_NAMES[type] || FG.t("search.idName." + type);
 
-  /** Matches in the knowledge base, grouped by kind; every word of the query must occur. */
+  /** Matches in the knowledge base, grouped by kind. */
   S.find = function (query) {
     const current = FG.state.lang + "/" + FG.state.lens + "/" + FG.partsLoaded.size + "/" + FG.dataRevision;
     if (!index || indexFor !== current) {
@@ -154,7 +152,7 @@
   const list = (actions) => h("ul", { class: "results-list" }, actions.filter(Boolean).map((action) => h("li", null, action)));
   const basis = (key, params) => h("p", { class: "small muted search-basis" }, FG.t("search.basis." + key, params || {}));
 
-  /** What can be done with an identifier placed by its form or by the knowledge base, without any request. */
+  /** Actions available for a recognised identifier. */
   function routes(found, box) {
     const findOut = resultLink({ onclick: () => lookUp(found, box) }, FG.t("search.findOut"), "identifier", true);
     switch (found.type) {
@@ -183,7 +181,7 @@
     }
   }
 
-  /** One explicit lookup that says what a DOI or Handle is: its registration agency and, for DataCite, its type. */
+  /** Resolve a DOI or Handle's registration agency and type. */
   async function whatIs(found, asked) {
     try {
       if (found.type === "handle") {
@@ -288,19 +286,20 @@
     return [h("p", { class: "search-hint" }, FG.icon ? FG.icon("identifier") : null, h("span", null, FG.t("search.identifierHint", { type: idName(found.type) })))];
   }
 
-  /** The search form with its results: the guide's own content is searched while typing; the routes for an
-      identifier that lead to outside services appear when the search is confirmed with Enter or the button. */
   S.form = function () {
+    const route = window.location.hash;
     const input = h("input", { id: "search-input", type: "search", autocomplete: "off", spellcheck: "false", placeholder: FG.t("search.placeholder") });
     const results = h("div", { id: "search-results", class: "search-results" });
     const status = h("p", { class: "visually-hidden", role: "status" });
     let typingTimer = null;
     let statusTimer = null;
+    let rendered = "";
     const show = (confirmed) => {
       const value = input.value;
       const found = S.classify(value);
-      // Focus loads these parts and calls show again; a partial language graph cannot be indexed yet.
       if (found.type === "text" && !TEXT_PARTS.every((part) => FG.partHasLanguage(part, FG.state.lang))) return;
+      const signature = [value, +confirmed, FG.state.lang, FG.state.lens, FG.dataRevision].join("/");
+      if (signature === rendered) return;
       let content = [];
       let message = "";
       if (found.type === "text" && (confirmed || found.value.length >= MIN_TYPED)) {
@@ -319,18 +318,17 @@
       clearTimeout(statusTimer);
       if (confirmed) status.textContent = message;
       else statusTimer = setTimeout(() => (status.textContent = message), STATUS_DELAY);
+      rendered = signature;
     };
     const typed = () => {
       clearTimeout(typingTimer);
       typingTimer = setTimeout(() => show(false), TYPING_DELAY);
     };
-
-    input.addEventListener("input", typed);
-    /* Text search loads its data parts on demand. */
+    input.addEventListener("input", () => { input.dataset.edited = "1"; typed(); });
     const preload = () => Promise.all(TEXT_PARTS.map((part) => FG.loadPart(part)));
     input.addEventListener("focus", () =>
       preload().then(
-        () => input.value.trim() && show(results.dataset.confirmed === "true" && results.dataset.query === input.value.trim()),
+        () => route === location.hash && input.value.trim() && show(results.dataset.confirmed === "true" && results.dataset.query === input.value.trim()),
         () => null
       )
     );
@@ -342,22 +340,36 @@
       event.preventDefault();
       clearTimeout(typingTimer);
       const retry = () => {
-        const form = document.querySelector("#main form.search");
-        if (!form) return null;
-        if (form === input.form) return run(event);
-        const current = form.querySelector("#search-input");
-        if (!current.value.trim()) {
-          current.value = input.value;
-          current.dispatchEvent(new Event("input", { bubbles: true }));
+        const hash = window.location.hash, form = document.querySelector("#main form.search");
+        if (form?.dataset.route === hash) {
+          if (form === input.form) return run(event);
+          const current = form.querySelector("#search-input");
+          if (!current.dataset.edited) {
+            current.value = input.value;
+            current.dispatchEvent(new Event("input", { bubbles: true }));
+          }
+          form.requestSubmit();
+          return true;
         }
-        form.requestSubmit();
-        return true;
+        if (route !== hash) {
+          handoff = { route: hash, value: input.value };
+          return true;
+        }
+        return null;
       };
-      if (S.classify(input.value).type === "text" && !(await preload().catch((error) => FG.dataLoadError(error, retry)))) return;
+      const failure = S.classify(input.value).type === "text" ? await preload().then(() => null, (error) => error) : null;
+      if (route !== location.hash && retry()) return;
+      if (S.classify(input.value).type === "text") {
+        if (failure) {
+          FG.dataLoadError(failure, retry);
+          return;
+        }
+        if (!TEXT_PARTS.every((part) => FG.partHasLanguage(part, FG.state.lang))) return run(event);
+      }
       if (!input.isConnected && retry()) return;
       show(true);
     };
-    return h(
+    const form = h(
       "form",
       { class: "search", role: "search", onsubmit: run },
       h("label", { for: "search-input", id: "search-label" }, FG.t("search.label")),
@@ -365,5 +377,17 @@
       status,
       results
     );
+    form.dataset.route = route;
+    if (handoff && handoff.route !== route) handoff = null;
+    if (handoff) {
+      const value = handoff.value;
+      handoff = null;
+      if (!input.dataset.edited) {
+        input.value = value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      setTimeout(() => form.isConnected ? form.requestSubmit() : run(new Event("submit", { cancelable: true })), 0);
+    }
+    return form;
   };
 })();

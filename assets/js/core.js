@@ -121,41 +121,43 @@
   const partLoads = {};
   const partLanguagesLoaded = new Set();
   FG.partHasLanguage = (name, lang) => partLanguagesLoaded.has(name + "/" + lang);
-  FG.loadPart = async function (name, lang) {
-    if (!partLoads[name]) {
-      partLoads[name] = loadScript(FG.config.parts[name]).then(() => {
-        const part = (window.FairGuideData.parts || {})[name];
-        if (!part) throw new Error("The Guide's data part is missing: " + name);
-        for (const entity of part.entities || []) {
-          FG.graph.push(entity);
-          FG.byId.set(entity["@id"], entity);
-        }
-        FG.partsLoaded.add(name);
-        FG.invalidateData();
-        return part;
-      }).catch((error) => {
-        delete partLoads[name];
-        throw error;
-      });
-    }
-    const part = await partLoads[name];
+  FG.loadPart = function (name, lang) {
     const language = lang || FG.state.lang;
-    let translated = false;
-    if (!FG.partHasLanguage(name, language)) {
-      await loadScript(FG.config.partLanguages[name][language]);
-      const values = ((window.FairGuideData.partLanguages || {})[name] || {})[language];
-      if (!values) throw new Error("The Guide's part translation is missing: " + name + "/" + language);
-      mergeData(part, values.values);
-      bindSearch(part, values.search);
-      partLanguagesLoaded.add(name + "/" + language);
-      translated = true;
+    const key = name + "/" + language;
+    if (!partLoads[key]) {
+      partLoads[key] = (async () => {
+        if (!partLoads[name]) {
+          partLoads[name] = loadScript(FG.config.parts[name]).then(() => {
+            const part = (window.FairGuideData.parts || {})[name];
+            if (!part) throw new Error("The Guide's data part is missing: " + name);
+            for (const entity of part.entities || []) {
+              FG.graph.push(entity);
+              FG.byId.set(entity["@id"], entity);
+            }
+            FG.partsLoaded.add(name);
+            FG.invalidateData();
+            return part;
+          }).catch((error) => {
+            delete partLoads[name];
+            throw error;
+          });
+        }
+        const part = await partLoads[name];
+        if (FG.partHasLanguage(name, language)) return;
+        await loadScript(FG.config.partLanguages[name][language]);
+        const values = ((window.FairGuideData.partLanguages || {})[name] || {})[language];
+        if (!values) throw new Error("The Guide's part translation is missing: " + name + "/" + language);
+        mergeData(part, values.values);
+        bindSearch(part, values.search);
+        partLanguagesLoaded.add(key);
+        for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
+        if (part.ui) mergeData(FG.ui, part.ui);
+        if (part.config) mergeData(FG.config, part.config);
+        FG.invalidateData();
+      })();
+      partLoads[key].catch(() => { delete partLoads[key]; });
     }
-    if (translated) {
-      for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
-      if (part.ui) mergeData(FG.ui, part.ui);
-      if (part.config) mergeData(FG.config, part.config);
-      FG.invalidateData();
-    }
+    return partLoads[key];
   };
 
   /** Explicit data exports keep bilingual API-style records. Reading a view does not require this load. */
@@ -1027,9 +1029,20 @@
   FG.prefillCoverage = (mapping) => (mapping ? FG.termKey(mapping.prefillCoverage) : "");
   /** Whether live evidence can suggest at most Partly for a question it only partly proves. */
   FG.prefillPartly = (item) => FG.prefillMappings(item).some((mapping) => FG.prefillCoverage(mapping) === "partly");
-  /** A check's questions, its FTR metrics, and the check a question belongs to, its benchmark. */
-  /* A check's questions in order: each question names its check, and the check does not list them. */
-  FG.questionsOf = (check) => FG.graph.filter((entity) => entity.hasBenchmark && FG.id(entity.hasBenchmark) === FG.id(check)).sort(FG.byPosition);
+  /** A check's questions in position order. */
+  let questionIndex = { revision: -1, checks: new Map() };
+  FG.questionsOf = (check) => {
+    if (questionIndex.revision !== FG.dataRevision) {
+      const checks = new Map();
+      for (const entity of FG.graph) {
+        const owner = FG.id(entity.hasBenchmark);
+        if (owner) checks.set(owner, (checks.get(owner) || []).concat(entity));
+      }
+      for (const questions of checks.values()) questions.sort(FG.byPosition);
+      questionIndex = { revision: FG.dataRevision, checks };
+    }
+    return questionIndex.checks.get(FG.id(check)) || [];
+  };
   FG.checkOf = (question) => FG.get(question && question.hasBenchmark);
   FG.principles = () => FG.principlesOf(FG.root);
   FG.termName = (id) => FG.text(FG.get(id) && FG.get(id).name);

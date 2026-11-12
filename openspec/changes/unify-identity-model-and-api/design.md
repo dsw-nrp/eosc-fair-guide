@@ -72,20 +72,26 @@ failure, and no node falls in two disjoint classes. Decisions 4, 6, 8, 13, 14 an
 fragment publication, mixed-version release and migration failures, and smaller integration, performance and retired-code
 issues. The independent coverage checks exposed a shared weakness in the existing tests: several expected sets came from
 the same filtered projection as the implementation, so omitted records stayed invisible. Decision 24 records the release
-layout transition; decisions 11, 17 and 19 now include the corresponding independent guards. CORR-002 is pre-existing
-and is not assigned to this change.
+layout transition; decisions 11, 17 and 19 now include the corresponding independent guards. CORR-002 was pre-existing
+and initially stayed outside this change.
 
 **Follow-up implementation review (2026-11-09, head `e9c8a14`).** Ten new findings cover deferred station references,
 search failure recovery, a literal saved-result template used as an href, mixed release-schema acceptance, missing
 health cache protection and smaller landing, performance and retired-code issues. The review independently confirmed
-all 18 earlier repairs and left CORR-002 unchanged in provenance and scope. The additional routing decision makes the
-bare Guide URL open the existing path start for every reader instead of depending on stored station history.
+all 18 earlier repairs and left CORR-002 unchanged at that point. The additional routing decision makes the bare Guide
+URL open the existing path start for every reader instead of depending on stored station history.
 
 **Implementation review (2026-11-10, head `1530935`).** Seven new findings cover complete text-search readiness and
 live-form retry, the Node's distinct operational-state and verification dates, repeated release-status parsing during
 image preparation, and four unread inputs and configuration fields. The review independently confirmed all earlier
-repairs and left CORR-002 unchanged in provenance and scope. Decisions 15, 19 and 24 and tasks 4.27 to 4.29 record
+repairs and left CORR-002 unchanged at that point. Decisions 15, 19 and 24 and tasks 4.27 to 4.29 record
 the repairs.
+
+**Implementation review (2026-11-11, head `8e0db3d`).** Seven Low findings cover asynchronous search completion
+across input and route revisions, repeated browser graph projections, and repeated production-crate parsing during
+assembly. The maintainer explicitly extended this remediation to the pre-existing CORR-002 observation: criteria
+without their own invocation endpoint shared their provider's form address as exported test identity. Decisions 14,
+15 and 24 and tasks 4.30 to 4.34 record the repairs and their regression evidence.
 
 The approach is bound by these constraints:
 
@@ -506,6 +512,13 @@ openapi.json                          one list and one record operation per kind
 - **Revision 4.** A reader's answer is a `dqv:QualityMeasurement` of its question's IRI, `<ns>id/questions/<question>`,
   computed on the assessed target (decision 8). Automated evidence names its test's own IRI, or the F-UJI metric it
   reports on.
+- **Criterion identity is not an invocation address.** Every known evaluator criterion uses its persistent record IRI
+  as the exported test identity, whether its result came from a service call or an import. The criterion's `url`
+  remains its actual API endpoint or provider form, carried separately as a link. Two imported criteria that share
+  a provider form therefore retain two distinct identities; repeated assessments of one criterion reuse its IRI.
+  An unregistered native result without a known criterion gets a fragment unique within that result set, never the
+  shared provider form as a fallback identity. Tests cover service and import modes, repeated assessments and the
+  unregistered-criterion fallback, while revisions 1–3 remain readable.
 - **Older revisions.** Revisions 1–3 still load. The loader already keys answers by question ID, and it reads their
   `api/tests/<question>.json` references as references to the same question.
 - **Old test paths.** The build keeps generating `api/tests/<question>.json`, as the documents that saved files of
@@ -536,13 +549,26 @@ openapi.json                          one list and one record operation per kind
 - **Search fails openly and independently.** Classification happens before text-index preloading, so a recognised
   identifier needs no unrelated part. Text search uses one required-part list—`standards`, `questions`, `advice` and
   `fips`—and indexes only once all four are available in the selected language. A missing or failed part cannot leave
-  partial or empty results confirmed as complete; the shared visible alert offers retry instead. Retry resubmits
-  against the currently attached search form and current route after navigation, never a detached predecessor, and
-  does not overwrite newer reader input. Failure tests cover each part, including FIP-only rejection and replacement
-  of the original form, while an identifier route still renders independently.
-- **Infrastructure relations are indexed once.** A reverse `operatedBy` map is built with the infrastructure entries
-  and reused by their cards, rather than scanning the whole graph for every card on every render. Unchanged filters
-  continue to reuse the existing catalogue derivation cache.
+  partial or empty results confirmed as complete; the shared visible alert offers retry instead.
+- **Latest input and route own asynchronous completion.** Every form tracks its input revisions, including a deliberate
+  clear, and the route for which it was rendered. After each wait, search reclassifies the current value before waiting
+  for text-only parts or presenting a load error; an identifier or empty current value is not blocked by failure of a
+  part an earlier text query needed. A form whose route has been superseded is ineligible even while still connected.
+  A pending query passes to the form for the current route only once that form exists: an untouched replacement
+  receives it, while any edited replacement, blank included, keeps its own state. The detached programmatic-form
+  fallback still completes locally. Delayed Czech-to-English rendering, a cleared replacement and a same-form
+  text-to-identifier switch are explicit regressions.
+- **Loading and rendering are single-flight.** One complete part/language operation covers script loading, merging,
+  configuration and data-revision invalidation, keyed by part and selected language. Focus and submission can await
+  that same operation but do not repeat its work. Result rendering is also a no-op when query, confirmation state,
+  language, lens and data revision are unchanged. This removes duplicate index evaluation without suppressing a real
+  confirmation or data change.
+- **Derived graph relations are indexed once per revision.** A check-address to ordered-questions map and a
+  stage-address to correspondences map are each built in one graph pass and invalidated by `dataRevision`. All
+  question readers share the first map. Lifecycle derivation and rendering share the second, with each stage's
+  matches computed once for presence, station derivation and correspondence display. Existing ordering and rendered
+  links remain unchanged, and the infrastructure reverse-`operatedBy` map keeps its current behaviour. Unchanged
+  filters continue to reuse the existing catalogue derivation cache.
 - **Chips.** An ID chip still shows the record ID; its title names the full address. Every catalogue entry, of every
   kind and in the list as well as alone, shows its own persistent IRI first among its identifiers. No identifier chip
   carries a label: an identifier is shown in full, and its address already says what issued it ("Identifikátor
@@ -809,10 +835,12 @@ resources/eosc-cz-node
 - **Health and status select together.** One shared gate derives the accepted status property from the selected health
   layout and requires it on both `./` and `#guide-software`. Neither node may fall back independently to the other
   generation's property. Current health with legacy status, predecessor health with current status, and a split crate
-  are all mixed layouts, not compatibility cases. Production-file validation computes the selected statuses once and
-  shares them with image preparation, while the existing files-only assembly interface remains unchanged. Image
-  preparation therefore makes no second full-crate parse and graph index; invocation-count tests cover current and
-  predecessor layouts.
+  are all mixed layouts, not compatibility cases. Production-file validation decodes and indexes the crate once,
+  derives both selected statuses and verified publication/semantic identity from that same object, and returns them
+  beside the files. Declaration verification and the active publication context used by assembly consume the returned
+  identity rather than decoding again. The existing files-only wrapper remains for its callers. Assembly and image
+  preparation each perform one complete-crate decode per operation; instrumentation covers current and predecessor
+  layouts, including declaration comparison, and all mixed-layout refusals and output-byte preservation stay intact.
 - **Every health response is fresh.** The image's nginx template applies `Cache-Control: no-store` to both
   `/api/v1/health.json` and `/api/health.json`. The candidate container's probe checks that header along with the
   served revision and build identity, so a body-only smoke check cannot conceal a stale intermediary response.
@@ -882,6 +910,12 @@ resources/eosc-cz-node
 - [A founded thing moves its description to its record, so a consumer reading only the thing's node finds less] →
   The record is under the thing's IRI and names the thing with `foaf:primaryTopic`; the API record of the thing
   carries its records in full under their fragments (decision 11).
+- [Fixing one search race could hide another route or edit revision, and revision caches could serve stale data] →
+  Treat reader input, route and loaded data as separate state dimensions; bind each cache to `dataRevision`, and
+  prove the deliberate-clear, pending-language and post-await-reclassification cases before trusting the repair.
+- [A shortcut for imported criteria could reintroduce shared identity or lose invocation evidence] → Test several
+  criteria sharing one provider form, a repeated assessment and an unregistered native result. Persistent IRIs name
+  criteria, while endpoint and form URLs remain separate links.
 
 ## Migration Plan
 
