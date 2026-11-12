@@ -465,7 +465,7 @@ evidence before M3 closes again; the maintainer explicitly added CORR-002 to thi
   criterion rather than the provider form as fallback identity. Verify: distinct F-UJI criteria sharing one form have
   distinct persistent identities and test nodes, repeated assessments reuse the criterion IRI, FAIR-Checker endpoints
   remain invocation links, an unregistered criterion cannot collide with it, and revisions 1–3 still load.
-- [ ] 4.34 Reconcile this change's evidence and close the R4 remediation, including CORR-002. Extend the existing
+- [x] 4.34 Reconcile this change's evidence and close the R4 remediation, including CORR-002. Extend the existing
   provenance action and rolling usage entry with the actual work and verification, without moving times merely to
   satisfy checks. Inspect recovered search states and evaluator exports in both languages, at desktop and phone widths
   and in print. Run `npm run openspec:validate` and `python scripts/check_all.py`. Verify: every R4 and CORR-002

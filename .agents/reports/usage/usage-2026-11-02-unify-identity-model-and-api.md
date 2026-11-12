@@ -541,7 +541,7 @@
 
 ## Kilo session, continued (review R4 and CORR-002)
 
-- **When:** 2026-11-11 (+00:00).
+- **When:** 2026-11-11 to 2026-11-12 (+00:00).
 - **Agent / runtime:** Kilo Code (VS Code extension).
 - **Model / backend:** e-infra-cz/kimi-k3.1-pro.
 - **Subagents used:** none.
@@ -581,9 +581,12 @@
   blank input, recovered FIP text, independent DOI routing and evaluator hierarchy, in both languages, desktop/phone
   widths and print. No alignment, collision or print defect remains. Live services, deployment, commit and push were
   not performed here; no CI outcome on the R4 working tree is claimed yet.
-- **Close-out:** tasks 4.30–4.33 are complete (**83 of 93**), with the complete local aggregate verified. Task 4.34
-  remains open until its separately authorized commit/push and CI on that particular head. M4's EOSC CZ consent and
-  exact registry-content approval remain separate human gates and have not started here.
+- **Verification (CI):** [workflow run 43126346901](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43126346901)
+  completed successfully at `01d9dde383e04043302e844310db964897c45880`; `quick`, build, all six lanes, unit, both
+  collectors and the required `checks` job passed.
+- **Close-out:** tasks 4.30–4.34 are complete (**84 of 93**) with local and CI verification. Commit `01d9dde` carries
+  the R4 repairs and was pushed under separately recorded authorization; this evidence update waits for its own commit
+  authorization. M4's EOSC CZ consent and exact registry-content approval remain separate human gates not started here.
 - **Corrections:** the maintainer explicitly added the pre-existing CORR-002 observation to R4 scope. Intermediate
   regressions, a successful `Promise.all()` array mishandled as an error, test-realm mismatches and capture readiness
   mistakes were isolated and fixed through the original tests, not hidden by suppressing assertions. The first empty
