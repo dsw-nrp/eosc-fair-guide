@@ -23,6 +23,8 @@
   let index = null;
   let indexFor = "";
   let handoff = null;
+  let submissionRevision = 0;
+  let dismissSearchError = () => {};
 
   const fold = FG.fold;
   const bothLanguages = FG.bothLanguages;
@@ -294,6 +296,7 @@
     let typingTimer = null;
     let statusTimer = null;
     let rendered = "";
+    let submitting = 0;
     const show = (confirmed) => {
       const value = input.value;
       const found = S.classify(value);
@@ -324,11 +327,20 @@
       clearTimeout(typingTimer);
       typingTimer = setTimeout(() => show(false), TYPING_DELAY);
     };
-    input.addEventListener("input", () => { input.dataset.edited = "1"; typed(); });
+    input.addEventListener("input", () => {
+      input.dataset.edited = "1";
+      if (!input.value.trim()) {
+        submissionRevision += 1;
+        handoff = null;
+        dismissSearchError();
+        clearTimeout(typingTimer);
+        show(true);
+      } else typed();
+    });
     const preload = () => Promise.all(TEXT_PARTS.map((part) => FG.loadPart(part)));
     input.addEventListener("focus", () =>
       preload().then(
-        () => route === location.hash && input.value.trim() && show(results.dataset.confirmed === "true" && results.dataset.query === input.value.trim()),
+        () => !submitting && route === location.hash && input.value.trim() && show(results.dataset.confirmed === "true" && results.dataset.query === input.value.trim()),
         () => null
       )
     );
@@ -339,35 +351,45 @@
     const run = async (event) => {
       event.preventDefault();
       clearTimeout(typingTimer);
-      const retry = () => {
-        const hash = window.location.hash, form = document.querySelector("#main form.search");
-        if (form?.dataset.route === hash) {
-          if (form === input.form) return run(event);
-          const current = form.querySelector("#search-input");
-          if (!current.dataset.edited) {
-            current.value = input.value;
-            current.dispatchEvent(new Event("input", { bubbles: true }));
+      const submission = ++submissionRevision;
+      handoff = null;
+      submitting += 1;
+      try {
+        const retry = () => {
+          if (submission !== submissionRevision) return true;
+          const hash = window.location.hash, form = document.querySelector("#main form.search");
+          if (form?.dataset.route === hash) {
+            if (form === input.form) return run(event);
+            const current = form.querySelector("#search-input");
+            if (!current.dataset.edited) {
+              current.value = input.value;
+              current.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+            form.requestSubmit();
+            return true;
           }
-          form.requestSubmit();
-          return true;
+          if (route !== hash) {
+            handoff = { value: input.value, submission };
+            return true;
+          }
+          return null;
+        };
+        const failure = S.classify(input.value).type === "text" ? await preload().then(() => null, (error) => error) : null;
+        if (submission !== submissionRevision) return;
+        if (route !== location.hash && retry()) return;
+        if (S.classify(input.value).type === "text") {
+          if (failure) {
+            dismissSearchError = FG.dataLoadError(failure, retry);
+            return;
+          }
+          if (!TEXT_PARTS.every((part) => FG.partHasLanguage(part, FG.state.lang))) return run(event);
         }
-        if (route !== hash) {
-          handoff = { route: hash, value: input.value };
-          return true;
-        }
-        return null;
-      };
-      const failure = S.classify(input.value).type === "text" ? await preload().then(() => null, (error) => error) : null;
-      if (route !== location.hash && retry()) return;
-      if (S.classify(input.value).type === "text") {
-        if (failure) {
-          FG.dataLoadError(failure, retry);
-          return;
-        }
-        if (!TEXT_PARTS.every((part) => FG.partHasLanguage(part, FG.state.lang))) return run(event);
+        if (!input.isConnected && retry()) return;
+        dismissSearchError();
+        show(true);
+      } finally {
+        submitting -= 1;
       }
-      if (!input.isConnected && retry()) return;
-      show(true);
     };
     const form = h(
       "form",
@@ -378,15 +400,19 @@
       results
     );
     form.dataset.route = route;
-    if (handoff && handoff.route !== route) handoff = null;
     if (handoff) {
-      const value = handoff.value;
+      const { value, submission } = handoff;
       handoff = null;
       if (!input.dataset.edited) {
         input.value = value;
         input.dispatchEvent(new Event("input", { bubbles: true }));
       }
-      setTimeout(() => form.isConnected ? form.requestSubmit() : run(new Event("submit", { cancelable: true })), 0);
+      setTimeout(() => {
+        if (submission === submissionRevision) {
+          if (form.isConnected) form.requestSubmit();
+          else run(new Event("submit", { cancelable: true }));
+        }
+      }, 0);
     }
     return form;
   };

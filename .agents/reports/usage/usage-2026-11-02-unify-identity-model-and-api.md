@@ -595,3 +595,53 @@
   regressions, a successful `Promise.all()` array mishandled as an error, test-realm mismatches and capture readiness
   mistakes were isolated and fixed through the original tests, not hidden by suppressing assertions. The first empty
   screenshots showed old results until the debounced empty render; those captures were taken again and are confirmed.
+
+## Codex session (review R5 and advisory retry)
+
+- **When:** 2026-11-12 to 2026-11-13 (+01:00).
+- **Agent / runtime:** Codex.
+- **Model / backend:** not exposed by the runtime.
+- **Subagents used:** none.
+- **MCP servers used:** GitHub (read-only review acquisition).
+- **Workflow context used:** `openspec-explore`, the maintainer's explicit five-artifact capture approval and
+  `/openspec-apply-change unify-identity-model-and-api`; `fair-guide-editor`, the delivered planning, quality and
+  usage/model rules, native Guide rules, pinned OpenSpec CLI, local Python/Node/Chromium checks.
+- **What:** captured all four Low findings from
+  [the review of dsw-nrp/eosc-fair-guide#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172#pullrequestreview-5870539394)
+  and the separately accepted pre-existing advisory missing-registration retry repair. Completed tasks 4.35–4.39:
+  pending searches survive formless routes; newer submissions and clears supersede older work; successful Search
+  and clear actions dismiss only their own obsolete load error and retry callback; cold focus-plus-submit scores
+  and replaces results once. Deferred self-check controls refresh only their originating route, preserving recovered
+  Search after leaving a still-loading check. Release-status validation now requires its already parsed crate.
+  Data scripts are cached only after the requested registration exists, so Retry can refetch corrected neutral, part-language and
+  display-language payloads without duplicating accepted data. Shared validation and concise loader comments keep
+  both initial languages within the unchanged 300 KB budget. Updated the durable design explanation.
+- **Impacted:** `assets/js/search.js`, `assets/js/app.js`, `assets/js/core.js`, `assets/js/selfcheck.js`,
+  `scripts/assemble_pages.py`,
+  `tests/page/check_languages.mjs`, `tests/runtime.test.mjs`, `docs/design.md`, the change's proposal/design/tasks
+  and guide-experience/guide-delivery deltas, and this rolling entry. No content record changed, so content provenance
+  and its timestamps are unchanged.
+- **Verification:** planted browser regressions first reported the lost pending query, one stale alert after DOI
+  success and two cold scoring passes. Three runtime regressions first failed to recover neutral, translation and
+  display-language registrations. After repair, the complete language browser suite and all 15 runtime tests pass;
+  18 assembly and 8 image tests preserve current/predecessor layouts, decode counts, identity checks and output bytes.
+  The focused Python command initially missed the tests' fixture import path; discovery with `-s tests` ran the real
+  suites successfully. A browser fixture initially corrected the payload before Retry and was changed to keep it
+  absent until the reader retries. The first full aggregate passed 36 of 36 in 217.8 seconds. Visual inspection then
+  exposed a late self-check-controls completion clearing recovered Search; a held-controls regression failed before
+  its route guard and passes after it. Captured 48 viewport images under `.cache/screenshots/search-remediation/`,
+  covering failure, DOI success, clear, formless recovery, corrected registration and cold confirmation in Czech and
+  English at desktop and 320 px widths, in screen and print media. Settled-state assertions and the reviewed layouts
+  confirm recovery stays visible. Fresh aggregate validation after the final route guard passes **36 of 36 in
+  224.6 seconds**, including all browser/assessment groups, API and health publication, unit/runtime, profile, docs,
+  Ruff and formatting checks. OpenSpec passes **6 of 6**. Initial gzip payloads are **307,196 bytes Czech** and
+  **304,833 bytes English**, both within the unchanged 307,200-byte budget; the Czech payload has four bytes of
+  remaining headroom. Final whitespace and usage-entry checks pass.
+- **Close-out:** implementation tasks 4.35–4.39 are complete (**89 of 99**). Task 4.40's local implementation,
+  regressions, visual evidence and full verification are complete; its checkbox remains open for the separately
+  authorized commit/push and resulting-head CI evidence. The maintainer has now authorized commit and push to the
+  existing change branch; delivery and CI verification are in progress. No live evaluator call or release operation
+  has been performed. Groups 5 and 6 retain their existing gates.
+- **Corrections:** the maintainer explicitly selected the advisory retry repair, confirmed artifact capture, then
+  separately authorized apply. Its pre-existing, non-verdict-bearing origin remains distinct from the four new
+  review findings.

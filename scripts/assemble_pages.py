@@ -133,11 +133,10 @@ def health_path(files: dict[str, bytes]) -> str:
     return candidates[0]
 
 
-def release_statuses(files: dict[str, bytes], health_name: str, crate: dict | None = None) -> tuple[object, object]:
+def release_statuses(crate: dict, health_name: str) -> tuple[object, object]:
     """Read release status only from the schema generation selected by the artifact's health layout."""
     current = health_name == package_site.HEALTH
     selected, retired = ("releaseStatus", "creativeWorkStatus") if current else ("creativeWorkStatus", "releaseStatus")
-    crate = crate if crate is not None else json.loads(files[build_crate.CRATE_FILE])
     nodes = {entity["@id"]: entity for entity in crate["@graph"]}
     statuses = []
     for key in ("./", "#guide-software"):
@@ -193,7 +192,7 @@ def production_release(
     if health.get("run", {}).get("status") != "passed" or health.get("revision") != commit:
         raise AssemblyError("release archive health does not name the checked commit")
     crate = json.loads(files[build_crate.CRATE_FILE])
-    statuses = release_statuses(files, health_name, crate)
+    statuses = release_statuses(crate, health_name)
     try:
         identity = verify_declaration(files, manifest, crate)
     except ValueError as error:

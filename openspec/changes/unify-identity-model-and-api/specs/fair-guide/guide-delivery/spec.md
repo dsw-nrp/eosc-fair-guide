@@ -50,6 +50,33 @@ the sitemap and remain crawlable with `noindex`. Assembly SHALL preserve verifie
 
 ## ADDED Requirements
 
+### Requirement: Local data retries recover from missing registration
+
+A local data script that downloads without registering its expected payload SHALL be treated as a load failure.
+Retry SHALL fetch that script again and accept a corrected payload without reapplying already accepted data.
+The usable view and saved answers SHALL survive, and valid cached data and shared concurrent loads SHALL retain
+their reuse behavior.
+
+#### Scenario: A neutral data part omits its registration
+
+- **GIVEN** a local neutral-part script that downloads successfully without registering the requested part
+- **WHEN** loading reports the failure, the file is corrected and the reader retries
+- **THEN** the failed script is requested again, its corrected data is applied once and the requested view or complete search becomes available
+- **AND** no duplicate graph entries are introduced
+
+#### Scenario: A part translation omits its registration
+
+- **GIVEN** an accepted neutral part whose selected-language script downloads without registering its translation
+- **WHEN** the file is corrected and the reader retries the failed operation
+- **THEN** the failed translation is requested again and applied once without reloading or duplicating the accepted neutral data
+- **AND** search cannot confirm partial results while the required translation is missing
+
+#### Scenario: A display-language file omits its registration
+
+- **GIVEN** a usable view with saved answers and a requested display-language file that downloads without registering its texts
+- **WHEN** the failure is shown, the file is corrected and the reader retries
+- **THEN** the corrected language file is requested again, the selected language appears and the answers remain unchanged
+
 ### Requirement: The w3id redirect is maintained and watched
 
 The Guide's w3id registration SHALL name at least two maintainers. A change to its redirect SHALL be made only through

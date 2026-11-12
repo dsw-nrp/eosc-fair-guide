@@ -93,6 +93,21 @@ assembly. The maintainer explicitly extended this remediation to the pre-existin
 without their own invocation endpoint shared their provider's form address as exported test identity. Decisions 14,
 15 and 24 and tasks 4.30 to 4.34 record the repairs and their regression evidence.
 
+**Implementation review (2026-11-12, head `6495ea1`).**
+[The review of dsw-nrp/eosc-fair-guide#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172#pullrequestreview-5870539394)
+confirms the earlier repairs and adds four Low findings: a pending query lost across a formless view
+(CORR-R5-001), a stale search error after success (CORR-R5-002), duplicate cold-query evaluation (PERF-R5-001)
+and an unreachable release-status decoding fallback (DEAD-R5-001). Read-only exploration at that same head reproduced
+an empty replacement field after the formless detour, an error beside a successful DOI result and after an empty
+submission, and two cold scoring passes versus zero additional warm passes. The release-status helper has one caller,
+which supplies the parsed crate. Tasks 4.35 to 4.40 capture the planned remediation; these observations do not establish
+that the repairs have been implemented.
+
+The maintainer also included the review's pre-existing missing-registration retry observation as a bounded advisory
+repair. The local probe attempted a neutral part twice but requested its script only once; both attempts reported missing
+registration. The fulfilled script cache and registration failure behavior also exist at the PR base. This remains
+separate from the four new findings and does not reopen the earlier review dispositions.
+
 The approach is bound by these constraints:
 
 - **Static hosting.** GitHub Pages serves files only and ignores query strings. Anything that filters or shapes a
@@ -550,6 +565,12 @@ openapi.json                          one list and one record operation per kind
   identifier needs no unrelated part. Text search uses one required-part list—`standards`, `questions`, `advice` and
   `fips`—and indexes only once all four are available in the selected language. A missing or failed part cannot leave
   partial or empty results confirmed as complete; the shared visible alert offers retry instead.
+- **Search owns the lifetime of its error.** A successful current submission or deliberate clear retires the obsolete
+  text-search error and its retry callback. Track that search failure's identity through the shared alert helper so
+  clearing it cannot remove a newer or unrelated view-loading failure. Older asynchronous work cannot restore a
+  retired error or replace a newer successful result. A clear is handled as reader input, without requiring submission
+  through the disabled empty-field button. Removing every `.data-load-error` on any search activity is rejected because
+  that could conceal an unrelated load failure.
 - **Latest input and route own asynchronous completion.** Every form tracks its input revisions, including a deliberate
   clear, and the route for which it was rendered. After each wait, search reclassifies the current value before waiting
   for text-only parts or presenting a load error; an identifier or empty current value is not blocked by failure of a
@@ -558,11 +579,33 @@ openapi.json                          one list and one record operation per kind
   receives it, while any edited replacement, blank included, keeps its own state. The detached programmatic-form
   fallback still completes locally. Delayed Czech-to-English rendering, a cleared replacement and a same-form
   text-to-identifier switch are explicit regressions.
+- **A formless view does not cancel a pending search.** The handoff belongs to the latest pending submission, not
+  to the URL at which its load happens to finish. Keep it in memory through intermediate routes without a form;
+  consume it only when a form for the current route exists. An untouched replacement receives the pending value,
+  while newer edits, a deliberate clear or a newer submission take precedence. Retain the outgoing-form and detached
+  programmatic-form rules above. Binding the handoff to the intermediate formless URL, silently dropping it on
+  navigation or using a timeout as cancellation is rejected because none expresses a reader decision to discard it.
+  Deferred self-check controls refresh only their originating route: a late intermediate-check completion cannot
+  rerender the new landing after its query has already recovered. The visual pass exposed this timing variant and a
+  held-controls regression covers it alongside the fully rendered intermediate view.
 - **Loading and rendering are single-flight.** One complete part/language operation covers script loading, merging,
   configuration and data-revision invalidation, keyed by part and selected language. Focus and submission can await
   that same operation but do not repeat its work. Result rendering is also a no-op when query, confirmation state,
   language, lens and data revision are unchanged. This removes duplicate index evaluation without suppressing a real
   confirmation or data change.
+  For a cold focus-plus-submit, the focus continuation yields to an already pending confirmation of the current input
+  instead of evaluating and replacing the result tree just before the confirmed pass. Retain the confirmation state
+  needed by identifier hints and routes; removing it from every render signature is not a substitute for coordinating
+  those continuations. Instrument `S.find` before releasing the delayed part: the initial confirmed query scores once,
+  the unchanged warm repetition scores zero additional times, and real input or data changes still update results.
+- **A local data script succeeds only with its expected registration.** For neutral parts, part translations and
+  display-language files, a successful download without the requested registration remains a failed data load. Evict
+  that script's cached promise and remove its failed script element as well as clearing its failed logical load, so
+  Retry fetches a corrected file. Preserve accepted neutral data, valid unrelated caches and existing shared in-flight
+  operations; recovery must not duplicate entities, merge the same translation twice or repeat invalidation for one
+  accepted operation. Clearing every script cache or keeping a fulfilled transport promise after registration failure
+  is rejected: the first repeats valid work, while the second makes the visible Retry ineffective. This is the bounded
+  advisory repair, with no new payload schema or unrelated loader redesign.
 - **Derived graph relations are indexed once per revision.** A check-address to ordered-questions map and a
   stage-address to correspondences map are each built in one graph pass and invalidated by `dataRevision`. All
   question readers share the first map. Lifecycle derivation and rendering share the second, with each stage's
@@ -841,6 +884,11 @@ resources/eosc-cz-node
   identity rather than decoding again. The existing files-only wrapper remains for its callers. Assembly and image
   preparation each perform one complete-crate decode per operation; instrumentation covers current and predecessor
   layouts, including declaration comparison, and all mixed-layout refusals and output-byte preservation stay intact.
+  The release-status helper requires the already parsed crate and selected health layout; remove its unused optional
+  decode branch and the archive-files argument if that branch was its only consumer. Keep `production_release`, its
+  status/identity consumers and the files-only wrapper. The separate optional decode in `publication_location.py`
+  serves live preview callers and remains unchanged. Retaining a two-argument release-status form for hypothetical
+  callers would obscure the verified single-parse boundary without supporting any current caller.
 - **Every health response is fresh.** The image's nginx template applies `Cache-Control: no-store` to both
   `/api/v1/health.json` and `/api/health.json`. The candidate container's probe checks that header along with the
   served revision and build identity, so a body-only smoke check cannot conceal a stale intermediary response.
@@ -912,7 +960,11 @@ resources/eosc-cz-node
   carries its records in full under their fragments (decision 11).
 - [Fixing one search race could hide another route or edit revision, and revision caches could serve stale data] →
   Treat reader input, route and loaded data as separate state dimensions; bind each cache to `dataRevision`, and
-  prove the deliberate-clear, pending-language and post-await-reclassification cases before trusting the repair.
+  prove the deliberate-clear, pending-language, formless-detour, visible-error retirement and post-await-reclassification
+  cases before trusting the repair. Retiring one search error must not conceal another operation's failure.
+- [Retry eviction could repeat accepted data or defeat concurrent-load reuse] → Evict only the script whose expected
+  registration is absent. Test corrected neutral, part-language and display-language files, overlapping retry calls,
+  one application/invalidation per accepted operation and unchanged warm-cache reuse.
 - [A shortcut for imported criteria could reintroduce shared identity or lose invocation evidence] → Test several
   criteria sharing one provider form, a repeated assessment and an unregistered native result. Persistent IRIs name
   criteria, while endpoint and form URLs remain separate links.

@@ -342,6 +342,11 @@ CORR-002 initially stayed out of scope because the shared provider-form identity
 to 4.26 answer the 2026-11-09 follow-up review and make the bare Guide URL predictable. Tasks 4.27 to 4.29 answer
 the 2026-11-10 follow-up review. Tasks 4.30 to 4.34 answer the 2026-11-11 follow-up review and add their regression
 evidence before M3 closes again; the maintainer explicitly added CORR-002 to this remediation.
+Tasks 4.35 to 4.40 capture the four new Low findings from
+[the 2026-11-12 review of dsw-nrp/eosc-fair-guide#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172#pullrequestreview-5870539394)
+and the separately approved missing-registration retry repair. That repair remains a pre-existing advisory observation,
+not a fifth new review finding. For the behavioral repairs, first prove each new regression against the unrepaired
+behavior, then apply the repair and retain the earlier search and loading regression cases.
 
 - [x] 4.13 Keep verified current and documented predecessor artifacts reusable through assembly and image retries
   (DEPLOY-001 and DEPLOY-002). Recognize `api/v1/health.json` with `releaseStatus` and the generated 404 separately from
@@ -471,6 +476,50 @@ evidence before M3 closes again; the maintainer explicitly added CORR-002 to thi
   and in print. Run `npm run openspec:validate` and `python scripts/check_all.py`. Verify: every R4 and CORR-002
   regression scenario and the complete local run pass and, after separately authorized commit/push, CI passes on the
   resulting head.
+
+- [x] 4.35 Preserve pending search through a formless view (CORR-R5-001; design.md decision 15). Keep the latest
+  submission's handoff independent of the intermediate URL and consume it only on a current search-bearing form,
+  preserving newer edits, clears and submissions. Update `assets/js/search.js` and guard the intermediate check's
+  deferred-controls refresh in `assets/js/selfcheck.js`, with regression coverage in `tests/page/check_languages.mjs`.
+  Verify: failure followed by retry, `#/cs/V/check/dataset`, completion there and
+  then `#/cs/DS/path/start` restores the pending query and confirmed results; newer input wins; delayed-language,
+  outgoing-form and detached programmatic-form cases still pass; controls finishing after leaving the intermediate
+  check cannot rerender the new landing and erase its recovered input.
+- [x] 4.36 Retire obsolete search errors on current success or clear (CORR-R5-002; design.md decision 15).
+  Coordinate search-owned failure identity between `assets/js/search.js` and the shared alert helper in
+  `assets/js/app.js`, so only that obsolete alert and retry action are removed and old completion cannot restore them.
+  Verify in `tests/page/check_languages.mjs`: after a text error is already visible, a successful DOI submission
+  removes it; deliberately clearing the field removes it without submitting through the disabled button, keeps
+  results empty and prevents pending-query restoration; an unrelated load error remains visible.
+- [x] 4.37 Let cold confirmation own result completion (PERF-R5-001; design.md decision 15). In
+  `assets/js/search.js`, make the focus continuation yield to an already pending submission without weakening
+  identifier confirmation, typing results or existing revision guards. Verify in `tests/page/check_languages.mjs`:
+  instrument `S.find` before releasing a held required part and assert exactly one scoring pass and one confirmed
+  result replacement for initial focus-plus-submit; unchanged warm focus-plus-submit adds zero scoring passes or
+  replacements, while a changed query or data revision still updates results and part loading stays single-flight.
+- [x] 4.38 Remove only the unused release-status decoding fallback (DEAD-R5-001; design.md decision 24).
+  Require the parsed crate in `scripts/assemble_pages.py`'s release-status helper, remove any argument used only by
+  the fallback, and update its sole caller. Keep shared status and identity validation, `production_release`, the
+  files-only wrapper and the live preview fallback in `scripts/publication_location.py`. Verify: caller search
+  confirms no optional release-status form remains, and existing `tests/test_assemble_pages.py` and
+  `tests/test_image_release.py` pass current/predecessor decode counts, declaration checks, invalid-layout refusal
+  before output replacement and byte preservation.
+- [x] 4.39 Make missing-registration Retry fetch the corrected script (pre-existing advisory; design.md decision
+  15). In `assets/js/core.js`, evict the failed script promise and element as well as its logical load when the
+  expected neutral-part, part-translation or display-language registration is absent. Preserve accepted neutral
+  data, valid caches and shared part/language operations. Verify with focused runtime and page regressions in
+  `tests/runtime.test.mjs` and `tests/page/check_languages.mjs`: a successful download with no registration fails
+  first, a corrected payload is requested on Retry and applied once for each of those three payload types, overlapping
+  part retries share work, graph entries are not duplicated, accepted neutral files are reused, and valid cached
+  loads add no work. The usable view, answers and complete-search readiness survive.
+- [ ] 4.40 Reconcile evidence and close the R5 remediation and advisory repair. Extend the existing rolling usage
+  entry with actual work and verification; update the existing provenance action only for content actually changed,
+  without advancing times merely to pass checks. Inspect pending-search recovery, visible failure followed by DOI
+  success or clear, cold confirmation and corrected-script retry in Czech and English, at desktop and phone widths
+  and in print. Run `npm run openspec:validate` and `python scripts/check_all.py`. Verify: the new behavioral tests
+  demonstrated their unrepaired failures, all new and earlier regression cases pass, the complete local run passes,
+  and, after separately authorized commit/push, CI passes on the resulting PR head. Keep the advisory provenance
+  distinct and leave the maintainer, registry, release and live-evidence gates in groups 5 and 6 open.
 
 ## 5. w3id registration and release (M4)
 

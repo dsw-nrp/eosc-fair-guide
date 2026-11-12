@@ -102,6 +102,16 @@ submission.
   `1.0.0`. The follow-up issue
   [dsw-nrp/eosc-fair-guide#171](https://github.com/dsw-nrp/eosc-fair-guide/issues/171), in the `v1.0.0` milestone,
   moves the profile, API and contract versions to their production values.
+- **Review remediation (2026-11-12).** The four Low findings in
+  [the review of dsw-nrp/eosc-fair-guide#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172#pullrequestreview-5870539394)
+  extend this change's M3 work:
+  - retain a pending search through intermediate views without a search form, respecting newer reader input;
+  - retire an obsolete search error and its retry action after a successful current submission or deliberate clear;
+  - evaluate a cold text query once when focus loading and confirmation finish together;
+  - remove the unreachable release-status decoding fallback while preserving shared validation of the parsed crate.
+  The maintainer also included the bounded missing-registration retry repair: a local data script that downloads
+  without registering its expected payload must be fetched again on retry. This remains a pre-existing advisory
+  observation, separate from the four new findings.
 
 ## Capabilities
 
@@ -122,9 +132,11 @@ None. The changed behaviour belongs to the existing capabilities below.
     graph, that each relation is stated once and that schema.org properties stay within their domains.
 - `fair-guide/guide-experience`: the machine-readable page, signposting, identifier routing, identifier chips, the
   credited sources, the repository family and its facets, catalogue routes, the predictable bare-URL landing and record
-  landing pages, including synchronous references, recoverable search and shared status presentation.
+  landing pages, including synchronous references, recoverable search across formless views, current error ownership,
+  one completed result update on cold confirmation and shared status presentation.
 - `fair-guide/guide-delivery`: health snapshot publication, the production sitemap, namespace alignment between
-  channels, and monitoring and maintaining the w3id redirect.
+  channels, recoverable local data registration, shared production-crate decoding, and monitoring and maintaining
+  the w3id redirect.
 - `fair-guide/guide-self-check`: result format revision 4, which records answers as measurements of persistent
   question IRIs and automated evidence by persistent test IRIs.
 
@@ -187,6 +199,10 @@ None. The changed behaviour belongs to the existing capabilities below.
   - byte-identical output after registry-index caching and schema-option deduplication;
   - synchronous infrastructure links before their deferred graph arrives, and visible search recovery after a planted
     part failure that leaves independent identifier routing available;
+  - pending search recovery through a formless view, retirement of an already visible search error on success or clear,
+    and exactly one cold-query scoring pass while warm repeated confirmation still performs none;
+  - corrected local scripts after missing neutral-part, part-translation or display-language registration, with a fresh
+    request for the failed script, one application of accepted data and unchanged valid-cache reuse;
   - bare-URL landing for fresh and returning readers, while explicit path resumption and the crate preview exception
     retain their existing meanings;
   - the w3id probe once the redirect is live;

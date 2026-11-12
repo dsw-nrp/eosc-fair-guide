@@ -7,6 +7,53 @@ import { browserEnvironment, root, mapLimit, workerCount, checkDefaults } from "
 import { slotIsAbandoned } from "../scripts/browser_slots.mjs";
 import { runInNewContext } from "node:vm";
 
+for (const missing of ["neutral", "translation", "language"]) {
+  test("local data retry recovers missing " + missing + " registration without repeating accepted data", async () => {
+    const window = {}, requests = [], removed = [];
+    const paths = { neutral: "fixture.js", translation: "fixture-cs.js", language: "en.js" };
+    let corrected = false;
+    const document = { createElement: () => ({ remove() { removed.push(this.src); } }), head: { append(script) {
+      requests.push(script.src);
+      queueMicrotask(() => {
+        if (script.src !== paths[missing] || corrected) {
+          const data = window.FairGuideData;
+          if (script.src === paths.neutral) data.parts = { fixture: { entities: [{ "@id": "fixture", name: "neutral" }] } };
+          if (script.src === paths.translation) data.partLanguages = { fixture: { cs: { values: { entities: [{ name: "translated" }] } } } };
+          if (script.src === paths.language) data.languages = { en: { ui: { ui: { greeting: "translated" } } } };
+        }
+        script.onload();
+      });
+    } } };
+    runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, document, URL });
+    const FG = window.FairGuide;
+    window.FairGuideData = { kb: { "@graph": [] }, ui: { ui: {}, config: { links: {}, languages: { en: paths.language },
+      parts: { fixture: paths.neutral }, partLanguages: { fixture: { cs: paths.translation } } } } };
+    FG.load();
+    let invalidations = 0; const invalidate = FG.invalidateData;
+    FG.invalidateData = () => { invalidations += 1; invalidate(); };
+    const load = () => missing === "language" ? FG.loadLanguage("en") : FG.loadPart("fixture", "cs");
+    await assert.rejects(load(), /missing/);
+    assert.equal(FG.graph.length, missing === "translation" ? 1 : 0);
+    corrected = true;
+    await Promise.all([load(), load()]);
+    assert.equal(requests.filter((path) => path === paths[missing]).length, 2, "Retry fetches the corrected file");
+    assert.deepEqual(removed, [paths[missing]], "only the unregistered script element is discarded");
+    if (missing === "language") {
+      assert.equal(FG.ui.greeting, "translated");
+      assert.equal(invalidations, 1);
+    } else {
+      assert.equal(FG.graph.length, 1, "the accepted neutral part is never duplicated");
+      assert.equal(FG.get("fixture").name, "translated");
+      assert.equal(invalidations, 2, "one neutral merge and one translation merge");
+      assert.equal(requests.filter((path) => path === paths[missing === "neutral" ? "translation" : "neutral"]).length, 1);
+    }
+    const count = requests.length, revision = FG.dataRevision;
+    await load();
+    assert.equal(requests.length, count, "valid cached data is reused");
+    assert.equal(FG.dataRevision, revision, "valid reuse does not apply or invalidate data again");
+  });
+}
+
 test("source lookup indexes a real graph once and invalidates misses, ambiguity and reloads", () => {
   const window = {};
   runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });

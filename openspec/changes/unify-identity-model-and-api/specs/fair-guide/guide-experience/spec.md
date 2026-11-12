@@ -34,6 +34,11 @@ failed required part SHALL expose a visible retry rather than leaving the search
 SHALL follow the current route's form, never an outgoing form that remains connected, and SHALL preserve every newer
 input revision, including a deliberate clear. It SHALL reclassify the current value, so failure of a text-only part
 SHALL NOT suppress a current identifier route or a deliberate empty state.
+Navigation through a view without a search form SHALL preserve the latest pending query until a current form can
+accept it, subject to newer reader edits or submissions. A successful current submission or deliberate clear SHALL
+retire its obsolete search load error and retry action without dismissing an unrelated load error. When initial
+loading and confirmation finish together, the reader SHALL receive one confirmed results update without an obsolete
+unconfirmed replacement immediately before it.
 
 #### Scenario: Searching a term
 
@@ -91,6 +96,34 @@ SHALL NOT suppress a current identifier route or a deliberate empty state.
 - **GIVEN** a recognised identifier while an unrelated text-index part cannot load
 - **WHEN** the reader confirms the search
 - **THEN** its routes still appear and the part failure is not treated as an identifier result
+
+#### Scenario: Recovery finishes on a view without a search form
+
+- **GIVEN** a failed text search whose retry is pending
+- **WHEN** the reader opens a view without a search form, retry finishes there, and the reader then opens a different search-bearing route
+- **THEN** the current form receives the pending query and its confirmed results
+- **AND** a newer query or deliberate clear in that form is preserved, and a newer submission supersedes the older pending query
+
+#### Scenario: A visible text-search failure is followed by a successful identifier
+
+- **GIVEN** a visible search load error with a retry action after a text-search failure
+- **WHEN** the reader confirms a recognised identifier successfully
+- **THEN** its routes appear and the obsolete text-search error and retry action are removed
+- **AND** a late completion of the older text operation cannot restore that error or replace the newer result
+
+#### Scenario: The reader clears a failed search
+
+- **GIVEN** a visible search load error and a pending query from that failed search
+- **WHEN** the reader deliberately clears the current search field
+- **THEN** the field and results stay empty, the obsolete search error and retry action are removed, and no older completion restores the query
+- **AND** an unrelated load error is not dismissed
+
+#### Scenario: Cold focus loading overlaps confirmation
+
+- **GIVEN** a fresh search whose required local data is still loading after the field receives focus
+- **WHEN** the reader confirms a text query before that loading finishes
+- **THEN** completion shows one confirmed results update for the current query without an immediately preceding unconfirmed replacement
+- **AND** repeating focus and confirmation with unchanged query, language, role and content leaves those results in place
 
 ### Requirement: The machine-readable side is visible
 

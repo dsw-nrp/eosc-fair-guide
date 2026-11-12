@@ -53,11 +53,16 @@ Requirements, FIP records, page texts, detailed advice, provenance and language 
 glossary source identifiers load with their definitions while primary IDs remain available for navigation.
 Together they reconstruct the complete crate. Language changes preserve answers and view state.
 Missing language files leave the usable view in place with retry. Originals, published titles and
-vocabulary labels retain their languages. Compact aliases support local cross-language search.
+vocabulary labels retain their languages. A downloaded script is accepted only after its expected data registers;
+otherwise Retry fetches a corrected copy while retaining accepted data. Compact aliases support local cross-language search.
 L1-L3 advice text uses property patches; station views and the AI advice page wait for it. Text search waits
 for requirements, questions, detailed advice and FIP records in the selected language before publishing a complete
 index. A failed load offers retry without confirming partial results; navigation moves retry to the current form,
-and a newer reader query is never replaced by completion of an older retry.
+and a newer reader query or deliberate clear is never replaced by completion of an older retry. A pending search
+survives intermediate views without a search form until the next eligible form opens. Successful submission or
+clearing retires that search's obsolete error and retry action without hiding another operation's failure.
+When cold loading and confirmation finish together, confirmation owns the completed results update, avoiding an
+immediately discarded unconfirmed pass.
 
 ## Authoring and build
 

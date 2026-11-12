@@ -14,8 +14,7 @@
 
   /* ---------------------------------------------------------------- knowledge base */
 
-  /* The crate and the interface data arrive as generated classic scripts (assets/data/), which load from a local
-     file as well as from a web host. */
+  /* Generated classic scripts supply the crate and UI on file:// and HTTP. */
   FG.load = function () {
     const crate = window.FairGuideData.kb;
     const page = window.FairGuideData.ui;
@@ -59,8 +58,7 @@
   const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
   FG.unsafeKey = (name) => UNSAFE_KEYS.has(name);
 
-  /* Language patches follow the generated tree. Null array positions leave structural or original values alone;
-     objects are updated in place, so the graph index and references keep the same identity on language switching. */
+  /* Patch translations in place to preserve graph identity; null leaves structure and originals unchanged. */
   function mergeData(target, patch) {
     for (const [key, value] of Object.entries(patch || {})) {
       if (value === null || UNSAFE_KEYS.has(key)) continue;
@@ -81,17 +79,25 @@
   }
 
   const scriptLoads = new Map();
-  function loadScript(path) {
+  function loadScript(path, registered = null) {
     if (!scriptLoads.has(path)) {
       scriptLoads.set(path, new Promise((resolve, reject) => {
         const script = document.createElement("script");
         script.src = path;
-        script.onload = resolve;
-        script.onerror = () => {
+        const failed = (error) => {
           scriptLoads.delete(path);
           script.remove();
-          reject(new Error("The Guide could not load its local data file: " + path));
+          reject(error);
         };
+        script.onload = () => {
+          try {
+            const data = registered?.();
+            if (registered && !data) throw new Error("The Guide's data is missing: " + path);
+            resolve(data);
+          }
+          catch (error) { failed(error); }
+        };
+        script.onerror = () => failed(new Error("The Guide could not load its local data file: " + path));
         document.head.append(script);
       }));
     }
@@ -99,15 +105,14 @@
   }
 
   FG.loadHelpers = () => loadScript(FG.config.helpers.script);
-  /** A view whose code loads when it first opens (the catalogue). */
+  /** Deferred view code. */
   FG.loadView = (name) => loadScript(FG.config.views[name]);
 
   FG.languagesLoaded = new Set();
   FG.loadLanguage = async function (lang) {
     if (FG.languagesLoaded.has(lang)) return;
-    await loadScript(FG.config.languages[lang]);
-    const values = (window.FairGuideData.languages || {})[lang];
-    if (!values) throw new Error("The Guide's language data is missing: " + lang);
+    const values = await loadScript(FG.config.languages[lang], () => window.FairGuideData.languages?.[lang]);
+    if (FG.languagesLoaded.has(lang)) return;
     mergeData(window.FairGuideData.kb, values.kb);
     mergeData(window.FairGuideData.ui, values.ui);
     bindSearch(window.FairGuideData.kb, values.search);
@@ -115,8 +120,7 @@
     FG.invalidateData();
   };
 
-  /* Views load their neutral part and selected language only. Switching language fills translations of the parts
-     already needed without changing answers or refetching neutral entities. All files are local classic scripts. */
+  /* Local classic scripts load neutral parts once; language changes patch their translations in place. */
   FG.partsLoaded = new Set();
   const partLoads = {};
   const partLanguagesLoaded = new Set();
@@ -127,9 +131,7 @@
     if (!partLoads[key]) {
       partLoads[key] = (async () => {
         if (!partLoads[name]) {
-          partLoads[name] = loadScript(FG.config.parts[name]).then(() => {
-            const part = (window.FairGuideData.parts || {})[name];
-            if (!part) throw new Error("The Guide's data part is missing: " + name);
+          partLoads[name] = loadScript(FG.config.parts[name], () => window.FairGuideData.parts?.[name]).then((part) => {
             for (const entity of part.entities || []) {
               FG.graph.push(entity);
               FG.byId.set(entity["@id"], entity);
@@ -144,9 +146,7 @@
         }
         const part = await partLoads[name];
         if (FG.partHasLanguage(name, language)) return;
-        await loadScript(FG.config.partLanguages[name][language]);
-        const values = ((window.FairGuideData.partLanguages || {})[name] || {})[language];
-        if (!values) throw new Error("The Guide's part translation is missing: " + name + "/" + language);
+        const values = await loadScript(FG.config.partLanguages[name][language], () => window.FairGuideData.partLanguages?.[name]?.[language]);
         mergeData(part, values.values);
         bindSearch(part, values.search);
         partLanguagesLoaded.add(key);
@@ -160,7 +160,7 @@
     return partLoads[key];
   };
 
-  /** Explicit data exports keep bilingual API-style records. Reading a view does not require this load. */
+  /** Explicit exports load both languages; ordinary views need only one. */
   FG.completeLanguages = () => Promise.all(LANGS.flatMap((lang) => [FG.loadLanguage(lang),
     ...[...FG.partsLoaded].map((name) => FG.loadPart(name, lang))]));
 

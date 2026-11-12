@@ -3363,7 +3363,11 @@
 
   FG.views.selfcheck = function (route) {
     if (!inspection) {
-      if (!inspectionFailed) loadInspection().then(() => FG.rerender()).catch(() => { inspectionFailed = true; FG.rerender(); });
+      if (!inspectionFailed) {
+        const hash = window.location.hash;
+        const refresh = () => { if (window.location.hash === hash) FG.rerender(); };
+        loadInspection().then(refresh).catch(() => { inspectionFailed = true; refresh(); });
+      }
       return h("div", { class: "wrap", role: "status" }, FG.t(inspectionFailed ? "app.error" : "app.loading"));
     }
     return route.view === "check" && FG.get("checks/" + route.arg) ? checkView(route) : overview(route);

@@ -26,6 +26,37 @@ function languageFiles(requests, lang) {
   return requests.filter((url) => new RegExp(`/assets/data/kb(?:-[a-z]+)?-${lang}\\.js$`).test(url));
 }
 
+async function failedTextSearch({ holdInspection = false } = {}) {
+  const context = await browser.newContext(), page = await context.newPage();
+  const observed = watched(page);
+  let fail = true, hold = false, release, requested;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const asked = new Promise((resolve) => { requested = resolve; });
+  let releaseInspection, requestedInspection;
+  const inspectionGate = new Promise((resolve) => { releaseInspection = resolve; });
+  const inspectionAsked = new Promise((resolve) => { requestedInspection = resolve; });
+  await context.route("https://guide-search.test/**", async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (holdInspection && pathname === "/assets/js/inspection.js") { requestedInspection(); await inspectionGate; }
+    if (pathname === "/assets/data/kb-standards-cs.js") {
+      if (fail) return route.abort("failed");
+      if (hold) { requested(); await gate; }
+    }
+    await route.fulfill({ body: readFileSync(resolve(site, "." + pathname)),
+      contentType: pathname.endsWith(".js") ? "text/javascript" : pathname.endsWith(".css") ? "text/css" : pathname.endsWith(".svg") ? "image/svg+xml" : "text/html" });
+  });
+  await page.goto("https://guide-search.test/index.html#/cs/V/path/start");
+  await rendered(page, "cs", "#search-input");
+  await page.fill("#search-input", "licence");
+  await page.locator("form.search").evaluate((form) => form.requestSubmit());
+  await page.locator(".data-load-error").waitFor();
+  return { context, page, observed, release, releaseInspection, inspectionAsked, async recover(wait = false) {
+    fail = false; hold = wait;
+    await page.locator(".data-load-error button").click();
+    if (wait) await asked;
+  } };
+}
+
 try {
   for (const initial of ["cs", "en"]) {
     const context = await browser.newContext();
@@ -159,15 +190,21 @@ try {
     const FG = window.FairGuide, invalidate = FG.invalidateData;
     window.partInvalidations = 0;
     FG.invalidateData = () => { window.partInvalidations += 1; invalidate(); };
+    const find = FG.search.find, results = document.querySelector("#search-results"), replace = results.replaceChildren.bind(results);
+    window.searchEvaluations = 0; window.resultReplacements = 0;
+    FG.search.find = (...args) => { window.searchEvaluations += 1; return find(...args); };
+    results.replaceChildren = (...args) => { window.resultReplacements += 1; return replace(...args); };
   });
   await delayedPage.fill('#search-input', 'deferredadviceprobe');
   await requested;
   await delayedPage.locator('form.search').evaluate((form) => form.requestSubmit());
   assert.notEqual(await delayedPage.locator('#search-results').getAttribute('data-query'), 'deferredadviceprobe', 'unloaded advice does not produce a complete empty result');
   releaseAdvice();
-  await delayedPage.waitForFunction(() => document.querySelector('#search-results')?.dataset.query === 'deferredadviceprobe');
+  await delayedPage.waitForFunction(() => document.querySelector('#search-results')?.dataset.query === 'deferredadviceprobe' && document.querySelector('#search-results')?.dataset.confirmed === 'true');
   assert(await delayedPage.locator('#search-results a[href*="/path/"]').count(), 'the deferred advice is in the completed index');
   assert.equal(await delayedPage.evaluate(() => window.partInvalidations), 8, 'overlapping focus and submission merge and invalidate each part/language operation once');
+  assert.equal(await delayedPage.evaluate(() => window.searchEvaluations), 1, "cold focus and confirmation score the settled query once");
+  assert.equal(await delayedPage.evaluate(() => window.resultReplacements), 1, "cold confirmation replaces results once");
   const repeated = await delayedPage.evaluate(async () => {
     const FG = window.FairGuide, find = FG.search.find;
     let calls = 0;
@@ -181,6 +218,12 @@ try {
     } finally { FG.search.find = find; }
   });
   assert.equal(repeated, 0, 'identical query, confirmation and data revision do not evaluate results again');
+  assert.equal(await delayedPage.evaluate(() => window.resultReplacements), 1, "warm identical confirmation leaves the result tree intact");
+  await delayedPage.fill("#search-input", "licence");
+  await delayedPage.locator("form.search").evaluate((form) => form.requestSubmit());
+  assert.equal(await delayedPage.evaluate(() => window.searchEvaluations), 2, "new input is evaluated");
+  await delayedPage.evaluate(() => { window.FairGuide.invalidateData(); document.querySelector("form.search").requestSubmit(); });
+  assert.equal(await delayedPage.evaluate(() => window.searchEvaluations), 3, "a new data revision is evaluated");
   await delayedPage.getByRole('link', { name: 'English', exact: true }).click();
   await delayedPage.locator('.data-load-error').waitFor();
   assert.equal(await delayedPage.evaluate(() => window.FairGuide.state.lang), 'cs');
@@ -427,6 +470,143 @@ try {
   assert.equal(await identifierPage.locator(".data-load-error").count(), 0, "the obsolete text-part failure is not an identifier error");
   assert.deepEqual(identifierObserved.errors, []);
   await identifierFailure.close();
+
+  // Completing a retry on a view without Search retains its query for the next eligible form.
+  const formless = await failedTextSearch();
+  await formless.recover(true);
+  await formless.page.evaluate(() => { location.hash = "#/cs/V/check/dataset"; });
+  formless.release();
+  await formless.page.waitForFunction(() => !document.querySelector("#main form.search") && document.querySelector("#main h1"));
+  await formless.page.evaluate(() => { location.hash = "#/cs/DS/path/start"; });
+  await formless.page.waitForFunction(() => document.querySelector("#main form.search")?.dataset.route === location.hash);
+  assert.equal(await formless.page.locator("#search-input").inputValue(), "licence", "a formless detour does not discard the pending query");
+  await formless.page.waitForFunction(() => document.querySelector("#search-results")?.dataset.confirmed === "true");
+  await formless.page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+  assert.equal(await formless.page.locator("#search-input").inputValue(), "licence", "recovered results remain on the settled current form");
+  assert(await formless.page.locator('#search-results a[href$="/path/licence"]').count());
+  assert.deepEqual(formless.observed.errors, []);
+  await formless.context.close();
+
+  // An outgoing check's late controls cannot rerender the landing and erase its recovered query.
+  const outgoingCheck = await failedTextSearch({ holdInspection: true });
+  await outgoingCheck.recover(true);
+  await outgoingCheck.page.evaluate(() => { location.hash = "#/cs/V/check/dataset"; });
+  outgoingCheck.release();
+  await outgoingCheck.inspectionAsked;
+  await outgoingCheck.page.evaluate(() => { location.hash = "#/cs/DS/path/start"; });
+  await outgoingCheck.page.waitForFunction(() => document.querySelector("#main form.search")?.dataset.route === location.hash && document.querySelector("#search-results")?.dataset.confirmed === "true");
+  outgoingCheck.releaseInspection();
+  await outgoingCheck.page.waitForFunction(() => typeof window.FairGuide.selfcheck?.providersFactory === "function");
+  await outgoingCheck.page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+  assert.equal(await outgoingCheck.page.locator("#search-input").inputValue(), "licence", "outgoing controls cannot erase recovered input");
+  assert.equal(await outgoingCheck.page.locator("#search-results").getAttribute("data-query"), "licence");
+  assert.deepEqual(outgoingCheck.observed.errors, []);
+  await outgoingCheck.context.close();
+
+  // A newer submission retires an older retry even when its load finishes after another navigation.
+  const superseded = await failedTextSearch();
+  await superseded.recover(true);
+  await superseded.page.evaluate(() => { location.hash = "#/cs/DS/path/start"; });
+  await superseded.page.waitForFunction(() => document.querySelector("#main form.search")?.dataset.route === location.hash);
+  await superseded.page.fill("#search-input", identifierDOI);
+  await superseded.page.locator("form.search").evaluate((form) => form.requestSubmit());
+  await superseded.page.waitForFunction(() => document.querySelector("#search-results")?.dataset.query === "10.5281/zenodo.21726258");
+  await superseded.page.evaluate(() => { location.hash = "#/cs/V/check/dataset"; });
+  superseded.release();
+  await superseded.page.waitForFunction(() => !document.querySelector("#main form.search"));
+  await superseded.page.evaluate(() => { location.hash = "#/cs/K/path/start"; });
+  await superseded.page.waitForFunction(() => document.querySelector("#main form.search")?.dataset.route === location.hash);
+  assert.equal(await superseded.page.locator("#search-input").inputValue(), "", "the older retry cannot restore its superseded query");
+  assert.deepEqual(superseded.observed.errors, []);
+  await superseded.context.close();
+
+  // Once a text error is visible, successful identifier submission retires both its alert and stale retry callback.
+  const successful = await failedTextSearch();
+  await successful.page.evaluate(() => { window.obsoleteSearchRetry = document.querySelector(".data-load-error button"); });
+  await successful.page.fill("#search-input", identifierDOI);
+  await successful.page.locator("form.search").evaluate((form) => form.requestSubmit());
+  await successful.page.waitForFunction(() => document.querySelector("#search-results")?.dataset.confirmed === "true");
+  assert.equal(await successful.page.locator(".data-load-error").count(), 0, "a successful DOI retires the visible text error");
+  assert(await successful.page.locator("#search-results .result-primary").count());
+  const staleRetryCalls = await successful.page.evaluate(async () => {
+    const FG = window.FairGuide, load = FG.loadPart; let calls = 0;
+    FG.loadPart = (...args) => { calls += 1; return load(...args); };
+    try { window.obsoleteSearchRetry.click(); await new Promise((done) => setTimeout(done, 0)); return calls; }
+    finally { FG.loadPart = load; }
+  });
+  assert.equal(staleRetryCalls, 0, "a retired retry cannot execute against unrelated current input");
+  await successful.context.close();
+
+  const clearedFailure = await failedTextSearch();
+  await clearedFailure.page.fill("#search-input", "");
+  assert.equal(await clearedFailure.page.locator(".data-load-error").count(), 0, "a deliberate clear retires the visible text error without submission");
+  assert.equal(await clearedFailure.page.locator("#search-results").getAttribute("data-query"), "");
+  assert(await clearedFailure.page.locator("form.search button[type=submit]").isDisabled());
+  await clearedFailure.context.close();
+
+  const unrelatedFailure = await failedTextSearch();
+  await unrelatedFailure.page.evaluate(() => {
+    window.unrelatedRetries = 0;
+    window.FairGuide.dataLoadError(new Error("unrelated view failure"), () => { window.unrelatedRetries += 1; });
+  });
+  await unrelatedFailure.page.fill("#search-input", "");
+  assert.equal(await unrelatedFailure.page.locator(".data-load-error").count(), 1, "clearing Search cannot conceal another view's failure");
+  await unrelatedFailure.page.fill("#search-input", identifierDOI);
+  await unrelatedFailure.page.locator("form.search").evaluate((form) => form.requestSubmit());
+  assert.equal(await unrelatedFailure.page.locator(".data-load-error").count(), 1, "successful Search cannot conceal another view's failure");
+  await unrelatedFailure.page.locator(".data-load-error button").click();
+  assert.equal(await unrelatedFailure.page.evaluate(() => window.unrelatedRetries), 1);
+  await unrelatedFailure.context.close();
+
+  // A script can download successfully but omit its payload. Retry must refetch the corrected local file.
+  for (const missing of ["neutral", "translation", "language"]) {
+    const context = await browser.newContext(), page = await context.newPage(), observed = watched(page);
+    const target = { neutral: "/assets/data/kb-standards.js", translation: "/assets/data/kb-standards-cs.js", language: "/assets/data/kb-en.js" }[missing];
+    const requests = [];
+    let omit = true;
+    await context.route("https://guide-registration.test/**", async (route) => {
+      const pathname = new URL(route.request().url()).pathname;
+      requests.push(pathname);
+      await route.fulfill({ body: omit && pathname === target ? "/* payload intentionally absent */" : readFileSync(resolve(site, "." + pathname)),
+        contentType: pathname.endsWith(".js") ? "text/javascript" : pathname.endsWith(".css") ? "text/css" : pathname.endsWith(".svg") ? "image/svg+xml" : "text/html" });
+    });
+    await page.goto("https://guide-registration.test/index.html#/cs/V/" + (missing === "language" ? "check/software/answers" : "path/start"));
+    let saved;
+    if (missing === "language") {
+      await rendered(page, "cs", "#answer-software-04-no");
+      await page.locator("#answer-software-04-no").check();
+      saved = await page.evaluate(() => JSON.stringify(window.FairGuide.state.answers.software));
+      await page.getByRole("link", { name: "English", exact: true }).click();
+    } else {
+      await rendered(page, "cs", "#search-input");
+      await page.fill("#search-input", "licence");
+      await page.locator("form.search").evaluate((form) => form.requestSubmit());
+    }
+    await page.locator(".data-load-error").waitFor();
+    const failedRequests = requests.filter((path) => path === target).length;
+    assert(failedRequests >= 1);
+    if (missing === "language") {
+      assert(await page.locator("#answer-software-04-no").isChecked(), "failed registration preserves the usable view and answers");
+    } else {
+      assert.notEqual(await page.locator("#search-results").getAttribute("data-confirmed"), "true", "missing registration cannot confirm incomplete search");
+    }
+    omit = false;
+    await page.locator(".data-load-error button").click();
+    if (missing === "language") {
+      await rendered(page, "en", "#answer-software-04-no");
+      assert.equal(await page.evaluate(() => JSON.stringify(window.FairGuide.state.answers.software)), saved);
+      assert(await page.locator("#answer-software-04-no").isChecked());
+    } else {
+      await page.waitForFunction(() => document.querySelector("#search-results")?.dataset.confirmed === "true");
+      assert(await page.locator('#search-results a[href$="/path/licence"]').count());
+      assert.equal(requests.filter((path) => path === (missing === "neutral" ? "/assets/data/kb-standards-cs.js" : "/assets/data/kb-standards.js")).length, 1, "accepted companion data is reused");
+    }
+    assert.equal(requests.filter((path) => path === target).length, failedRequests + 1, "Retry requests the previously unregistered script again");
+    assert(await page.evaluate(() => new Set(window.FairGuide.graph.map((entity) => entity["@id"])).size === window.FairGuide.graph.length));
+    assert.equal(await page.locator(".data-load-error").count(), 0);
+    assert.deepEqual(observed.errors, []);
+    await context.close();
+  }
 
   console.log("language checks: selected downloads, both directions, exact graph, bilingual exports/search and failed-file retry passed");
 } finally {

@@ -1,19 +1,24 @@
-/* Start-up and rendering of the FAIR Data Guide. The page makes no request to an external service on load. */
+/* Guide rendering; external requests require reader action. */
 (function () {
   "use strict";
 
   const FG = window.FairGuide;
+  let dismissLoadError = () => {};
 
-  /** A failed local data download keeps the current view available and offers the same action again. */
+  /** Keep the usable view and offer Retry after a local data failure. */
   FG.dataLoadError = function (error, retry) {
     console.error(error.message);
     const app = document.getElementById("app");
-    app.querySelector(".data-load-error")?.remove();
-    app.prepend(FG.h("div", { class: "wrap data-load-error", role: "alert" },
+    dismissLoadError();
+    const dismiss = () => alert.remove();
+    const alert = FG.h("div", { class: "wrap data-load-error", role: "alert" },
       FG.h("p", null, FG.h("span", { lang: "cs" }, "Průvodce se nepodařilo načíst."), " / ",
         FG.h("span", { lang: "en" }, "The Guide could not be loaded.")),
-      FG.h("button", { type: "button", onclick: () => { app.querySelector(".data-load-error")?.remove(); retry(); } },
-        FG.h("span", { lang: "cs" }, "Zkusit znovu"), " / ", FG.h("span", { lang: "en" }, "Retry"))));
+      FG.h("button", { type: "button", onclick: () => { if (alert.isConnected) { dismiss(); retry(); } } },
+        FG.h("span", { lang: "cs" }, "Zkusit znovu"), " / ", FG.h("span", { lang: "en" }, "Retry")));
+    app.prepend(alert);
+    dismissLoadError = dismiss;
+    return dismiss;
   };
 
   FG.navigate = function (hash) {
