@@ -584,9 +584,13 @@
 - **Verification (CI):** [workflow run 43126346901](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43126346901)
   completed successfully at `01d9dde383e04043302e844310db964897c45880`; `quick`, build, all six lanes, unit, both
   collectors and the required `checks` job passed.
+- **Verification (final CI):** [workflow run 43128124423](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43128124423)
+  completed successfully at `2fd5dd14f3861babf0411e8d40c1e4eb8a0cec42`; all required lanes, collectors and `checks`
+  passed on the evidence-only commit.
 - **Close-out:** tasks 4.30–4.34 are complete (**84 of 93**) with local and CI verification. Commit `01d9dde` carries
-  the R4 repairs and was pushed under separately recorded authorization; this evidence update waits for its own commit
-  authorization. M4's EOSC CZ consent and exact registry-content approval remain separate human gates not started here.
+  the R4 repairs and was pushed under separately recorded authorization; `2fd5dd1` carries the completed checkbox and
+  first CI evidence under the later separate authorization. M4's EOSC CZ consent and exact registry-content approval
+  remain separate human gates not started here.
 - **Corrections:** the maintainer explicitly added the pre-existing CORR-002 observation to R4 scope. Intermediate
   regressions, a successful `Promise.all()` array mishandled as an error, test-realm mismatches and capture readiness
   mistakes were isolated and fixed through the original tests, not hidden by suppressing assertions. The first empty
