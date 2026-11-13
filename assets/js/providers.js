@@ -3,8 +3,8 @@
    assessment record keeps each accepted assessment: target, inspected subject and representation, dates, supplied
    versions, and every native result with its own identifier, wording, verdict, score, maturity, subtests and
    diagnostics. Questions refer to that record. Each result is read as its provider presents it (`P.reading`), and a
-   reviewed mapping (crate `#criterion-*`) for a reviewed version turns that reading into a suggestion: whole coverage
-   answers as the reading, partial coverage answers Partly or No (D-168). Provider text is untrusted and is only ever
+   reviewed mapping (a part of the criterion) for a reviewed version turns that reading into a suggestion: whole coverage
+   answers as the reading, partial coverage answers Partly or No. Provider text is untrusted and is only ever
    shown as text. */
 (function () {
   "use strict";
@@ -26,7 +26,7 @@
   P.settings = () => FG.config.providers || { list: [] };
   P.provider = (id) => FG.list(P.settings().list).find((entry) => entry.id === id) || null;
   /** An evaluator's badge: the favicon of its entry among the resources, or its monogram. */
-  const evaluatorBadge = (provider, id) => FG.serviceBadge(id || provider.id, (FG.get("#resource-" + (id || provider.id)) || {}).url);
+  const evaluatorBadge = (provider, id) => FG.serviceBadge(id || provider.id, (FG.get(FG.address("resources", id || provider.id)) || {}).url);
   P.criterion = (provider, metric) => FG.sourceEntity(provider, metric);
   P.isAssessmentId = (value) => typeof value === "string" && ASSESSMENT_ID.test(value);
 
@@ -36,7 +36,7 @@
     return FG.list(provider.metrics).flatMap((metric) => {
       const criterion = P.criterion(provider.id, metric);
       return criterion
-        ? FG.refs(criterion, "hasPart").map((entity) => ({ metric, question: String(FG.id(entity.about) || "").replace(/^#item-/, ""), coverage: entity.mappingCoverage, entity }))
+        ? FG.refs(criterion, "hasPart").map((entity) => ({ metric, question: FG.localId(entity.about), coverage: FG.termKey(entity.mappingCoverage), entity }))
         : [];
     });
   };
@@ -247,7 +247,7 @@
     Object.entries(assessment.versions || {}).filter(([key]) => key !== "requested").map(([key, value]) => FG.t("selfcheck.providers.version." + key) + " " + value).join(", ") || FG.t("selfcheck.providers.versionUnknown");
   P.versionText = versionText;
 
-  /** The suggestion one reading gives through a mapping (D-168): whole coverage answers as the reading; partial
+  /** The suggestion one reading gives through a mapping: whole coverage answers as the reading; partial
       coverage answers Partly when its part is met, even in part, and No when it fails; an open reading answers nothing. */
   const suggestionOf = (reading, coverage) => (reading === "failed" ? "no" : reading === "open" ? null : coverage === "whole" && reading === "met" ? "yes" : "partly");
 
@@ -292,9 +292,9 @@
   /** The mapping note behind a `providerMapping` note, in the current language. */
   P.mappingNote = function (params) {
     const criterion = params && P.criterion(params.provider, params.metric);
-    const mapping = criterion && FG.refs(criterion, "hasPart").find((entity) => FG.id(entity.about) === "#item-" + params.question);
+    const mapping = criterion && FG.refs(criterion, "hasPart").find((entity) => FG.id(entity.about) === FG.address("questions", params.question));
     const provider = P.provider(params && params.provider);
-    const head = (provider ? provider.name : "") + " " + (params ? params.metric : "") + " (" + FG.t("selfcheck.providers.coverage." + ((mapping && mapping.mappingCoverage) || "partial")) + ")";
+    const head = (provider ? provider.name : "") + " " + (params ? params.metric : "") + " (" + FG.t("selfcheck.providers.coverage." + ((mapping && FG.termKey(mapping.mappingCoverage)) || "partial")) + ")";
     return head.trim() + (mapping && mapping.description ? ": " + FG.text(mapping.description) : "");
   };
 
@@ -761,7 +761,7 @@
     /** The questions of this check a criterion relates to, each leading to the question. */
     function questionLinks(check, st, assessment, metric) {
       const rows = P.mappings(P.provider(assessment.provider)).filter((row) => row.metric === metric);
-      const items = FG.refs(check, "hasPart");
+      const items = FG.questionsOf(check);
       const linked = rows.map((row) => ({ row, item: items.find((item) => item.identifier === row.question) })).filter((entry) => entry.item);
       if (!linked.length) return h("p", { class: "small muted criterion-questions" }, FG.t("selfcheck.providers.unmapped"));
       return h("p", { class: "small criterion-questions" }, FG.t("selfcheck.providers.relates") + ": ",
@@ -916,7 +916,7 @@
         const provider = P.provider(assessment.provider) || { name: assessment.provider };
         for (const result of assessment.results) {
           const criterion = P.criterion(assessment.provider, result.id);
-          const testId = (criterion && criterion.url) || provider.form || ("#criterion-" + assessment.provider + "-" + result.id);
+          const testId = (criterion && FG.iri(criterion)) || "#provider-" + index + "-test-" + result.id;
           members.push({
             "@id": "#provider-" + index + "-" + result.id,
             "@type": ["CreativeWork", "TestResult"],
@@ -927,7 +927,7 @@
             "ftr:assessmentTarget": assessment.target ? { "@id": web(assessment.target) || assessment.target } : target,
             "prov:wasGeneratedBy": { "@id": "#provider-run-" + index },
           });
-          tests.push({ "@id": testId, "@type": "CreativeWork", additionalType: { "@id": FG.config.vocab.ftr + (provider.mode === "service" ? "Test" : "Metric") }, identifier: result.id, name: result.name || (criterion && FG.text(criterion.name)) || result.id });
+          tests.push({ "@id": testId, "@type": "CreativeWork", additionalType: { "@id": FG.config.vocab.ftr + (provider.mode === "service" ? "Test" : "Metric") }, identifier: result.id, name: result.name || (criterion && FG.text(criterion.name)) || result.id, url: criterion && criterion.url ? criterion.url : undefined });
         }
         activities.push({ "@id": "#provider-run-" + index, "@type": ["Action", "TestExecutionActivity"], name: provider.name, endTime: assessment.assessed || assessment.retrieved, object: assessment.target ? { "@id": web(assessment.target) || assessment.target } : target, instrument: { "@id": provider.form }, description: versionText(assessment) });
         tests.push({ "@id": provider.form, "@type": "CreativeWork", name: provider.name });

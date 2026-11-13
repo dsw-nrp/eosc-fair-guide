@@ -205,7 +205,7 @@ jobs:
         with:
           name: ${{ needs.watch.outputs.artifact }}
           path: .cache/watch
-      # The sources the latest scheduled refresh did not refresh are listed in the digest (decision 29).
+      # The sources the latest scheduled refresh did not refresh are listed in the digest, so a person sees them.
       - id: refresh
         name: Find the latest scheduled source refresh
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0

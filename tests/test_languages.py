@@ -13,6 +13,9 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_crate  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from addresses import iri  # noqa: E402
+
 
 def assignment(script: str, prefix: str):
     line = next(line for line in script.splitlines() if line.startswith(prefix))
@@ -52,10 +55,15 @@ class LanguageTests(unittest.TestCase):
         self.assertGreater(len(details), 100)
         for original in crate["@graph"]:
             level = original.get("disclosureLevel", {}).get("@id")
-            if level not in {"#level-L0", "#level-L1", "#level-L2", "#level-L3"}:
+            if level not in {
+                iri("vocabularies/levels/L0"),
+                iri("vocabularies/levels/L1"),
+                iri("vocabularies/levels/L2"),
+                iri("vocabularies/levels/L3"),
+            }:
                 continue
             common = by_id[original["@id"]]
-            if level == "#level-L0":
+            if level == iri("vocabularies/levels/L0"):
                 self.assertEqual(common.get("text"), original.get("text"))
             else:
                 for field in ("text", "description"):
@@ -67,12 +75,14 @@ class LanguageTests(unittest.TestCase):
     def test_glossary_source_ids_load_with_definitions_and_remain_complete(self) -> None:
         crate = json.loads(self.generated[build_crate.CRATE_FILE])
         core, parts = build_crate.split_crate(crate)
-        source_ids = {row["@id"] for row in crate["@graph"] if row["@id"].startswith("#alternate-term-")}
+        source_ids = {
+            row["@id"] for row in crate["@graph"] if row["@id"].startswith(iri("glossary/")) and "#id-" in row["@id"]
+        }
         self.assertTrue(source_ids)
         self.assertFalse(source_ids & {row["@id"] for row in core["@graph"]})
         self.assertEqual(source_ids, source_ids & {row["@id"] for row in parts["standards"]["entities"]})
         for row in core["@graph"]:
-            if row["@id"].startswith("#term-"):
+            if row["@id"].startswith(iri("glossary/")) and "#" not in row["@id"]:
                 self.assertTrue(row["identifier"])
                 self.assertTrue(row["alternateIdentifier"])
 
@@ -110,7 +120,8 @@ class LanguageTests(unittest.TestCase):
                     "description": build_crate.text({"cs": "Překlad popisu", "en": "Translated description"}),
                     "guidance": {"@language": "en", "@value": "An exact original, with its condition."},
                 },
-                {"@id": "#term-1", "termCode": "1", "name": build_crate.text({"cs": "data", "en": "data"})},
+                # The page names a glossary term by its address.
+                {"@id": "glossary/1", "termCode": "1", "name": build_crate.text({"cs": "data", "en": "data"})},
             ]
         }
         common, languages, search = build_crate.split_languages(value)
@@ -141,7 +152,7 @@ class LanguageTests(unittest.TestCase):
     def test_language_values_are_absent_until_selected(self) -> None:
         core = assignment(self.generated[build_crate.KB_SCRIPT], "window.FairGuideData.kb = ")
         by_id = {entity["@id"]: entity for entity in core["@graph"]}
-        name = by_id["#station-plan"]["name"]
+        name = by_id["stations/plan"]["name"]
         self.assertTrue(all("@value" not in value for value in name))
         language = assignment(
             self.generated[build_crate.LANGUAGE_SCRIPTS["en"]], 'window.FairGuideData.languages["en"] = '
@@ -155,6 +166,11 @@ class LanguageTests(unittest.TestCase):
         ui = assignment(self.generated[build_crate.UI_SCRIPT], "window.FairGuideData.ui = ")
         self.assertEqual(ui["config"]["languages"], build_crate.LANGUAGE_SCRIPTS)
         self.assertEqual(ui["config"]["partLanguages"], build_crate.PART_LANGUAGE_SCRIPTS)
+        self.assertNotIn("collections", ui["config"]["api"])
+        self.assertNotIn("fipCollections", ui["config"]["api"])
+        api_part = assignment(self.generated[build_crate.PART_SCRIPTS["api"]], 'window.FairGuideData.parts["api"] = ')
+        self.assertNotIn("fipCollections", api_part["config"]["api"])
+        self.assertEqual(set(api_part["config"]["api"]["recipes"]), {"root"})
 
     def test_generated_languages_and_parts_reconstruct_full_crate(self) -> None:
         for order in (("cs", "en"), ("en", "cs")):
@@ -183,7 +199,8 @@ class LanguageTests(unittest.TestCase):
                 graph.update({entity["@id"]: entity for entity in part["entities"]})
                 for entity_id, properties in part["properties"].items():
                     graph[entity_id].update(properties)
-            crate = json.loads(self.generated[build_crate.CRATE_FILE])
+            # The page names records by address; with that, its data and the crate are the same graph.
+            crate = build_crate.relative_ids(json.loads(self.generated[build_crate.CRATE_FILE]), iri(""))
             self.assertEqual(graph, {entity["@id"]: entity for entity in crate["@graph"]})
             self.assertTrue(ui["ui"]["app"]["title"]["cs"])
             self.assertTrue(ui["ui"]["app"]["title"]["en"])

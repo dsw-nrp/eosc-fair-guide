@@ -10,6 +10,7 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import build_crate  # noqa: E402
 import check_content as cc  # noqa: E402
+from catalogue_identity import KINDS  # noqa: E402
 
 
 class ProvenanceScopeTests(unittest.TestCase):
@@ -22,40 +23,78 @@ class ProvenanceScopeTests(unittest.TestCase):
         patterns = [p for action in content["provenance"] for p in action["results"]]
         items = cc.provenance_items(content)
         for key in (
-            "page:software",
-            "datahub-cuni",
-            "genasis",
-            "analyza-fair-1.2",
-            "callout:sensitive-data",
-            "callout.sensitive-data.rights",
+            "pages/software",
+            "repositories/datahub-cuni",
+            "repositories/genasis",
+            "resources/analyza-fair-1.2",
+            "callouts/sensitive-data",
+            "callouts/sensitive-data#rights",
         ):
             self.assertIn(key, items)
             self.assertTrue(any(cc.covered(p, key) for p in patterns), key)
         issued = cc.issued_ids(content)
         self.assertEqual(set(issued["callouts"]), set(content["identifiers"]["issued"]["callouts"]))
-        self.assertEqual(set(issued["callout_items"]), set(content["identifiers"]["issued"]["callout_items"]))
+        self.assertIn("sensitive-data#rights", issued["callouts"])
+
+    def test_a_prefix_result_matches_records_and_parts_only_where_it_names_one(self):
+        self.assertTrue(cc.covered("advice/plan.*", "advice/plan.01"))
+        self.assertFalse(cc.covered("advice/plan.*", "advice/plan.01#step-1"))
+        self.assertTrue(cc.covered("callouts/sensitive-data#*", "callouts/sensitive-data#steward"))
+        self.assertFalse(cc.covered("callouts/sensitive-data#*", "callouts/sensitive-data"))
+        self.assertTrue(cc.covered("stations/plan", "stations/plan"))
+        self.assertFalse(cc.covered("stations/plan", "stations/plan#context-V"))
+        # A change of the Guide as a whole covers every item.
+        self.assertTrue(cc.covered("*", "advice/plan.01#step-1"))
+
+    def test_a_structural_change_records_the_guide_as_its_result(self):
+        crate = build_crate.build_crate(self.content)
+        entities = {entity["@id"]: entity for entity in crate["@graph"]}
+        action = next(
+            entity
+            for entity_id, entity in entities.items()
+            if entity_id.endswith("/actions/2026-11-06-identity-migration")
+        )
+        # The migration changed the Guide as a whole: no record lists it among its own changes.
+        self.assertEqual(build_crate.as_list(action["result"]), [{"@id": "./"}])
+        # Its instruments are the tools that made it, the AI model among them; no migration script is an instrument.
+        instruments = {ref["@id"] for ref in build_crate.as_list(action["instrument"])}
+        self.assertIn("#instrument-claude-opus-5-5", instruments)
+        self.assertNotIn("#instrument-identity-migration", instruments)
+
+    def test_the_register_keys_identifiers_by_the_kind_of_their_record(self):
+        register = self.content["identifiers"]
+        for section in ("issued", "retired"):
+            for kind in register.get(section, {}):
+                self.assertIn(kind, KINDS, f"{section}.{kind}")
+        issued = cc.issued_ids(self.content)
+        self.assertIn("lenses/V", issued["vocabularies"])
+        self.assertIn("profiles-gate/core-system", issued["vocabularies"])
+        self.assertIn("plan#context-V", issued["stations"])
+        self.assertIn("guide/guide-dataset-01", issued["tests"])
+        # Sources and resources share one ID space, under the kind their records are issued as.
+        self.assertIn("knav-dm-tools-catalogue", issued["resources"])
 
     def test_page_repository_source_and_callout_changes_need_a_new_covering_action(self):
         before = copy.deepcopy(self.content)
         for key, mutate in (
             (
-                "page:software",
+                "pages/software",
                 lambda c: c["pages"][next(i for i, p in enumerate(c["pages"]) if p["id"] == "software")].update(
                     description={"cs": "Jiný text", "en": "Changed text"}
                 ),
             ),
             (
-                "datahub-cuni",
+                "repositories/datahub-cuni",
                 lambda c: next(r for r in c["repositories"] if r["id"] == "datahub-cuni").update(
                     name="Changed repository"
                 ),
             ),
             (
-                "analyza-fair-1.2",
+                "resources/analyza-fair-1.2",
                 lambda c: next(s for s in c["sources"] if s["id"] == "analyza-fair-1.2").update(title="Changed source"),
             ),
             (
-                "callout.sensitive-data.rights",
+                "callouts/sensitive-data#rights",
                 lambda c: c["callouts"][0]["item"][-1].update(text={"cs": "Jiný text", "en": "Changed text"}),
             ),
         ):

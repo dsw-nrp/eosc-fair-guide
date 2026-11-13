@@ -33,7 +33,7 @@ jobs:
     outputs:
       complete: ${{ steps.lineage.outputs.complete }}
     steps:
-      # A dispatch on another branch fails here, before any checkout, instead of skipping every job (decision 30).
+      # A dispatch on another branch fails here, before any checkout, instead of skipping every job.
       - name: Require the default branch
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}

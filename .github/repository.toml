@@ -59,8 +59,8 @@ do_not_enforce_on_create = false
 strict_required_status_checks_policy = false
 
 # Two merge-group CI builds at once; a merge batch can contain up to ten verified PRs, with minimum one and no wait.
-# The queue can be enabled only once `checks.yml` reports `checks` for merge groups (task 4.1); until then every entry
-# would wait out the timeout.
+# The queue relies on `checks.yml` reporting `checks` for merge groups; without that report every entry would wait out
+# the timeout.
 [ruleset.rules.merge_queue]
 merge_method = "SQUASH"
 grouping_strategy = "ALLGREEN"

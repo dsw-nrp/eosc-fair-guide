@@ -15,6 +15,7 @@ import { rendered, navigationRendered, gotoView, searchReady } from "./navigatio
 import { audit } from "./accessibility.mjs";
 import { installGuards } from "./guards.mjs";
 import { compactControlProblems } from "./compact_controls.mjs";
+import { addressOf, crateIndex, isRecord, localId, siteNamespace, term as termAddress } from "./addresses.mjs";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -25,13 +26,20 @@ const site = resolve(root, "_site");
 const pageUrl = pathToFileURL(resolve(site, "index.html")).href;
 const crate = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"));
 const graph = crate["@graph"];
+const namespace = siteNamespace(site);
+const crateNodes = crateIndex(graph, namespace);
+const publishedUi = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]);
+// The catalogue's records, by address, as the page names them.
+const catalogueRecords = new Set(Object.keys(publishedUi.config.api.records));
+/** A record's address, from its IRI in the crate. */
+const address = (entity) => addressOf(entity["@id"], namespace);
 // The full crate is independent of the browser's deferred loading. Keep explicit address assertions below,
 // and use the published identity to locate the same entry in checks of its other behaviour.
 const sourceAnchors = new Map();
-for (const entity of graph.filter((e) => e.catalogueAddress)) {
-  const anchor = entity.catalogueAddress.split("/").slice(1).join("/");
+for (const entity of graph.filter((e) => catalogueRecords.has(address(e)))) {
+  const anchor = localId(address(entity));
   for (const reference of [].concat(entity.alternateIdentifier || [])) {
-    const source = graph.find((node) => node["@id"] === reference["@id"]);
+    const source = crateNodes.byId.get(reference["@id"]);
     if (source?.propertyID && source.value) sourceAnchors.set(source.propertyID + "." + source.value, anchor);
   }
   for (const reference of [].concat(entity.sameAs || [])) {
@@ -39,25 +47,23 @@ for (const entity of graph.filter((e) => e.catalogueAddress)) {
     if (match) sourceAnchors.set((match[1] ? "re3data." : "fip-dashboard.") + (match[1] || match[2]), anchor);
   }
 
-  for (const token of [entity.identifier, entity["@id"].replace(/^#(resource|repository|term|knav)-/, ""), entity["@id"].startsWith("#repository-r3d") && "re3data." + entity.identifier, entity["@id"].startsWith("#fer-") && "fip-dashboard." + entity.identifier, entity.termCode && "t.ntk." + entity.termCode].flat().filter(Boolean)) {
+  for (const token of [entity.identifier, entity.termCode && "t.ntk." + entity.termCode].flat().filter(Boolean)) {
     sourceAnchors.set(String(token), anchor);
   }
 }
-const publishedUi = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]);
 const entryAnchor = (id) => sourceAnchors.get(String(id)) || id;
+/** The catalogue route of an entry named by its ID or a source's ID: within the kind, or wherever the record is. */
 const cataloguePath = (kind, id) => {
-  const prefix = Object.keys(publishedUi.config.catalogueKinds).find((code) => publishedUi.config.catalogueKinds[code] === kind) || kind;
-  const source = graph.find((entity) => entity.identifier === id || entity["@id"] === "#knav-" + String(id).replace(/^knav\./, ""));
-  const equivalent = [].concat(source?.sameAs || []).map((ref) => graph.find((entity) => entity["@id"] === ref["@id"])).find((entity) => entity?.catalogueAddress);
-  const entity = graph.find((entity) => entity.catalogueAddress?.startsWith(prefix + "/") && (entity.identifier === id || entity.catalogueAddress.split("/").slice(1).join("/") === entryAnchor(id))) || equivalent;
-  return "/catalogue/" + (entity?.catalogueAddress || prefix + "/" + entryAnchor(id));
+  const anchor = entryAnchor(id);
+  const found = catalogueRecords.has(kind + "/" + anchor) ? kind + "/" + anchor : [...catalogueRecords].find((record) => localId(record) === anchor);
+  return "/catalogue/" + (found || kind + "/" + anchor);
 };
 
 // The interface strings' structure, to tell a raw string key on the page from ordinary text.
 const uiStrings = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).ui;
 const isUiKey = (token) => token.split(".").reduce((node, part) => (node && typeof node === "object" ? node[part] : undefined), uiStrings) !== undefined;
 const stations =graph.filter((e) => e["@type"] === "HowToSection").map((e) => e.identifier);
-const lenses = graph.filter((e) => e["@type"] === "Audience" && e["@id"].startsWith("#lens-")).map((e) => e.audienceType);
+const lenses = graph.filter((e) => [].concat(e["@type"]).includes("Audience") && String(address(e)).startsWith("vocabularies/lenses/")).map((e) => e.audienceType);
 /** The result so far must stay short and never scroll on its own. */
 const panelFits = (page) =>
   page.evaluate(() => {
@@ -68,9 +74,9 @@ const lensShown = (page, lens) => page.waitForFunction((expected) => {
   const current = document.querySelector('.lens-option[aria-current="true"]');
   return current && current.dataset.lens === expected;
 }, lens);
-const pages = graph.filter((e) => String(e["@id"]).startsWith("#page-") && e.identifier && !e.isPartOf).map((e) => e.identifier);
-const principles = graph.filter((e) => String(e["@id"]).startsWith("#principle-") && e.termCode).map((e) => e.termCode);
-const checks = graph.filter((e) => e["@type"] === "Quiz").map((e) => ({ id: e.identifier, lens: [].concat(e.audience)[0]["@id"].replace("#lens-", "") }));
+const pages = graph.filter((e) => isRecord(e, "pages", namespace) && e.identifier).map((e) => e.identifier);
+const principles = graph.filter((e) => isRecord(e, "principles", namespace) && e.termCode).map((e) => e.termCode);
+const checks = graph.filter((e) => [].concat(e["@type"]).includes("Quiz")).map((e) => ({ id: e.identifier, lens: String([].concat(e.audience)[0]["@id"]).split("/").pop() }));
 const failures = [];
 // The question numbers a list of gaps or tasks shows: a question shows by its number inside its check.
 const numbersIn = (list) => list.locator(".item-id").allTextContents();
@@ -195,7 +201,7 @@ sections.push(["page", async () => {
     if ((await current()) !== "Katalog" || (await kinds()) !== "resources") fail("catalogue: the resources address does not select the resources: " + (await kinds()));
     await open("#repositories");
     if ((await kinds()) !== "repositories") fail("catalogue: an in-page link to the repositories does not select them");
-    for (const [old, kind] of [["sources", "resources"], ["clauses", "clauses"], ["questions", "questions"], ["terms", "terms"], ["fips", "fips"], ["tests", "tests"], ["lifecycle", "lifecycle"], ["actions", "actions"]]) {
+    for (const [old, kind] of [["sources", "resources"], ["clauses", "clauses"], ["questions", "questions"], ["glossary", "glossary"], ["fips", "fips"], ["tests", "tests"], ["lifecycles", "lifecycles"], ["actions", "actions"]]) {
       await open("#/cs/V/catalogue/" + old);
       if ((await kinds()) !== kind) fail(`catalogue: the address for ${old} does not select ${kind}`);
       if (!(await view.locator(".catalogue-results .card").count())) fail(`catalogue: ${kind} list nothing`);
@@ -206,7 +212,7 @@ sections.push(["page", async () => {
       return bar.nextElementSibling.getBoundingClientRect().top - bar.getBoundingClientRect().bottom;
     });
     if (toolbarGap < 8) fail(`catalogue: the ordering control touches the content below it (${toolbarGap}px)`);
-    // A content change names the person responsible and its tools, an AI model among the tools (design D8).
+    // A content change names the person responsible and its tools, an AI model among the tools.
     const changes = await view.locator(".catalogue-results").textContent();
     if (!/Novák/.test(changes) || !/model AI/.test(changes)) fail("catalogue: the content changes do not name the person responsible and the AI model used as a tool");
     if (await view.locator('.change .entry-byline', { hasText: "Claude" }).count()) fail("catalogue: an AI model is named as a change's author");
@@ -219,10 +225,10 @@ sections.push(["page", async () => {
       }).map((card) => card.id);
     });
     if (repeated.length) fail("catalogue: a change lists one consulted record more than once: " + repeated.join(", "));
-    await open("#/cs/V/catalogue/terms");
+    await open("#/cs/V/catalogue/glossary");
     if (!(await view.locator(".term-card h3").first().textContent()).match(/^[^[(]/)) fail("catalogue: the glossary does not sort past leading brackets");
     // Chips show the short local ID; their link retains the complete canonical address.
-    for (const kind of ["terms", "fips", "tests", "repositories"]) {
+    for (const kind of ["glossary", "fips", "tests", "repositories"]) {
       await open("#/cs/V/catalogue/k!" + kind);
       const chips = await view.locator(".catalogue-results .card .entry-head .id-chip").evaluateAll((links) => links.map((link) => [link.textContent, link.getAttribute("href")]));
       if (!chips.length || chips.some(([id, href]) => id.includes("/") || id.length > 32 || !href.endsWith("/" + id))) fail(`catalogue: ${kind} chips do not show their compact local ID`);
@@ -318,7 +324,7 @@ sections.push(["page", async () => {
 
     // No shared facet shows only zeros: a kind whose entries carry no station or principle shows no such facet or
     // order; FIP profiles take principles from their declarations, content changes the places of what they changed.
-    for (const kind of ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
+    for (const kind of ["resources", "repositories", "infrastructures", "clauses", "questions", "glossary", "fips", "tests", "actions"]) {
       await open("#/cs/V/catalogue/" + kind);
       const empty = await view.evaluate(() =>
         ["station", "principle"].filter((name) => {
@@ -332,6 +338,11 @@ sections.push(["page", async () => {
     if (!(await view.locator('[data-facet="principle"]').count()) || (await view.locator('[data-facet="station"]').count())) fail("catalogue: FIP profiles do not filter by principle alone");
     await open("#/cs/V/catalogue/actions");
     if (!(await view.locator('[data-facet="station"]').count())) fail("catalogue: content changes do not filter by the stations they changed");
+    // A change of the Guide as a whole, such as a structural migration, lists the Guide alone among what it changed.
+    await open("#/cs/V/catalogue/actions/2026-11-06-identity-migration");
+    const migrated = await view.evaluate(() => window.FairGuide.refIds(window.FairGuide.get("actions/2026-11-06-identity-migration"), "result"));
+    if (migrated.join(" ") !== "./") fail("catalogue: a structural migration lists more than the Guide among its changes: " + migrated.slice(0, 5).join(", "));
+    if ((await view.locator('#item-2026-11-06-identity-migration dd[data-field="result"] li').count()) > 1) fail("catalogue: a structural migration's card lists more than the Guide");
 
     // Finders: resources order by type, status or the date their status was checked, oldest first, and keep their
     // orientation tags; repositories order by data source and link each source to its record; while NKR lists no
@@ -395,7 +406,7 @@ sections.push(["page", async () => {
     if (!steps[0].includes("Ověřit identifikátory") || !steps[1].includes("skript")) fail("identifier callout: it does not lead with the helper and a script: " + steps.slice(0, 2).join(" | "));
     await gotoView(view, pageUrl + "#/cs/V/page/about");
     /* A hash change keeps the previous view until the about page's parts arrive; wait for the link itself. */
-    const courses = await view.waitForSelector('a.text-ref[href$="/catalogue/res/course/training-overview"]', { timeout: 10000 }).catch(() => null);
+    const courses = await view.waitForSelector('a.text-ref[href$="/catalogue/resources/training-overview"]', { timeout: 10000 }).catch(() => null);
     if (!courses) fail("about: the introductory courses are not linked");
     await open("#/cs/V/catalogue/repositories");
     for (const name of ["Dryad", "Harvard Dataverse"]) {
@@ -418,9 +429,9 @@ sections.push(["page", async () => {
       ["#/cs/V/explorer", "export-print"],
       ["#/cs/V/page/about", "export-print"],
       ["#/cs/V/tools", "export-print"],
-      ["#/cs/V/check", "export-data,export-print", "api/checks.json"],
-      ["#/cs/V/explorer/R1.1", "export-data,export-print", "api/pr/R1.1.json"],
-      ["#/cs/V/path/licence", "export-markdown,export-data,export-print", "api/step/licence.json"],
+      ["#/cs/V/check", "export-data,export-print", "api/v1/checks.json"],
+      ["#/cs/V/explorer/R1.1", "export-data,export-print", "api/v1/principles/R1.1.json"],
+      ["#/cs/V/path/licence", "export-markdown,export-data,export-print", "api/v1/stations/licence.json"],
     ]) {
       await gotoView(view, pageUrl + hash);
       await view.waitForSelector("#main h1");
@@ -435,7 +446,7 @@ sections.push(["page", async () => {
     if (await view.locator(".export-bar").count()) fail("exports: a single check shows the shared export bar beside its own exports");
     await gotoView(view, pageUrl + "#/cs/DS/check/institution/report");
     await view.waitForSelector("#export-data");
-    if ((await view.locator("#export-data").getAttribute("href")) !== "api/check/institution.json") fail("exports: a single check does not offer its benchmark record as data");
+    if ((await view.locator("#export-data").getAttribute("href")) !== "api/v1/checks/institution.json") fail("exports: a single check does not offer its benchmark record as data");
     const saved = async (id) => {
       const [download] = await Promise.all([view.waitForEvent("download"), view.locator("#export-" + id).click()]);
       return { name: download.suggestedFilename(), text: readFileSync(await download.path(), "utf8") };
@@ -452,7 +463,7 @@ sections.push(["page", async () => {
     // local file is the configured one and maps onto the built site.
     const configured = await view.evaluate(() => window.FairGuide.config.pageUrl);
     const inBuilt = (id) => String(id).startsWith(configured) && existsSync(resolve(root, "_site", String(id).slice(configured.length)));
-    if (json["@type"] !== "ItemList" || json.numberOfItems !== listed || json.itemListElement.length !== listed || !String(json["@id"]).includes("s!licence") || !String(json["@context"]).endsWith("api/context.jsonld")) fail("exports: the list as data is not an ItemList of the filtered entries naming its filters");
+    if (json["@type"] !== "ItemList" || json.numberOfItems !== listed || json.itemListElement.length !== listed || !String(json["@id"]).includes("s!licence") || !String(json["@context"]).endsWith("api/v1/context.jsonld")) fail("exports: the list as data is not an ItemList of the filtered entries naming its filters");
     if (!json.itemListElement.every((item) => item.identifier && item.name && inBuilt(item["@id"]))) fail("exports: an entry of the list as data does not name its record in the API");
     await gotoView(view, pageUrl + "#/en/DS/path/licence");
     await view.waitForSelector("#main h1");
@@ -479,15 +490,15 @@ sections.push(["page", async () => {
     await view.waitForSelector("#main h1");
     await view.locator('details[data-key="L1"] > summary').click();
     const named = view.locator('details[data-key="L1"] a.text-ref', { hasText: "DataCite" }).first();
-    if (!(await named.count()) || !(await named.getAttribute("href")).endsWith("/catalogue/res/srv/datacite")) fail("text links: DataCite in a step does not link to its catalogue entry");
+    if (!(await named.count()) || !(await named.getAttribute("href")).endsWith("/catalogue/resources/datacite")) fail("text links: DataCite in a step does not link to its catalogue entry");
     const quiet = await named.evaluate((link) => getComputedStyle(link).color === getComputedStyle(link.parentElement).color && getComputedStyle(link).textDecorationStyle === "dotted");
     if (!quiet) fail("text links: a link in text does not keep the text's colour with a dotted underline");
-    const step = crate["@graph"].find((entity) => entity["@id"] === "#advice-findability.04-step-3");
-    if (!step || JSON.stringify(step.text).includes("[[") || !JSON.stringify(step.mentions).includes("#resource-datacite")) fail("text links: the crate does not record DataCite as mentioned by the step with clean text");
+    const step = crateNodes.get("advice/findability.04#step-3");
+    if (!step || JSON.stringify(step.text).includes("[[") || !JSON.stringify(step.mentions).includes(crateNodes.get("resources/datacite")["@id"])) fail("text links: the crate does not record DataCite as mentioned by the step with clean text");
     if (JSON.stringify(crate).includes("[[")) fail("text links: reference markup reached the crate");
     await watchJump(view, "datacite");
     await named.click();
-    await view.waitForSelector("[id=\"item-srv/datacite\"]");
+    await view.waitForSelector("[id=\"item-datacite\"]");
     await view.waitForFunction(() => window.__jumpMarked === true, null, { timeout: 30000 });
 
     await gotoView(view, pageUrl + "#/cs/V/page/machines");
@@ -500,8 +511,8 @@ sections.push(["page", async () => {
     if (!(await view.locator('.machine-tasks a[href="ro-crate-metadata.json"]').count())) fail("machines: the page does not offer the knowledge base");
     // A data steward who wants one record finds its address pattern and a working example, and how the guide itself
     // uses the same means: its signposts, read from the same list as the head and the linkset.
-    const example = await view.locator(".machine-tasks a[href$='pr/R1.1.json']").getAttribute("href");
-    if (!example || !existsSync(resolve(root, "_site", example)) || !(await view.locator(".machine-tasks code", { hasText: "<id>.json" }).count())) fail("machines: the task table does not show a record's pattern and a working example");
+    const example = await view.locator(".machine-tasks a[href$='principles/R1.1.json']").getAttribute("href");
+    if (!example || !existsSync(resolve(root, "_site", example)) || !(await view.locator(".machine-tasks code", { hasText: "{id}.json" }).count())) fail("machines: the task table does not show a record's pattern and a working example");
     // The page offers every machine-facing surface the Guide publishes, one row each with its description, so
     // nothing important is missing (crate, profile, vocabulary, record, service, health, tests, harvest,
     // requirements, result, list).
@@ -514,30 +525,48 @@ sections.push(["page", async () => {
     const listed2 = Object.entries(linkset).filter(([rel]) => rel !== "anchor").flatMap(([rel, targets]) => targets.map((target) => rel + " " + target.href));
     if (linkset.anchor !== "./" || listed2.sort().join("|") !== head.filter((link) => !link.startsWith("linkset ")).join("|")) fail("signposting: the linkset does not list the head's links, anchored at the site");
     // The standards the knowledge base follows are linked: RO-Crate and Process Run Crate to their catalogue entries,
-    // the guide's profile to its landing page at its own address, which the build writes so the identifier resolves.
+    // the guide's profile to the section that presents it, which links its landing page, written by the build.
     const practice = view.locator("#practice");
     for (const id of ["ro-crate", "process-run-crate"]) {
       if (!(await practice.locator(`a.text-ref[href$="${cataloguePath("resources", id)}"]`).count())) fail(`machines: the practice section does not link ${id} to its catalogue entry`);
     }
-    const profileHref = await practice.locator('a.text-ref[href^="profile/"]').getAttribute("href");
-    if (!profileHref || !existsSync(resolve(site, profileHref, "index.html"))) fail("machines: the guide's profile is not linked to its landing page: " + profileHref);
+    if (!(await practice.locator('a.text-ref[href$="/page/machines/tasks"]').count())) fail("machines: the practice section does not lead the guide's profile to the section that presents it");
+    const profileHref = await view.locator('#tasks a[href^="profile/"][href$="index.html"]').first().getAttribute("href");
+    if (!profileHref || !existsSync(resolve(site, profileHref))) fail("machines: the guide's profile is not linked to its landing page: " + profileHref);
     for (const rel of ["describedby", "service-desc", "service-doc", "license", "type", "author", "linkset"]) {
       if (!head.some((link) => link.startsWith(rel + " "))) fail("signposting: the head has no " + rel + " link");
     }
     if (!(await view.locator('head link[rel="describedby"][href="ro-crate-metadata.json"]').count())) fail("machines: the head does not carry the describedby link");
+    if (!(await view.locator('head link[rel="describedby"][href="knowledge-graph.nt"][type="application/n-triples"]').count())) fail("signposting: the head lacks the N-Triples distribution");
+    if (!existsSync(resolve(site, "knowledge-graph.nt"))) fail("signposting: the N-Triples file is missing");
     // The API (built into _site/ by scripts/build_site.py): typed links in the head lead to its description and its
     // documentation, and the page lists every collection as an accessible counterpart of the documentation.
-    const inSite = (href) => Boolean(href) && !/^[a-z]+:/i.test(href) && existsSync(resolve(site, href.endsWith("/") ? href + "index.html" : href));
+    const inSite = (href) => {
+      if (!href || /^[a-z]+:/i.test(href)) return false;
+      return existsSync(resolve(site, href.endsWith("/") ? href + "index.html" : href));
+    };
     for (const rel of ["service-desc", "service-doc"]) {
       const href = await view.locator(`head link[rel="${rel}"]`).getAttribute("href");
       if (!inSite(href)) fail(`machines: the ${rel} link does not lead to the built API: ${href}`);
     }
-    const endpoints = await view.locator(".endpoints tbody td:first-of-type a").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-    const expectedEndpoints = await view.evaluate(() => {
-      const api = window.FairGuide.config.api;
-      return [...api.collections.map((collection) => api.files.record.replace("{record}", collection)), api.files.meta, api.files.context, api.files.health];
-    });
-    if (endpoints.slice().sort().join("|") !== expectedEndpoints.sort().join("|") || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
+    const endpoints = await view.locator(".endpoints tbody td:first-of-type a").evaluateAll((links) => links.map((link) => ({ href: link.getAttribute("href"), text: link.textContent })));
+    const description = JSON.parse(readFileSync(resolve(site, "openapi.json"), "utf8"));
+    const expectedEndpoints = Object.entries(description.paths)
+      .filter(([, item]) => item.get.operationId.startsWith("list") || ["getIndex", "getContext", "getHealth", "getSavedResultQuestion"].includes(item.get.operationId))
+      .map(([path]) => path.slice(1));
+    const operationPaths = endpoints.map((entry) => entry.text === "api/tests/{id}.json" ? entry.text : entry.href);
+    if (operationPaths.slice().sort().join("|") !== expectedEndpoints.sort().join("|") || !endpoints.every((entry) => inSite(entry.href))) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.map((entry) => entry.href).join(" "));
+    for (const kind of ["principles", "resources", "organizations", "fips"]) {
+      if ((await view.locator(`.endpoints tr[data-kind="${kind}"] td:last-child`).textContent()).trim() !== kind) fail(`machines: the FIP mapping for ${kind} is wrong`);
+    }
+    if ((await view.locator('.endpoints tr[data-kind="advice"] td:last-child').textContent()).trim() !== "—") fail("machines: a Guide-only kind wrongly names a FIP Dashboard collection");
+    if (!(await view.locator(".endpoints .endpoint-patterns code", { hasText: "<scope>/<id>" }).count())) fail("machines: scoped record templates are missing");
+    const recipeLinks = await view.locator('#endpoints a[href^="profile/"][href$=".rq"]').evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    if (recipeLinks.length !== 6 || !recipeLinks.every(inSite)) fail("machines: the six SPARQL recipes are not linked to built files");
+    const collectionLabels = await view.locator(".endpoints tbody tr").allTextContents();
+    if (collectionLabels.some((text) => text.includes("api.collection."))) fail("machines: a collection label or description is an untranslated key");
+    const practiceText = (await practice.textContent()) || "";
+    if (!practiceText.includes("cite-as") || !practiceText.includes("#/id/{adresa}")) fail("machines: the persistent IRI and typed record links are not explained: " + practiceText);
     // The crate's HTML preview is the guide page: opened as the preview it shows the machine-readable data, not the
     // path landing, so a reader following the crate's preview link sees the crate, not an unrelated view.
     await view.goto(new URL("ro-crate-preview.html", pageUrl).href);
@@ -545,14 +574,14 @@ sections.push(["page", async () => {
     if ((await view.locator("#main h1").textContent()).trim() !== "Data pro stroje" || !(await view.locator(".machine-tasks").count())) fail("machines: the crate preview does not open the machine-readable data");
     // The vocabulary page anchors every term, so its IRI (<address>terms#<term>) opens its own row, and lists them all.
     const turtle = readFileSync(resolve(site, "terms/fair-guide.ttl"), "utf8");
-    const termCount = (turtle.match(/ a rdf:Property ;/g) || []).length;
+    const termCount = (turtle.match(/ a (rdf:Property|rdfs:Class) ;/g) || []).length;
     await view.goto(new URL("terms/index.html", pageUrl).href);
     await view.waitForSelector("main .detail-entry");
     const anchors = await view.locator("main .detail-entry[id]").evaluateAll((rows) => rows.map((row) => row.id));
     if (!termCount || anchors.length !== termCount) fail(`vocabulary: the page anchors ${anchors.length} terms, the Turtle defines ${termCount}`);
     if (!anchors.includes("guidance")) fail("vocabulary: a term is not anchored by its own id");
     // Every catalogue entry links to its record in the API; the NKR samples are illustrations, not entries.
-    for (const kind of ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
+    for (const kind of ["resources", "repositories", "infrastructures", "clauses", "questions", "glossary", "fips", "tests", "actions"]) {
       await gotoView(view, pageUrl + "#/cs/V/catalogue/" + kind);
       await view.waitForFunction((id) => { const radio = document.getElementById(id); return radio && radio.checked && document.querySelector(".catalogue .card"); }, "facet-kind-" + kind);
       const unlinked = await view.locator(".catalogue .card").evaluateAll((cards) => cards.filter((card) => !card.querySelector(".json-link")).map((card) => card.id || card.textContent.trim().slice(0, 40)));
@@ -572,30 +601,31 @@ sections.push(["page", async () => {
       const wrong = cards.filter((card) => card.chip !== card.id.split("/").at(-1).replace(/^item-/, "") || card.labels.some((label, index) => !order.includes(label) || (index && order.indexOf(label) <= order.indexOf(card.labels[index - 1]))));
       if (wrong.length) fail(`catalogue: ${kind} cards without their own identifier in the head, or with relations out of order: ` + wrong.slice(0, 3).map((card) => card.id + " " + card.labels.join("/")).join("; "));
     }
-    // An entry shows the persistent identifiers it has, named by scheme, and none it lacks; the stations and checks
-    // an entry names carry their icons.
+    // An entry shows the persistent identifiers it has, each in full and without a label, and none it lacks; the
+    // stations and checks an entry names carry their icons.
     const pidsOf = async (hash, anchor) => {
       await gotoView(view, pageUrl + hash);
       await view.waitForSelector(`[id="item-${entryAnchor(anchor)}"]`);
       return view.locator(`[id="item-${entryAnchor(anchor)}"]`).evaluate((card) => ({
-        pids: [...card.querySelectorAll(".pid-chip")].map((link) => [link.querySelector(".pid-scheme")?.textContent, link.getAttribute("href"), link.textContent.replace(link.querySelector(".pid-scheme")?.textContent || "", "").replace(/\s*\(.*\)$/, "").trim()]),
+        pids: [...card.querySelectorAll(".pid-chip")].map((link) => [link.getAttribute("href"), link.textContent.replace(/\s*\(.*\)$/, "").trim()]),
         plainIcons: [...card.querySelectorAll(".relations a.holder-link")].filter((link) => !link.querySelector("svg.icon")).length,
         holders: card.querySelectorAll(".relations a.holder-link").length,
       }));
     };
     const roCrate = await pidsOf("#/cs/DS/catalogue/k!resources~q!crate", "ro-crate");
-    if (!roCrate.pids.some(([scheme, href, text]) => scheme === "DOI" && href === "https://doi.org/10.5281/zenodo.13751027" && text === href)) fail("catalogue: RO-Crate does not show its DOI in full: " + JSON.stringify(roCrate.pids));
+    if (!roCrate.pids.some(([href, text]) => href === "https://doi.org/10.5281/zenodo.13751027" && text === href)) fail("catalogue: RO-Crate does not show its DOI in full, without a label: " + JSON.stringify(roCrate.pids));
+    if (roCrate.pids[0]?.[0] !== siteNamespace(site) + "id/resources/ro-crate") fail("catalogue: RO-Crate does not show its own persistent IRI first: " + JSON.stringify(roCrate.pids));
     if (!roCrate.holders || roCrate.plainIcons) fail("catalogue: a station an entry names lacks its icon");
     const zenodo = await pidsOf("#/cs/V/catalogue/k!repositories~q!zenodo", "zenodo");
-    if (!zenodo.pids.some(([scheme, href]) => scheme === "re3data" && href.endsWith("/r3d100010468"))) fail("catalogue: Zenodo does not show its re3data identifier: " + JSON.stringify(zenodo.pids));
+    if (!zenodo.pids.some(([href]) => href === "https://www.re3data.org/repository/r3d100010468")) fail("catalogue: Zenodo does not show its re3data identifier: " + JSON.stringify(zenodo.pids));
     // One real-world thing is one entry: Zenodo's FIP Dashboard record is shown with the curated repository, not on
     // its own, and the borrowed identifiers of its records lead to it from either kind.
-    if (!zenodo.pids.some(([, href]) => href.endsWith("/resources/zenodo"))) fail("catalogue: Zenodo does not show its FIP Dashboard record: " + JSON.stringify(zenodo.pids));
+    if (!zenodo.pids.some(([href]) => href.endsWith("/resources/zenodo"))) fail("catalogue: Zenodo does not show its FIP Dashboard record: " + JSON.stringify(zenodo.pids));
     await gotoView(view, pageUrl + "#/cs/V/catalogue/k!resources~q!zenodo");
     await view.waitForSelector(".catalogue-results");
-    if (await view.locator('[id="item-gen/zenodo"]').count()) fail("catalogue: Zenodo's FIP Dashboard record is listed apart from the repository");
-    await gotoView(view, pageUrl + "#/cs/V/catalogue/repo/gen/zenodo");
-    await view.waitForSelector('[id="item-gen/zenodo"]');
+    if (await view.locator('[id="item-zenodo"]').count()) fail("catalogue: Zenodo's FIP Dashboard record is listed apart from the repository");
+    await gotoView(view, pageUrl + "#/cs/V/catalogue/repositories/zenodo");
+    await view.waitForSelector('[id="item-zenodo"]');
     if ((await view.locator(".catalogue-results .card").count()) !== 1) fail("catalogue: Zenodo does not have one canonical entry");
     // Source records enrich the one canonical entry; external IDs remain metadata.
     for (const lang of ["cs", "en"]) {
@@ -612,9 +642,17 @@ sections.push(["page", async () => {
         return kind && section && section.querySelector(".facet-kind-name") && !!(kind.compareDocumentPosition(facet) & Node.DOCUMENT_POSITION_FOLLOWING) && section.querySelector("fieldset") === facet;
       });
       if (!purposeInSection) fail("repositories and registries: task choices are outside the family section or reorder the kind picker");
-      for (const id of ["nma", "fairsharing", "fip-dashboard.nusl", "fip-dashboard.nrp-invenio", "re3data.r3d100014032", "re3data.r3d100010386"]) {
+      for (const id of ["fip-dashboard.nusl", "fip-dashboard.nrp-invenio", "re3data.r3d100014032", "re3data.r3d100010386"]) {
         if ((await view.locator(`[id="item-${entryAnchor(id)}"]`).count()) !== 1) fail(`catalogue: ${id} is not listed once among repositories and registries (${lang})`);
       }
+      // A registry is a resource, listed once among the resources.
+      await gotoView(view, pageUrl + `#/${lang}/V/catalogue/k!resources`);
+      await view.waitForSelector(".catalogue-results");
+      for (const id of ["nma", "fairsharing"]) {
+        if ((await view.locator(`[id="item-${entryAnchor(id)}"]`).count()) !== 1) fail(`catalogue: the registry ${id} is not listed once among the resources (${lang})`);
+      }
+      await gotoView(view, pageUrl + `#/${lang}/V/catalogue/k!repositories`);
+      await view.waitForSelector(".catalogue-results");
       for (const id of ["asep-arl", "clarin-dspace"]) {
         if (await view.locator(`[id="item-fip-dashboard.${id}"]`).count()) fail(`catalogue: ${id} is listed apart from its reviewed re3data match`);
       }
@@ -635,18 +673,18 @@ sections.push(["page", async () => {
       for (const id of ["nma", "fairsharing", "fip-dashboard.nusl"]) {
         if (await view.locator(`[id="item-${entryAnchor(id)}"]`).count()) fail(`repository chooser: ${id} is presented as a data deposit destination`);
       }
-      await gotoView(view, pageUrl + `#/${lang}/V/catalogue/k!repositories~f.rfunction!%23rfunction-deposit-publications`);
+      await gotoView(view, pageUrl + `#/${lang}/V/catalogue/k!repositories~f.rfunction!vocabularies%2Frepository-functions%2Fdeposit-publications`);
       await view.waitForSelector(".catalogue-results");
       for (const id of ["zenodo", "re3data.r3d100014032", "fip-dashboard.nusl"]) {
         if (!(await view.locator(`[id="item-${entryAnchor(id)}"]`).count())) fail(`publication filter: ${id} is missing`);
       }
-      if (await view.locator('[id="item-dom/mbdb"]').count()) fail("publication filter: a data-only repository is included");
+      if (await view.locator('[id="item-mbdb"]').count()) fail("publication filter: a data-only repository is included");
       if (!(await view.locator(".kind-intro .notice").count())) fail("repositories and registries: the dashboard's demo disclaimer is missing");
     }
     const datacite = await pidsOf("#/cs/V/catalogue/k!resources~q!DataCite", "datacite");
-    if (!datacite.pids.some(([scheme, href, text]) => scheme === "Nanopublikace" && href.startsWith("https://purl.org/np/") && text.startsWith("http://purl.org/np/"))) fail("catalogue: a nanopublication IRI is not shown as it is and linked over HTTPS: " + JSON.stringify(datacite.pids));
+    if (!datacite.pids.some(([href, text]) => href.startsWith("https://purl.org/np/") && text.startsWith("http://purl.org/np/"))) fail("catalogue: a nanopublication IRI is not shown as it is and linked over HTTPS: " + JSON.stringify(datacite.pids));
     const clause = await pidsOf("#/cs/V/catalogue/k!clauses~q!A.F1.N1", "A.F1.N1");
-    if (clause.pids.length) fail("catalogue: a requirement shows a persistent identifier it does not have");
+    if (clause.pids.length !== 1 || clause.pids[0][0] !== namespace + "id/clauses/A.F1.N1") fail("catalogue: a requirement shows a persistent identifier it does not have, or not its own IRI: " + JSON.stringify(clause.pids));
     // The accessibility statement names the API documentation as exempt and points to the accessible list.
     await gotoView(view, pageUrl + "#/cs/V/page/accessibility");
     await view.waitForSelector("#main h1");
@@ -663,7 +701,7 @@ sections.push(["page", async () => {
     if (headings.indexOf("When an AI agent does the work") !== headings.indexOf("Three rules") + 1) fail("ai page: the practice for agents does not follow the rules: " + headings.join(" | "));
     const gathered = await view.evaluate(() => {
       const FG = window.FairGuide;
-      const all = FG.stations().flatMap((station) => FG.refs(station, "itemListElement").filter((item) => item.adviceKind === "ai"));
+      const all = FG.stations().flatMap((station) => FG.refs(station, "itemListElement").filter((item) => FG.isAdviceKind(item, "ai")));
       const forOne = all.filter((item) => FG.refIds(item, "audience").length < FG.lenses().length).length;
       const shown = [...document.querySelectorAll(".ai-station-tips .ai-tip")];
       return { all: all.length, forOne, shown: shown.length, tagged: shown.filter((tip) => tip.querySelector(".orientation .lens-tag")).length, prompts: shown.filter((tip) => tip.querySelector(".ai-prompt pre")).length };
@@ -706,11 +744,11 @@ sections.push(["page", async () => {
     // names to the requirement they are about (the analysis's "R14", reuse, is R13 in the 2026-2028 edition).
     await gotoView(view, pageUrl + "#/cs/V/explorer/F2");
     await view.waitForSelector("#main h1");
-    const ctsLinks = await view.locator('#main a[href*="catalogue/cl/CTS."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href"))]));
+    const ctsLinks = await view.locator('#main a[href*="catalogue/clauses/CTS."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href"))]));
     if (!ctsLinks.some(([text, href]) => text.startsWith("R13") && href.endsWith("/CTS.R13"))) fail("explorer: F2 does not link its CoreTrustSeal requirements: " + JSON.stringify(ctsLinks));
     if (!ctsLinks.some(([text, href]) => text === "R14" && href.endsWith("/CTS.R13"))) fail("explorer: the analysis's R14 (reuse) does not lead to requirement R13: " + JSON.stringify(ctsLinks));
     // CDIF: the principle links its profiles, and the analysis's 2023 name "Discovery" leads to the Core profile.
-    const cdifLinks = await view.locator('#main a[href*="catalogue/cl/CDIF."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href")).split("/").pop()]));
+    const cdifLinks = await view.locator('#main a[href*="catalogue/clauses/CDIF."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href")).split("/").pop()]));
     if (!cdifLinks.some(([text, id]) => text === "Core" && id === "CDIF.Core") || !cdifLinks.some(([text, id]) => text === "Discovery" && id === "CDIF.Core")) fail("explorer: F2 does not link its CDIF profiles by meaning: " + JSON.stringify(cdifLinks));
     // The CDIF check: what the standard requires first, then the recommended elements, metadata management and the
     // profiles; the first tier is named for the standard, not for NRP or the analysis.
@@ -758,9 +796,9 @@ sections.push(["page", async () => {
     );
     if (cited.some((item) => item.id && item.bold === item.id)) fail("ids: a requirement shows its identifier twice under Proč");
     const analysisLink = view.locator('details[data-key="L2"] a.source-link', { hasText: "Analýza FAIR pro NRP/NDI" }).first();
-    if (!(await analysisLink.count()) || !(await analysisLink.getAttribute("href")).endsWith("/catalogue/res/pub/analyza-fair-1.2")) fail("ids: a requirement's source is not named by its short name, leading to its catalogue entry");
+    if (!(await analysisLink.count()) || !(await analysisLink.getAttribute("href")).endsWith("/catalogue/resources/analyza-fair-1.2")) fail("ids: a requirement's source is not named by its short name, leading to its catalogue entry");
     const termHrefs = await view.locator(".station-terms a.chip").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-    if (!termHrefs.length || termHrefs.some((href) => !href.includes("/catalogue/term/") || href.includes("ntk."))) fail("ids: the station's terms do not lead to their catalogue entries: " + termHrefs.join(" "));
+    if (!termHrefs.length || termHrefs.some((href) => !href.includes("/catalogue/glossary/") || href.includes("ntk."))) fail("ids: the station's terms do not lead to their catalogue entries: " + termHrefs.join(" "));
     // The explorer names a principle's relations in the catalogue's rows, and its requirements without doubled
     // identifiers.
     await gotoView(view, pageUrl + "#/cs/V/explorer/R1.1");
@@ -787,7 +825,7 @@ sections.push(["page", async () => {
     if (!(await view.evaluate(() => window.__jumpMarked === true))) fail("ids: the catalogue entry is not marked when the identifier is followed");
     if (!(await view.locator("#facet-kind-clauses").isChecked())) fail("ids: the identifier does not select the requirements");
     await view.goto("about:blank");
-    await gotoView(view, pageUrl + "#/cs/V/catalogue/cl/A.F1.N1");
+    await gotoView(view, pageUrl + "#/cs/V/catalogue/clauses/A.F1.N1");
     await view.waitForSelector('[id="item-A.F1.N1"]');
     const box = await view.locator('[id="item-A.F1.N1"]').boundingBox();
     if (!box || box.y < 0 || box.y > 900) fail("ids: a directly opened link to a requirement does not bring it into view");
@@ -800,7 +838,7 @@ sections.push(["page", async () => {
     await view.waitForFunction(() => location.hash.includes("f.ckind!recommendation"));
     const recommendations = Number((await view.locator(".catalogue-count").textContent()).match(/\d+/)[0]);
     if (!(recommendations > 0 && recommendations < all)) fail("ids: the kind filter does not narrow the requirements");
-    await gotoView(view, pageUrl + "#/cs/V/catalogue/q/maturity.18");
+    await gotoView(view, pageUrl + "#/cs/V/catalogue/questions/maturity.18");
     await view.waitForSelector('[id="item-maturity.18"]');
     if (!(await view.locator('[id="item-maturity.18"] a.id-chip').count())) fail("ids: a check question does not link the requirements it rests on");
     await view.close();
@@ -831,13 +869,62 @@ sections.push(["page", async () => {
   // FAIRsharing records join repositories at build time and appear as identifier chips with a catalogue source.
   {
     const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    await gotoView(view, pageUrl + "#/cs/V/catalogue/repo/dom/csda");
+    await gotoView(view, pageUrl + "#/cs/V/catalogue/repositories/csda");
     await view.waitForSelector(".catalogue-results .entry-card");
     if (await view.locator("#fairsharing-load").count()) fail("repositories: FAIRsharing still offers an on-demand load");
     const card = view.locator(".catalogue-results .entry-card");
     const record = card.locator('.pid-chip[href="https://doi.org/10.25504/FAIRsharing.f4bfb1"]');
-    if (!(await record.count()) || !(await record.locator(".pid-scheme").textContent()).includes("FAIRsharing")) fail("repositories: the snapshot's FAIRsharing record is not an identifier chip on its repository");
-    if (!(await card.locator('.relations a[href$="/catalogue/repo/reg/fairsharing"]').count())) fail("repositories: the FAIRsharing source does not lead to its catalogue entry");
+    if (!(await record.count()) || (await record.textContent()).replace(/\s*\(.*\)$/, "").trim() !== "https://doi.org/10.25504/FAIRsharing.f4bfb1") fail("repositories: the snapshot's FAIRsharing record is not an unlabelled identifier chip on its repository");
+    if (!(await card.locator('.relations a[href$="/catalogue/resources/fairsharing"]').count())) fail("repositories: the FAIRsharing source does not lead to its catalogue entry");
+    await view.close();
+  }
+
+  // An entry credits the catalogues that supplied it: the Guide's selection where it is curated and the catalogue of
+  // each registry record it holds, each leading to that catalogue's entry with its snapshot's date. A registry that only
+  // identifies the entry is among its identifiers, not its sources. A registry is a resource, and an entry of every
+  // kind shows its own persistent IRI first among its identifiers, in both languages.
+  {
+    const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const entryOf = async (hash, anchor) => {
+      await gotoView(view, pageUrl + hash);
+      await view.waitForSelector(`[id="item-${anchor}"]`);
+      return view.locator(`[id="item-${anchor}"]`).evaluate((card) => ({
+        sources: [...card.querySelectorAll('dd[data-field~="isBasedOn"] .source-credit')].map((item) => [item.querySelector("a")?.getAttribute("href") || "", item.textContent.trim()]),
+        pids: [...card.querySelectorAll(".pid-chip")].map((link) => link.getAttribute("href")),
+      }));
+    };
+    const dated = (source) => /\d{4}/.test(source[1]);
+    const zenodo = await entryOf("#/cs/V/catalogue/repositories/zenodo", "zenodo");
+    const credited = (entry, catalogue) => entry.sources.find(([href]) => href.endsWith(cataloguePath("resources", catalogue)));
+    if (!zenodo.sources.some(([href, text]) => !href && text === "výběr Průvodce")) fail("sources: Zenodo does not credit the Guide's selection: " + JSON.stringify(zenodo.sources));
+    for (const catalogue of ["knav-dm-tools-catalogue", "fip-dashboard"]) {
+      const source = credited(zenodo, catalogue);
+      if (!source || !dated(source)) fail(`sources: Zenodo does not credit ${catalogue} with its snapshot's date: ` + JSON.stringify(zenodo.sources));
+    }
+    const argos = await entryOf("#/cs/V/catalogue/resources/argos", "argos");
+    if (argos.sources.length !== 2 || argos.sources[0][1] !== "výběr Průvodce" || !credited(argos, "knav-dm-tools-catalogue")) fail("sources: a curated resource with a KNAV record does not credit the Guide's selection and the KNAV catalogue: " + JSON.stringify(argos.sources));
+    const bird = await entryOf("#/cs/V/catalogue/repositories/czech-bioimaging", "czech-bioimaging");
+    if (!bird.pids.some((href) => href.startsWith("https://repo.cz/objects/"))) fail("sources: an NKR handle is not among the repository's identifiers: " + JSON.stringify(bird.pids));
+    if (bird.sources.some(([href, text]) => href.endsWith(cataloguePath("resources", "nkr")) || text.startsWith("NKR"))) fail("sources: NKR is credited without a record the Guide holds: " + JSON.stringify(bird.sources));
+    await entryOf("#/cs/V/catalogue/resources/nkr", "nkr");
+    const registry = await view.evaluate(() => ({
+      repository: window.FairGuide.repositoryEntries().some((entry) => entry["@id"] === "resources/nkr"),
+      functions: document.querySelector('[id="item-nkr"] [data-field~="repositoryFunction"]')?.textContent.trim() || "",
+    }));
+    if (registry.repository || !registry.functions) fail("sources: NKR is not listed among the resources with its functions, apart from the repositories: " + JSON.stringify(registry));
+    for (const lang of ["cs", "en"]) {
+      await gotoView(view, pageUrl + `#/${lang}/V/catalogue/k!resources`);
+      await view.waitForSelector(".catalogue-results");
+      const missing = await view.evaluate(() => {
+        const FG = window.FairGuide;
+        return Object.entries(FG.catalogueEntries()).flatMap(([kind, entries]) => {
+          const entry = entries[0];
+          const chip = entry && entry.render().querySelector(".pid-chip");
+          return !entry || (chip && chip.getAttribute("href") === FG.iri(entry.entity)) ? [] : [kind + ": " + (chip ? chip.getAttribute("href") : "no identifier")];
+        });
+      });
+      if (missing.length) fail(`sources: an entry does not show its own persistent IRI first (${lang}): ` + missing.join("; "));
+    }
     await view.close();
   }
 
@@ -925,7 +1012,7 @@ sections.push(["page", async () => {
   found = await search("https://ror.org/04wxdxa47");
   if (!(await primary()).includes("Instituce a správa dat") || !found.includes("Ověřit identifikátor")) fail("search: a ROR ID is not routed to the institution check, with verification beside it");
   found = await typeQuery("A.F1.N1");
-  if (!(await page.locator("#search-results .result-primary").getAttribute("href")).endsWith("/catalogue/cl/A.F1.N1")) fail("search: a requirement identifier does not lead to its catalogue entry while typing");
+  if (!(await page.locator("#search-results .result-primary").getAttribute("href")).endsWith("/catalogue/clauses/A.F1.N1")) fail("search: a requirement identifier does not lead to its catalogue entry while typing");
   found = await typeQuery("licence");
   if (!(await page.locator(".catalogue-handoff a").getAttribute("href")).includes("q!licence")) fail("search: text results do not hand over to the catalogue");
   // The language changes in place; the search then shows titles in English and links into the English guide.
@@ -985,7 +1072,7 @@ for (let shard = 0; shard < 4; shard++) sections.push([`views:${shard + 1}`, asy
   for (const lang of ["cs", "en"]) {
     // Station states belong to station_matrix.mjs, executed by the final-candidate sweep.
     for (const view of ["explorer", "catalogue", "tools", "selfcheck"]) views.push(`#/${lang}/V/${view}`);
-    for (const tab of ["sources", "terms", "fips", "tests", "lifecycle", "life/rdm/reuse", "k!resources~f.use!knav", "res/tool/archaeological-information-system", "actions"]) views.push(`#/${lang}/V/catalogue/${tab}`);
+    for (const tab of ["sources", "glossary", "fips", "tests", "lifecycles", "lifecycles/rdmkit/reuse", "k!resources~f.use!knav", "resources/ais-cr", "actions"]) views.push(`#/${lang}/V/catalogue/${tab}`);
     for (const check of checks) views.push(`#/${lang}/${check.lens}/check/${check.id}`);
     for (const principle of principles.slice(0, 3)) views.push(`#/${lang}/K/explorer/${principle}`);
     for (const id of pages) views.push(`#/${lang}/V/page/${id}`);
@@ -1516,7 +1603,7 @@ sections.push(["self-check", async () => {
 
   // Maturity and institution checks run end to end; the institution check has no Minimum items and shows them all.
   // The maturity check fills in from the re3data snapshot and says which repository it is; a repository outside
-  // the snapshot is explained rather than guessed. FAIRsharing's record comes from its snapshot (D-185).
+  // the snapshot is explained rather than guessed. FAIRsharing's record comes from its snapshot.
   await at("SR", "maturity", "answers");
   await page.locator('label[for="extended-toggle"]').click();
   const fromRe3data = async (input) => {
@@ -1562,13 +1649,13 @@ sections.push(["self-check", async () => {
   await page.evaluate(() => { const FG = window.FairGuide; FG.config.nkr = window.__savedNkr; delete window.__savedNkr; FG.rerender(); });
   // FAIR Champion over a sample of records (replaced here). Each question shows the tests that can answer it and runs
   // them alone; an identifier that does not resolve is not tested. One record passes, one fails and one gives no
-  // result. A narrower retention test covers only part of the tombstone question, so it suggests Partly (D-168).
+  // result. A narrower retention test covers only part of the tombstone question, so it suggests Partly.
   // Running all tests shows a bar in the sample's card, the coverage is stated, and a retry runs only the tests
   // without a result.
   await at("SR", "maturity", "answers");
   if (!(await page.locator("#item-maturity-11 .question-details").evaluate((node) => node.open))) await page.locator("#item-maturity-11 .question-details > summary").click();
   const line = page.locator("#tests-maturity-11");
-  if (!(await line.locator('a[href$="/catalogue/test/fc/fc_metadata_persistence"]').count()) || !(await line.textContent()).includes("po zadání vzorku") || (await page.locator(".champion-tests").count())) fail("maturity check: a question does not show its test and that a sample comes first, or the tests are listed apart from their questions");
+  if (!(await line.locator('a[href$="/catalogue/tests/fair-champion/fc_metadata_persistence"]').count()) || !(await line.textContent()).includes("po zadání vzorku") || (await page.locator(".champion-tests").count())) fail("maturity check: a question does not show its test and that a sample comes first, or the tests are listed apart from their questions");
   await page.evaluate(() => {
     const live = window.FairGuide.live;
     window.championCalls = [];
@@ -1626,7 +1713,7 @@ sections.push(["self-check", async () => {
   await page.locator("#answer-institution-01-unknown").check();
   await at("DS", "institution", "report");
   if (!(await numbersIn(page.locator(".gaps").first())).includes("01")) fail("institution check: the don't-know task is missing");
-  // A check in blocks reports its state by block, every question once (D-185).
+  // A check in blocks reports its state by block, every question once.
   if (!(await page.locator("#results-blocks").count()) || !(await page.locator("#results .block-distribution").count())) fail("institution check: the report does not give the state by block");
   await at("DS", "institution", "answers");
   // The basic institution check is the strategy, which the Open Science III call requires, and the research act's
@@ -1639,7 +1726,7 @@ sections.push(["self-check", async () => {
   await page.locator("#answer-institution-08-no").check();
   await at("DS", "institution", "report");
   const peopleGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^08$/ }) }).first();
-  if (!(await peopleGap.locator('.id-chip[href$="/catalogue/cl/OS3-RULES.04"]').count())) fail("institution check: the strategy's human-resources gap does not cite the call's minimum");
+  if (!(await peopleGap.locator('.id-chip[href$="/catalogue/clauses/OS3-RULES.04"]').count())) fail("institution check: the strategy's human-resources gap does not cite the call's minimum");
   await at("DS", "institution", "answers");
   await page.locator('label[for="extended-toggle"]').click();
   const allBlocks = await page.locator(".item-group > h2").allTextContents();
@@ -1647,7 +1734,7 @@ sections.push(["self-check", async () => {
   await page.locator("#answer-institution-18-no").check();
   await at("DS", "institution", "report");
   const retentionGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^18$/ }) }).first();
-  const cites = async (id) => retentionGap.locator(`.id-chip[href$="/catalogue/cl/${id}"]`).count();
+  const cites = async (id) => retentionGap.locator(`.id-chip[href$="/catalogue/clauses/${id}"]`).count();
   if (!(await cites("OS3-RULES.14")) || !(await cites("POLICY-MANUAL.04")) || !(await retentionGap.locator('a[href$="/path/repository"]').count())) fail("institution check: the retention gap does not cite the call and the manual or link to the repository step");
 
   // FIP check: the dashboard snapshot pre-fills answers with their source; a principle without a declaration stays
@@ -1696,30 +1783,34 @@ sections.push(["self-check", async () => {
   const exportedGraph = exported["@graph"];
   const typed = (type) => (entity) => [].concat(entity["@type"]).includes(type);
   const set = exportedGraph.find(typed("TestResultSet"));
-  const results = exportedGraph.filter(typed("TestResult"));
+  const memberIds = new Set([].concat(set ? set["prov:hadMember"] : []).map((reference) => reference["@id"]));
+  const results = exportedGraph.filter((entity) => memberIds.has(entity["@id"]));
   if (!set || set["prov:hadMember"].length !== results.length || !results.length) fail("export: the result set does not hold the results");
   if (!set || !String((set["ftr:assessmentTarget"] || {})["@id"]).includes("/profiles/ndi-baseline")) fail("export: the assessment target is not the chosen profile");
-  if (results.some((result) => !["pass", "fail", "indeterminate"].includes(result["prov:value"]))) fail("export: a result has an unexpected value");
+  if (results.some((result) => !["pass", "fail", "indeterminate"].includes(result["dqv:value"] ?? result["prov:value"]))) fail("export: a result has an unexpected value");
   const k01 = results.find((result) => result["@id"] === "#result-fip.01") || {};
   if (!String(k01["ftr:log"]).includes("Doklad") || !k01["prov:used"]) fail("export: the fip.01 result does not record its evidence: " + JSON.stringify(k01));
   if (!md.includes("Deklarované")) fail("export: the Markdown summary does not carry the evidence behind the answers");
   if (JSON.stringify(exported).includes("file:")) fail("export: the JSON-LD names a local file");
-  // A result names the test it came from: the question's manual test in the guide's API, which implements the
-  // question's metric. From a local file the page names the configured address, which maps onto the built site.
-  const configured = await page.evaluate(() => window.FairGuide.config.pageUrl);
-  const testRef = String((k01["ftr:outputFromTest"] || {})["@id"] || "");
-  const testFile = testRef.startsWith(configured) ? resolve(root, "_site", testRef.slice(configured.length)) : null;
-  const testRecord = testFile && existsSync(testFile) ? JSON.parse(readFileSync(testFile, "utf8")) : null;
-    if (!testRecord || ![].concat(testRecord["@type"]).includes("Test") || testRecord.isImplementationOf !== "../q/fip.01.json") fail("export: the fip.01 result does not name its test in the guide's API: " + testRef);
+  // A reader's answer is a quality measurement of the question, not of a fabricated test at api/tests/<question>.
+  // Its IRI stays under the Guide's persistent namespace even when this page is opened from a local file.
+  const questionIri = await page.evaluate(() => window.FairGuide.iri("questions/fip.01"));
+  const measured = (k01["dqv:isMeasurementOf"] || {})["@id"];
+  if (measured !== questionIri || k01["ftr:outputFromTest"] || String(k01["dqv:value"]) !== "indeterminate") {
+    fail("export: the fip.01 result is not the question's DQV measurement: " + JSON.stringify(k01));
+  }
+  if (!k01["@type"].includes("dqv:QualityMeasurement")) fail("export: an answer does not carry dqv:QualityMeasurement");
+  const questionRecord = JSON.parse(readFileSync(resolve(root, "_site/api/v1/questions/fip.01.json"), "utf8"));
+  if (!questionRecord["@type"].includes("ftr:Metric")) fail("export: the measured persistent IRI does not name a metric");
 
   // Local data: each check says where the answers are kept, and how it works.
   await at("K", "fip", "evidence");
   const note = await page.locator(".local-data").textContent();
   if (!note.includes("zůstávají jen v tomto prohlížeči") || !note.includes("Co odchází")) fail("local data: the statement or its explanation is missing on the check");
-  if (!/<!-- fair-guide-result v2 guide=\S+: fip a2\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
+  if (!/<!-- fair-guide-result v4 guide=\S+: fip a2\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
   if (!/<!-- fair-guide-state\n[A-Za-z0-9+/=\n]+\n-->/.test(md)) fail("export: the Markdown summary does not carry the state for loading back");
   const state = JSON.parse(exportedGraph.find((entity) => entity.guideState).guideState);
-  if (state.format !== "eosc-fair-guide-result" || state.v !== 2 || !state.guideVersion) fail("export: the JSON-LD does not declare its format and the guide's version");
+  if (state.format !== "eosc-fair-guide-result" || state.v !== 4 || !state.guideVersion) fail("export: the JSON-LD does not declare its format and the guide's version");
   if (state.fip !== "ndi-baseline" || !state.targetInfo) fail("export: the JSON-LD does not carry the chosen profile and what it is");
 
   // A saved result loads in another browser as a preview, keeps its evidence, and is adopted only on request; a
@@ -1753,7 +1844,7 @@ sections.push(["self-check", async () => {
       }
     };
     await tryLoad(variant("damaged.jsonld", (data) => { data.items["fip.01"].value = "maybe"; }), "poškozený", "load: a damaged file is not reported as damaged");
-    await tryLoad(variant("newer.jsonld", (data) => { data.v = 4; data.guideVersion = "9.0.0"; }), "novější verze", "load: a file from a newer format is not reported");
+    await tryLoad(variant("newer.jsonld", (data) => { data.v = 5; data.guideVersion = "9.0.0"; }), "novější verze", "load: a file from a newer format is not reported");
     /* Revision 3 is assessments; a revision 2 file that claims them is damaged rather than silently partial. */
     await tryLoad(variant("claimed.jsonld", (data) => { data.assessments = [{ id: "f-uji:sha256-00", provider: "f-uji" }]; }), "poškozený", "load: a revision 2 file with assessments is not reported as damaged");
     await view.locator("#load-file-overview").setInputFiles(variant("unknown-item.jsonld", (data) => { data.items["fip.99"] = { value: "yes", origin: "user", prefill: null }; }));
@@ -1840,7 +1931,7 @@ sections.push(["funded output", async () => {
   await gotoView(page, pageUrl + "#/cs/V/check/dataset");
   await rendered(page);
   await page.waitForSelector("#mode-after");
-  const programmeItems = graph.filter((e) => e["@type"] === "Question" && [].concat(e.appliesTo || []).some((ref) => String(ref["@id"]).startsWith("#profile-"))).map((e) => e.identifier.replace(".", "-"));
+  const programmeItems = graph.filter((e) => [].concat(e["@type"]).includes("Question") && [].concat(e.appliesTo || []).some((ref) => String(addressOf(ref["@id"], namespace)).startsWith("vocabularies/profiles-"))).map((e) => e.identifier.replace(".", "-"));
   const outputItems = async () => (await page.locator("fieldset.item").evaluateAll((items) => items.map((item) => item.id.replace("item-", "")))).filter((id) => programmeItems.includes(id)).sort().join(",");
   await page.locator("#mode-before").check();
   if (await page.locator('input[name="profile"]').count()) fail("dataset check: the programme question shows before publication");
@@ -1871,10 +1962,10 @@ sections.push(["funded output", async () => {
   if (!(await checked("answer-dataset-27-no"))) fail("dataset check: a record without the data steward's ORCID iD does not answer no");
   await part("report");
   const stewardGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^27$/ }) }).first();
-  if (!(await stewardGap.textContent()).includes("nesplnila požadavek programu na výstup (Open Science III") || !(await stewardGap.locator('.id-chip[href$="/catalogue/cl/OS3-RULES.24"]').count())) fail("dataset check: the data steward gap does not say the output requirement is not met, or does not cite the call's rules");
+  if (!(await stewardGap.textContent()).includes("nesplnila požadavek programu na výstup (Open Science III") || !(await stewardGap.locator('.id-chip[href$="/catalogue/clauses/OS3-RULES.24"]').count())) fail("dataset check: the data steward gap does not say the output requirement is not met, or does not cite the call's rules");
   // A gap's basis names its source the way every citation does: by short name, leading to the catalogue; a
   // question's basis opens under the same label.
-  if (!(await stewardGap.locator('a.source-link[href$="/catalogue/res/doc/os3-rules"]').textContent()).includes("Pravidla výzvy Open Science III")) fail("dataset check: the gap does not name the call's rules by their short name, leading to the catalogue");
+  if (!(await stewardGap.locator('a.source-link[href$="/catalogue/resources/os3-rules"]').textContent()).includes("Pravidla výzvy Open Science III")) fail("dataset check: the gap does not name the call's rules by their short name, leading to the catalogue");
   await part("answers");
   if (!(await page.locator("#item-dataset-27 details.item-basis > summary").textContent()).startsWith("Vychází z (")) fail("dataset check: a question's basis does not open under the label every view uses");
   // FAIR Champion on the dataset, as a second action after the lookup: each question shows its tests and runs them
@@ -1949,12 +2040,12 @@ sections.push(["research practice", async () => {
       if (!(await page.locator(`#answer-${id}-01-unknown`).isChecked())) fail(`${id}: disclosure loses an answer`);
       const roundTrip = await page.evaluate((id) => {
         const fg = window.FairGuide;
-        const check = fg.get("#check-" + id);
+        const check = fg.get("checks/" + id);
         const state = fg.state.answers[id];
         const saved = fg.selfcheck.portableState(check, state);
         const read = fg.selfcheck.readPortable(saved);
         const crate = fg.selfcheck.ftrCrate(check, state);
-        return { read: Boolean(read.check && read.state), saved: saved.check, results: crate["@graph"].filter((node) => [].concat(node["@type"]).includes("TestResult")).length };
+        return { read: Boolean(read.check && read.state), saved: saved.check, results: crate["@graph"].filter((node) => [].concat(node["@type"]).some((type) => ["TestResult", "dqv:QualityMeasurement"].includes(type))).length };
       }, id);
       if (!roundTrip.read || roundTrip.saved !== id || !roundTrip.results) fail(`${id}: export/import contract failed: ${JSON.stringify(roundTrip)}`);
       await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/check/${id}/report`));
@@ -2003,9 +2094,9 @@ sections.push(["research station links", async () => {
         await page.waitForSelector("#main #start");
         const missing = await page.evaluate(({ id, lang, lens }) => {
           const fg = window.FairGuide;
-          const targets = fg.refs(fg.get("#page-" + id), "hasPart")
+          const targets = fg.refs(fg.get("pages/" + id), "hasPart")
             .flatMap((section) => fg.config.textLinks[section["@id"]] || [])
-            .filter((link) => link.ref.startsWith("#station-"))
+            .filter((link) => fg.isRecord(link.ref, "stations"))
             .map((link) => `#/${lang}/${lens}/path/${fg.get(link.ref).identifier}`);
           const actual = [...document.querySelectorAll("#main a.text-ref")].map((link) => link.getAttribute("href"));
           return targets.filter((target) => !actual.includes(target));
@@ -2025,10 +2116,17 @@ sections.push(["research station links", async () => {
 
 sections.push(["published health and documentation links", async () => {
   const { context, page, external, problems } = await openPage();
-  const health = JSON.parse(readFileSync(resolve(site, "api/health.json"), "utf8"));
-  const documents = ["health/index.html", "ro-crate-preview.html", "profile/0.1/index.html", "profile/fair-guide/profile.ttl", "terms/index.html", "terms/fair-guide.ttl", "assets/js/tests/index.html"];
+  const health = JSON.parse(readFileSync(resolve(site, "api/v1/health.json"), "utf8"));
+  const documents = ["health/index.html", "ro-crate-preview.html", publishedUi.config.vocab.profilePage, "profile/fair-guide/profile.ttl", "terms/index.html", "terms/fair-guide.ttl", "assets/js/tests/index.html"];
+  // Data for machines runs from what it offers to what a reader is looking for, a worked example, the Guide's own
+  // practice and the endpoints. Each section's IRI ends in its own id, so the order moves none of them.
+  const outline = ["intro", "tasks", "model-example", "practice", "endpoints"];
+  const published = graph.filter((entity) => String(address(entity)).startsWith("pages/machines#") && entity.position).sort((a, b) => a.position - b.position).map(address);
+  if (published.join(" ") !== outline.map((id) => "pages/machines#" + id).join(" ")) fail("machines: the crate's sections are " + published.join(", "));
   for (const lang of ["cs", "en"]) {
     await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/K/page/machines`));
+    const order = await page.locator("#main article > :is(section, details)").evaluateAll((parts) => parts.map((part) => part.id));
+    if (order.join(" ") !== outline.join(" ")) fail(`${lang}: Data for machines shows its sections as ${order.join(", ")}`);
     const footerLink = page.locator('footer a[href="health/index.html"]');
     if (await footerLink.count() !== 1 || await footerLink.getAttribute("hreflang") !== "en") fail(`${lang}: health dashboard is not linked from the footer with its language`);
     for (const document of documents) {
@@ -2166,8 +2264,8 @@ sections.push(["inactive", async () => {
 // published and each correspondence with its basis and source, the unconfirmed one marked (guide-knowledge-base,
 // "Life-cycle models and their crosswalk are records"). A name the guide translated says so.
 sections.push(["life cycle", async () => {
-  const stageCount = graph.filter((e) => /^#lifecycle-[^.]+\./.test(e["@id"])).length;
-  const citing = graph.filter((e) => e["@type"] === "HowToSection" && e.lifecycleStage && e.lifecycleStage["@id"] === "#lifecycle-rdmkit.reuse").map((e) => e.identifier);
+  const stageCount = graph.filter((e) => isRecord(e, "lifecycles", namespace) && localId(address(e)).includes("/")).length;
+  const citing = graph.filter((e) => e["@type"] === "HowToSection" && e.lifecycleStage && e.lifecycleStage["@id"] === crateNodes.get("lifecycles/rdmkit/reuse")["@id"]).map((e) => e.identifier);
   if (!stageCount || !citing.length) fail("life cycle: the crate has no life-cycle stages or no station in the reuse stage");
   await mapLimit(["cs", "en"], async (lang) => {
     const { context, page, problems } = await openPage();
@@ -2175,9 +2273,9 @@ sections.push(["life cycle", async () => {
     await rendered(page);
     const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
     const card = page.locator(".catalogue-results .entry-card");
-    await visit(`#/${lang}/K/catalogue/lifecycle`);
+    await visit(`#/${lang}/K/catalogue/lifecycles`);
     if ((await card.count()) !== stageCount) fail(`life cycle ${lang}: the list shows ${await card.count()} stages, the crate has ${stageCount}`);
-    await visit(`#/${lang}/K/catalogue/life/rdm/reuse`);
+    await visit(`#/${lang}/K/catalogue/lifecycles/rdmkit/reuse`);
     if ((await card.count()) !== 1) fail(`life cycle ${lang}: the reuse stage's entry is not shown alone`);
     // Both languages state the same definition: RDMkit's own in English, the Guide's marked translation in Czech; KNAV's
     // Czech wording follows as a quotation that keeps its stage label.
@@ -2190,10 +2288,7 @@ sections.push(["life cycle", async () => {
     const rows = await card.locator(".crosswalk li").evaluateAll((all) => all.map((li) => ({
       basis: li.dataset.basis, target: decodeURIComponent(li.querySelector("a").getAttribute("href")), sources: li.querySelectorAll(".source-link").length,
     })));
-    const row = (stage) => {
-      const entity = graph.find((entry) => entry["@id"] === "#lifecycle-" + stage);
-      return rows.find((item) => item.target.endsWith("/" + entity?.catalogueAddress));
-    };
+    const row = (stage) => rows.find((item) => item.target.endsWith("/lifecycles/" + stage.replace(".", "/")));
     for (const [stage, basis] of Object.entries({ "maldreth.access": "unconfirmed", "maldreth.transform": "reviewed", "knav-tools.reusing": "reviewed" })) {
       if (!row(stage)) fail(`life cycle ${lang}: the reuse stage does not list ${stage}`);
       else if (row(stage).basis !== basis) fail(`life cycle ${lang}: ${stage} is marked ${row(stage).basis}, not ${basis}`);
@@ -2203,12 +2298,33 @@ sections.push(["life cycle", async () => {
     if (sources < 2) fail(`life cycle ${lang}: the stage cites ${sources} source(s); RDMkit and KNAV expected`);
     const steps = await card.locator(".relations .holder-link").evaluateAll((all) => all.map((a) => a.getAttribute("href")));
     for (const station of citing) if (!steps.some((href) => href.endsWith("/path/" + station))) fail(`life cycle ${lang}: the stage does not lead to its step ${station}`);
-    await visit(`#/${lang}/K/catalogue/life/mld/access`);
+    await visit(`#/${lang}/K/catalogue/lifecycles/maldreth/access`);
     const marked = await card.locator(".card-details").count();
     if ((lang === "cs") !== (marked === 1)) fail(`life cycle ${lang}: the guide's translated name is ${marked ? "" : "not "}marked`);
     for (const problem of problems) fail(`life cycle ${lang}: ${problem}`);
     await context.close();
   }, 1);
+}]);
+
+// The bare URL always opens the lifecycle landing. Explicit path routes still resume, and the crate preview stays machines.
+sections.push(["bare URL landing", async () => {
+  const { context, page, problems } = await openPage();
+  await gotoView(page, pageUrl);
+  await rendered(page);
+  if (!(await page.locator("#journey-title").count())) fail("bare URL: a first visit does not open the lifecycle landing");
+  await navigationRendered(page, () => page.evaluate(() => { window.location.hash = "#/cs/V/path/licence"; }));
+  await gotoView(page, pageUrl);
+  await rendered(page);
+  if (!(await page.locator("#journey-title").count())) fail("bare URL: saved station history replaces the lifecycle landing");
+  if ((await page.locator(".main-nav a", { hasText: "Cesta k FAIR" }).getAttribute("href")) !== "#/cs/V/path/licence") fail("bare URL: the Path menu no longer resumes the last station");
+  if (!(await page.locator(".resume a").textContent()).includes("Licence")) fail("bare URL: the resume action no longer names the last station");
+  await navigationRendered(page, () => page.evaluate(() => { window.location.hash = "#/cs/V/path"; }));
+  if (!(await page.locator(".now-actions").count())) fail("bare URL: an explicit station-free path route no longer resumes");
+  await gotoView(page, new URL("ro-crate-preview.html", pageUrl).href);
+  await rendered(page);
+  if ((await page.locator("#main h1").textContent()).trim() !== "Data pro stroje") fail("bare URL: the crate preview no longer opens machines");
+  for (const problem of problems) fail(`bare URL: ${problem}`);
+  await context.close();
 }]);
 
 // A stage chosen and stored by an earlier version of the guide is ignored: the path's start shows the journey with no
@@ -2235,8 +2351,15 @@ sections.push(["stored stage", async () => {
 // with its steps, disciplines and licence, and reaches the guide's steps through the crosswalk; an entry that is a
 // catalogue tool is listed once, marked, and opens from the tool's identifier; a plain-HTTP address is not linked.
 sections.push(["knav catalogue", async () => {
-  const tools = graph.filter((e) => /^#knav-/.test(e["@id"]) && e["@id"] !== "#knav-tools");
-  const unlinked = tools.filter((e) => !e.sameAs);
+  const tools = [].concat(crateNodes.byId.get("#snapshot-knav-data-management-tools-catalogue")?.hasPart || []).map((ref) => crateNodes.byId.get(ref["@id"])).filter(Boolean);
+  // A tool only the catalogue knows is founded by its record: its thing rests on nothing but its own records, and on
+  // no record of a registry that founds a thing before the KNAV catalogue does.
+  const founded = (record) => {
+    const thing = record.primaryTopic?.["@id"];
+    const sources = [].concat(crateNodes.byId.get(thing)?.isBasedOn || []).map((ref) => ref["@id"]);
+    return sources.includes(record["@id"]) && sources.every((id) => id.startsWith(thing + "#") && !/#(re3data|fip-dashboard)$/.test(id));
+  };
+  const unlinked = tools.filter(founded);
   if (!tools.length || tools.length === unlinked.length) fail("knav catalogue: the crate has no tools, or none an entry stands for");
   const { context, page, problems } = await openPage();
   await gotoView(page, pageUrl);
@@ -2253,21 +2376,23 @@ sections.push(["knav catalogue", async () => {
     listed.push(...(await cards.evaluateAll((all) => all.map((card) => card.id.replace(/^item-/, "")))));
   }
   if ((await viewCode()) !== 1) fail("knav catalogue: opening the catalogue did not load its view code once");
-  const borrowed = listed.filter((id) => unlinked.some((tool) => tool.catalogueAddress.split("/").slice(1).join("/") === id));
+  const borrowed = listed.filter((id) => unlinked.some((tool) => localId(address(tool)) === id));
   if (borrowed.length !== unlinked.length) fail(`knav catalogue: ${borrowed.length} tools listed under their own identifier, ${unlinked.length} expected`);
-  if (listed.length !== tools.length) fail(`knav catalogue: the KNAV use lists ${listed.length} entries for ${tools.length} tools`);
-  await visit("#/cs/K/catalogue/res/tool/ais-cr");
+  // A tool of an infrastructure the roadmap names is that infrastructure's own entry, among the infrastructures.
+  const ofInfrastructures = tools.filter((tool) => (addressOf(tool.primaryTopic?.["@id"] || "", namespace) || "").startsWith("infrastructures/"));
+  if (listed.length !== tools.length - ofInfrastructures.length) fail(`knav catalogue: the KNAV use lists ${listed.length} entries for ${tools.length - ofInfrastructures.length} tools`);
+  await visit("#/cs/K/catalogue/resources/ais-cr");
   const card = cards.first();
-  if (!(await card.locator('a[href*="/catalogue/life/knav/reusing"]').count())) fail("knav catalogue: a tool does not lead to its catalogue step");
+  if (!(await card.locator('a[href*="/catalogue/lifecycles/knav-tools/reusing"]').count())) fail("knav catalogue: a tool does not lead to its catalogue step");
   if (!(await card.locator('.relations a.holder-link[href$="/path/citation"]').count())) fail("knav catalogue: a reusing tool does not reach the citation step");
   if ((await card.locator(".card-details").textContent()).trim() === "") fail("knav catalogue: a tool shows no discipline");
   if (!(await card.locator('a[href^="https://www.gnu.org/licenses/gpl-3.0"]').count())) fail("knav catalogue: a tool does not show the catalogue's licence");
   await visit("#/cs/K/catalogue/k!resources~s!citation~f.use!knav~f.discipline!social-sciences-humanities");
-  if (!(await page.locator("[id=\"item-tool/ais-cr\"]").count())) fail("knav catalogue: the station and discipline filters miss a matching tool");
-  await visit("#/cs/K/catalogue/res/tool/kadi4mat");
-  if ((await cards.count()) !== 1 || (await cards.first().getAttribute("id")) !== "item-tool/kadi4mat") fail("knav catalogue: a tool an entry stands for does not open that entry");
+  if (!(await page.locator("[id=\"item-ais-cr\"]").count())) fail("knav catalogue: the station and discipline filters miss a matching tool");
+  await visit("#/cs/K/catalogue/resources/kadi4mat");
+  if ((await cards.count()) !== 1 || (await cards.first().getAttribute("id")) !== "item-kadi4mat") fail("knav catalogue: a tool an entry stands for does not open that entry");
   if (!(await cards.first().textContent()).includes("v katalogu nástrojů KNAV")) fail("knav catalogue: the entry that is a catalogue tool is not marked");
-  await visit("#/cs/K/catalogue/res/tool/eduroam");
+  await visit("#/cs/K/catalogue/resources/eduroam");
   if (await cards.first().locator('a[href^="http:"]').count()) fail("knav catalogue: a plain-HTTP address is linked");
   if (!(await cards.first().locator('a[href^="https://openscience.lib.cas.cz/"]').count())) fail("knav catalogue: a plain-HTTP tool does not lead to the catalogue");
   for (const problem of problems) fail(`knav catalogue: ${problem}`);
@@ -2279,7 +2404,7 @@ sections.push(["knav catalogue", async () => {
 // colour, labelled rows carry one icon per label in one order, and a tool or service carries the same badge in the
 // catalogue and among a step's resources, while a standard carries none.
 sections.push(["visual system", async () => {
-  const kinds = ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "lifecycle", "model", "actions"];
+  const kinds = ["resources", "repositories", "infrastructures", "clauses", "questions", "glossary", "fips", "tests", "lifecycles", "models", "actions"];
   const { context, page, problems } = await openPage();
   await gotoView(page, pageUrl);
   await rendered(page);
@@ -2305,7 +2430,7 @@ sections.push(["visual system", async () => {
     if (!seen.length) fail(`visual system: no ${kind} entries to compare`);
     for (const card of seen) {
       if (card.kind !== kind) fail(`visual system: ${card.id} in ${kind} is marked as ${card.kind}`);
-      // The kind shows in the facet and as the card's top strip; a card carries no kind mark of its own (D-185).
+      // The kind shows in the facet and as the card's top strip; a card carries no kind mark of its own.
       if (card.marked) fail(`visual system: ${card.id} repeats its kind's mark`);
       if ((marks.get(kind) || card.strip) !== card.strip) fail(`visual system: ${kind} entries carry different strips`);
       marks.set(kind, card.strip);
@@ -2331,20 +2456,20 @@ sections.push(["visual system", async () => {
 
   // A service's badge: the same favicon, or the same kind icon and colour, at a step and in the catalogue; its own
   // favicon wherever the page has one, and loaded from the page's own files; a tool on a code-hosting platform shows
-  // its kind's icon, never a two-letter monogram; none on a standard (D-183, D-185).
+  // its kind's icon, never a two-letter monogram; none on a standard.
   const badge = (card) => card.locator(".entry-title > .service-badge").evaluateAll((nodes) => nodes.map((node) =>
     [node.dataset.service, node.textContent.trim(), (node.querySelector("use") || { getAttribute: () => "" }).getAttribute("href"), getComputedStyle(node).backgroundColor, (node.querySelector("img") || {}).src || ""].join(" ")));
   const favicons = new Set(JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).config.favicons.hosts);
-  await visit("#/cs/K/catalogue/repo/reg/nkr");
+  await visit("#/cs/K/catalogue/resources/nkr");
   const nkrBadge = page.locator(".catalogue-results .entry-card .entry-title > .service-badge img");
   if (!favicons.has("repo.cz") || !(await nkrBadge.count()) || !(await nkrBadge.getAttribute("src")).endsWith("assets/favicons/repo.cz.png")) fail("visual system: NKR does not show its own favicon");
   else if (!(await nkrBadge.evaluate((image) => image.complete && image.naturalWidth === 48))) fail("visual system: NKR's favicon does not load from the page's files");
-  await visit("#/cs/K/catalogue/res/tool/qualianon");
+  await visit("#/cs/K/catalogue/resources/qualianon");
   if (await page.locator(".catalogue-results .entry-card .entry-title > .service-badge img").count()) fail("visual system: a tool on GitHub shows GitHub's favicon as its own");
   const placeholder = page.locator(".catalogue-results .entry-card .entry-title > .service-placeholder");
   if (!(await placeholder.count()) || (await placeholder.locator("use").getAttribute("href")) !== kindIcons.get("resources") || (await placeholder.textContent()).trim())
     fail("visual system: a tool without a favicon does not show the resources kind's icon in place of one");
-  await visit("#/cs/K/catalogue/repo/dom/benchmark-energy-geometry");
+  await visit("#/cs/K/catalogue/repositories/benchmark-energy-geometry");
   if (await page.locator(".catalogue-results .entry-card .entry-title > .service-badge img").count()) fail("visual system: a repository linked by its re3data record shows re3data's favicon as its own");
   await visit("#/cs/V/path/repository");
   const badged = page.locator("#main .station .entry-card").filter({ has: page.locator(".entry-title > .service-badge") });
@@ -2352,17 +2477,17 @@ sections.push(["visual system", async () => {
   else {
     const service = (await badged.first().getAttribute("id")).replace(/^item-/, "");
     const atStep = await badge(badged.first());
-    const address = graph.find((entity) => entity.catalogueAddress?.split("/").slice(1).join("/") === service)?.catalogueAddress;
-    if (!address) throw new Error(`no published address for ${service}`);
-    await visit(`#/cs/K/catalogue/${address}`);
+    const record = [...catalogueRecords].find((entry) => localId(entry) === service);
+    if (!record) throw new Error(`no published address for ${service}`);
+    await visit(`#/cs/K/catalogue/${record}`);
     const inCatalogue = await badge(page.locator(".catalogue-results .entry-card").first());
     if (atStep.length !== 1 || atStep[0] !== inCatalogue[0]) fail(`visual system: ${service}'s badge differs between the step (${atStep}) and the catalogue (${inCatalogue})`);
   }
-  await visit("#/cs/K/catalogue/res/tool/fair-checker");
+  await visit("#/cs/K/catalogue/resources/fair-checker");
   if ((await badge(page.locator(".catalogue-results .entry-card").first()))[0]?.split(" ")[0] !== "fair-checker") fail("visual system: the evaluator's catalogue entry is not badged under the key the self-check uses");
-  const standard = graph.find((r) => r.resourceType?.["@id"] === "#rtype-standard" && r.identifier);
-  await visit(`#/cs/K/catalogue/${standard.catalogueAddress}`);
-  // A standard is no service: it shows its kind's icon before its title, not a service's badge (D-185).
+  const standard = graph.find((r) => r.resourceType?.["@id"] === crateNodes.get(termAddress("resource-types", "standard"))["@id"] && r.identifier && catalogueRecords.has(address(r)));
+  await visit(`#/cs/K/catalogue/${address(standard)}`);
+  // A standard is no service: it shows its kind's icon before its title, not a service's badge.
   {
     const card = page.locator(".catalogue-results .entry-card").first();
     if ((await card.locator(".entry-title > .service-badge[data-service]").count()) || (await card.locator(".entry-title > .service-placeholder use").getAttribute("href")) !== kindIcons.get("resources")) fail(`visual system: the standard ${standard.identifier} does not show its kind's icon, or carries a service's badge`);
@@ -2377,19 +2502,22 @@ sections.push(["glossary definitions", async () => {
   await gotoView(page, pageUrl);
   await rendered(page);
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
-  const terms = graph.filter((node) => node.inDefinedTermSet?.["@id"] === "#glossary");
-  const description = (term) => [].concat(term.description || []).find((value) => value["@language"] === "cs")?.["@value"];
+  const terms = graph.filter((node) => node.inDefinedTermSet?.["@id"] === crateNodes.get("vocabularies/glossary")["@id"]);
+  const description = (term) => {
+    const definition = term.definitionPart && crateNodes.get(term.definitionPart["@id"]);
+    return [].concat(definition?.description || []).find((value) => value["@language"] === "cs")?.["@value"];
+  };
   const described = terms.filter(description);
   if (described.length !== terms.length) fail("glossary: the reviewed snapshot lost a source definition");
   const term = described.find((entry) => description(entry).length > 200);
   const phrase = description(term).split(/\s+/).slice(8, 12).join(" ");
-  const anchor = term.catalogueAddress.split("/").slice(1).join("/");
+  const anchor = localId(address(term));
   for (const language of ["cs", "en"]) {
-    await visit(`#/${language}/V/catalogue/k!terms`);
+    await visit(`#/${language}/V/catalogue/k!glossary`);
     const cards = page.locator(".catalogue-results .term-card");
     if ((await cards.locator(".term-definition").count()) !== (await cards.count())) fail(`glossary ${language}: descriptions are missing from term cards`);
     if ((await cards.locator('.quote-licence a[href="https://creativecommons.org/licenses/by/4.0/"]').count()) !== (await cards.count())) fail(`glossary ${language}: licence attribution is missing`);
-    await visit(`#/${language}/V/catalogue/k!terms~q!${encodeURIComponent(phrase)}`);
+    await visit(`#/${language}/V/catalogue/k!glossary~q!${encodeURIComponent(phrase)}`);
     const card = page.locator(`[id="item-${entryAnchor(anchor)}"]`);
     if (!(await card.count())) fail(`glossary ${language}: a definition-only phrase does not find its term`);
     else {
@@ -2399,11 +2527,11 @@ sections.push(["glossary definitions", async () => {
       if (!(await card.locator(`[href="${term.url}"]`).count())) fail("glossary: the source term is not linked");
     }
     const found = await page.evaluate((phrase) => window.FairGuide.search.find(phrase).find((group) => group.kind === "term")?.items.map((item) => item.target.href) || [], phrase);
-    if (!found.some((href) => href.endsWith("/term/" + anchor))) fail(`glossary ${language}: general search does not index definitions`);
+    if (!found.some((href) => href.endsWith("/glossary/" + anchor))) fail(`glossary ${language}: general search does not index definitions`);
     for (const format of ["csv", "json"]) {
       const [download] = await Promise.all([page.waitForEvent("download"), page.locator("#export-" + format).click()]);
       const output = readFileSync(await download.path(), "utf8");
-      const definitionText = format === "json" ? JSON.parse(output).itemListElement.find((entry) => entry.identifier === term.catalogueAddress)?.description?.cs || "" : output;
+      const definitionText = format === "json" ? JSON.parse(output).itemListElement.find((entry) => entry.identifier === address(term))?.description?.cs || "" : output;
       if (!definitionText.replace(/\s+/g, " ").includes(phrase)) fail(`glossary ${language}: ${format} export lost the definition`);
       if (!output.includes(term.url) || !output.includes("https://creativecommons.org/licenses/by/4.0/")) fail(`glossary ${language}: ${format} export lost attribution`);
     }
@@ -2455,7 +2583,7 @@ sections.push(["check parts", async () => {
   if (await page.locator(`input[name="answer-${id}"]:checked`).count()) fail("check parts: a withdrawn answer without a suggestion stays chosen");
   if (!/Answered 0 of \d/.test(await page.locator(".check-summary").innerText())) fail("check parts: the result so far still counts a withdrawn answer");
   if (!(await page.evaluate((key) => document.activeElement && document.activeElement.name === "answer-" + key, id))) fail("check parts: withdrawing by keyboard does not return the focus to the question's answers");
-  const exported = await page.evaluate(() => { const SC = window.FairGuide.selfcheck; return JSON.stringify(SC.portableState(window.FairGuide.get("#check-maturity"), window.FairGuide.state.answers.maturity)); });
+  const exported = await page.evaluate(() => { const SC = window.FairGuide.selfcheck; return JSON.stringify(SC.portableState(window.FairGuide.get("checks/maturity"), window.FairGuide.state.answers.maturity)); });
   if (exported.includes('"value":"yes"')) fail("check parts: the export still carries a withdrawn answer");
   // An evaluator's work carries its badge beside its name: FAIR Champion's tests in a question's details, and its
   // column in the report's table of answers and evaluators.
@@ -2510,21 +2638,21 @@ sections.push(["node and infrastructures", async () => {
   if (!/EOSC CZ Node · zapojení plánováno do M12 · ověřeno/.test(badge) || !(await csda.locator('.node-badge a[href*="EOSC_CZ_National_Node_Charter"]').count())) fail("node: ČSDA does not carry the node badge with its milestone, date and charter: " + badge);
   if (!((await rows(csda))["Provozovatel"] || "").includes("CSDA/ESS-CZ")) fail("node: ČSDA does not name CSDA/ESS-CZ as its operator");
   for (const lang of ["cs", "en"]) {
-    await visit(`#/${lang}/K/catalogue/ri/ssh/csda-ess-cz`);
+    await visit(`#/${lang}/K/catalogue/infrastructures/csda-ess-cz`);
     const labels = await page.locator("#catalogue-order option").allTextContents();
     if (labels.some((label) => label.startsWith("catalogue.orderBy."))) fail(`infrastructures: untranslated ${lang} ordering: ${labels.join(", ")}`);
   }
-  await visit("#/cs/K/catalogue/ri/ssh/csda-ess-cz");
+  await visit("#/cs/K/catalogue/infrastructures/csda-ess-cz");
   await page.waitForSelector("#main .entry-card");
   const infra = await rows(card("CSDA/ESS-CZ"));
   if (!/CESSDA ERIC/.test(infra["Národní uzel"] || "") || !/ESS ERIC/.test(infra["Národní uzel"] || "")) fail("infrastructures: CSDA/ESS-CZ is not the node of CESSDA and ESS: " + JSON.stringify(infra));
   if (!(infra["Provozuje"] || "").includes("ČSDA")) fail("infrastructures: CSDA/ESS-CZ does not operate ČSDA");
   if (!/Annex 7|Annex 1/.test(infra["Vychází z"] || "") && !/Cestovní mapa/.test(infra["Vychází z"] || "")) fail("infrastructures: CSDA/ESS-CZ does not cite the roadmap");
-  await visit("#/cs/K/catalogue/repo/dom/mbdb");
+  await visit("#/cs/K/catalogue/repositories/mbdb");
   await page.waitForSelector("#main .entry-card");
   const mbdb = await rows(card("MBDB"));
   if (!/Biotechnologický ústav AV ČR a CESNET/.test(mbdb["Vyvinuli"] || "") || mbdb["Provozovatel"]) fail("infrastructures: MBDB does not name its developers without an operator: " + JSON.stringify(mbdb));
-  await visit("#/cs/K/catalogue/k!repositories~f.node!" + encodeURIComponent("#noderole-repository"));
+  await visit("#/cs/K/catalogue/k!repositories~f.node!" + encodeURIComponent(termAddress("node-roles", "repository")));
   await page.waitForSelector("#main .entry-card");
   const members = await page.locator("#main .catalogue-results .entry-card").count();
   const badges = await page.locator("#main .catalogue-results .entry-card .node-badge").count();
@@ -2611,12 +2739,12 @@ sections.push(["linked catalogues", async () => {
   await rendered(page);
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   await visit("#/cs/V/path/analyse");
-  if (!(await page.locator('#main .station [id="item-reg/ssh-open-marketplace"]').count())) fail("linked catalogues: the analysis step does not recommend the SSH Open Marketplace to researchers");
-  await visit("#/cs/K/catalogue/repo/reg/opendoar");
+  if (!(await page.locator('#main .station [id="item-ssh-open-marketplace"]').count())) fail("linked catalogues: the analysis step does not recommend the SSH Open Marketplace to researchers");
+  await visit("#/cs/K/catalogue/resources/opendoar");
   const card = page.locator(".catalogue-results .entry-card");
   if ((await card.count()) !== 1 || !(await card.first().locator(".entry-what").textContent()).includes("Hledat repozitáře")) fail("linked catalogues: OpenDOAR is not listed with the repository directories");
-  await visit("#/cs/K/catalogue/repo/reg/ssh-open-marketplace");
-  if ((await card.first().getAttribute("id")) !== "item-reg/ssh-open-marketplace") fail("linked catalogues: the KNAV record of the Marketplace does not open the Guide's entry");
+  await visit("#/cs/K/catalogue/resources/ssh-open-marketplace");
+  if ((await card.first().getAttribute("id")) !== "item-ssh-open-marketplace") fail("linked catalogues: the KNAV record of the Marketplace does not open the Guide's entry");
   for (const problem of problems) fail(`linked catalogues: ${problem}`);
   await context.close();
 }]);
@@ -2641,10 +2769,10 @@ sections.push(["Licence compatibility", async () => {
     await axe(page, `licence table ${lang}`);
     await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/tools`));
     if (!await page.locator('.tool-group[aria-labelledby="tools-guidance"] a[href$="/page/licence-compatibility"]').count()) fail("licence table: missing from Guides");
-    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/term/public-licence`));
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/glossary/public-licence`));
     const quote = page.locator("#main blockquote");
     if (!await quote.count() || !(await quote.first().textContent()).includes("standardizovan")) fail(`original definitions: missing public-licence source text in ${lang}`);
-    if (!await page.locator('#main details a[href$="/res/guide/copyright-licences"]').count()) fail(`original definitions: missing NRP attribution in ${lang}`);
+    if (!await page.locator('#main details a[href$="/resources/copyright-licences"]').count()) fail(`original definitions: missing NRP attribution in ${lang}`);
   }
   for (const problem of problems) fail(`licence compatibility: ${problem}`);
   await context.close();
@@ -2659,7 +2787,7 @@ sections.push(["Read steps and situations", async () => {
     if (await shortcuts.count() !== 4) fail(`shortcuts: expected four situations for ${lang}/${lens}`);
     const hrefs = await shortcuts.evaluateAll((links) => links.map((link) => link.getAttribute("href")));
     if (hrefs.some((href) => !href.includes("/path/"))) fail(`shortcuts: a ${lang}/${lens} situation bypasses its step`);
-    /* A visit marks nothing: the read mark is the reader's own, and every step offers the control (D-190). */
+    /* A visit marks nothing: the read mark is the reader's own, and every step offers the control. */
     if (await page.locator(".journey-steps [data-read][data-state='read']").count()) fail(`read steps: ${lang}/${lens} marked a step without the reader`);
     if (await page.locator(".journey-steps [data-read]").count() !== 11) fail(`read steps: ${lang}/${lens} does not offer a read control on every step`);
     for (const width of [1280, 320]) {
@@ -2695,7 +2823,7 @@ sections.push(["Read steps and situations", async () => {
 sections.push(["RDMkit reuse", async () => {
   const { context, page, problems } = await openPage();
   for (const lang of ["cs", "en"]) {
-    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/res/tool/elabftw`));
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/resources/elabftw`));
     const entries = page.locator("#main .catalogue-results .entry-card");
     if (await entries.count() !== 1) fail(`RDMkit: eLabFTW has duplicate ${lang} entries`);
     if (!await entries.locator('a[href="https://rdmkit.elixir-europe.org/all_tools_and_resources#elabftw"]').count()) fail(`RDMkit: missing ${lang} tool record`);
@@ -2731,12 +2859,12 @@ sections.push(["Workflow guidance", async () => {
 
 sections.push(["Infrastructure marks", async () => {
   const { context, page, problems } = await openPage();
-  const records = graph.filter((entity) => entity["@id"].startsWith("#infrastructure-") && entity.identifier);
+  const records = graph.filter((entity) => isRecord(entity, "infrastructures", namespace) && entity.identifier && catalogueRecords.has(address(entity)));
   const marks = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).config.favicons.marks;
   for (const lang of ["cs", "en"]) for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
     for (const record of records) {
-      await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/K/catalogue/${record.catalogueAddress}`));
+      await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/K/catalogue/${address(record)}`));
       const image = page.locator(".catalogue-results .entry-title .service-favicon img");
       const expected = marks["infrastructure-" + record.identifier];
       if (expected) {
@@ -2750,6 +2878,61 @@ sections.push(["Infrastructure marks", async () => {
   await context.close();
 }]);
 
+// A record's entry route, `#/id/<address>`, opens its catalogue entry in the reader's saved language and lens and
+// becomes the full route; a station's entry leads to the station on the path, and an address no record has says so.
+// A shared catalogue link opens with the lens it names, whatever the reader saved.
+sections.push(["entry routes", async () => {
+  for (const lang of ["cs", "en"]) {
+    const { context, page, problems } = await openPage();
+    // A station read is what the Guide saves, with the language and lens it was read in.
+    await gotoView(page, pageUrl + `#/${lang}/DS/path/plan`);
+    const lens = () => page.evaluate(() => window.FairGuide.state.lens);
+    for (const address of ["resources/dmp-eosc", "stations/licence"]) {
+      // A fresh load reads the saved settings, as a reader following a landing page's link does.
+      await page.goto("about:blank");
+      await gotoView(page, pageUrl + "#/id/" + address);
+      const hash = await page.evaluate(() => location.hash);
+      if (hash !== `#/${lang}/DS/catalogue/${address}`) fail(`entry routes ${lang}: #/id/${address} became ${hash}`);
+      if ((await page.locator(".catalogue-results .entry-card").count()) !== 1) fail(`entry routes ${lang}: #/id/${address} does not show its one entry`);
+      if ((await lens()) !== "DS") fail(`entry routes ${lang}: #/id/${address} drops the saved data-steward lens`);
+    }
+    if (!(await page.locator(`.catalogue-results .holder-link[href="#/${lang}/DS/path/licence"]`).count())) fail(`entry routes ${lang}: the station's entry does not lead to the station on the path`);
+    await page.goto("about:blank");
+    await gotoView(page, pageUrl + "#/id/resources/no-such-entry");
+    const note = await page.locator(".single-entry").textContent();
+    if (!note.includes("resources/no-such-entry") || !(await page.locator("#catalogue-search").count())) fail(`entry routes ${lang}: an unknown address does not say so beside the catalogue search: ${note}`);
+    await gotoView(page, pageUrl + `#/${lang}/V/path/plan`);
+    await page.goto("about:blank");
+    await gotoView(page, pageUrl + `#/${lang}/DS/catalogue/resources/dmp-eosc`);
+    if ((await lens()) !== "DS" || !(await page.evaluate(() => location.hash)).startsWith(`#/${lang}/DS/`)) fail(`entry routes ${lang}: a shared data-steward link opens with the saved researcher lens`);
+    for (const problem of problems) fail(`entry routes ${lang}: ${problem}`);
+    await context.close();
+  }
+}]);
+
+sections.push(["deferred station references", async () => {
+  const { context, page, problems } = await openPage();
+  await gotoView(page, pageUrl + "#/cs/K/path/repository");
+  await rendered(page);
+  const fipsLoaded = () => page.evaluate(() => window.FairGuide.partHasLanguage("fips", "cs"));
+  if (await fipsLoaded()) fail("deferred station references: fips loaded before the infrastructure reference test");
+  await page.locator('details[data-key="L1"] > summary').click();
+  for (const id of ["csda-ess-cz", "lindat-clariah-cz"]) {
+    const href = `#/cs/K/catalogue/infrastructures/${id}`;
+    if (!(await page.locator(`#main a.text-ref[href="${href}"]`).count())) fail(`deferred station references: repository.23 does not link ${id}`);
+  }
+  await gotoView(page, pageUrl + "#/cs/K/path/metadata");
+  await rendered(page);
+  await page.locator('details[data-key="L1"] > summary').click();
+  for (const id of ["csda-ess-cz", "lindat-clariah-cz", "elixir-cz"]) {
+    const href = `#/cs/K/catalogue/infrastructures/${id}`;
+    if (!(await page.locator(`#main a.text-ref[href="${href}"]`).count())) fail(`deferred station references: metadata.39 does not link ${id}`);
+  }
+  if (await fipsLoaded()) fail("deferred station references: the references depended on loading fips");
+  for (const problem of problems) fail(`deferred station references: ${problem}`);
+  await context.close();
+}]);
+
 sections.push(["catalogue text reference", async () => {
   const { context, page, problems } = await openPage();
   await gotoView(page, pageUrl + "#/en/V/path/plan");
@@ -2758,24 +2941,23 @@ sections.push(["catalogue text reference", async () => {
   await page.evaluate(() => {
     const FG = window.FairGuide;
     const owner = { "@id": "#text-reference-check", text: "Use GitHub for collaboration." };
-    FG.config.textLinks[owner["@id"]] = [{ ref: "#knav-github", en: "GitHub" }];
+    FG.config.textLinks[owner["@id"]] = [{ ref: "resources/github", en: "GitHub" }];
     const paragraph = FG.h("p", { id: "catalogue-reference-check" }, FG.linkedSpan(owner));
     document.querySelector("#main").append(paragraph);
   });
   const link = page.locator("#catalogue-reference-check a.text-ref");
-  if ((await link.getAttribute("href")) !== "#/en/V/catalogue/res/tool/github") fail("catalogue text reference: the tool does not use its issued address");
+  if ((await link.getAttribute("href")) !== "#/en/V/catalogue/resources/github") fail("catalogue text reference: the tool does not use its issued address");
   await navigationRendered(page, () => link.click());
   const cards = page.locator(".catalogue-results .entry-card");
-  if ((await cards.count()) !== 1 || (await cards.first().getAttribute("id")) !== "item-tool/github") fail("catalogue text reference: following a tool name does not reach its entry alone");
-  const term = graph.find((entity) => entity["@id"] === "#term-public-licence");
-  await navigationRendered(page, () => page.goto(pageUrl + "#/en/V/catalogue/" + term.catalogueAddress));
+  if ((await cards.count()) !== 1 || (await cards.first().getAttribute("id")) !== "item-github") fail("catalogue text reference: following a tool name does not reach its entry alone");
+  await navigationRendered(page, () => page.goto(pageUrl + "#/en/V/catalogue/glossary/public-licence"));
   if ((await cards.count()) !== 1) fail("catalogue text reference: a canonical term does not open one entry");
-  for (const entity of [graph.find((e) => e.catalogueAddress?.startsWith("org/")), graph.find((e) => e["@id"] === "#implementation-model")]) {
-    await navigationRendered(page, () => page.goto(pageUrl + "#/en/V/catalogue/" + entity.catalogueAddress));
+  for (const entity of [graph.find((e) => isRecord(e, "organizations", namespace) && catalogueRecords.has(address(e))), graph.find((e) => isRecord(e, "models", namespace))]) {
+    await navigationRendered(page, () => page.goto(pageUrl + "#/en/V/catalogue/" + address(entity)));
     if ((await cards.count()) !== 1) fail("catalogue text reference: a published record outside the facets has no direct entry");
-    if ((await cards.first().locator(".entry-head .id-chip").textContent()) !== entity.catalogueAddress.split("/").at(-1)) fail("catalogue text reference: a direct record shows a second address");
+    if ((await cards.first().locator(".entry-head .id-chip").textContent()) !== address(entity).split("/").at(-1)) fail("catalogue text reference: a direct record shows a second address");
     if ((await cards.first().locator(".entry-title").textContent()).includes("[object Object]")) fail("catalogue text reference: a language value is rendered as an object");
-    await axe(page, "direct catalogue record " + entity.catalogueAddress);
+    await axe(page, "direct catalogue record " + address(entity));
   }
   for (const problem of problems) fail(`catalogue text reference: ${problem}`);
   await context.close();
@@ -2789,7 +2971,7 @@ sections.push(["grouping and typography", async () => {
     const sizes = await page.evaluate(() => ({ table: getComputedStyle(document.querySelector('.credits')).fontSize,
       small: getComputedStyle(document.documentElement).getPropertyValue('--size-small').trim() }));
     if (sizes.table !== "14px") fail(`credits typography: ${lang}/${width} ${sizes.table}`);
-    await go(`#/${lang}/DS/catalogue/k!terms`);
+    await go(`#/${lang}/DS/catalogue/k!glossary`);
     for (const viewport of [width, 320]) {
       await page.setViewportSize({ width: viewport, height: 900 });
       const offsets = await page.locator('.letter-jump').evaluateAll((buttons) => buttons.map((button) => {
@@ -2809,8 +2991,8 @@ sections.push(["grouping and typography", async () => {
       await go(`#/${lang}/V/check/${code}/evidence`);
       await page.evaluate((code) => {
         const FG = window.FairGuide;
-        const mode = FG.refs(FG.get('#modes-' + code), 'hasDefinedTerm')[0]?.termCode;
-        const profile = FG.refs(FG.get('#profiles-' + code), 'hasDefinedTerm').at(-1)?.termCode;
+        const mode = FG.termsOf('vocabularies/modes-' + code)[0]?.termCode;
+        const profile = FG.termsOf('vocabularies/profiles-' + code).at(-1)?.termCode;
         FG.state.answers[code] = { items: {}, mode, profile };
         FG.state.resultCollapsed = true;
         FG.saveState();
@@ -2862,13 +3044,13 @@ sections.push(["grouping and typography", async () => {
         await page.screenshot({ path: resolve(directory, `${code}-${lang}-${width}.png`), fullPage: false });
         if (code === 'dataset' && lang === 'cs' && width === 1280) {
           await page.evaluate((itemId) => {
-            const FG = window.FairGuide, item = FG.get('#item-' + itemId.replace('item-', '').replace(/-(\d+)$/, '.$1'));
+            const FG = window.FairGuide, item = FG.get('questions/' + itemId.replace('item-', '').replace(/-(\d+)$/, '.$1'));
             window.groupingMissingFix = [item, item.fixAt]; delete item.fixAt; FG.rerender();
           }, itemId);
           if (!(await page.locator('.path-distribution .block-mark').allTextContents()).some((text) => text.includes('Ostatní'))) fail('unmapped path questions disappear instead of forming Other');
           await page.evaluate(() => { const [item, fixAt] = window.groupingMissingFix; item.fixAt = fixAt; window.FairGuide.rerender(); });
         }
-        const payload = await page.evaluate((code) => { const FG = window.FairGuide; return FG.selfcheck.sharePayload(FG.get('#check-' + code), FG.state.answers[code]); }, code);
+        const payload = await page.evaluate((code) => { const FG = window.FairGuide; return FG.selfcheck.sharePayload(FG.get('checks/' + code), FG.state.answers[code]); }, code);
         await go(`#/${lang}/V/check/${code}/${payload}`);
         if (!await page.locator('#grouping-steps').isChecked() || !await page.locator('#results-steps').count()) fail(`${code}: shared preview ignores the selected grouping`);
       }
@@ -2886,16 +3068,15 @@ sections.push(["NKR integration", async () => {
   await page.evaluate(() => {
     const FG = window.FairGuide;
     const entity = {
-      "@id": "#repository-nkr-development-test", "@type": "DataCatalog", identifier: "nkr-development-test",
+      "@id": "repositories/nkr-development-test", "@type": "DataCatalog", identifier: "nkr-development-test",
       name: [{ "@value": "Testovací repozitář ve vývoji", "@language": "cs" }, { "@value": "Test repository in development", "@language": "en" }],
-      repositoryKind: { "@id": "#rkind-domain" }, repositoryFunction: { "@id": "#rfunction-deposit-data" },
-      serviceStatus: { "@id": "#status-in-development" }, statusAsOf: "2026-11-01", acceptsDeposits: false,
-      sameAs: { "@id": "https://repo.cz/objects/test/development" }, isBasedOn: { "@id": "#repositories-curated" },
-      catalogueAddress: "repo/dom/nkr-development-test",
+      repositoryKind: { "@id": "vocabularies/repository-kinds/domain" }, repositoryFunction: { "@id": "vocabularies/repository-functions/deposit-data" },
+      serviceStatus: { "@id": "vocabularies/statuses/in-development" }, statusAsOf: "2026-11-01", acceptsDeposits: false,
+      sameAs: { "@id": "https://repo.cz/objects/test/development" }, isBasedOn: { "@id": "#guide-selection" },
     };
     FG.graph.push(entity); FG.byId.set(entity["@id"], entity);
     FG.get("#repositories").hasPart.push({ "@id": entity["@id"] });
-    FG.config.api.records[entity["@id"]] = entity.catalogueAddress;
+    FG.config.api.records[entity["@id"]] = entity["@id"];
     FG.config.nkr = { records: [{ id: "nkr-development-test", sourceId: "test/development", content: { repositoryName: "Test repository" } }] };
     FG.invalidateData(); FG.rerender();
   });
@@ -2903,13 +3084,13 @@ sections.push(["NKR integration", async () => {
   for (const lang of ["cs", "en"]) {
     for (const width of [1280, 320]) {
       await page.setViewportSize({ width, height: 900 });
-      await visit(`#/${lang}/K/catalogue/k!repositories~f.rfunction!%23rfunction-deposit-data`);
-      if (await page.locator('[id="item-dom/nkr-development-test"]').count()) fail("NKR: data-deposit chooser offers a repository in development");
+      await visit(`#/${lang}/K/catalogue/k!repositories~f.rfunction!vocabularies%2Frepository-functions%2Fdeposit-data`);
+      if (await page.locator('[id="item-nkr-development-test"]').count()) fail("NKR: data-deposit chooser offers a repository in development");
       await visit(`#/${lang}/K/catalogue/k!repositories`);
-      const card = page.locator('[id="item-dom/nkr-development-test"]');
+      const card = page.locator('[id="item-nkr-development-test"]');
       if (!(await card.count()) || !(await card.locator('[data-field="repositoryFunction"]').textContent()).includes(lang === "cs" ? "Uložit" : "Deposit")) fail("NKR: general catalogue loses the repository or its function");
       if (!(await card.textContent()).includes(lang === "cs" ? "zatím nemá veřejnou adresu" : "no public address yet")) fail("NKR: address-free card lacks its bilingual explanation");
-      if ((await card.locator(".entry-title a").getAttribute("href")) !== `#/${lang}/K/catalogue/repo/dom/nkr-development-test`) fail("NKR: address-free title does not open its entry");
+      if ((await card.locator(".entry-title a").getAttribute("href")) !== `#/${lang}/K/catalogue/repositories/nkr-development-test`) fail("NKR: address-free title does not open its entry");
       if (!(await card.locator('a[href="https://repo.cz/objects/test/development"]').count())) fail("NKR: address-free card has no NKR record link");
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) fail(`NKR: catalogue overflows at ${width}px in ${lang}`);
     }
@@ -2934,8 +3115,8 @@ sections.push(["NKR integration", async () => {
     if (actual !== expected) fail(`NKR: abbreviation composition for ${name}: ${actual}`);
   }
   for (const lang of ["cs", "en"]) {
-    await visit(`#/${lang}/K/catalogue/ri/energy/compass`);
-    const title = await page.locator('[id="item-energy/compass"] .entry-title').textContent();
+    await visit(`#/${lang}/K/catalogue/infrastructures/compass`);
+    const title = await page.locator('[id="item-compass"] .entry-title').textContent();
     if ((title.match(/COMPASS/g) || []).length !== 1) fail(`NKR: rendered COMPASS title repeats its abbreviation in ${lang}: ${title}`);
   }
   await axe(page, "Catalogue abbreviation display");

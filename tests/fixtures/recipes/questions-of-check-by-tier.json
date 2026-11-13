@@ -1,0 +1,8 @@
+{
+  "columns": ["question", "tier"],
+  "rows": [
+    ["https://w3id.org/eosc-cz/fair-guide/id/questions/fip.01", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/tiers/minimum"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/questions/fip.02", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/tiers/minimum"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/questions/fip.10", "https://w3id.org/eosc-cz/fair-guide/id/vocabularies/tiers/minimum"]
+  ]
+}

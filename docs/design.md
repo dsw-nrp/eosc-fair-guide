@@ -53,9 +53,16 @@ Requirements, FIP records, page texts, detailed advice, provenance and language 
 glossary source identifiers load with their definitions while primary IDs remain available for navigation.
 Together they reconstruct the complete crate. Language changes preserve answers and view state.
 Missing language files leave the usable view in place with retry. Originals, published titles and
-vocabulary labels retain their languages. Compact aliases support local cross-language search.
+vocabulary labels retain their languages. A downloaded script is accepted only after its expected data registers;
+otherwise Retry fetches a corrected copy while retaining accepted data. Compact aliases support local cross-language search.
 L1-L3 advice text uses property patches; station views and the AI advice page wait for it. Text search waits
-for requirements, questions and advice in the selected language before publishing a complete index.
+for requirements, questions, detailed advice and FIP records in the selected language before publishing a complete
+index. A failed load offers retry without confirming partial results; navigation moves retry to the current form,
+and a newer reader query or deliberate clear is never replaced by completion of an older retry. A pending search
+survives intermediate views without a search form until the next eligible form opens. Successful submission or
+clearing retires that search's obsolete error and retry action without hiding another operation's failure.
+When cold loading and confirmation finish together, confirmation owns the completed results update, avoiding an
+immediately discarded unconfirmed pass.
 
 ## Authoring and build
 
@@ -157,8 +164,13 @@ keep the same meaning across stations, requirements, questions and catalogue ent
 The landing leads with local search, the RDMkit life-cycle journey, role-specific task shortcuts and
 resume. Local results appear while typing; nothing is sent externally. Identifiers route by what they
 denote: repositories to maturity, FIPs to their check, institutions to the institution check, ORCID to
-verification. A generic DOI or Handle offers an explicit lookup that names its object and source;
-other suitable helpers remain available. The catalogue is the complete search-results view. Source
+verification, a Guide IRI or address to its catalogue entry. A generic DOI or Handle offers an explicit lookup
+that names its object and source; other suitable helpers remain available. The catalogue is the complete
+search-results view. Every route names the reader's language and lens (`#/<lang>/<lens>/catalogue/<kind>/<id>`),
+so a shared link opens as its sender saw it; the one route without them, `#/id/<address>`, is how a record's
+landing page links into the Guide, and it becomes the full route in the reader's saved language and lens. The bare
+Guide URL always selects the lifecycle landing, never a saved station; last-station memory belongs to the Path menu
+and resume action, while an explicit station-free path route keeps its resume semantics. Source
 and privacy information remain visible without dominating entry.
 
 The journey draws seven life-cycle stages as a cycle, reuse returning to planning, with a numbered
@@ -193,11 +205,55 @@ FAIR links relate topics without renaming FAIR4RS or FDO requirements as FAIR-da
 **One entry per thing, locally owned identities.** Records declare short Guide IDs. Imported rows retain
 one primary `id` and the issued `guideRoute` across refresh independently of source IDs, names and URLs.
 Genuine source identifiers live in typed `alternateIds`; obsolete Guide IDs are discarded before release. One build
-projection emits compact catalogue/API addresses for all consumers; there is no parallel full-address register.
-Chips display the compact record ID. Published source labels and authoritative IRIs remain metadata with their
-actual roles. Before the first official release, IDs may change in place without compatibility routes or duplicate
-API documents. After issue, names/classification may change while the address remains fixed. Reviewed joins
-identify one described thing; ambiguous changes require review. Duplicate checks retain their current reasons.
+projection gives every record one address, `<kind>/<id>` in a plain-word kind vocabulary, and one IRI under the
+Guide's namespace; the crate, the API, the page's routes and references all use it, and there is no parallel
+full-address register. A part of a record takes a fragment under it, as a registry's record about the thing it
+describes does; a page's section takes its own id, never its place, so reordering a page moves no address. Every
+registry's row is a `dcat:CatalogRecord` and `schema:CreativeWork` under its thing, naming that thing with
+`foaf:primaryTopic`; the thing does not list those records again. Each record rests on its snapshot, and a curated
+work rests on the Guide's selection, while organisations and infrastructures name their published sources with
+`dcterms:source`, so a consumer reads from the graph which catalogues supplied a thing and the page credits them
+from the same statements. A thing only registries know is founded by its first record and has no curated-source
+statement. Chips display the record ID, and an entry's identifiers start with its own IRI; no identifier chip carries
+a label, because an identifier says what issued it. Published source labels and authoritative IRIs remain metadata
+with their actual roles. Before the first official release, IDs may change in place without compatibility routes or
+duplicate API documents. After issue, names/classification may change while the address remains fixed. Reviewed
+joins identify one described thing; ambiguous changes require review. Duplicate checks retain their current reasons.
+
+**One graph model.** A controlled vocabulary is modelled once: every term is a `schema:DefinedTerm` in exactly one
+term set, named by the term with `schema:inDefinedTermSet`, and its SKOS reading is stated once, as subclass and
+subproperty axioms in the Guide's own vocabulary document. A set does not list its terms again, and ordered terms
+carry `guide:termPosition` because schema.org's `position` does not admit terms. Every status is a term of its own
+scheme, named through a property that specializes `adms:status`, so `planned` exists once and a status is never a
+string. Advice is a class of its own, `guide:AdviceItem`, with its kind as a term, because schema.org's HowTo types
+describe one procedure's steps, not advice by lens and level. A check is an FTR benchmark and its questions FTR
+metrics; only criteria exposed through an API are FTR tests, and a reader's answer is a DQV measurement, never an
+FTR test. A pre-fill is a typed mapping naming its source, what it reads and how much of its question it covers. A
+question that asks what a clause says names the clause as its requirement and takes its text, so the text is written
+once. The profile states these rules as shapes, each proved by a planted violation it refuses.
+
+Every relation is written in one documented direction, never both for the same pair. Every class is an `@type`,
+including Guide classes for kinds that share an established class; a registry record's FIP classification sits on
+that record rather than typing it as its thing. The vocabulary's domains and ranges hold for the built graph, and a
+pinned copy of every established vocabulary lets checks prove each property is used within its declarations.
+Schema.org properties stay within their published alternatives: licences and citations belong to quoted works, not
+to defined terms, and organisations name their sources with `dcterms:source`. Local test entry points use an explicit
+Guide property rather than `additionalProperty`. An operator or provider that is also a described service keeps its
+organisational role explicit without duplicating its service record.
+
+**The EOSC CZ Node is a service platform.** Current EOSC Federation guidance describes a Node as a collection of
+services and data sources operated by an organisation. Its Guide resource is therefore `resources/eosc-cz-node`, a
+`schema:Service` provided by e-INFRA CZ, not an organisation with members. Each onboarded entry is a
+`dcat:Relationship` part linked from the Node with `dcat:qualifiedRelation`: `dcterms:relation` names the entry,
+`dcat:hadRole` its role, and the part carries any integration milestone, date checked, charter and locator. The part
+is also a `schema:CreativeWork` as the dated evidence statement, so its source citation is in scope. The page derives
+an entry's badge and the node facet from those Node-side relations rather than repeating membership on every entry.
+
+**Quoted definitions are works, not metadata stuck on terms.** A glossary or life-cycle definition lives in a
+`schema:CreativeWork` fragment under its term, linked with `dcterms:hasPart` and carrying the quoted text, licence
+and source. A second Czech life-cycle source has its own fragment linked by `guide:quotedDefinition`. This preserves
+the exact wording and attribution while keeping schema.org's CreativeWork-only licence and citation properties off
+`schema:DefinedTerm` instances.
 
 **Originals and translations have separate purposes.** Permitted originals are attributed once on
 clauses, with language, version, locator and reuse terms, and reused by stations, checks and catalogue.
@@ -245,7 +301,7 @@ uses Dashboard profiles first and published nanopublications as fallback, preser
 use/planning/replacement status. No declaration leaves a question open, not a proven gap.
 
 Repository discovery combines curated entries with NKR, re3data, FAIRsharing and DataCite snapshots,
-deduplicated through reviewed links. NKR additionally joins by exact normalized repository address, while a
+deduplicated through reviewed links; a registry is a resource, listed with the resources. NKR additionally joins by exact normalized repository address, while a
 record without an address needs a reviewed NKR handle to join an existing entry. Ambiguous joins fail for review.
 NKR's non-empty published names, kind, status, keywords and address take precedence; Guide-owned functions and
 operator facts remain, and empty NKR values remove nothing. Status dates record the harvest observation, while
@@ -473,9 +529,10 @@ JSON-LD/FTR RO-Crate and Markdown exports carry reloadable state, Guide version,
 targets and evidence. Markdown's hidden comment restores full state; earlier answer-only summaries
 remain readable. Shared links carry compact answers and open as previews. Files also preview before
 replacing that check's answers on request. Foreign, damaged, newer-format and unknown-check files get
-different explanations; unknown historical question IDs are skipped with notice. Share links and exported
-references use the address serving the Guide; from a local file they use the recorded publication location or stay
-relative, never a filesystem path. Result reuse licensing is chosen by the person exporting,
+different explanations; unknown historical question IDs are skipped with notice. Share links use the address serving
+the Guide, but a result's question and test identities are persistent IRIs under its namespace. Older result support
+documents keep their legacy paths. Any ordinary serving links use the recorded publication location or stay relative,
+never a filesystem path. Result reuse licensing is chosen by the person exporting,
 not assigned by the Guide. Delete-all removes saved state and visit-only reports after confirmation.
 
 ## Visuals, accessibility and machine interfaces
@@ -497,14 +554,21 @@ targets, and compact toggles stay square. Alignment, padding, separation and lon
 checked across views. Measured rules need planted-regression proof and a visual pass through empty,
 partial, complete, expanded and imported states in both languages at desktop/phone widths.
 
-**The static API is a crate view.** `build_api.py` emits collection/entity JSON with language maps,
-JSON-LD context, OpenAPI 3.1 and pinned local Swagger UI. Records link relatively. Checks are FTR
-benchmarks, questions metrics, and named manual tests link exports to definitions. Paths align with
-the Dashboard's published vocabulary. Data for machines teaches from real task-to-data links, FAIR
-Signposting, profile, licensing, paradata and result examples. Head and linkset share one discovery list.
-Views offer their own data, cards their record, checks their result; filtered exports retain order/filters.
-Print exposes closed content and relevant addresses. Swagger UI is the explicit scoped accessibility
-exception named in the public statement; the accessible machines page lists the same endpoints.
+**The static API is a crate view.** `build_api.py` emits under `_site/api/v1/` one list per kind and a record at its
+address, with language maps and relative links. `index.json` names every kind and the health snapshot, which has
+its own Operations tag. Scoped identities add a scope segment, not a second collection vocabulary. Every entry
+names its ID, address, IRI and label beside filter fields. Compact term references resolve to one vocabulary-set
+document, with the term code constrained by OpenAPI. Typed list/record schemas describe one template per kind and
+scope shape, never one operation per record. Checks are FTR benchmarks and questions metrics; a reader's answer is a
+DQV quality measurement of its question, not an FTR test, so `api/tests/<question>.json` remains only a compatibility
+document for revisions 1 to 3. `knowledge_graph.py` publishes the isomorphic graph in N-Triples with an offline
+standard-library writer, and published SPARQL recipes let clients exercise the same relations. FIP-compatible kinds
+principles, resources, organisations and fips are mapped explicitly; other kinds keep their own identity. Data
+for machines teaches from real task-to-data links, FAIR Signposting, profile, licensing, paradata and saved result
+examples. Head and linkset share one discovery list. Views offer their own data, cards their record, checks their
+result; filtered exports retain order/filters. Print exposes closed content and relevant addresses. Swagger UI is the
+explicit scoped accessibility exception named in the public statement; the accessible machines page lists the same
+endpoints.
 
 ## Checks, automation and delivery
 
@@ -512,7 +576,7 @@ exception named in the public statement; the accessible machines page lists the 
 fresh provenance, duplicates, metadata, unit/browser contracts, accessibility, API, diagrams, licensing,
 assets and crate validators. Opt-in live checks stay separate. Health distinguishes passed, failed,
 blocked and unrun jobs; offline success establishes no live availability. Initial builds are inventory;
-completed runs expose their actual revision and outcomes through the dashboard and `_site/api/health.json`.
+completed runs expose their actual revision and outcomes through the dashboard and `_site/api/v1/health.json`.
 Repository hygiene scans the guide's own text and the delivered tooling: a machine-specific path, a hub-internal
 name or a private planning reference fails with its file and line, while the repository's own relative runtime
 scratch convention does not. That scratch area is a declared runtime path, so hand-offs stay outside ownership and
@@ -624,7 +688,10 @@ written to `duplicates.json` under `CHECK_REPORT_DIR` or `--report`. `--fix` app
 the working tree with the same provenance action and registration as the trusted command, shared through
 `duplicate_repairs.py`. It records a reviewed person from `--person` or the `commitNames`/`github` match of the
 local Git identity, refuses before writing when none is unique, and rejects a repair that adds a content error.
-Neither path edits `content/duplicates.toml` or accepts a lookalike group.
+Neither path edits `content/duplicates.toml` or accepts a lookalike group. Every registry record attaches to
+exactly one thing: a registry record and a curated thing with no key joining them but the same registrable domain
+and a distinctive name word, or the same name and provider, are listed as reviews in the report and the output.
+A review is never an error, a suggestion or a join; a person links the record or accepts the pair.
 Safe ownership is checked across the full catalogue and suggestion set. Exact placement rules are shared by
 Python consumers and checked for parity with the independent Node validator. The local batch validates TOML,
 replaces targets atomically and rechecks duplicates before reporting success. Handled failures restore

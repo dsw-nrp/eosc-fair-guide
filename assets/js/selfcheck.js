@@ -10,8 +10,8 @@
   const SC = (FG.selfcheck = FG.selfcheck || {});
   const ANSWERS = ["yes", "partly", "no", "unknown", "na"];
   const SHARE_CODE = { yes: "y", partly: "p", no: "n", unknown: "k", na: "x" };
-  const FIRST_TIERS = ["#tier-required", "#tier-standard", "#tier-basic", "#tier-minimum"];
-  const TIER_ORDER = ["#tier-required", "#tier-standard", "#tier-basic", "#tier-minimum", "#tier-recommended", "#tier-advanced"];
+  const FIRST_TIERS = ["required", "standard", "basic", "minimum"].map((code) => FG.term("tiers", code));
+  const TIER_ORDER = ["required", "standard", "basic", "minimum", "recommended", "advanced"].map((code) => FG.term("tiers", code));
   const ANSWER_STATE = { yes: "met", partly: "partly", no: "gap", unknown: "unknown" };
   const STATE_ICON = FG.STATE_ICON;
   const FTR_VALUE = { yes: "pass", partly: "indeterminate", no: "fail", unknown: "indeterminate" };
@@ -24,8 +24,9 @@
   /* The result format: its name and version are written into every JSON-LD and Markdown export, with the guide's
      version, so a file can be read by the version that understands it. */
   const FORMAT = "eosc-fair-guide-result";
-  /* Revision 3 adds attached evaluator assessments; files without them are still written as revision 2. */
-  const FORMAT_VERSION = 3;
+  /* Revision 4 is a DQV measurement of each question's persistent IRI; revisions 1–3 remain readable. */
+  const FORMAT_VERSION = 4;
+  const DQV = FG.config.vocab.dqv;
   const OBSERVATION_MAX = 8;
   const VALUE_MAX = 65536;
   const EVIDENCE_MAX = 131072;
@@ -35,7 +36,7 @@
   const MAX_FILE = 8 * 1024 * 1024;
   const SOURCES = ["datacite", "resolver", "nkr", "re3data", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared", "landing", "pid-record", "github", "gitlab", "fair-checker", "f-uji"];
   const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved", "lookupFailed", "stewardFound", "stewardMissing", "stewardRole", "stewardOrcid", "partialCoverage", "sourceConflict", "representation", "repositoryScope", "profileDeclaration", "unsupportedPid", "sampleCoverage", "titleMeaning", "rightsCoverage", "classificationScheme", "descriptionCoverage", "creatorIdentifiers", "keywordScheme", "pidProfile", "commitVersion", "copyrightCoverage", "bundledLicences", "testsNotRun", "dependenciesCoverage", "testUnavailable", "providerUnavailable", "providerVersion", "providerFail", "providerUnknown", "providerBlank", "providerMapping", "providerHarvest"];
-  const LENS_ACTOR = { V: "#actor-researcher", DS: "#actor-data-steward", SR: "#actor-repository-admin", K: "#actor-community" };
+  const LENS_ACTOR = { V: FG.term("actors", "researcher"), DS: FG.term("actors", "data-steward"), SR: FG.term("actors", "repository-admin"), K: FG.term("actors", "community") };
   /* The last thing a run reported, and the part it was reported on: the answers part shows only what was reported
      there, so a note left by the evidence does not stay pinned above the questions. */
   const status = { check: null, part: null, text: "", busy: false };
@@ -43,17 +44,23 @@
   /* ---------------------------------------------------------------- knowledge base */
 
   SC.checks = () => FG.ofType("Quiz");
-  const itemsOf = (check) => FG.refs(check, "hasPart").sort(FG.byPosition);
+  const itemsOf = (check) => FG.questionsOf(check).sort(FG.byPosition);
   /* A question's ID is its check's ID and its number (dataset.04): inside its check it shows by its number, and the
      page's elements are keyed by the ID with a hyphen for the dot, so selectors need no escaping. */
   const numberOf = (item) => String(item.identifier).split(".").pop();
   const keyOf = (item) => String(item.identifier).replace(/\./g, "-");
 
-  const modesOf = (check) => FG.refs(FG.get("#modes-" + check.identifier), "hasDefinedTerm");
-  const profilesOf = (check) => FG.refs(FG.get("#profiles-" + check.identifier), "hasDefinedTerm");
+  const modesOf = (check) => FG.termsOf("vocabularies/modes-" + check.identifier);
+  const profilesOf = (check) => FG.termsOf("vocabularies/profiles-" + check.identifier);
+  /* A check's modes and NRP profiles are terms of its own sets (`vocabularies/modes-dataset/before`), so a term's code
+     names the reader's choice. */
+  const inSet = (prefix) => (id) => FG.kind(id) === "vocabularies" && FG.localId(id).startsWith(prefix);
+  const isMode = inSet("modes-");
+  const isProfile = inSet("profiles-");
+  const coded = (ids, code) => ids.find((id) => FG.termKey(id) === code) || null;
   const today = () => new Date().toISOString().slice(0, 10);
   const label = (source) => FG.t("selfcheck.source." + source);
-  const prefillOf = (item, source) => FG.refs(item, "additionalProperty").find((entry) => entry.propertyID === "prefill:" + source);
+  const prefillOf = FG.prefillOf;
 
   function fragment(...children) {
     const node = document.createDocumentFragment();
@@ -100,15 +107,15 @@
 
   function applies(item, st) {
     const refs = FG.refIds(item, "appliesTo");
-    const modes = refs.filter((id) => id.startsWith("#mode-"));
-    const profiles = refs.filter((id) => id.startsWith("#profile-"));
-    if (modes.length && !modes.includes("#mode-" + st.mode)) return false;
-    if (profiles.length && !profiles.includes("#profile-" + st.profile)) return false;
+    const modes = refs.filter(isMode);
+    const profiles = refs.filter(isProfile);
+    if (modes.length && !coded(modes, st.mode)) return false;
+    if (profiles.length && !coded(profiles, st.profile)) return false;
     return true;
   }
 
   const ready = (check, st) => (!modesOf(check).length || Boolean(st.mode)) && (!profilesOf(check).length || Boolean(st.profile));
-  const providedByNrp = (item, st) => Boolean(st.profile) && FG.hasRef(item, "providedByNrpFor", "#profile-" + st.profile);
+  const providedByNrp = (item, st) => Boolean(st.profile) && Boolean(coded(FG.refIds(item, "providedByNrpFor"), st.profile));
   const isFirstTier = (item) => FIRST_TIERS.includes(FG.id(item.tier));
   const applicable = (check, st) => (ready(check, st) ? itemsOf(check).filter((item) => applies(item, st)) : []);
   const answerable = (check, st) => applicable(check, st).filter((item) => !providedByNrp(item, st) && !item.assessmentContext);
@@ -157,11 +164,11 @@
   FG.openAt = function (stationId) {
     const counts = { gap: 0, partly: 0, unknown: 0 };
     for (const check of SC.checks()) {
-      if (!FG.hasRef(check, "audience", "#lens-" + FG.state.lens) || !hasState(check)) continue;
+      if (!FG.hasRef(check, "audience", FG.term("lenses", FG.state.lens)) || !hasState(check)) continue;
       const st = stateOf(check);
       for (const item of resultItems(check, st)) {
         const state = ANSWER_STATE[answerOf(st, item)];
-        if (state in counts && FG.id(item.fixAt) === "#station-" + stationId) counts[state] += 1;
+        if (state in counts && FG.id(item.fixAt) === FG.address("stations", stationId)) counts[state] += 1;
       }
     }
     return counts;
@@ -223,7 +230,7 @@
     if (element) element.textContent = text;
   }
 
-  /* Evidence that covers only part of its question carries the partial-coverage note (D-168); its suggestion is a
+  /* Evidence that covers only part of its question carries the partial-coverage note; its suggestion is a
      lower bound, which evidence about the whole question outranks. */
   const partialOnly = (observation) => FG.list(observation.notes).some((note) => note && note.key === "selfcheck.note.partialCoverage");
 
@@ -237,11 +244,11 @@
     for (const item of answerable(check, st)) {
       const entry = prefillOf(item, source);
       if (!entry && !direct) continue;
-      const result = evidence(item, FG.list(entry && entry.value));
+      const result = evidence(item, FG.list(entry && entry.prefillField));
       if (!result) continue;
       let value = result.value || null;
       const notes = (result.notes || []).slice();
-      if (value === "yes" && item.prefillLevel === "partly") {
+      if (value === "yes" && FG.prefillPartly(item)) {
         value = "partly";
         notes.push({ key: "selfcheck.note.partlyOnly" });
       }
@@ -571,7 +578,7 @@
       const record = FG.refIds(fer, "sameAs").find((id) => id.startsWith(FG.DASHBOARD));
       return {
         principle: (FG.get(declaration.about) || {}).termCode,
-        status: declaration.creativeWorkStatus,
+        status: FG.termKey(declaration.declarationStatus) || null,
         note: declaration.description,
         fer: { name: FG.text(fer.alternateName || fer.name) || FG.text(fer.name), url: record || fer.url || null },
       };
@@ -679,7 +686,7 @@
   /** Open a check from the landing's search, prepare its state, and run the lookup the user chose once the check is
       shown. */
   function startAt(checkId, prepare, run) {
-    const check = FG.get("#check-" + checkId);
+    const check = FG.get("checks/" + checkId);
     if (!check) return;
     prepare(stateOf(check), check);
     const hash = FG.href("check", checkId);
@@ -819,8 +826,8 @@
     if (!check.defaultProfile) return true;
     return itemsOf(check).some((item) => {
       const refs = FG.refIds(item, "appliesTo");
-      const modes = refs.filter((id) => id.startsWith("#mode-"));
-      return refs.some((id) => id.startsWith("#profile-")) && (!modes.length || modes.includes("#mode-" + st.mode));
+      const modes = refs.filter(isMode);
+      return refs.some(isProfile) && (!modes.length || Boolean(coded(modes, st.mode)));
     });
   }
 
@@ -861,13 +868,13 @@
 
   function sourcesOf(check, st) {
     const sources = new Set();
-    for (const item of answerable(check, st)) for (const entry of FG.refs(item, "additionalProperty")) sources.add(String(entry.propertyID).replace("prefill:", ""));
+    for (const item of answerable(check, st)) for (const mapping of FG.prefillMappings(item)) sources.add(mapping.identifier);
     return sources;
   }
 
   /** Whether a question the check shows is answered by looking for the output's data steward. */
   const needsSteward = (check, st) =>
-    answerable(check, st).some((item) => FG.refs(item, "additionalProperty").some((entry) => entry.propertyID === "prefill:datacite" && FG.list(entry.value).includes("@steward")));
+    answerable(check, st).some((item) => FG.list((prefillOf(item, "datacite") || {}).prefillField).includes("@steward"));
 
   /** The data steward of a funded output, by ORCID iD, for the DataCite lookup to find among creators and contributors. */
   function stewardControl(check, st) {
@@ -897,7 +904,7 @@
   const VERDICTS = ["pass", "fail", "indeterminate"];
   const VERDICT_ICON = { pass: "✓", fail: "✗", indeterminate: "?", none: "–", partly: "◐", running: "…" };
   const sampleOf = (text) => [...new Set(String(text || "").split(/[\s,;]+/).map((value) => value.trim()).filter(Boolean))];
-  const healthOf = (test) => (test ? FG.id(test.healthStatus) || test.healthStatus : null);
+  const healthOf = (test) => (test ? FG.termKey(test.healthStatus) || null : null);
   const verdictKey = (test, record) => test + " " + record;
   /* Tests running now, by identifier, so each question's line can say so. */
   const running = new Set();
@@ -910,7 +917,7 @@
 
   /** A question's FAIR Champion tests; a test known to be unavailable is left out. */
   const testsOf = (item) =>
-    FG.list((prefillOf(item, "champion") || {}).value)
+    FG.list((prefillOf(item, "champion") || {}).prefillField)
       .map(String)
       .filter((id) => healthOf(FG.sourceEntity("fair-champion", id)) !== "unavailable");
 
@@ -1049,7 +1056,7 @@
   }
 
   /** Answer every question whose FAIR Champion tests have results on this run: Yes when every record passed them,
-      Partly when some did or when the tests cover only part of the question, No when none did (D-168). A test
+      Partly when some did or when the tests cover only part of the question, No when none did. A test
       without a result never counts as a failure, and the coverage is always stated. */
   function applyChampion(check, st, run) {
     const single = run.records.length === 1;
@@ -1071,8 +1078,9 @@
         const passed = states.filter((state) => state === "pass").length;
         /* No verdict at all verified nothing, so it is not described as partial support; a narrower test or a sample
            with records without a result supports only part of the question, and answers Partly when that part is
-           met and No when it fails (D-168). */
-        const partial = item.championEvidenceOnly || states.some((state) => ["none", "indeterminate"].includes(state));
+           met and No when it fails. */
+        const evidenceOnly = FG.prefillCoverage(prefillOf(item, "champion")) === "champion-evidence-only";
+        const partial = evidenceOnly || states.some((state) => ["none", "indeterminate"].includes(state));
         const notes = !known ? [{ key: "selfcheck.note.testUnavailable" }] : partial ? [{ key: "selfcheck.note.partialCoverage" }] : [];
         return {
           value: !known ? null : !passed ? "no" : passed === run.records.length && !partial ? "yes" : "partly",
@@ -1155,7 +1163,7 @@
         { class: "test-head" },
         /* The tests are FAIR Champion's: its badge and name lead the line, as wherever an evaluator's work appears. */
         h("span", { class: "test-label evaluator-name" }, inspection.sourceBadge("champion"),
-          h("span", null, FG.text((FG.get("#resource-fair-champion") || {}).name || "FAIR Champion") + " · " + FG.t("selfcheck.champion.label", { n: tests.length }))),
+          h("span", null, FG.text((FG.get("resources/fair-champion") || {}).name || "FAIR Champion") + " · " + FG.t("selfcheck.champion.label", { n: tests.length }))),
         action
           ? h("button", { type: "button", class: "button-small test-run", id: "test-run-" + keyOf(item), disabled: status.busy || null, onclick: () => runChampion(check, tests, "tests-" + keyOf(item)) }, action)
           : ready
@@ -1361,8 +1369,8 @@
   /** One evidence source as a card: its badge and name, what it sends to which service, how long it takes and how
       many of the shown questions it can suggest an answer to, then its controls. */
   function evidenceCard(check, st, key, prefills, ...content) {
-    const resource = FG.get("#resource-" + SOURCE_RESOURCES[key]);
-    const localQuestions = new Set(FG.graph.filter((test) => String(test["@id"]).startsWith("#test-guide-") &&
+    const resource = FG.get(FG.address("resources", SOURCE_RESOURCES[key]));
+    const localQuestions = new Set(FG.graph.filter((test) => FG.isRecord(test, "tests") && FG.localId(test).startsWith("guide/") &&
       ((key === "software" && test.url === "assets/js/tests/software.js") || (key === "pid" && test.url === "assets/js/tests/object.js")))
       .flatMap((test) => FG.refIds(test, "isImplementationOf")));
     const count = resultItems(check, st).filter((item) => localQuestions.has(FG.id(item)) || prefills.some((source) => prefillOf(item, source))).length;
@@ -1608,7 +1616,7 @@
   /** A check's blocks in their order, when it has any. */
   const blocksOf = (items) => {
     const block = items.map((item) => FG.get(item.block)).find(Boolean);
-    return block ? FG.refs(FG.get(block.inDefinedTermSet), "hasDefinedTerm") : [];
+    return block ? FG.termsOf(block.inDefinedTermSet) : [];
   };
 
   /** Lists contain each question once; missing mappings remain in Other. FAIR report bars may overlap. */
@@ -1723,10 +1731,10 @@
 
   function whom(item) {
     const own = LENS_ACTOR[FG.state.lens];
-    const actors = FG.refs(item, "fixedBy").filter((actor) => actor["@id"] !== "#actor-researcher" && actor["@id"] !== own);
-    if (FG.state.lens === "V" && !actors.some((actor) => actor["@id"] === "#actor-data-steward")) actors.push(FG.get("#actor-data-steward"));
+    const actors = FG.refs(item, "fixedBy").filter((actor) => actor["@id"] !== FG.term("actors", "researcher") && actor["@id"] !== own);
+    if (FG.state.lens === "V" && !actors.some((actor) => actor["@id"] === FG.term("actors", "data-steward"))) actors.push(FG.get(FG.term("actors", "data-steward")));
     const helps = [];
-    if (actors.some((actor) => actor && actor["@id"] === "#actor-data-steward")) helps.push(FG.get("#help-data-steward"));
+    if (actors.some((actor) => actor && actor["@id"] === FG.term("actors", "data-steward"))) helps.push(FG.get("#help-data-steward"));
     if (!actors.filter(Boolean).length) helps.push(FG.get("#help-nrp-support"));
     return { names: actors.filter(Boolean).map((actor) => FG.text(actor.name)), helps: helps.filter(Boolean) };
   }
@@ -1773,9 +1781,9 @@
 
   /** For a funded output: that the dataset would not meet the picked programme's output requirement. */
   function programmeLine(st, item) {
-    const programmes = FG.refIds(item, "appliesTo").filter((id) => id.startsWith("#profile-"));
-    const picked = st && st.profile ? "#profile-" + st.profile : null;
-    if (!picked || !programmes.includes(picked)) return null;
+    const programmes = FG.refIds(item, "appliesTo").filter(isProfile);
+    const picked = st && st.profile ? coded(programmes, st.profile) : null;
+    if (!picked) return null;
     return h("p", { class: "action-programme small" }, FG.t("selfcheck.result.programmeGap", { programme: FG.text(FG.get(picked).name) }));
   }
 
@@ -1783,7 +1791,7 @@
       sources. */
   function basisLine(item) {
     /* By identifier, so that a gap shown where a standard's requirements have not loaded (a station) still names them. */
-    const ids = FG.refIds(item, "citation").filter((id) => id.startsWith("#clause-"));
+    const ids = FG.refIds(item, "citation").filter((id) => FG.isRecord(id, "clauses"));
     if (!ids.length) return null;
     const clauses = ids.map(FG.get).filter(Boolean);
     const sources = [...new Set(clauses.map((clause) => FG.get(clause.isPartOf)).filter(Boolean))];
@@ -1818,7 +1826,7 @@
   function handover(st, item) {
     if (!FG.refIds(item, "implementationSeams").length) return null;
     const ask = whom(item);
-    const check = FG.get(item.isPartOf) || SC.checks().find((candidate) => FG.hasRef(candidate, "hasPart", item["@id"]));
+    const check = FG.checkOf(item) || SC.checks().find((candidate) => FG.questionsOf(candidate).some((question) => question["@id"] === item["@id"]));
     const pid = st.target && FG.live.parsePid(st.target);
     const targetUrl = webUrl(st.target) || (pid ? FG.live.pidUrl(pid) : null);
     const targetName = st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher);
@@ -2055,7 +2063,8 @@
   /* The owners a role stands for: the chosen role sees the gaps it puts right first. Every owner is named by its
      role, so a gap reads the same on screen, in a saved report and to whoever reads it; the researcher's group is the
      Researcher lens's own. */
-  const ROLE_OWNERS = { V: ["#actor-researcher"], DS: ["#actor-data-steward"], SR: ["#actor-repository-admin", "#actor-curator"], K: ["#actor-community"] };
+  const ROLE_OWNERS = { V: ["researcher"], DS: ["data-steward"], SR: ["repository-admin", "curator"], K: ["community"] };
+  for (const lens of Object.keys(ROLE_OWNERS)) ROLE_OWNERS[lens] = ROLE_OWNERS[lens].map((code) => FG.term("actors", code));
 
   /** The gaps grouped by who puts them right, as each question states it (its owners in the content); the rule is
       said above the groups, and the chosen role changes only which group comes first. */
@@ -2134,7 +2143,7 @@
       const verdict = observation.value ? stateLabel(ANSWER_STATE[observation.value] || "open") : FG.t("selfcheck.report.noVerdict");
       return h("td", null, link(item, verdict));
     };
-    /* Partial evidence is a lower bound (D-168): its Partly agrees with Yes or Partly, and its No with No or Partly. */
+    /* Partial evidence is a lower bound: its Partly agrees with Yes or Partly, and its No with No or Partly. */
     const consistent = (own, observation) => (partialOnly(observation) ? (observation.value === "partly" ? own !== "no" : own !== "yes") : observation.value === own);
     const verdictOf = (item) => {
       const own = answerOf(st, item);
@@ -2161,7 +2170,7 @@
                   h("th", { scope: "col" }, FG.t("selfcheck.report.question")),
                   h("th", { scope: "col" }, FG.t("selfcheck.report.yours")),
                   evaluators.map((evaluator) => {
-                    const resource = FG.get("#resource-" + evaluator.resource) || { name: evaluator.id };
+                    const resource = FG.get(FG.address("resources", evaluator.resource)) || { name: evaluator.id };
                     return h("th", { scope: "col" }, h("span", { class: "evaluator-name" }, FG.serviceBadge(evaluator.id, resource.url), h("span", null, FG.text(resource.name))));
                   }),
                   h("th", { scope: "col" }, FG.t("selfcheck.report.agree"))
@@ -2300,7 +2309,7 @@
     lines.push("", `${FG.t("selfcheck.export.generatedBy")}, ${FG.config.version}: ${FG.pageAddress()}`, "");
     /* Hidden from readers: the answers as in a shared link, with the format and guide versions, and the whole state
        the JSON-LD carries (identifiers, what they are, evidence), so the summary loads back completely. */
-    lines.push(`<!-- fair-guide-result v${FG.list(st.assessments).length ? FORMAT_VERSION : 2} guide=${FG.config.version}: ${check.identifier} ${SC.sharePayload(check, st)} -->`);
+    lines.push(`<!-- fair-guide-result v${FORMAT_VERSION} guide=${FG.config.version}: ${check.identifier} ${SC.sharePayload(check, st)} -->`);
     lines.push("<!-- fair-guide-state", toBase64(JSON.stringify(SC.portableState(check, st))).match(/.{1,76}/g).join("\n"), "-->", "");
     return lines.join("\n");
   }
@@ -2331,23 +2340,24 @@
     for (const item of answerable(check, st)) {
       const value = answerOf(st, item);
       if (!value || value === "na") continue;
-      /* The manual test of the question in the guide's API, which an exported result can be followed to. */
-      const testId = FG.siteAddress() + FG.config.api.files.test.replace("{id}", item.identifier);
+      /* A reader's answer measures its question, not a test the question was never a part of. */
+      const questionId = FG.iri(item);
       members.push({
         "@id": "#result-" + item.identifier,
-        "@type": ["CreativeWork", "TestResult"],
+        "@type": ["CreativeWork", "dqv:QualityMeasurement"],
         name: item.identifier + ": " + FG.text(item.text),
-        "prov:value": FTR_VALUE[value],
+        "dqv:isMeasurementOf": { "@id": questionId },
+        "dqv:computedOn": target,
+        "dqv:value": FTR_VALUE[value],
         "ftr:completion": value === "yes" ? 1 : value === "no" ? 0 : undefined,
-        "ftr:outputFromTest": { "@id": testId },
         "ftr:assessmentTarget": target,
         "ftr:log": logLine(st, item),
         "prov:used": recordOf(st, item) ? { "@id": recordOf(st, item) } : undefined,
         "prov:wasGeneratedBy": { "@id": "#run" },
-        implementationLayers: FG.refIds(item, "implementationLayers").map((id) => ({ "@id": guideCrate + id })),
-        implementationSeams: FG.refIds(item, "implementationSeams").map((id) => ({ "@id": guideCrate + id })),
+        implementationLayers: FG.refIds(item, "implementationLayers").map((id) => ({ "@id": FG.iri(id) })),
+        implementationSeams: FG.refIds(item, "implementationSeams").map((id) => ({ "@id": FG.iri(id) })),
       });
-      tests.push({ "@id": testId, "@type": "CreativeWork", additionalType: { "@id": vocab.ftr + "Test" }, name: item.identifier + ": " + FG.text(item.text) });
+      tests.push({ "@id": questionId, "@type": ["CreativeWork", "ftr:Metric"], name: item.identifier + ": " + FG.text(item.text) });
     }
     const run = currentRun(check, st);
     const probeVerdicts = run ? run.records.flatMap((record, index) => championTests(check, st).map((test) => Object.assign({ test: test.id, target: record, index }, run.verdicts[verdictKey(test.id, record)]))) : FG.list(st.verdicts);
@@ -2361,14 +2371,14 @@
         name: FG.text(test.name),
         "prov:value": verdict.value,
         "ftr:completion": verdict.value === "pass" ? 1 : verdict.value === "fail" ? 0 : undefined,
-        "ftr:outputFromTest": { "@id": test.url },
+        "ftr:outputFromTest": { "@id": FG.iri(test) },
         "ftr:assessmentTarget": verdict.target ? { "@id": verdict.target } : target,
         "ftr:log": verdict.log ? String(verdict.log) : undefined,
         "prov:wasGeneratedBy": { "@id": "#run" },
-        implementationLayers: FG.refIds(test, "implementationLayers").map((id) => ({ "@id": guideCrate + id })),
-        implementationSeams: FG.refIds(test, "implementationSeams").map((id) => ({ "@id": guideCrate + id })),
+        implementationLayers: FG.refIds(test, "implementationLayers").map((id) => ({ "@id": FG.iri(id) })),
+        implementationSeams: FG.refIds(test, "implementationSeams").map((id) => ({ "@id": FG.iri(id) })),
       });
-      tests.push({ "@id": test.url, "@type": "CreativeWork", additionalType: { "@id": vocab.ftr + "Test" }, name: FG.text(test.name) });
+      tests.push({ "@id": FG.iri(test), "@type": ["CreativeWork", "ftr:Test", "guide:AssessmentCriterion"], name: FG.text(test.name) });
     }
     /* Optional evaluators' native results, each generated by its own assessment activity. */
     const provided = providers ? providers.crateMembers(check, st, target) : { members: [], activities: [], tests: [] };
@@ -2385,11 +2395,11 @@
         datePublished: now.slice(0, 10),
         license: { "@id": "#license" },
         isBasedOn: { "@id": guideCrate },
-        about: { "@id": guideCrate + "#check-" + check.identifier },
+        about: { "@id": FG.iri(check) },
         mentions: { "@id": "#result-set" },
         guideState: JSON.stringify(SC.portableState(check, st)),
       },
-      { "@id": guideCrate + "#check-" + check.identifier, "@type": "CreativeWork", name: FG.text(check.name) },
+      { "@id": FG.iri(check), "@type": "CreativeWork", name: FG.text(check.name) },
       { "@id": "#license", "@type": "CreativeWork", name: FG.t("selfcheck.export.licenseName"), description: FG.t("selfcheck.export.licenseText") },
       {
         "@id": guideCrate,
@@ -2427,9 +2437,11 @@
       "@context": [
         vocab.roCrate + "/context",
         {
-          ftr: vocab.ftr,
-          prov: vocab.prov,
-          TestResultSet: vocab.ftr + "TestResultSet",
+           ftr: vocab.ftr,
+           prov: vocab.prov,
+           dqv: DQV,
+           guide: FG.config.namespace + "terms#",
+           TestResultSet: vocab.ftr + "TestResultSet",
           TestResult: vocab.ftr + "TestResult",
           TestExecutionActivity: vocab.ftr + "TestExecutionActivity",
           guideState: vocab.guideTerms.guideState,
@@ -2451,12 +2463,12 @@
       if (!entry || (!answerOf(st, item) && !entry.prefill)) continue;
       items[item.identifier] = { value: answerOf(st, item), origin: entry.origin || null, prefill: entry.prefill || null, observations: observationsOf(entry) };
     }
-    /* Attached evaluator assessments need format revision 3; a result without them stays readable by earlier
-       versions of the guide. Original reports travel only in the complete evidence download. */
+    /* Attached evaluator assessments keep their structured results, not a combined FAIR score. Original reports
+       travel only in the complete evidence download; each record remains bounded and independently interpreted. */
     const assessments = FG.providers ? FG.providers.portable(st) : [];
     return boundedPortable({
       format: FORMAT,
-      v: assessments.length ? FORMAT_VERSION : 2,
+      v: FORMAT_VERSION,
       guideVersion: FG.config.version,
       check: check.identifier,
       mode: st.mode || null,
@@ -2529,7 +2541,7 @@
         }).filter(Boolean);
         return { path: field.path, values, more: (Number.isInteger(field.more) && field.more > 0 ? field.more : 0) + raw.length - values.length };
       });
-    const testId = isText(pre.testId, 100) && /^guide-[a-z]+-\d{2}$/.test(pre.testId) && FG.get("#test-" + pre.testId) ? pre.testId : null;
+    const testId = isText(pre.testId, 100) && /^guide-[a-z]+-\d{2}$/.test(pre.testId) && FG.localTest(pre.testId) ? pre.testId : null;
     const assessment = FG.providers && FG.providers.isAssessmentId(pre.assessment) ? pre.assessment : null;
     return { source: pre.source, date: pre.date, value: ANSWERS.includes(pre.value) ? pre.value : null, notes, list, fields, record: webUrl(pre.record), subject: isText(pre.subject, 2000) ? pre.subject : null, representation: isText(pre.representation, 2000) ? pre.representation : null, commit: isText(pre.commit, 100) ? pre.commit : null, coverage: isText(pre.coverage, 300) ? pre.coverage : null, testId, assessment, truncated };
   }
@@ -2558,8 +2570,8 @@
     if (!data || typeof data !== "object" || Array.isArray(data)) return { error: "damaged" };
     if (data.format !== undefined && data.format !== FORMAT) return { error: "notGuide" };
     if (Number.isInteger(data.v) && data.v > FORMAT_VERSION) return { error: "newer", params: { version: isText(data.guideVersion, 40) ? data.guideVersion : "?" } };
-    if (![1, 2, FORMAT_VERSION].includes(data.v) || !isText(data.check, 50)) return { error: "damaged" };
-    const check = FG.get("#check-" + data.check);
+    if (![1, 2, 3, FORMAT_VERSION].includes(data.v) || !isText(data.check, 50)) return { error: "damaged" };
+    const check = FG.get("checks/" + data.check);
     if (!check) return { error: "unknownCheck" };
     if (!data.items || typeof data.items !== "object" || Array.isArray(data.items)) return { error: "damaged" };
     if (data.mode !== null && !modesOf(check).some((term) => term.termCode === data.mode)) return { error: "damaged" };
@@ -2673,7 +2685,7 @@
     const match = String(text).match(/^<!--\s*fair-guide-result(?:\s+v(\d+))?(?:\s+guide=(\S+?))?:\s*([a-z-]+)\s+(a\d+\.[A-Za-z0-9._]+)\s*-->/m);
     if (!match) return { error: "notGuide" };
     if (Number(match[1] || FORMAT_VERSION) > FORMAT_VERSION) return { error: "newer", params: { version: match[2] || "?" } };
-    const check = FG.get("#check-" + match[3]);
+    const check = FG.get("checks/" + match[3]);
     if (!check) return { error: "unknownCheck" };
     const carried = String(text).match(/^<!--\s*fair-guide-state\b([\s\S]*?)^-->/m);
     if (carried) {
@@ -3100,7 +3112,7 @@
   }
 
   function checkView(route) {
-    const check = FG.get("#check-" + route.arg);
+    const check = FG.get("checks/" + route.arg);
     const minutes = String(check.timeRequired || "").replace(/\D/g, "");
     const part = partOf(route);
     const head = [
@@ -3290,7 +3302,7 @@
   function overview(route) {
     FG.offerExport({ id: "data", icon: "code", label: FG.t("export.data"), href: FG.config.api.files.record.replace("{record}", "checks") });
     const checks = SC.checks();
-    const mine = checks.filter((check) => FG.hasRef(check, "audience", "#lens-" + route.lens));
+    const mine = checks.filter((check) => FG.hasRef(check, "audience", FG.term("lenses", route.lens)));
     const others = checks.filter((check) => !mine.includes(check));
     const steps = ["selfcheck.steps.choose", "selfcheck.steps.answer", "selfcheck.steps.result"];
     return h(
@@ -3351,9 +3363,13 @@
 
   FG.views.selfcheck = function (route) {
     if (!inspection) {
-      if (!inspectionFailed) loadInspection().then(() => FG.rerender()).catch(() => { inspectionFailed = true; FG.rerender(); });
+      if (!inspectionFailed) {
+        const hash = window.location.hash;
+        const refresh = () => { if (window.location.hash === hash) FG.rerender(); };
+        loadInspection().then(refresh).catch(() => { inspectionFailed = true; refresh(); });
+      }
       return h("div", { class: "wrap", role: "status" }, FG.t(inspectionFailed ? "app.error" : "app.loading"));
     }
-    return route.view === "check" && FG.get("#check-" + route.arg) ? checkView(route) : overview(route);
+    return route.view === "check" && FG.get("checks/" + route.arg) ? checkView(route) : overview(route);
   };
 })();

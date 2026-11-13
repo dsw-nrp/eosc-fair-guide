@@ -13,6 +13,7 @@ timeoutSeconds = 60
 id = "test_one"
 alternateIds = [{ scheme = "fair-champion", value = "test_one" }]
 principle = "F1"
+metric = "https://metrics.example.org/test-one"
 label = { cs = "Test", en = "Test" }
 
 [links]

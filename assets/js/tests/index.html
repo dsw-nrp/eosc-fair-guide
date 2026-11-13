@@ -29,7 +29,7 @@
       </section>
       <h2>Identita a volání</h2>
       <p>Identifikátor má tvar <code>guide-cdif-01</code> nebo <code>guide-software-14</code>. Funkce <code>FairGuide.selfcheck.localTests["guide-cdif-01"](observations)</code> vybere podklady pro danou otázku a připojí identitu testu. Volání <code>assessObject(check, result, sample)</code> a <code>assessSoftware(check, repository)</code> nejprve vyhodnotí načtené podklady a poté zavolají jednotlivé registrované funkce.</p>
-      <p>V API je každý test popsaný v <code>api/tests/&lt;identifikátor&gt;.json</code>. Záznam obsahuje vazbu na otázku, popis, funkci, implementaci a dokumentaci. Přílohy jsou součástí RO-Crate průvodce. <a href="../../../api/tests.json">Seznam testů v API</a> vyžaduje otevření průvodce přes HTTP.</p>
+      <p>V API je každý test popsaný v <code>api/v1/tests/guide/&lt;identifikátor&gt;.json</code>. Záznam obsahuje vazbu na otázku, popis, funkci, implementaci a dokumentaci. Přílohy jsou součástí RO-Crate průvodce. <a href="../../../api/v1/tests.json">Seznam testů v API</a> vyžaduje otevření průvodce přes HTTP.</p>
       <h2>Jednotlivé testy</h2>
       <!-- generated:testscs --><!-- /generated:testscs -->
       <section id="english" lang="en" aria-labelledby="english-title">
@@ -48,7 +48,7 @@
         <p>Implementation: <a href="software.js">software.js</a>. Shared field readers and function registry: <a href="../assess.js">assess.js</a>.</p>
         <h2>Identity and invocation</h2>
         <p>Identifiers follow the form <code>guide-cdif-01</code> or <code>guide-software-14</code>. The function <code>FairGuide.selfcheck.localTests["guide-cdif-01"](observations)</code> selects evidence for that question and adds the test identity. Calls to <code>assessObject(check, result, sample)</code> and <code>assessSoftware(check, repository)</code> first evaluate retrieved evidence and then call the registered functions.</p>
-        <p>Each test has a record at <code>api/tests/&lt;identifier&gt;.json</code>, linking its question, description, function, implementation and documentation. Attachments belong to the guide's RO-Crate. The <a href="../../../api/tests.json">API test list</a> requires opening the guide over HTTP.</p>
+        <p>Each test has a record at <code>api/v1/tests/guide/&lt;identifier&gt;.json</code>, linking its question, description, function, implementation and documentation. Attachments belong to the guide's RO-Crate. The <a href="../../../api/v1/tests.json">API test list</a> requires opening the guide over HTTP.</p>
         <h2>Individual tests</h2>
         <!-- generated:testsen --><!-- /generated:testsen -->
       </section>

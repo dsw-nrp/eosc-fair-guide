@@ -42,6 +42,9 @@ each changed source is reviewed through a pull request.
 
 The built page works offline, from a local file, in an iframe or on a static host. Only user-started live checks
 need the internet. Content sources are TOML; the build creates the crate, page and static API in `_site/`.
+The `_site/api/v1/index.json` index links a list for every kind, `api/v1/<kind>.json` and a record
+`api/v1/<kind>/<id>.json`, optionally `api/v1/<kind>/<scope>/<id>.json`. The same graph is available through
+OpenAPI and as `knowledge-graph.nt`; the health snapshot is at `_site/api/v1/health.json`.
 Production comes from verified releases; `/next/` is the checked default-branch preview.
 
 ## Licence

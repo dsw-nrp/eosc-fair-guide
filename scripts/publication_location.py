@@ -65,19 +65,19 @@ def semantic_identity(crate: dict, config: dict | None = None) -> dict[str, str]
         raise ValueError("crate carries no complete Guide semantic identity") from error
 
 
-def site_identity(files: dict[str, bytes]) -> dict[str, str]:
+def site_identity(files: dict[str, bytes], crate: dict | None = None) -> dict[str, str]:
     """Publication and semantic inputs established from real files, without a manifest default."""
     try:
         config = config_values(files["assets/data/ui.js"].decode("utf-8"))
-        crate = json.loads(files["ro-crate-metadata.json"])
+        crate = crate if crate is not None else json.loads(files["ro-crate-metadata.json"])
         return {"publication_url": base_url(config["pageUrl"]), **semantic_identity(crate, config)}
     except KeyError as error:
         raise ValueError("site lacks publication/semantic evidence") from error
 
 
-def verify_declaration(files: dict[str, bytes], manifest: dict) -> dict[str, str]:
+def verify_declaration(files: dict[str, bytes], manifest: dict, crate: dict | None = None) -> dict[str, str]:
     """Verify new stamps against bytes; legacy archives derive semantic values from the crate."""
-    actual = site_identity(files)
+    actual = site_identity(files, crate)
     if "semantic" in manifest:
         if not isinstance(manifest["semantic"], dict) or set(manifest["semantic"]) != {"vocabulary_base", "profile"}:
             raise ValueError("invalid release semantic declaration")

@@ -303,7 +303,7 @@ def r3d(element: ET.Element, tag: str) -> list[str]:
 
 def r3d_names_in(record: ET.Element, language: str) -> list[str]:
     """The names a re3data record tags with one language (ISO 639-3), its repository name before its other names, in
-    the record's order and each once. re3data tags names unevenly, so curated entries correct them (D-173)."""
+    the record's order and each once. re3data tags names unevenly, so curated entries correct them."""
     names: list[str] = []
     for tag in ("repositoryName", "additionalName"):
         for child in record.iter():
@@ -975,17 +975,11 @@ def commit(snapshot: Snapshot, root: Path) -> Outcome:
         if snapshot.notes:
             outcome.reason += "; " + snapshot.notes
         return outcome
-    vocabulary_path = root / "content" / "guide.toml"
-    vocabulary = tomllib.loads(vocabulary_path.read_text(encoding="utf-8")) if vocabulary_path.exists() else {}
-    resource_types = {
-        native: row["id"] for row in vocabulary.get("resourceType", []) for native in row.get("fipDashboard", [])
-    }
     try:
         new_text = preserve_snapshot(
             snapshot.text(),
             target.read_text(encoding="utf-8") if target.exists() else "",
             reserved=reserved_identifiers(root, target),
-            resource_types=resource_types,
         )
     except ValueError as error:
         raise RejectedError(f"{snapshot.path}: identity needs review: {error}") from error
@@ -994,17 +988,21 @@ def commit(snapshot: Snapshot, root: Path) -> Outcome:
         if snapshot.notes:
             outcome.reason += "; " + snapshot.notes
         return outcome
+    write_atomically(target, new_text)
+    outcome.status = "changed"
+    return outcome
+
+
+def write_atomically(target: Path, text: str) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     handle, temporary = tempfile.mkstemp(prefix=f".{target.name}.", dir=target.parent)
     try:
         with os.fdopen(handle, "w", encoding="utf-8", newline="\n") as stream:
-            stream.write(new_text)
+            stream.write(text)
         os.replace(temporary, target)
     except BaseException:
         Path(temporary).unlink(missing_ok=True)
         raise
-    outcome.status = "changed"
-    return outcome
 
 
 def refresh(

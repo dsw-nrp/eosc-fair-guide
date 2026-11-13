@@ -45,7 +45,8 @@ class AssemblyTests(unittest.TestCase):
         self.release.mkdir()
         self.files = {
             "index.html": HTML.encode(),
-            "api/health.json": json.dumps(self.health(PRODUCTION)).encode(),
+            "api/v1/health.json": json.dumps(self.health(PRODUCTION)).encode(),
+            "404.html": (ROOT / "_site" / "404.html").read_bytes(),
             "linkset.json": b'{"anchor":"https://example.org/guide/"}',
             "sitemap.xml": b"<urlset><loc>https://example.org/guide/</loc></urlset>",
             "assets/js/app.js": b"window.example = true;",
@@ -58,7 +59,7 @@ class AssemblyTests(unittest.TestCase):
             "profile/0.1/index.html": HTML.encode(),
             "assets/js/tests/index.html": HTML.encode(),
             "assets/css/staging.css": (ROOT / "assets/css/staging.css").read_bytes(),
-            "api/health.json": json.dumps(self.health(STAGING)).encode(),
+            "api/v1/health.json": json.dumps(self.health(STAGING)).encode(),
             "openapi.json": b'{"servers":[{"url":"https://example.org/guide/"}],"paths":{}}',
             "linkset.json": self.files["linkset.json"],
             **publication_files(),
@@ -124,7 +125,7 @@ class AssemblyTests(unittest.TestCase):
 
     def test_a_preview_with_the_next_namespace_is_published_beside_production_with_a_notice(self):
         # The reviewed namespace changed after the release: production keeps its own, unchanged bytes until the next
-        # release, and the summary says that the two channels differ (decision 28).
+        # release, and the summary says that the two channels differ.
         self.stage_files(publication_files("https://actual.example/", semantic="https://actual.example/"))
         notices = self.assemble()
         self.assertEqual((self.out / "ro-crate-metadata.json").read_bytes(), self.files["ro-crate-metadata.json"])
@@ -223,11 +224,14 @@ class AssemblyTests(unittest.TestCase):
         self.assertFalse(self.out.exists())
 
     def test_both_trees_are_combined_without_changing_a_production_byte(self) -> None:
-        self.assemble()
+        with patch.object(assemble_pages.json, "loads", wraps=assemble_pages.json.loads) as loads:
+            self.assemble()
+        crate_loads = [call for call in loads.call_args_list if call.args[0] == self.files[build_crate.CRATE_FILE]]
+        self.assertEqual(len(crate_loads), 2, "the production and byte-identical preview inputs each decode once")
         for name, data in self.files.items():
             self.assertEqual((self.out / name).read_bytes(), data, name)
         pages = list((self.out / "next").rglob("*.html"))
-        self.assertEqual(len(pages), 4)
+        self.assertEqual(len(pages), 5)
         for path in pages:
             text = path.read_text(encoding="utf-8")
             self.assertIn('content="noindex"', text)
@@ -249,9 +253,65 @@ class AssemblyTests(unittest.TestCase):
         self.assertEqual((self.out / "index.html").read_bytes(), self.files["index.html"])
         self.assertIn("New preview", (self.out / "next/index.html").read_text(encoding="utf-8"))
 
+    def test_predecessor_layout_is_preserved_and_ambiguous_health_is_rejected(self) -> None:
+        self.files["api/health.json"] = self.files.pop("api/v1/health.json")
+        del self.files["404.html"]
+        crate = json.loads(self.files[build_crate.CRATE_FILE])
+        for node in crate["@graph"]:
+            node.pop("releaseStatus", None)
+            if node["@id"] in ("./", "#guide-software"):
+                node["creativeWorkStatus"] = "production"
+        self.files[build_crate.CRATE_FILE] = json.dumps(crate).encode()
+        self.write_release(self.files)
+        with patch.object(assemble_pages.json, "loads", wraps=assemble_pages.json.loads) as loads:
+            self.assemble()
+        crate_loads = [call for call in loads.call_args_list if call.args[0] == self.files[build_crate.CRATE_FILE]]
+        preview_crate = (self.stage / build_crate.CRATE_FILE).read_bytes()
+        preview_loads = [call for call in loads.call_args_list if call.args[0] == preview_crate]
+        self.assertEqual(len(crate_loads), 1, "the modified predecessor decodes once")
+        self.assertEqual(len(preview_loads), 1, "its independently serialized preview decodes once")
+        for name, data in self.files.items():
+            self.assertEqual((self.out / name).read_bytes(), data, name)
+        self.assertFalse((self.out / "404.html").exists(), "a predecessor archive is not required to gain a 404")
+        self.files["api/v1/health.json"] = self.files["api/health.json"]
+        self.write_release(self.files)
+        with self.assertRaisesRegex(assemble_pages.AssemblyError, "exactly one recognized health result"):
+            self.assemble()
+        for name, data in self.files.items():
+            if name != "api/v1/health.json":
+                self.assertEqual((self.out / name).read_bytes(), data, name)
+
+    def test_mixed_and_missing_status_layouts_are_rejected_without_replacing_output(self) -> None:
+        self.assemble()
+        before = {path.relative_to(self.out): path.read_bytes() for path in self.out.rglob("*") if path.is_file()}
+        original = json.loads(self.files[build_crate.CRATE_FILE])
+        for kind in ("current-legacy", "predecessor-current", "split", "missing", "dual"):
+            crate = json.loads(json.dumps(original))
+            nodes = {node["@id"]: node for node in crate["@graph"]}
+            files = dict(self.files)
+            if kind == "predecessor-current":
+                files["api/health.json"] = files.pop("api/v1/health.json")
+                del files["404.html"]
+            if kind == "current-legacy":
+                for key in ("./", "#guide-software"):
+                    nodes[key].pop("releaseStatus")
+                    nodes[key]["creativeWorkStatus"] = "production"
+            if kind == "split":
+                nodes["./"]["creativeWorkStatus"] = "production"
+            if kind == "missing":
+                del nodes["#guide-software"]["releaseStatus"]
+            if kind == "dual":
+                nodes["./"]["creativeWorkStatus"] = "production"
+            files[build_crate.CRATE_FILE] = json.dumps(crate).encode()
+            self.write_release(files)
+            with self.subTest(kind=kind), self.assertRaisesRegex(assemble_pages.AssemblyError, "status layout"):
+                self.assemble()
+            after = {path.relative_to(self.out): path.read_bytes() for path in self.out.rglob("*") if path.is_file()}
+            self.assertEqual(after, before, kind)
+
     def test_a_preview_built_from_the_release_commit_says_it_is_that_release(self) -> None:
         # Tag release tags a commit the preview already serves; the preview's own footer predates the tag.
-        (self.stage / "api/health.json").write_text(json.dumps(self.health(PRODUCTION)), encoding="utf-8")
+        (self.stage / "api/v1/health.json").write_text(json.dumps(self.health(PRODUCTION)), encoding="utf-8")
         assemble_pages.assemble(
             self.stage,
             PRODUCTION,
@@ -264,7 +324,7 @@ class AssemblyTests(unittest.TestCase):
         for name, data in self.files.items():
             self.assertEqual((self.out / name).read_bytes(), data, name)
         pages = list((self.out / "next").rglob("*.html"))
-        self.assertEqual(len(pages), 4)
+        self.assertEqual(len(pages), 5)
         for path in pages:
             text = path.read_text(encoding="utf-8")
             self.assertIn('<span lang="cs">Tento náhled je totožný s vydáním v1.2.3-alpha.1 (commit aaaaaaa).', text)
@@ -274,7 +334,7 @@ class AssemblyTests(unittest.TestCase):
             home = re.search(r'<a href="([^"]+)"><span lang="cs">Otevřít vydání', text)[1]
             self.assertEqual((path.parent / home).resolve(), (self.out / "index.html").resolve(), path)
         # Once the default branch moves on, the preview announces the next release again.
-        (self.stage / "api/health.json").write_text(json.dumps(self.health(STAGING)), encoding="utf-8")
+        (self.stage / "api/v1/health.json").write_text(json.dumps(self.health(STAGING)), encoding="utf-8")
         self.assemble()
         text = (self.out / "next/index.html").read_text(encoding="utf-8")
         self.assertIn("Preview of the next release", text)
@@ -303,7 +363,7 @@ class AssemblyTests(unittest.TestCase):
             self.assertEqual((self.out / "index.html").read_bytes(), original)
             self.manifest[key] = saved
         self.save_manifest()
-        self.files["api/health.json"] = json.dumps(self.health(STAGING)).encode()
+        self.files["api/v1/health.json"] = json.dumps(self.health(STAGING)).encode()
         self.write_release(self.files)
         with self.assertRaisesRegex(assemble_pages.AssemblyError, "checked commit"):
             self.assemble()
@@ -328,7 +388,7 @@ class AssemblyTests(unittest.TestCase):
         for out in (self.stage, self.stage / "nested", self.root, self.root / "assets"):
             with self.subTest(out), self.assertRaises((assemble_pages.AssemblyError, build_crate.ContentError)):
                 assemble_pages.assemble(self.stage, STAGING, out, root=self.root)
-        report = self.stage / "api/health.json"
+        report = self.stage / "api/v1/health.json"
         report.write_text(json.dumps(self.health(PRODUCTION)), encoding="utf-8")
         with self.assertRaisesRegex(assemble_pages.AssemblyError, "staging health"):
             assemble_pages.assemble(self.stage, STAGING, self.out, root=self.root)
@@ -397,7 +457,11 @@ class CrawlerFileTests(unittest.TestCase):
                         locations = [
                             loc.text for loc in sitemap.iter("{http://www.sitemaps.org/schemas/sitemap/0.9}loc")
                         ]
-                        self.assertEqual(locations, [base, base + "api/index.html"])
+                        landing_paths = sorted(
+                            (site / "id").rglob("*.html"), key=lambda path: path.relative_to(site).as_posix()
+                        )
+                        landing = [base + path.relative_to(site).as_posix() for path in landing_paths]
+                        self.assertEqual(locations, [base, base + "api/index.html", *landing])
                         self.assertFalse(any(node.tag.endswith("lastmod") for node in sitemap.iter()))
                     release.mkdir()
                     data = package_site.archive(production)

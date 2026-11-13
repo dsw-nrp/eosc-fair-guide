@@ -20,8 +20,12 @@ console.log("check_champion_probe: reviewed endpoint admission, stable identitie
 
 const root = resolve(import.meta.dirname, "../..");
 const graph = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"))["@graph"];
+/* The evidence-only policy travels with the question, as the coverage of its FAIR Champion pre-fill mapping. */
+const byId = new Map(graph.map((entry) => [entry["@id"], entry]));
 for (const id of ["dataset.01", "dataset.13", "maturity.01", "maturity.05", "maturity.11"]) {
-  assert.equal(graph.find((entry) => entry.identifier === id)?.championEvidenceOnly, true, "evidence-only policy travels with the question");
+  const question = graph.find((entry) => entry.identifier === id && [].concat(entry["@type"]).includes("Question"));
+  const champion = [].concat(question?.prefillMapping || []).map((ref) => byId.get(ref["@id"])).find((mapping) => mapping?.identifier === "champion");
+  assert(String(champion?.prefillCoverage?.["@id"]).endsWith("/prefill-coverages/champion-evidence-only"), "evidence-only policy travels with " + id);
 }
 const { chromium } = await import("./browser.mjs");
 const browser = await chromium.launch();
@@ -62,10 +66,10 @@ try {
     await run("maturity.05");
     assert(await page.locator("#answer-maturity-05-no").isChecked(), "protocol pass cannot replace a manual answer about OAI-PMH/NKR");
     await run("maturity.11");
-    // The retention test covers only part of the tombstone question, so its pass suggests Partly, never Yes (D-168).
+    // The retention test covers only part of the tombstone question, so its pass suggests Partly, never Yes.
     assert.deepEqual(await page.locator("#item-maturity-11 input:checked").evaluateAll((inputs) => inputs.map((input) => input.value)), ["partly"], "a narrower persistence test suggests only Partly");
     const evidence = await page.evaluate(() => {
-      const SC = FairGuide.selfcheck, check = FairGuide.get("#check-maturity");
+      const SC = FairGuide.selfcheck, check = FairGuide.get("checks/maturity");
       const loaded = SC.readPortable(SC.portableState(check, FairGuide.state.answers.maturity));
       return loaded.state.items["maturity.11"];
     });
@@ -76,7 +80,7 @@ try {
     assert(observed.notes.some((note) => note.key === "selfcheck.note.partialCoverage"), "export/import retains the partial-coverage basis");
     assert.equal(await page.locator('#tests-maturity-11 .test-list > .test-row > .test-invocation > a[href="https://tests.ostrails.eu/tests/assess/test/fc_metadata_persistence"]').count(), 1, "the invocation identity stays accessible");
     assert.equal(await page.locator("#tests-maturity-02").count(), 0, "an identifier-scheme test does not answer landing-page continuity");
-    // A run saved under the earlier evidence-only rule follows the current one on the next visit (D-184).
+    // A run saved under the earlier evidence-only rule follows the current one on the next visit.
     await page.evaluate(() => {
       const entry = FairGuide.state.answers.maturity.items["maturity.11"];
       for (const seen of [entry.prefill, ...entry.observations]) if (seen.source === "champion") { seen.value = null; seen.notes = []; }
@@ -94,7 +98,7 @@ try {
     await page.waitForFunction(() => /Hotovo|Done/.test(document.querySelector("#prefill-status").textContent));
     await part("answers");
     await run("dataset.13");
-    // A citation index that finds nothing suggests No, marked as partial coverage: the citation may lie outside it (D-168).
+    // A citation index that finds nothing suggests No, marked as partial coverage: the citation may lie outside it.
     assert.deepEqual(await page.locator("#item-dataset-13 input:checked").evaluateAll((inputs) => inputs.map((input) => input.value)), ["no"], "citation-index absence suggests No");
     assert(await page.evaluate(() => FairGuide.state.answers.dataset.items["dataset.13"].prefill.notes.some((note) => note.key === "selfcheck.note.partialCoverage")), "citation-index absence is marked as partial coverage");
     assert.equal(await page.evaluate(() => FairGuide.state.answers.dataset.champion.verdicts["community_data_cited_in_pub https://doi.org/10.1234/record"].value), "fail", "retain the actual external verdict");

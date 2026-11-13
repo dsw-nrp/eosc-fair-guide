@@ -61,11 +61,17 @@
       window.parent.postMessage({ type: "fair-guide:state", version, height, view }, parentOrigin);
     });
   }
+  /* A record's entry route, `#/id/<address>`, which a host may start with (its frame's own address); the Guide replaces
+     it with the full route, so only full routes are ever published. */
+  const entryView = (view) => typeof view === "string" && view.length <= 2048 && /^#\/id\/[^\s\u0000-\u001f]+$/.test(view);
   window.addEventListener("message", (event) => {
-    if (event.source !== window.parent || !origins.has(event.origin) || !isMessage(event.data, "fair-guide:init") || !validView(event.data.view)) return;
+    if (event.source !== window.parent || !origins.has(event.origin) || !isMessage(event.data, "fair-guide:init")) return;
+    const view = event.data.view;
+    if (!validView(view) && !entryView(view)) return;
     parentOrigin = event.origin;
     previous = "";
-    if (location.hash !== event.data.view) location.hash = event.data.view;
+    if (entryView(view)) location.replace(view);
+    else if (location.hash !== view) location.hash = view;
     publish();
   });
   new ResizeObserver(publish).observe(document.body);

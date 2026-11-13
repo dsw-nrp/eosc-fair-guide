@@ -1,0 +1,206 @@
+# Pinned copies of the vocabularies the Guide's graph, vocabulary, profile and API refer to. The vocabulary checks
+# read these files only, never the network, so a check gives the same answer on every machine. Each copy is the
+# document its source served on the retrieval date, unchanged except that the repository stores line endings as LF;
+# REUSE.toml records its copyright and licence.
+#
+# Refreshing a copy is a reviewed update: fetch the source again, replace the file, update `retrieved` and `version`,
+# and rerun the checks, which then name any term the new copy no longer defines.
+#
+# `namespaces` lists the IRI prefixes whose terms the copy defines; a term is defined when the copy states something
+# about its IRI. A namespace with no vocabulary document of its own lists its terms instead (`terms`).
+
+[[vocabulary]]
+name = "schema.org"
+namespaces = ["http://schema.org/"]
+file = "schema.ttl"
+format = "turtle"
+source = "https://schema.org/version/latest/schemaorg-current-http.ttl"
+version = "30.1"
+retrieved = 2026-11-07
+licence = "https://creativecommons.org/licenses/by-sa/3.0/"
+
+[[vocabulary]]
+name = "DCMI Metadata Terms"
+namespaces = ["http://purl.org/dc/terms/"]
+file = "dcterms.ttl"
+format = "turtle"
+source = "http://purl.org/dc/terms/"
+version = "2012-06-14"
+retrieved = 2026-11-07
+licence = "https://creativecommons.org/licenses/by/4.0/"
+
+[[vocabulary]]
+name = "DCMI Type Vocabulary"
+namespaces = ["http://purl.org/dc/dcmitype/"]
+file = "dcmitype.ttl"
+format = "turtle"
+source = "http://purl.org/dc/dcmitype/"
+version = "2012-06-14"
+retrieved = 2026-11-07
+licence = "https://creativecommons.org/licenses/by/4.0/"
+
+[[vocabulary]]
+name = "DCAT"
+namespaces = ["http://www.w3.org/ns/dcat#"]
+file = "dcat.ttl"
+format = "turtle"
+source = "https://www.w3.org/ns/dcat.ttl"
+version = "3"
+retrieved = 2026-11-07
+licence = "https://creativecommons.org/licenses/by/4.0/"
+
+[[vocabulary]]
+name = "FOAF"
+namespaces = ["http://xmlns.com/foaf/0.1/"]
+file = "foaf.rdf"
+format = "xml"
+source = "http://xmlns.com/foaf/spec/index.rdf"
+retrieved = 2026-11-07
+licence = "https://creativecommons.org/licenses/by/1.0/"
+
+[[vocabulary]]
+name = "SKOS"
+namespaces = ["http://www.w3.org/2004/02/skos/core#"]
+file = "skos.rdf"
+format = "xml"
+source = "http://www.w3.org/2004/02/skos/core.rdf"
+version = "2009-08-18"
+retrieved = 2026-11-07
+licence = "https://www.w3.org/copyright/software-license-2023/"
+
+[[vocabulary]]
+name = "DQV"
+namespaces = ["http://www.w3.org/ns/dqv#"]
+file = "dqv.ttl"
+format = "turtle"
+source = "https://www.w3.org/ns/dqv.ttl"
+version = "2016-12-15"
+retrieved = 2026-11-07
+licence = "https://www.w3.org/copyright/software-license-2023/"
+
+[[vocabulary]]
+name = "PROV-O"
+namespaces = ["http://www.w3.org/ns/prov#"]
+file = "prov-o.ttl"
+format = "turtle"
+source = "https://www.w3.org/ns/prov-o.ttl"
+version = "2013-04-30"
+retrieved = 2026-11-07
+licence = "https://www.w3.org/copyright/software-license-2023/"
+
+[[vocabulary]]
+name = "FAIR Testing Resource Vocabulary (FTR)"
+namespaces = ["https://w3id.org/ftr#"]
+file = "ftr.ttl"
+format = "turtle"
+source = "https://w3id.org/ftr"
+version = "1.3.0"
+retrieved = 2026-11-07
+licence = "https://creativecommons.org/licenses/by/4.0/"
+
+[[vocabulary]]
+name = "ADMS"
+namespaces = ["http://www.w3.org/ns/adms#"]
+file = "adms.ttl"
+format = "turtle"
+source = "http://www.w3.org/ns/adms"
+version = "2.00"
+retrieved = 2026-11-07
+licence = "https://creativecommons.org/licenses/by/4.0/"
+
+[[vocabulary]]
+name = "Semanticscience Integrated Ontology (SIO)"
+namespaces = ["http://semanticscience.org/resource/"]
+file = "sio.rdf"
+format = "xml"
+source = "http://semanticscience.org/ontology/sio.owl"
+version = "1.62"
+retrieved = 2026-11-07
+licence = "https://creativecommons.org/licenses/by/4.0/"
+
+[[vocabulary]]
+name = "FIP ontology"
+namespaces = ["https://w3id.org/fair/fip/terms/"]
+file = "fip.ttl"
+format = "turtle"
+# The w3id address redirects to Nanodash, which assembles the ontology from its nanopublications; each carries its
+# own licence, CC0 1.0 or CC BY 4.0.
+source = "https://w3id.org/fair/fip/terms/"
+retrieved = 2026-11-07
+licence = [
+  "https://creativecommons.org/publicdomain/zero/1.0/",
+  "https://creativecommons.org/licenses/by/4.0/",
+]
+
+[[vocabulary]]
+name = "The Profiles Vocabulary (PROF)"
+namespaces = ["http://www.w3.org/ns/dx/prof/"]
+file = "prof.ttl"
+format = "turtle"
+source = "http://www.w3.org/ns/dx/prof/"
+version = "1.0"
+retrieved = 2026-11-07
+licence = "https://www.w3.org/copyright/software-license-2023/"
+
+[[vocabulary]]
+name = "PROF Resource Roles vocabulary"
+namespaces = ["http://www.w3.org/ns/dx/prof/role/"]
+file = "prof-roles.ttl"
+format = "turtle"
+source = "http://www.w3.org/ns/dx/prof/role/"
+version = "2019-11-25"
+retrieved = 2026-11-07
+licence = "https://www.w3.org/copyright/software-license-2023/"
+
+[[vocabulary]]
+name = "FAIR Vocabulary"
+namespaces = ["https://w3id.org/fair/principles/terms/"]
+file = "fair-principles.ttl"
+format = "turtle"
+source = "https://w3id.org/fair/principles/terms/"
+retrieved = 2026-11-07
+licence = "https://creativecommons.org/licenses/by/4.0/"
+
+[[vocabulary]]
+name = "RDF"
+namespaces = ["http://www.w3.org/1999/02/22-rdf-syntax-ns#"]
+file = "rdf.ttl"
+format = "turtle"
+source = "http://www.w3.org/1999/02/22-rdf-syntax-ns"
+version = "2019-12-16"
+retrieved = 2026-11-07
+licence = "https://www.w3.org/copyright/software-license-2023/"
+
+[[vocabulary]]
+name = "RDF Schema"
+namespaces = ["http://www.w3.org/2000/01/rdf-schema#"]
+file = "rdfs.ttl"
+format = "turtle"
+source = "http://www.w3.org/2000/01/rdf-schema"
+retrieved = 2026-11-07
+licence = "https://www.w3.org/copyright/software-license-2023/"
+
+[[vocabulary]]
+name = "OWL 2"
+namespaces = ["http://www.w3.org/2002/07/owl#"]
+file = "owl.ttl"
+format = "turtle"
+source = "http://www.w3.org/2002/07/owl"
+retrieved = 2026-11-07
+licence = "https://www.w3.org/copyright/software-license-2023/"
+
+# XML Schema datatypes have no RDF vocabulary document; RDF 1.1 Concepts lists the ones RDF uses, and these are the
+# terms of that list.
+[[vocabulary]]
+name = "XML Schema datatypes"
+namespaces = ["http://www.w3.org/2001/XMLSchema#"]
+source = "https://www.w3.org/TR/rdf11-concepts/#xsd-datatypes"
+retrieved = 2026-11-07
+licence = "https://www.w3.org/copyright/document-license-2023/"
+terms = [
+  "string", "boolean", "decimal", "integer", "double", "float", "date", "time", "dateTime", "dateTimeStamp",
+  "gYear", "gMonth", "gDay", "gYearMonth", "gMonthDay", "duration", "yearMonthDuration", "dayTimeDuration", "byte",
+  "short", "int", "long", "unsignedByte", "unsignedShort", "unsignedInt", "unsignedLong", "positiveInteger",
+  "nonNegativeInteger", "negativeInteger", "nonPositiveInteger", "hexBinary", "base64Binary", "anyURI", "language",
+  "normalizedString", "token", "NMTOKEN", "Name", "NCName",
+]

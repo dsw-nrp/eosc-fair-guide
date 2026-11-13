@@ -4,7 +4,7 @@
 # Field reference: docs/content-model.md.
 
 [[source]]
-guideRoute = "res/pub"
+guideRoute = "resources"
 
 id = "layers-seams-manuscript"
 type = "article"
@@ -16,7 +16,7 @@ authors = ["Lada Biedermannová", "David Novák", "Lukáš Najdekr", "Karel Berk
 dateAccessed = 2026-10-11
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "rdmkit"
 knav = "rdmkit"
 code = "RDMKIT"
@@ -46,7 +46,7 @@ datePublished = 2024-11-26
 license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "knav-life-cycle"
 type = "webpage"
 title = { cs = "Životní cyklus dat", en = "Data life cycle" }
@@ -59,7 +59,7 @@ dateAccessed = 2026-10-13
 license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
-guideRoute = "res/tool"
+guideRoute = "resources"
 id = "knav-dm-tools-catalogue"
 type = "software"
 title = "Catalogue of Data Management Tools"
@@ -73,7 +73,7 @@ dateAccessed = 2026-10-13
 license = "https://www.gnu.org/licenses/gpl-3.0.html"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "orcid-identifier-pattern"
 type = "webpage"
 title = "Structure of the ORCID Identifier"
@@ -84,7 +84,7 @@ publisher = "ORCID"
 dateAccessed = 2026-10-11
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "ror-identifier-pattern"
 type = "webpage"
 title = "Identifier pattern"
@@ -95,7 +95,7 @@ publisher = "Research Organization Registry"
 dateAccessed = 2026-10-11
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "crossref-rest-api"
 type = "webpage"
 title = "REST API"
@@ -121,7 +121,7 @@ datePublished = 2026-02-15
 license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "openssf-criteria-2024"
 code = "OPENSSF"
 type = "document"
@@ -137,7 +137,7 @@ dateAccessed = 2026-10-11
 license = "https://creativecommons.org/licenses/by/3.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "nrp-docs-nma-introduction"
 type = "webpage"
 title = "National Metadata Directory: introduction (NRP documentation)"
@@ -147,7 +147,7 @@ publisher = "nrp"
 dateAccessed = 2026-10-08
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "nrp-docs-nma-access"
 type = "webpage"
 title = "National Metadata Directory: access (NRP documentation)"
@@ -157,7 +157,7 @@ publisher = "nrp"
 dateAccessed = 2026-10-08
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "nkr-schema"
 type = "webpage"
 title = { cs = "Národní katalog repozitářů (NKR): schéma záznamu Repository", en = "National Repository Catalogue (NKR): the Repository record schema" }
@@ -167,7 +167,7 @@ publisher = "cesnet"
 dateAccessed = 2026-10-08
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "survey-2025"
 type = "presentation"
 title = { cs = "Stav správy výzkumných dat v České republice 2025", en = "State of research data management in the Czech Republic 2025" }
@@ -193,7 +193,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "ncdoi-2023"
 type = "webpage"
 title = "NTK establishes two new national centres that can help Czech scientists with bureaucracy"
@@ -203,7 +203,7 @@ publisher = "ntk"
 datePublished = 2023-06-02
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "os-linkages-1.1"
 type = "document"
 title = { cs = "Výstupy a provazby projektů Open Science, verze 1.1", en = "Outputs and linkages of Open Science projects, version 1.1" }
@@ -214,7 +214,7 @@ authors = ["Michaela Capandová", "et al."]
 datePublished = 2024-09-26
 
 [[source]]
-guideRoute = "res/tool"
+guideRoute = "resources"
 id = "ccmm-releases"
 type = "software"
 title = "Czech Core Metadata Model (CCMM): releases"
@@ -224,7 +224,7 @@ publisher = "ntk"
 dateAccessed = 2026-10-08
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "einfra-docs"
 type = "webpage"
 title = "e-INFRA CZ documentation"
@@ -246,7 +246,7 @@ datePublished = 2021-08-09
 license = "https://creativecommons.org/publicdomain/zero/1.0/"
 
 [[source]]
-guideRoute = "res/tool"
+guideRoute = "resources"
 id = "fip-wizard-templates"
 type = "software"
 title = "FIP Wizard: nanopublication templates"
@@ -256,7 +256,7 @@ publisher = "GitHub"
 dateAccessed = 2026-10-08
 
 [[source]]
-guideRoute = "res/std"
+guideRoute = "resources"
 id = "fip-ontology"
 type = "standard"
 title = "FAIR Implementation Profile ontology"
@@ -287,7 +287,7 @@ publisher = "csda"
 dateAccessed = 2026-10-08
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "os3-rules"
 type = "document"
 title = { cs = "Pravidla pro žadatele a příjemce – specifická část pro výzvu Open Science III", en = "Rules for applicants and beneficiaries – specific part for the Open Science III call" }
@@ -300,7 +300,7 @@ dateAccessed = 2026-10-09
 license = "https://creativecommons.org/publicdomain/mark/1.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "law-328-2025"
 type = "document"
 title = { cs = "Zákon č. 328/2025 Sb., o výzkumu, vývoji, inovacích a transferu znalostí", en = "Act No. 328/2025 Coll., on research, development, innovation and knowledge transfer" }
@@ -314,7 +314,7 @@ version = "2025-09-09"
 license = "https://creativecommons.org/publicdomain/mark/1.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "law-527-1990"
 type = "document"
 title = { cs = "Zákon č. 527/1990 Sb., o vynálezech a zlepšovacích návrzích", en = "Act No. 527/1990 Coll., on inventions and rationalisation proposals" }
@@ -326,7 +326,7 @@ dateAccessed = 2026-10-31
 license = "https://creativecommons.org/publicdomain/mark/1.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "os3-faq"
 type = "webpage"
 title = { cs = "Open Science III: časté dotazy", en = "Open Science III: frequently asked questions" }
@@ -336,7 +336,7 @@ publisher = "eosc-cz"
 dateAccessed = 2026-10-09
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "minizamer-catalogue"
 type = "document"
 title = { cs = "Minizáměry Open Science II, výzva č. 2: Katalog výstupů", en = "Open Science II mini-projects, call no. 2: catalogue of outputs" }
@@ -348,7 +348,7 @@ datePublished = 2026-09-01
 dateAccessed = 2026-10-09
 
 [[source]]
-guideRoute = "res/pub"
+guideRoute = "resources"
 id = "ec-genai-guidelines"
 type = "report"
 title = "Living guidelines on the responsible use of generative AI in research"
@@ -375,7 +375,7 @@ datePublished = 2026-06-10
 license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "cerit-chat-ai"
 type = "webpage"
 title = "Chat AI (LLM models)"
@@ -385,7 +385,7 @@ publisher = "CERIT-SC"
 dateAccessed = 2026-10-09
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "cerit-ai-api"
 type = "webpage"
 title = "OpenAI API"
@@ -395,7 +395,7 @@ publisher = "CERIT-SC"
 dateAccessed = 2026-10-09
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "cerit-ai-coding"
 type = "webpage"
 title = "AI Coding Assistants Integration"
@@ -405,7 +405,7 @@ publisher = "CERIT-SC"
 dateAccessed = 2026-10-09
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "cerit-ai-privacy"
 type = "webpage"
 title = "AI Data Privacy Policy"
@@ -415,7 +415,7 @@ publisher = "CERIT-SC"
 dateAccessed = 2026-10-09
 
 [[source]]
-guideRoute = "res/pub"
+guideRoute = "resources"
 id = "os2-kb1"
 type = "report"
 title = { cs = "Technická zpráva: Sběr požadavků a návrh architektury systému bezpečnostního monitoringu", en = "Technical report: requirements and architecture design of the security monitoring system" }
@@ -429,7 +429,7 @@ datePublished = 2026-07-24
 license = "https://creativecommons.org/licenses/by-sa/4.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "nrp-aai-integration"
 type = "webpage"
 title = "Integrating a repository system with AAI (NRP documentation)"
@@ -461,7 +461,7 @@ authors = ["M. Dvořák", "P. Špringerová", "M. Antol"]
 datePublished = "2026"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "ndi-architecture"
 type = "document"
 title = { cs = "Architektura implementace iniciativy EOSC v ČR", en = "Architecture of the implementation of the EOSC initiative in the Czech Republic" }
@@ -498,7 +498,7 @@ datePublished = 2025-11-20
 license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
-guideRoute = "res/std"
+guideRoute = "resources"
 id = "cdif-core-1.1.1"
 code = "CDIF"
 type = "standard"
@@ -511,7 +511,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-10
 
 [[source]]
-guideRoute = "res/std"
+guideRoute = "resources"
 id = "cdif-discovery-1.1.1"
 code = "CDIF"
 type = "standard"
@@ -524,7 +524,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-10
 
 [[source]]
-guideRoute = "res/std"
+guideRoute = "resources"
 id = "cdif-datadescription-1.1.1"
 code = "CDIF"
 type = "standard"
@@ -537,7 +537,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-10
 
 [[source]]
-guideRoute = "res/std"
+guideRoute = "resources"
 id = "cdif-codelist-1.1.1"
 code = "CDIF"
 type = "standard"
@@ -550,7 +550,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-10
 
 [[source]]
-guideRoute = "res/std"
+guideRoute = "resources"
 id = "cdif-datastructure-1.1.1"
 code = "CDIF"
 type = "standard"
@@ -563,7 +563,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-10
 
 [[source]]
-guideRoute = "res/std"
+guideRoute = "resources"
 id = "cdif-conceptscheme-1.1.1"
 code = "CDIF"
 type = "standard"
@@ -576,7 +576,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-10
 
 [[source]]
-guideRoute = "res/std"
+guideRoute = "resources"
 id = "cdif-manifest-1.1.1"
 code = "CDIF"
 type = "standard"
@@ -589,7 +589,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-10
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "doi-citation-service"
 type = "webpage"
 title = "DOI Foundation citation formatter: content negotiation documentation"
@@ -601,7 +601,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-11
 
 [[source]]
-guideRoute = "res/tool"
+guideRoute = "resources"
 id = "csl-iso690-cs"
 type = "software"
 title = { cs = "ISO-690 (author-date, Čeština): styl Citation Style Language", en = "Czech ISO 690 author–date: Citation Style Language style" }
@@ -628,7 +628,7 @@ datePublished = 2025-05-28
 license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "eosc-mrm-ssh-open-marketplace"
 type = "document"
 title = "SSH Open Marketplace: EOSC Macro-Roadmap case study"
@@ -639,7 +639,7 @@ publisher = "EOSC Association"
 dateAccessed = 2026-10-13
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "opendoar-inclusion-criteria"
 type = "webpage"
 title = "OpenDOAR inclusion criteria"
@@ -649,7 +649,7 @@ publisher = "Jisc"
 dateAccessed = 2026-10-13
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "sherpa-object-retrieval-api"
 type = "webpage"
 title = "Object Retrieval API | Open policy finder"
@@ -672,7 +672,7 @@ datePublished = 2024-04-03
 license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "datacite-rest-api"
 type = "webpage"
 title = "DataCite REST API"
@@ -683,7 +683,7 @@ publisher = "DataCite"
 dateAccessed = 2026-10-13
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "datacite-data-file-use-policy"
 type = "webpage"
 title = "DataCite Data File Use Policy"
@@ -694,7 +694,7 @@ publisher = "DataCite"
 dateAccessed = 2026-10-13
 
 [[source]]
-guideRoute = "res/tool"
+guideRoute = "resources"
 id = "fuji-simpleclient"
 type = "software"
 title = "F-UJI simple client: assessment result page"
@@ -707,7 +707,7 @@ dateModified = 2024-05-02
 dateAccessed = 2026-10-14
 
 [[source]]
-guideRoute = "res/tool"
+guideRoute = "resources"
 id = "fuji-metrics-v0-8"
 type = "software"
 title = "F-UJI metric definitions, version 0.8"
@@ -720,7 +720,7 @@ dateModified = 2025-09-01
 dateAccessed = 2026-10-14
 
 [[source]]
-guideRoute = "res/tool"
+guideRoute = "resources"
 id = "fair-checker-check-view"
 type = "software"
 title = "FAIR-Checker check view"
@@ -733,7 +733,7 @@ dateModified = 2026-09-30
 dateAccessed = 2026-10-14
 
 [[source]]
-guideRoute = "res/tool"
+guideRoute = "resources"
 id = "fair-checker-metrics"
 type = "software"
 title = "FAIR-Checker metric implementations"
@@ -746,7 +746,7 @@ dateModified = 2026-10-01
 dateAccessed = 2026-10-14
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "eosc-cz-node-charter"
 type = "document"
 title = "EOSC Federation Build-Up Phase Project Charter: EOSC CZ National Node"
@@ -758,7 +758,7 @@ dateModified = 2025-10-10
 dateAccessed = 2026-10-14
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "eosc-cz-node-announcement"
 type = "webpage"
 title = "EOSC CZ Node Joins the EOSC Federation"
@@ -770,7 +770,7 @@ datePublished = 2026-04-29
 dateAccessed = 2026-10-14
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "eosc-federation-second-wave-mou"
 type = "webpage"
 title = "Three second-wave EOSC Nodes sign EOSC Federation's Memorandum of Understanding"
@@ -782,7 +782,7 @@ datePublished = 2026-10-05
 dateAccessed = 2026-10-16
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "eosc-federation-production"
 type = "webpage"
 title = "EOSC Federation moves into production, beginning a new phase for European science"
@@ -794,7 +794,22 @@ datePublished = 2026-10-08
 dateAccessed = 2026-10-16
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
+id = "eosc-federation-handbook"
+type = "document"
+title = "EOSC Federation Handbook 2.0"
+short = { cs = "Příručka Federace EOSC 2.0", en = "EOSC Federation Handbook 2.0" }
+inLanguage = "en"
+url = "https://doi.org/10.5281/zenodo.18454649"
+publisher = "EOSC Association"
+version = "2.0"
+datePublished = 2026-01-30
+dateAccessed = 2026-11-07
+license = "https://creativecommons.org/licenses/by/4.0/"
+doi = "10.5281/zenodo.18454649"
+
+[[source]]
+guideRoute = "resources"
 id = "eosc-cz-node-page"
 type = "webpage"
 title = "EOSC CZ Node (Czechia)"
@@ -805,7 +820,7 @@ publisher = "eosc-cz"
 dateAccessed = 2026-10-16
 
 [[source]]
-guideRoute = "res/pub"
+guideRoute = "resources"
 id = "lri-roadmap-2023"
 code = "LRI"
 type = "report"
@@ -819,7 +834,7 @@ datePublished = "2024"
 dateAccessed = 2026-10-14
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "ri-portal"
 type = "webpage"
 title = { cs = "Výzkumné infrastruktury", en = "Research Infrastructures" }
@@ -830,7 +845,7 @@ publisher = "msmt"
 dateAccessed = 2026-10-14
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "isvavai-infrastructures"
 type = "webpage"
 title = { cs = "IS VaVaI: výzkumné infrastruktury", en = "IS VaVaI: research infrastructures" }
@@ -841,7 +856,7 @@ publisher = "Research, Development and Innovation Council"
 dateAccessed = 2026-10-14
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "ggp-cz-project"
 type = "webpage"
 title = { cs = "Český národní uzel pro výzkum rodiny (GGP-CZ)", en = "Czech National Cluster for Family Research (GGP-CZ)" }
@@ -852,7 +867,7 @@ publisher = "Masaryk University"
 dateAccessed = 2026-10-14
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "harvard-offboarding"
 type = "document"
 title = "Research Data Management Offboarding Checklist"
@@ -866,7 +881,7 @@ datePublished = 2024-04-24
 license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "ukds-data-level"
 type = "webpage"
 title = "Data-level documentation"
@@ -877,7 +892,7 @@ publisher = "UK Data Service"
 dateAccessed = 2026-10-29
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "snd-synthetic-data"
 code = "SND-SYNTHETIC"
 type = "document"
@@ -893,7 +908,7 @@ datePublished = 2025-02-18
 license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
-guideRoute = "res/doc"
+guideRoute = "resources"
 id = "datacarpentry-spreadsheets"
 code = "DC-SPREADSHEETS"
 type = "webpage"

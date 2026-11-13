@@ -27,9 +27,9 @@ try {
       await page.waitForFunction((check) => document.querySelector(".check-head h1") && window.FairGuide.state.answers[check], check);
         await page.evaluate(({check, mode, grouping}) => {
           const FG = window.FairGuide;
-          const entry = FG.get("#check-" + check);
-          FG.state.answers[check] = { mode, profile: FG.refs(FG.get("#profiles-" + check), "hasDefinedTerm")[0]?.termCode,
-            items: Object.fromEntries(FG.refs(entry, "hasPart").map((item) => [item.identifier, { value: "yes" }])) };
+          const entry = FG.get("checks/" + check);
+          FG.state.answers[check] = { mode, profile: FG.termsOf("vocabularies/profiles-" + check)[0]?.termCode,
+            items: Object.fromEntries(FG.questionsOf(entry).map((item) => [item.identifier, { value: "yes" }])) };
           if (grouping) FG.state.checkGroupings[check] = grouping;
           else delete FG.state.checkGroupings[check];
           FG.rerender();

@@ -1,0 +1,1373 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix gen: <https://w3id.org/kpxl/gen/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix fair: <https://w3id.org/fair/principles/terms/> .
+@prefix fip: <https://w3id.org/fair/fip/terms/> .
+@prefix latest: <https://w3id.org/fair/fip/latest/has-purpose> .
+
+fip:FIP-Ontology a owl:Ontology, gen:MaintainedResource;
+  dct:description "This is an ontology of the FAIR Implementation Profiles (FIP) for the FAIR principles.";
+  rdfs:label "FAIR Implementation Profile (FIP) Ontology";
+  gen:hasNamespace <https://w3id.org/fair/fip/terms/>;
+  gen:isMaintainedBy <https://w3id.org/spaces/FAIR-Implementation-Space>;
+  gen:hasPinnedTemplate <https://w3id.org/np/RAL2ZatVJstki7zguxa8L9rQMq7tvZasIRB3M65brLhxU> .
+
+<https://w3id.org/np/RATltV_HfIkO1xPPS1iT8e9gS1ac4QgC9qXB90-3ZJH8w/paragraph> a gen:Paragraph,
+    gen:Paragraph, gen:Paragraph, gen:Paragraph;
+  <https://schema.org/isPartOf> fip:FIP-Ontology, fip:FIP-Ontology, fip:FIP-Ontology,
+    fip:FIP-Ontology;
+  <https://schema.org/title> "About", "About", "About", "About";
+  gen:hasContent """<p>This is an ontology of the FAIR Implementation Profiles (FIP) for the FAIR principles. This diagram shows the general structure of this model:</p>
+
+<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
+<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">
+<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 3448 1659\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:affinity=\"https://www.affinity.studio/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;\">
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/FAIR-Declaration\">
+    <rect x=\"1545.833\" y=\"643.396\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+    <text x=\"1603.571px\" y=\"741.304px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;fill:#0b73da;\">FAIR Declaration </text>
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource\">
+    <rect x=\"2570.833\" y=\"143.396\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+    <g transform=\"matrix(4.166667,0,0,4.166667,1010.445346,-538.862721)\">
+      <text x=\"390.398px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">FAIR Supporting </text>
+      <text x=\"408.744px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Resource</text>
+    </g>
+  </a>
+  <path d=\"M808.012,75.09l-12.179,24.357l-12.179,-24.357c6.089,6.089 18.268,6.089 24.357,0Z\" style=\"fill:#686868;\" />
+  <path d=\"M2820.833,143.396l0,-108.95l-2025,0.607l-0,44.909\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/FAIR-Case-Study\">
+    <rect x=\"2320.833\" y=\"1101.73\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+    <text x=\"2377.254px\" y=\"1199.637px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;fill:#0b73da;\">FAIR Case Study </text>
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/Digital-Object-Type\">
+    <rect x=\"2945.833\" y=\"1101.73\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+    <text x=\"3003.571px\" y=\"1199.637px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;fill:#0b73da;\">Digital Object Type</text>
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/Available-FAIR-Supporting-Resource\">
+    <rect x=\"2320.833\" y=\"601.73\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+    <g transform=\"matrix(4.166667,0,0,4.166667,709.224643,-85.802825)\">
+      <text x=\"407.522px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Available FAIR</text>
+      <text x=\"390.398px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Supporting Resource</text>
+    </g>
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource-to-be-Developed\">
+    <rect x=\"2945.833\" y=\"601.73\" width=\"500\" height=\"250\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+    <g transform=\"matrix(4.166667,0,0,4.166667,1334.224643,-70.934661)\">
+      <text x=\"402.741px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">FAIR Supporting</text>
+      <text x=\"406.075px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Resource to be</text>
+      <text x=\"419.074px\" y=\"208.738px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">developed</text>
+    </g>
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/FIP-Question\">
+    <rect x=\"545.833\" y=\"640.377\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+    <text x=\"650.057px\" y=\"739.116px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;fill:#0b73da;\">FIP Question </text>
+  </a>
+  <path d=\"M783.655,376.087l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\" />
+  <path d=\"M795.833,640.377l-0,-269.162\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/FAIR-Implementation-Community\">
+    <rect x=\"1545.833\" y=\"143.396\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+    <g transform=\"matrix(4.166667,0,0,4.166667,-106.637022,-536.787525)\">
+      <text x=\"400.489px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">FAIR Implementation</text>
+      <text x=\"426.174px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Community</text>
+    </g>
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/principles/terms/FAIR-Principle-or-SubPrinciple\">
+    <rect x=\"508.811\" y=\"98.841\" width=\"574.044\" height=\"252.889\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+    <g transform=\"matrix(4.166667,0,0,4.166667,-1107.393858,-544.982512)\">
+      <text x=\"393.818px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">FAIR Guiding principles</text>
+      <text x=\"413.828px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">&amp; sub-principles</text>
+    </g>
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/FIP-S-Question\">
+    <rect x=\"1087.5\" y=\"973.841\" width=\"500\" height=\"252.889\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+    <g transform=\"matrix(4.166667,0,0,4.166667,-565.019183,340.259187)\">
+      <text x=\"416.6px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">FIP Supporting</text>
+      <text x=\"432.499px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Question</text>
+    </g>
+  </a>
+  <path d=\"M1067.76,735.889l-18.268,-12.179l18.268,-12.179l0,24.357Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\" />
+  <path d=\"M1337.5,973.841l0,-250.13l-269.74,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M783.655,828.971l12.179,-18.268l12.179,18.268l-24.357,0Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\" />
+  <path d=\"M795.833,973.841l0,-144.87\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M523.906,711.532l18.268,12.179l-18.268,12.179l0,-24.357Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\" />
+  <path d=\"M252.083,973.841l0,-250.13l271.823,-0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <rect x=\"545.833\" y=\"976.73\" width=\"500\" height=\"252.889\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+  <path d=\"M783.655,1253.976l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\" />
+  <path d=\"M795.833,1294.003l0,-44.898\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/FIP-Metadata-related-Question\">
+    <g transform=\"matrix(4.166667,0,0,4.166667,-1106.551573,338.843171)\">
+      <text x=\"400.261px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">FIP Metadata-related</text>
+      <text x=\"432.499px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Question</text>
+    </g>
+    <rect x=\"2.083\" y=\"973.841\" width=\"500\" height=\"252.889\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/FIP-Data-related-Question\">
+    <g transform=\"matrix(4.166667,0,0,4.166667,-1651.143858,330.017488)\">
+      <text x=\"412.604px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">FIP Data-related</text>
+      <text x=\"432.499px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Question</text>
+    </g>
+    <rect x=\"1112.5\" y=\"435.063\" width=\"400\" height=\"125\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\" />
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/considerations\">
+    <text x=\"1148.765px\" y=\"515.104px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:49.01px;fill:#0b73da;\">Considerations</text>
+  </a>
+  <path d=\"M2558.655,792.754l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\" />
+  <path d=\"M1795.833,810.063l0,124.793l775,0l0,-146.974\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M3196.24,875.983l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\" />
+  <path d=\"M1795.833,934.856l0,83.23l1412.585,0l0,-146.974\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M3196.24,1295.074l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\" />
+  <path d=\"M1795.833,1018.086l0,419.091l1412.585,0l0,-146.974\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M2558.655,1295.074l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\" />
+  <path d=\"M1795.833,1018.086l0,337.642l775,0l0,-65.525\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M239.905,1251.087l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\" />
+  <path d=\"M1795.833,1294.003l-1543.75,0l0,-47.787\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M1783.655,334.42l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\" />
+  <path d=\"M1795.833,643.396l-0,-313.848\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M1536.857,509.742l-24.357,-12.179l24.357,-12.179c-6.089,6.089 -6.089,18.268 0,24.357Z\" style=\"fill:#686868;\" />
+  <path d=\"M1727.083,643.396l0,-145.833l-195.098,-0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-dasharray:4.06,4.06;\" />
+  <path d=\"M1325.321,1251.087l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\" />
+  <path d=\"M1337.5,1294.003l0,-47.787\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/declared-for-digital-object-type\">
+    <text x=\"2396.092px\" y=\"1422.487px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:50px;fill:#0b73da;\">declared-for-digital-object-type </text>
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/declared-for-case-study\">
+    <text x=\"1895.888px\" y=\"1341.038px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:50px;fill:#0b73da;\">declared-for-case-study </text>
+  </a>
+  <g transform=\"matrix(4.166667,0,0,4.166667,111.217723,-453.235204)\">
+    <a href=\"/part?id=https://w3id.org/fair/fip/terms/declares-planned-replacement-of\">
+      <text x=\"405px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:#0b73da;\">declares-planned-replacement-of</text>
+    </a>
+    <text x=\"595.082px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;\">/</text>
+    <a href=\"/part?id=https://w3id.org/fair/fip/terms/declares-planned-use-of\">
+      <text x=\"601.75px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:#0b73da;\">declares-planned-use-of</text>
+    </a>
+  </g>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/declares-current-use-of\">
+    <text x=\"1923.177px\" y=\"925.937px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:50px;fill:#0b73da;\">declares-current-use-of</text>
+  </a>
+  <g transform=\"matrix(4.166667,0,0,4.166667,-593.158498,-1370.176484)\">
+    <a href=\"/part?id=https://w3id.org/fair/fip/terms/supports\">
+      <text x=\"520px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:#0b73da;\">supports</text>
+    </a>
+    <text x=\"573.733px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;\">/</text>
+    <a href=\"/part?id=https://w3id.org/fair/fip/terms/enables\">
+      <text x=\"580.401px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:#0b73da;\">enables</text>
+    </a>
+  </g>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/refers-to-question\">
+    <text x=\"1350px\" y=\"1341.038px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:50px;fill:#0b73da;\">refers-to-question</text>
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/refers-to-principle\">
+    <text x=\"365px\" y=\"511.601px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:50px;fill:#0b73da;\">refers-to-principle</text>
+  </a>
+  <a href=\"/part?id=https://w3id.org/fair/fip/terms/declared-by\">
+    <text x=\"1500px\" y=\"417.605px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:50px;fill:#0b73da;\">declared-by</text>
+  </a>
+  <path d=\"M2548.906,214.551l18.268,12.179l-18.268,12.179l0,-24.357Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\" />
+  <path d=\"M2449.118,601.73l0,-375l99.789,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M3092.76,238.908l-18.268,-12.179l18.268,-12.179l0,24.357Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\" />
+  <path d=\"M3195.833,601.73l0,-375l-103.073,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <text x=\"385.417px\" y=\"1470.48px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;\">isA relationship (class inheritance) </text>
+  <text x=\"385.417px\" y=\"1553.813px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;\">object property</text>
+  <text x=\"385.417px\" y=\"1637.146px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;\">data type property</text>
+  <path d=\"M329.702,1445.362l18.268,12.179l-18.268,12.179l0,-24.357Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\" />
+  <path d=\"M209.28,1457.54l120.422,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M327.272,1529l24.357,12.179l-24.357,12.179c6.089,-6.089 6.089,-18.268 0,-24.357Z\" style=\"fill:#686868;\" />
+  <path d=\"M209.28,1541.179l122.864,-0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\" />
+  <path d=\"M327.272,1612.334l24.357,12.179l-24.357,12.179c6.089,-6.089 6.089,-18.268 0,-24.357Z\" style=\"fill:#686868;\" />
+  <path d=\"M209.28,1624.512l122.864,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-dasharray:4.06,4.06;\" />
+</svg>""",
+    """<p>This is an ontology of the FAIR Implementation Profiles (FIP) for the FAIR principles. This diagram shows the general structure of this model:</p>
+
+<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg width=\"100%\" height=\"100%\" viewBox=\"0 0 3450 1671\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:affinity=\"https://www.affinity.studio/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;\"><g id=\"Ebene1\"><g><rect x=\"1543.75\" y=\"656.25\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><text x=\"1601.488px\" y=\"754.157px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;fill:#0b73da;\">F<tspan x=\"1629.271px 1662.621px \" y=\"754.157px 754.157px \">AI</tspan>R Declaration</text></g><g><rect x=\"2568.75\" y=\"156.25\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><g transform=\"matrix(4.166667,0,0,4.166667,1008.362013,-526.009115)\"><text x=\"390.398px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">F<tspan x=\"397.066px 405.07px \" y=\"181.141px 181.141px \">AI</tspan>R Supporting</text><text x=\"408.744px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Resource</text></g></g><path d=\"M805.929,87.944l-12.179,24.357l-12.179,-24.357c6.089,6.089 18.268,6.089 24.357,0Z\" style=\"fill:#686868;\"/><path d=\"M2818.75,156.25l0,-108.95l-2025,0.607l-0,44.909\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><g><rect x=\"2318.75\" y=\"1114.583\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><text x=\"2375.171px\" y=\"1212.491px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;fill:#0b73da;\">F<tspan x=\"2402.954px 2436.304px \" y=\"1212.491px 1212.491px \">AI</tspan>R Case Study</text></g><g><rect x=\"2943.75\" y=\"1114.583\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><text x=\"3001.488px\" y=\"1212.491px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;fill:#0b73da;\">Digital Object <tspan x=\"3311.815px 3339.598px 3364.598px \" y=\"1212.491px 1212.491px 1212.491px \">Typ</tspan>e</text></g><g><rect x=\"2318.75\" y=\"614.583\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><g transform=\"matrix(4.166667,0,0,4.166667,707.14131,-72.949219)\"><text x=\"407.522px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">A<tspan x=\"415.31px 421.31px \" y=\"181.141px 181.141px \">va</tspan>ilable F<tspan x=\"466.005px 474.009px \" y=\"181.141px 181.141px \">AI</tspan>R</text><text x=\"390.398px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Supporting Resource</text></g></g><g><rect x=\"2943.75\" y=\"614.583\" width=\"500\" height=\"250\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><g transform=\"matrix(4.166667,0,0,4.166667,1332.14131,-58.081055)\"><text x=\"407.522px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">A<tspan x=\"415.31px 421.31px \" y=\"181.141px 181.141px \">va</tspan>ilable F<tspan x=\"466.005px 474.009px \" y=\"181.141px 181.141px \">AI</tspan>R</text><text x=\"390.398px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Supporting Resource</text><text x=\"404.062px\" y=\"208.738px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">to be developed</text></g></g><g><rect x=\"543.75\" y=\"653.231\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><text x=\"647.974px\" y=\"751.969px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;fill:#0b73da;\">FIP<tspan x=\"724.854px 738.745px \" y=\"751.969px 751.969px \"> Q</tspan>uestion</text></g><path d=\"M781.571,388.94l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\"/><path d=\"M793.75,653.231l0,-269.162\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><g><rect x=\"1543.75\" y=\"156.25\" width=\"500\" height=\"166.667\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><g transform=\"matrix(4.166667,0,0,4.166667,-108.720355,-523.933919)\"><text x=\"400.489px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">F<tspan x=\"407.157px 415.161px \" y=\"181.141px 181.141px \">AI</tspan>R Implementation</text><text x=\"426.174px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Community</text></g></g><g><rect x=\"506.728\" y=\"111.694\" width=\"574.044\" height=\"252.889\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><g transform=\"matrix(4.166667,0,0,4.166667,-1109.477191,-532.128906)\"><text x=\"393.818px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">F<tspan x=\"400.486px 408.49px \" y=\"181.141px 181.141px \">AI</tspan>R Guiding principles</text><text x=\"413.828px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">&amp; sub-principles</text></g></g><g><rect x=\"1085.417\" y=\"986.694\" width=\"500\" height=\"252.889\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><g transform=\"matrix(4.166667,0,0,4.166667,-567.102517,353.112793)\"><text x=\"416.6px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">FIP<tspan x=\"435.051px 438.385px \" y=\"181.141px 181.141px \"> S</tspan>upporting</text><text x=\"432.499px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Question</text></g></g><path d=\"M1065.677,748.743l-18.268,-12.179l18.268,-12.179l0,24.357Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/><path d=\"M1335.417,986.694l0,-250.13l-269.74,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M781.571,841.825l12.179,-18.268l12.179,18.268l-24.357,0Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/><path d=\"M793.75,986.694l0,-144.87\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M521.823,724.386l18.268,12.179l-18.268,12.179l0,-24.357Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/><path d=\"M250,986.694l0,-250.13l271.823,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><g><rect x=\"543.75\" y=\"989.583\" width=\"500\" height=\"252.889\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><path d=\"M781.571,1266.829l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\"/><path d=\"M793.75,1306.856l0,-44.898\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><g transform=\"matrix(4.166667,0,0,4.166667,-1108.634906,351.696777)\"><text x=\"400.261px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">FIP<tspan x=\"418.712px 422.046px \" y=\"181.141px 181.141px \"> M</tspan>etadata-related</text><text x=\"432.499px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Question</text></g></g><g><rect x=\"0\" y=\"986.694\" width=\"500\" height=\"252.889\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><g transform=\"matrix(4.166667,0,0,4.166667,-1653.227191,342.871094)\"><text x=\"412.604px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">FIP<tspan x=\"431.055px 434.389px \" y=\"181.141px 181.141px \"> D</tspan>ata-related</text><text x=\"432.499px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">Question</text></g></g><g><rect x=\"1110.417\" y=\"447.917\" width=\"400\" height=\"125\" style=\"fill:#fff;stroke:#686868;stroke-width:4.17px;\"/><text x=\"1146.682px\" y=\"527.958px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:49.01px;fill:#0b73da;\">Considerations</text></g><path d=\"M2556.571,805.607l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\"/><path d=\"M1793.75,822.917l0,124.793l775,0l0,-146.974\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M3194.157,888.837l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\"/><path d=\"M1793.75,947.709l0,83.23l1412.585,0l0,-146.974\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M3194.157,1307.927l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\"/><path d=\"M1793.75,1030.939l0,419.091l1412.585,0l0,-146.974\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M2556.571,1307.927l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\"/><path d=\"M1793.75,1030.939l0,337.642l775,0l-0,-65.525\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M237.821,1263.94l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\"/><path d=\"M1793.75,1306.856l-1543.75,0l0,-47.787\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M1781.571,347.274l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\"/><path d=\"M1793.75,656.25l0,-313.848\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M1534.774,522.595l-24.357,-12.179l24.357,-12.179c-6.089,6.089 -6.089,18.268 0,24.357Z\" style=\"fill:#686868;\"/><path d=\"M1725,656.25l0,-145.833l-195.098,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-dasharray:4.06,4.06;\"/><path d=\"M1323.238,1263.94l12.179,-24.357l12.179,24.357c-6.089,-6.089 -18.268,-6.089 -24.357,0Z\" style=\"fill:#686868;\"/><path d=\"M1335.417,1306.856l0,-47.787\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><g transform=\"matrix(4.166667,0,0,4.166667,365.182974,5.751564)\"><rect x=\"492.367\" y=\"338.869\" width=\"162.076\" height=\"13.406\" style=\"fill:#fff;\"/><text x=\"492.367px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">declared-for-digital-object-type</text></g><g transform=\"matrix(4.166667,0,0,4.166667,-207.754038,-75.697123)\"><rect x=\"510.379\" y=\"338.869\" width=\"126.053\" height=\"13.406\" style=\"fill:#fff;\"/><text x=\"510.379px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">declared-for-case-study</text></g><g transform=\"matrix(4.166667,0,0,4.166667,109.13439,-413.045985)\"><rect x=\"415.65\" y=\"338.869\" width=\"315.51\" height=\"13.406\" style=\"fill:#fff;\"/><text x=\"415.65px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">declares-planned-replacement-of</text><text x=\"595.082px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;\">/</text><text x=\"601.75px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">declares-planned-use-of</text></g><g transform=\"matrix(4.166667,0,0,4.166667,-209.658335,-491.600398)\"><rect x=\"511.381\" y=\"338.869\" width=\"124.049\" height=\"13.406\" style=\"fill:#fff;\"/><text x=\"511.381px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">declares-current-use-of</text></g><g transform=\"matrix(4.166667,0,0,4.166667,-582.741831,-1396.685294)\"><rect x=\"524.374\" y=\"338.869\" width=\"98.062\" height=\"13.406\" style=\"fill:#fff;\"/><text x=\"524.374px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">supports</text><text x=\"573.733px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;\">/</text><text x=\"580.401px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">enables</text></g><g transform=\"matrix(4.166667,0,0,4.166667,-816.443915,-137.128645)\"><rect x=\"526.383\" y=\"338.869\" width=\"94.043\" height=\"13.406\" style=\"fill:#fff;\"/><text x=\"526.383px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">refers-to-question</text></g><g transform=\"matrix(4.166667,0,0,4.166667,-1596.023081,-935.078038)\"><rect x=\"526.723\" y=\"338.869\" width=\"93.363\" height=\"13.406\" style=\"fill:#fff;\"/><text x=\"526.723px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">refers-to-principle</text></g><g transform=\"matrix(4.166667,0,0,4.166667,-596.071909,-994.343175)\"><rect x=\"542.054\" y=\"338.869\" width=\"62.701\" height=\"13.406\" style=\"fill:#fff;\"/><text x=\"542.054px\" y=\"349.732px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:#0b73da;\">declared-by</text></g><path d=\"M2546.823,227.405l18.268,12.179l-18.268,12.179l0,-24.357Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/><path d=\"M2447.034,614.583l0,-375l99.789,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M3090.677,251.762l-18.268,-12.179l18.268,-12.179l0,24.357Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/><path d=\"M3193.75,614.583l0,-375l-103.073,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><text x=\"383.333px\" y=\"1483.333px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;\">isA<tspan x=\"450.033px 463.924px \" y=\"1483.333px 1483.333px \"> r</tspan>elationship (class inheritance)</text><text x=\"383.333px\" y=\"1566.667px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;\">object property</text><text x=\"383.333px\" y=\"1650px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;\">data type property</text><path d=\"M327.619,1458.215l18.268,12.179l-18.268,12.179l0,-24.357Z\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/><path d=\"M207.196,1470.394l120.422,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M325.189,1541.854l24.357,12.179l-24.357,12.179c6.089,-6.089 6.089,-18.268 0,-24.357Z\" style=\"fill:#686868;\"/><path d=\"M207.196,1554.032l122.864,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;\"/><path d=\"M325.189,1625.187l24.357,12.179l-24.357,12.179c6.089,-6.089 6.089,-18.268 0,-24.357Z\" style=\"fill:#686868;\"/><path d=\"M207.196,1637.366l122.864,0\" style=\"fill:none;stroke:#686868;stroke-width:4.06px;stroke-linecap:butt;stroke-dasharray:4.06,4.06;\"/></g></svg>""",
+    """<p>This is an ontology of the FAIR Implementation Profiles (FIP) for the FAIR principles. This diagram shows the general structure of this model:</p>
+
+<img src=\"https://peta-pico.github.io/FAIR-nanopubs/fip/sections/fip-overview-diagram.svg\" alt=\"\">""",
+    """<p>This is an ontology of the FAIR Implementation Profiles (FIP) for the FAIR principles. This diagram shows the general structure of this model:</p>
+
+<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
+<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">
+<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 828 399\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:affinity=\"https://www.affinity.studio/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;\">
+    <g transform=\"matrix(1,0,0,1,0.5,-3.084865)\">
+        <g>
+            <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:1px;\"/>
+            <g transform=\"matrix(1,0,0,1,-6.041328,-0.14283)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/FAIR-Declaration\">
+                    <text x=\"390.398px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">F<tspan x=\"397.066px 405.07px \" y=\"181.141px 181.141px \">AI</tspan>R Declaration</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,246,-120)\">
+            <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:1px;\"/>
+            <g transform=\"matrix(1,0,0,1,-3.993117,-6.242187)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource\">
+                    <text x=\"390.398px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">F<tspan x=\"397.066px 405.07px \" y=\"181.141px 181.141px \">AI</tspan>R Supporting</text>
+                    <text x=\"408.744px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">Resource</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M193.923,18.022L191,23.867L188.077,18.022C189.539,19.483 192.461,19.483 193.923,18.022Z\" style=\"fill:rgb(104,104,104);\"/>
+            <path d=\"M677,34.415L677,8.267L191,8.413L191,19.191\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+        </g>
+        <g transform=\"matrix(1,0,0,1,186,110)\">
+            <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:1px;\"/>
+            <g transform=\"matrix(1,0,0,1,-6.357375,-0.14283)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/FAIR-Case-Study\">
+                    <text x=\"390.398px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">F<tspan x=\"397.066px 405.07px \" y=\"181.141px 181.141px \">AI</tspan>R Case Study</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,336,110)\">
+            <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:1px;\"/>
+            <g transform=\"matrix(1,0,0,1,-6.041328,-0.14283)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/Digital-Object-Type\">
+                    <text x=\"390.398px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">Digital Object <tspan x=\"464.877px 471.545px 477.545px \" y=\"181.141px 181.141px 181.141px \">Typ</tspan>e</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,186,-10)\">
+            <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:1px;\"/>
+            <g transform=\"matrix(1,0,0,1,-16.286086,-7.507812)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/Available-FAIR-Supporting-Resource\">
+                    <text x=\"407.522px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">A<tspan x=\"415.31px 421.31px \" y=\"181.141px 181.141px \">va</tspan>ilable F<tspan x=\"466.005px 474.009px \" y=\"181.141px 181.141px \">AI</tspan>R</text>
+                    <text x=\"390.398px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">Supporting Resource</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,336,-10)\">
+            <g transform=\"matrix(1,0,0,1.5,0,-78.75)\">
+                <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:0.78px;\"/>
+            </g>
+            <g transform=\"matrix(1,0,0,1,-16.286086,-3.939453)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource-to-be-Developed\">
+                    <text x=\"402.5px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">FAIR Supporting</text>
+                    <text x=\"407.5px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">Resource to be</text>
+                    <text x=\"420px\" y=\"208.738px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">developed</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-240,-0.724609)\">
+            <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:1px;\"/>
+            <g transform=\"matrix(1,0,0,1,5.115282,0.056641)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/FIP-Question\">
+                    <text x=\"390.398px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">FIP<tspan x=\"408.85px 412.184px \" y=\"181.141px 181.141px \"> Q</tspan>uestion</text>
+                </a>             
+            </g>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M188.077,90.261L191,84.415L193.923,90.261C192.461,88.799 189.539,88.799 188.077,90.261Z\" style=\"fill:rgb(104,104,104);\"/>
+            <path d=\"M191,153.691L191,89.092\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+        </g>
+        <g transform=\"matrix(1,0,0,1,0,-121.115234)\">
+            <g transform=\"matrix(1,0,0,1,0,1.115234)\">
+                <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:1px;\"/>
+            </g>
+            <g transform=\"matrix(1,0,0,1,-26.092885,-4.628906)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/FAIR-Implementation-Community\">
+                    <text x=\"400.489px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">F<tspan x=\"407.157px 415.161px \" y=\"181.141px 181.141px \">AI</tspan>R Implementation</text>
+                    <text x=\"426.174px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">Community</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-240,-131.808594)\">
+            <g transform=\"matrix(1.148088,0,0,1.517334,-63.752078,-80.364868)\">
+                <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:0.74px;\"/>
+            </g>
+            <g transform=\"matrix(1,0,0,1,-26.274526,4.097656)\">
+                <a \"/part?id=https://w3id.org/fair/principles/terms/FAIR-Principle-or-SubPrinciple\">
+                    <text x=\"393.818px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">F<tspan x=\"400.486px 408.49px \" y=\"181.141px 181.141px \">AI</tspan>R Guiding principles</text>
+                    <text x=\"413.828px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">&amp; sub-principles</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-110,78.191406)\">
+            <g transform=\"matrix(1,0,0,1.517334,0,-80.364868)\">
+                <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:0.78px;\"/>
+            </g>
+            <g transform=\"matrix(1,0,0,1,-26.104604,6.555664)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/FIP-S-Question\">
+                    <text x=\"416.6px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">FIP<tspan x=\"435.051px 438.385px \" y=\"181.141px 181.141px \"> S</tspan>upporting</text>
+                    <text x=\"432.499px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">Question</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M256.262,176.613L251.878,173.691L256.262,170.768L256.262,176.613Z\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/>
+            <path d=\"M321,233.722L321,173.691L256.262,173.691\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M188.077,198.953L191,194.569L193.923,198.953L188.077,198.953Z\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/>
+            <path d=\"M191,233.722L191,198.953\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M125.738,170.768L130.122,173.691L125.738,176.613L125.738,170.768Z\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/>
+            <path d=\"M60.5,233.722L60.5,173.691L125.738,173.691\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-240,78.884766)\">
+            <g transform=\"matrix(1,0,0,1.517334,0,-80.364868)\">
+                <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:0.78px;\"/>
+            </g>
+            <g transform=\"matrix(1,0,0,1,240,-78.884766)\">
+                <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+                    <path d=\"M188.077,300.954L191,295.108L193.923,300.954C192.461,299.493 189.539,299.493 188.077,300.954Z\" style=\"fill:rgb(104,104,104);\"/>
+                    <path d=\"M191,310.561L191,299.785\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+                </g>
+            </g>
+            <g transform=\"matrix(1,0,0,1,-26.072377,5.522461)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/FIP-Metadata-related-Question\">
+                    <text x=\"400.261px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">FIP<tspan x=\"418.712px 422.046px \" y=\"181.141px 181.141px \"> M</tspan>etadata-related</text>
+                    <text x=\"432.499px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">Question</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-370.5,78.191406)\">
+            <g transform=\"matrix(1,0,0,1.517334,0,-80.364868)\">
+                <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:0.78px;\"/>
+            </g>
+            <g transform=\"matrix(1,0,0,1,-26.274526,4.097656)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/FIP-Data-related-Question\">
+                    <text x=\"412.604px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">FIP<tspan x=\"431.055px 434.389px \" y=\"181.141px 181.141px \"> D</tspan>ata-related</text>
+                    <text x=\"432.499px\" y=\"194.939px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:rgb(11,115,218);\">Question</text>
+                </a>
+            </g>
+        </g>
+        <g transform=\"matrix(0.791249,0,0,0.791249,-26.56633,-18.771696)\">
+            <g transform=\"matrix(1.01106,0,0,0.947868,-4.213174,10.295995)\">
+                <rect x=\"370.5\" y=\"157.5\" width=\"120\" height=\"40\" style=\"fill:white;stroke:rgb(104,104,104);stroke-width:1.29px;\"/>
+            </g>
+            <g transform=\"matrix(1,0,0,1,-9.014086,2.722598)\">
+                <a \"/part?id=https://w3id.org/fair/fip/terms/considerations\">
+                    <text x=\"390.398px\" y=\"181.141px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:14.866px;fill:rgb(11,115,218);\">Considerations</text>
+                </a>            
+            </g>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M614.077,190.261L617,184.415L619.923,190.261C618.461,188.799 615.539,188.799 614.077,190.261Z\" style=\"fill:rgb(104,104,104);\"/>
+            <path d=\"M431,194.415L431,224.365L617,224.365L617,189.092\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+        </g>
+        <g transform=\"matrix(1,0,0,1,153.020508,19.975129)\">
+            <g transform=\"matrix(1,-0,-0,1,-153.520508,-16.890264)\">
+                <path d=\"M767.098,210.236L770.021,204.39L772.943,210.236C771.482,208.775 768.559,208.775 767.098,210.236Z\" style=\"fill:rgb(104,104,104);\"/>
+                <path d=\"M431,224.365L431,244.341L770.021,244.341L770.021,209.067\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,153.020508,120.556854)\">
+            <g transform=\"matrix(1,-0,-0,1,-153.520508,-117.471988)\">
+                <path d=\"M767.098,310.818L770.021,304.972L772.943,310.818C771.482,309.356 768.559,309.356 767.098,310.818Z\" style=\"fill:rgb(104,104,104);\"/>
+                <path d=\"M431,244.341L431,344.922L770.021,344.922L770.021,309.649\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-0,120.556854)\">
+            <g transform=\"matrix(1,-0,-0,1,-0.5,-117.471988)\">
+                <path d=\"M614.077,310.818L617,304.972L619.923,310.818C618.461,309.356 615.539,309.356 614.077,310.818Z\" style=\"fill:rgb(104,104,104);\"/>
+                <path d=\"M431,244.341L431,325.375L617,325.375L617,309.649\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+            </g>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M57.577,300.261L60.5,294.415L63.423,300.261C61.961,298.799 59.039,298.799 57.577,300.261Z\" style=\"fill:rgb(104,104,104);\"/>
+            <path d=\"M431,310.561L60.5,310.561L60.5,299.092\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M428.077,80.261L431,74.415L433.923,80.261C432.461,78.799 429.539,78.799 428.077,80.261Z\" style=\"fill:rgb(104,104,104);\"/>
+            <path d=\"M431,154.415L431,79.092\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M368.846,122.338L363,119.415L368.846,116.492C367.384,117.954 367.384,120.877 368.846,122.338Z\" style=\"fill:rgb(104,104,104);\"/>
+            <path d=\"M414.5,154.415L414.5,119.415L367.677,119.415\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;stroke-dasharray:0.974,0.974;\"/>
+        </g>
+        <g transform=\"matrix(1,0,0,1,130,-0.693359)\">
+            <g transform=\"matrix(1,-0,-0,1,-130.5,3.778225)\">
+                <path d=\"M318.077,300.261L321,294.415L323.923,300.261C322.461,298.799 319.539,298.799 318.077,300.261Z\" style=\"fill:rgb(104,104,104);\"/>
+                <path d=\"M321,310.561L321,299.092\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,82.086867,-5.250484)\">
+            <a \"/part?id=https://w3id.org/fair/fip/terms/declared-for-digital-object-type\">
+                <text x=\"492.475px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:rgb(11,115,218);\">declared-for-digital-object-type</text>
+            </a>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-55.973721,-24.798169)\">
+            <a \"/part?id=https://w3id.org/fair/fip/terms/declared-for-case-study\">
+                <text x=\"510.487px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:rgb(11,115,218);\">declared-for-case-study</text>
+            </a>
+        </g>
+        <g transform=\"matrix(1,0,0,1,26.192254,-105.691583)\">
+            <a \"/part?id=https://w3id.org/fair/fip/terms/declares-planned-replacement-of\">
+                <text x=\"410px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:rgb(11,115,218);\">declares-planned-replacement-of</text>
+            </a>
+            <text x=\"595.082px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;\">/</text>
+            <a \"/part?id=https://w3id.org/fair/fip/terms/declares-planned-use-of\">
+                <text x=\"601.75px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:rgb(11,115,218);\">declares-planned-use-of</text>
+            </a>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-50.318,-124.422572)\">
+            <a \"/part?id=https://w3id.org/fair/fip/terms/declares-current-use-of\">
+                <text x=\"511.381px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:rgb(11,115,218);\">declares-current-use-of</text>
+            </a>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-142.858039,-325.757491)\">
+            <a \"/part?id=https://w3id.org/fair/fip/terms/supports\">
+                <text x=\"524.374px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:rgb(11,115,218);\">supports</text>
+            </a>
+            <text x=\"573.733px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;\">/</text>
+            <a \"/part?id=https://w3id.org/fair/fip/terms/enables\">
+                <text x=\"580.401px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:rgb(11,115,218);\">enables</text>
+            </a>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-197.613654,-24.798169)\">
+            <a \"/part?id=https://w3id.org/fair/fip/terms/refers-to-question\">
+                <text x=\"520px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:rgb(11,115,218);\">refers-to-question</text>
+            </a>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-433.058962,-223.863024)\">
+            <a \"/part?id=https://w3id.org/fair/fip/terms/refers-to-principle\">
+                <text x=\"520px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:rgb(11,115,218);\">refers-to-principle</text>
+            </a>
+        </g>
+        <g transform=\"matrix(1,0,0,1,-176.150032,-246.422228)\">
+            <a \"/part?id=https://w3id.org/fair/fip/terms/declared-by\">
+                <text x=\"535px\" y=\"349.732px\" style=\"font-family:'Arial-ItalicMT', 'Arial', sans-serif;font-style:italic;font-size:12px;fill:rgb(11,115,218);\">declared-by</text>
+            </a>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M611.738,51.492L616.122,54.415L611.738,57.338L611.738,51.492Z\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/>
+            <path d=\"M587.788,144.415L587.788,54.415L611.738,54.415\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+        </g>
+        <g transform=\"matrix(1,-0,-0,1,-0.5,3.084865)\">
+            <path d=\"M742.262,57.338L737.878,54.415L742.262,51.492L742.262,57.338Z\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/>
+            <path d=\"M767,144.415L767,54.415L742.262,54.415\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+        </g>
+        <g transform=\"matrix(1,0,0,1,92,356)\">
+            <text x=\"0px\" y=\"0px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;\">isA relationship (class inheritance)</text>
+        </g>
+        <g transform=\"matrix(1,0,0,1,92,376)\">
+            <text x=\"0px\" y=\"0px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;\">object property</text>
+        </g>
+        <g transform=\"matrix(1,0,0,1,92,396)\">
+            <text x=\"0px\" y=\"0px\" style=\"font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;\">data type property</text>
+        </g>
+        <g transform=\"matrix(1.160749,0,0,1,-7.993571,0)\">
+            <g transform=\"matrix(0.861513,-0,-0,1,6.455809,3.084865)\">
+                <path d=\"M79.128,346.887L83.513,349.81L79.128,352.733L79.128,346.887Z\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;\"/>
+                <path d=\"M50.227,349.81L79.128,349.81\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+            </g>
+        </g>
+        <g transform=\"matrix(1.160749,0,0,1,-7.993571,20.073242)\">
+            <g transform=\"matrix(0.861513,-0,-0,1,6.455809,-16.988377)\">
+                <path d=\"M78.545,366.96L84.391,369.883L78.545,372.806C80.007,371.344 80.007,368.421 78.545,366.96Z\" style=\"fill:rgb(104,104,104);\"/>
+                <path d=\"M50.227,369.883L79.714,369.883\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;\"/>
+            </g>
+        </g>
+        <g transform=\"matrix(1.160749,0,0,1,-7.993571,40.073242)\">
+            <g transform=\"matrix(0.861513,-0,-0,1,6.455809,-36.988377)\">
+                <path d=\"M78.545,386.96L84.391,389.883L78.545,392.806C80.007,391.344 80.007,388.421 78.545,386.96Z\" style=\"fill:rgb(104,104,104);\"/>
+                <path d=\"M50.227,389.883L79.714,389.883\" style=\"fill:none;stroke:rgb(104,104,104);stroke-width:0.97px;stroke-linecap:butt;stroke-dasharray:0.974,0.974;\"/>
+            </g>
+        </g>
+    </g>
+</svg>""" .
+
+fip:FIP-Ontology_20260227 a owl:Ontology, gen:OntologyVersion;
+  dct:isVersionOf fip:FIP-Ontology;
+  rdfs:label "FIP Ontology version 20260227";
+  gen:hasContentIndex <https://w3id.org/np/RAo6ciqn1-yxYXhsvA_iJBCHkypWFREtdhljG8gpofo8o> .
+
+fip:Authentication-and-authorization-service a owl:Class, owl:Class;
+  rdfs:label "Authentication and Authorization Service", "Authentication and authorization service"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Supporting-Technology, fip:FAIR-Enabling-Resource,
+    fip:FAIR-Supporting-Technology;
+  skos:definition "A service that mediates access to digital objects according to specifed conditions.",
+    "A service that mediates access to digital objects according to specifed conditions."@en;
+  fip:enables fair:A1.2, fair:A1.2 .
+
+fip:Available-FAIR-Supporting-Resource a owl:Class;
+  rdfs:label "Available FAIR Supporting Resource"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "A FAIR Supporting Resource that is available for use."@en .
+
+fip:Available-FAIR-Enabling-Resource a owl:Class;
+  rdfs:label "Available FAIR-Enabling Resource"@en;
+  rdfs:subClassOf fip:Available-FAIR-Supporting-Resource, fip:FAIR-Enabling-Resource;
+  skos:definition "A FAIR-enabling resource that is available for use"@en .
+
+fip:Communication-protocol a owl:Class, owl:Class;
+  rdfs:label "Communication Protocol", "Communication protocol"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Specification, fip:FAIR-Enabling-Resource,
+    fip:FAIR-Specification;
+  skos:definition "A specification of how messages are structured and exchanged.", "A specification of how messages are structured and exchanged."@en;
+  fip:enables fair:A1.1, fair:A1.1 .
+
+fip:Crosswalk a owl:Class;
+  rdfs:label "Crosswalk"@en;
+  rdfs:subClassOf fip:FAIR-Specification;
+  skos:definition "A specification consisting of a set of rules that define how (meta)data elements or attributes from one schema can be aligned and mapped to (meta)data elements or attributes in another schema that share the same constraints and thus share the same semantic role."@en;
+  fip:supports fair:I3 .
+
+fip:Data-usage-license a owl:Class, owl:Class;
+  rdfs:label "Data Usage License", "Data usage license"@en;
+  rdfs:subClassOf fip:FAIR-Data-Policy, fip:FAIR-Enabling-Resource, fip:FAIR-Data-Policy,
+    fip:FAIR-Enabling-Resource;
+  skos:definition "A data policy that specifies legal restrictions on the reuse of the data.",
+    "A data policy that specifies legal restrictions on the reuse of the data."@en;
+  fip:enables fair:R1.1, fair:R1.1 .
+
+fip:Digital-Object-Type a owl:Class;
+  rdfs:label "Digital Object Type"@en;
+  skos:definition "A digital object type is a classification of digital objects with respect to their informational functions to specify the nature of the digital object and the operations that can be performed on it."@en .
+
+fip:Domain-Specific-Registry a owl:Class, owl:Class;
+  rdfs:label "Domain-Specific Registry", "Domain-specific registry"@en;
+  rdfs:subClassOf fip:Registry, fip:Registry;
+  skos:definition "A registry designed to collect, provide access to, and enable searching of data within a particular domain or subject area",
+    "A registry designed to collect, provide access to, and enable searching of data within a particular domain or subject area"@en .
+
+fip:Editor a owl:Class;
+  rdfs:label "Editor"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Technology;
+  skos:definition "A service that provides a user-friendly interface for easy editing of metadata, vocabularies or crosswalks."@en;
+  fip:supports fair:F2, fair:I2, fair:I3 .
+
+fip:Emerging-Community a owl:Class;
+  rdfs:label "Emerging community"@en;
+  rdfs:subClassOf fip:FAIR-Implementation-Community;
+  skos:definition "An early-stage community committed to adopting and promoting FAIR principles for its data and services from the outset."@en .
+
+fip:FAIR-Analysis-Service a owl:Class, owl:Class;
+  dct:isPartOf fip:FIP-Ontology, fip:FIP-Ontology;
+  rdfs:label "FAIR Analysis Service", "FAIR Analysis Service";
+  rdfs:subClassOf fip:FAIR-Supporting-Resource, fip:FAIR-Supporting-Technology, fip:FAIR-Supporting-Resource,
+    fip:FAIR-Supporting-Technology;
+  skos:definition "An online resource that executes analytical workflows by natively consuming or generating FAIR Digital Objects.",
+    "An online resource that executes analytical workflows by natively consuming or generating FAIR Digital Objects.";
+  fip:supports fair:R1.3 .
+
+fip:FAIR-Assessment-Specification a owl:Class, owl:Class;
+  dct:isPartOf fip:FIP-Ontology, fip:FIP-Ontology;
+  rdfs:label "FAIR Assessment Specification", "FAIR Assessment Specification";
+  rdfs:subClassOf fip:FAIR-Specification, fip:FAIR-Supporting-Resource, fip:FAIR-Specification,
+    fip:FAIR-Supporting-Resource;
+  skos:definition "A specification defining metrics for each FAIR principle, benchmarks (as a collection of metrics), tests and scoring algorithm to assess the FAIRness of a digital object.",
+    "A specification defining metrics for each FAIR principle, benchmarks (as a collection of metrics), tests and scoring algorithm to assess the FAIRness of a digital object.";
+  fip:supports fair:R1.3 .
+
+fip:FAIR-Case-Study a owl:Class;
+  rdfs:label "FAIR case study"@en;
+  rdfs:subClassOf fip:FAIR-Declaration;
+  skos:definition "A description of a real-life situation where FAIR requirements of digital objects play a central role."@en .
+
+fip:FAIR-Data-Policy a owl:Class;
+  rdfs:label "FAIR Data Policy";
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "A policy that guides FAIR data implementation for a community." .
+
+fip:Data-Steward-Professional-Profile a owl:Class;
+  rdfs:label "FAIR data steward professional profile"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "A document stating the accumulated training qualifications and FAIR outputs authored by or contributed to, by that person. The profile may be augmented with additional statements regarding professional roles and skills."@en .
+
+fip:FAIR-Data-Stewardship-Event a owl:Class;
+  rdfs:label "FAIR data stewardship event"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "A meeting specifically designed for current or aspiring data stewards to provide a rigorous understanding of the FAIR principles from theory to their concrete implementation."@en .
+
+fip:FAIR-Data-Stewardship-Plan-Template a owl:Class;
+  rdfs:label "FAIR data stewardship plan template"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "A template guiding data stewardship including how FAIR Principles should be implemented. The template must be completed with project-specific information in any given instance to outline how data are to be handled in preparation for the project,  during the research project, and after the project is completed."@en .
+
+fip:FAIR-Declaration a owl:Class;
+  rdfs:label "FAIR Declaration"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "The statement of a community on how it addresses a FAIR-related question."@en .
+
+fip:FAIR-Enrichment-Service a owl:Class, owl:Class;
+  dct:isPartOf fip:FIP-Ontology, fip:FIP-Ontology;
+  rdfs:label "FAIR Enrichment Service", "FAIR Enrichment Service";
+  rdfs:subClassOf fip:FAIR-Supporting-Resource, fip:FAIR-Supporting-Technology, fip:FAIR-Supporting-Resource,
+    fip:FAIR-Supporting-Technology;
+  skos:definition "An online resource that enhances the FAIRness of existing resources through AI software or other techniques with suggested semantic metadata and mappings.",
+    "An online resource that enhances the FAIRness of existing resources through AI software or other techniques with suggested semantic metadata and mappings.";
+  fip:supports fair:R1.3 .
+
+fip:FAIR-Implementation-Community a owl:Class;
+  rdfs:label "FAIR Implementation Community"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "A FAIR Implementation Community (FIC) is a self-identified collection of people and/or organizations with the aim to implement the FAIR Principles"@en .
+
+fip:FAIR-Implementation-Profile a owl:Class;
+  rdfs:label "FAIR Implementation Profile"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Specification;
+  skos:definition "A FAIR Implementation Profile (FIP) is a list of declared technology choices intended to implement each of the FAIR Guiding Principles, made as a collective decision by the members of a particular community of practice."@en;
+  fip:enables fair:R1.3 .
+
+fip:FAIR-Interpretation a owl:Class;
+  rdfs:label "FAIR interpretation"@en;
+  rdfs:subClassOf fip:FAIR-Declaration;
+  skos:definition "A theoretical and practical explanation of the FAIR Principle by a recognized expert authority."@en .
+
+fip:FAIR-Orchestration a owl:Class;
+  dct:isPartOf fip:FIP-Ontology;
+  rdfs:label "FAIR Orchestration";
+  skos:definition "A process that operationalizes FAIR Digital Objects by coordinating and deploying infrastructure components (such as FAIR Data Points or Data Visiting Services) across disstributed networks, enabling machine-driven operations, analytics, or queries." .
+
+fip:FAIR-Practice a owl:Class, owl:Class, owl:Class;
+  rdfs:label "FAIR Practice", "FAIR practice", "FAIR practice";
+  rdfs:subClassOf fip:FAIR-Data-Policy, fip:FAIR-Supporting-Resource, fip:FAIR-Data-Policy,
+    fip:FAIR-Supporting-Resource, fip:FAIR-Data-Policy, fip:FAIR-Supporting-Resource;
+  skos:definition "A convention for implementing FAIR clarifying the use of resources for a specific goal as defined by a community of practice.",
+    "A convention for implementing FAIR clarifying the use of resources for a specific goal as defined by a community of practice.",
+    "A convention for implementing FAIR clarifying the use of resources for a specific goal as defined by a community of practice.";
+  fip:supports fair:R1.3, fair:R1.3 .
+
+fip:FAIR-Publishing-Service a owl:Class, owl:Class;
+  dct:isPartOf fip:FIP-Ontology, fip:FIP-Ontology;
+  rdfs:label "FAIR Publishing Service", "FAIR Publishing Service";
+  rdfs:subClassOf fip:FAIR-Supporting-Resource, fip:FAIR-Supporting-Technology, fip:FAIR-Supporting-Resource,
+    fip:FAIR-Supporting-Technology;
+  skos:definition "An online, accessible software system, component, or platform that automates the process of making digital objects publicly discoverable, persistently identifiable, and machine-actionable according to community-specific open standards.",
+    "An online, accessible software system, component, or platform that automates the process of making digital objects publicly discoverable, persistently identifiable, and machine-actionable according to community-specific open standards.";
+  fip:supports fair:F4 .
+
+fip:FAIR-Qualification-Criteria a owl:Class;
+  rdfs:label "FAIR Qualifcation Criteria"@en;
+  rdfs:subClassOf fip:FAIR-Declaration;
+  skos:definition "A proposition on which a qualification of FAIR Supporting Resources is based."@en .
+
+fip:FAIR-Representation-Service a owl:Class;
+  rdfs:label "FAIR Representation Service"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Technology;
+  skos:definition "A transformation service that converts non-FAIR data into a FAIR representation using machine-readable knowledge representation languages."@en;
+  fip:supports fair:I1 .
+
+fip:FAIR-Specification a owl:Class, owl:Class;
+  rdfs:label "FAIR Specification", "FAIR specification"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource, fip:FAIR-Supporting-Resource;
+  skos:definition "A precise description of features, requirements, constraints and recommendations for a specific implementation of a component, system or service supporting the implementation of the FAIR principles.",
+    "A precise description of features, requirements, constraints and recommendations for a specific implementation of a component, system or service supporting the implementation of the FAIR principles."@en .
+
+fip:FAIR-Supporting-Resource a owl:Class, owl:Class;
+  rdfs:label "FAIR Supporting Resource", "FAIR Supporting Resource";
+  skos:definition "Any resource that supports FAIR implementation. FSRs are represented as FAIR Digital Objects with Globally Unique, Persistent, Resolvable Identifiers (GUPRI) that resolve to machine-readable metadata about the resource.",
+    "Any resource that supports FAIR implementation. FSRs are represented as FAIR Digital Objects (using the nanopublication framework) with Globally Unique, Persistent, Resolvable Identifiers (GUPRI) that resolve to machine-readable metadata about the resource." .
+
+fip:FAIR-Supporting-Resource-to-be-Developed a owl:Class;
+  rdfs:label "FAIR Supporting Resource to be developed"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "A FAIR Supporting Resource that is not yet available but still needs to be developed."@en .
+
+fip:FAIR-Supporting-Software a owl:Class, owl:DeprecatedClass;
+  rdfs:label "FAIR Supporting Software";
+  rdfs:subClassOf fip:FAIR-Supporting-Technology;
+  skos:definition "Any set of machine-readable instructions that support the implementation of FAIR, that conform to a given syntax, that are interpretable by a given processor, and that instruct a computer's processor to perform specific tasks." .
+
+fip:FAIR-Supporting-Technology a owl:Class;
+  rdfs:label "FAIR Supporting Technology"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "Any online accessible software system or component that supports the implementation of the FAIR Principles."@en .
+
+fip:FAIR-Training-Material a owl:Class;
+  rdfs:label "FAIR training material"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "Any educational resource (such as the content or its published representation in text, presentation graphics, or video) that covers FAIR topics of interest."@en .
+
+fip:FAIR-Visualization-Service a owl:Class, owl:Class;
+  dct:isPartOf fip:FIP-Ontology, fip:FIP-Ontology;
+  rdfs:label "FAIR Visualization Service", "FAIR Visualization Service";
+  rdfs:subClassOf fip:FAIR-Supporting-Resource, fip:FAIR-Supporting-Technology, fip:FAIR-Supporting-Resource,
+    fip:FAIR-Supporting-Technology;
+  skos:definition "An online resource that dynamically transforms complex, structured data into interactive, human-interpretable graphical representations (such as maps, charts, dashboards, or 3D renders) by natively consuming or generating FAIR Digital Objects.",
+    "An online resource that dynamically transforms complex, structured data into interactive, human-interpretable graphical representations (such as maps, charts, dashboards, or 3D renders) by natively consuming or generating FAIR Digital Objects.";
+  fip:supports fair:R1.3 .
+
+fip:FAIR-Enabling-Resource a owl:Class;
+  rdfs:label "FAIR-Enabling Resource"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "A service, a specification or a data policy that is essential to the operationalization of the FAIR Principles, i.e., puts FAIR into action. A FAIR-Enabling Resource (FER) provides a function needed to achieve some aspect of FAIR behavior and is explicitly linked to one or more FAIR principles."@en .
+
+fip:FAIR-Enabling-Resource-to-be-Developed a owl:Class;
+  rdfs:label "FAIR-Enabling Resource to be Developed"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Supporting-Resource-to-be-Developed;
+  skos:definition "A FAIR-enabling resource that is not yet available but still needs to be developed"@en .
+
+fip:FAIRification a owl:Class;
+  dct:isPartOf fip:FIP-Ontology;
+  rdfs:label "FAIRification";
+  skos:definition "A process that transforms non-FAIR or partially FAIR resources into standardized, machine-actionable digital resources (called FAIR Digital Objects) by assigning global, unique and persistent identifiers and associating explicit metadata based on FAIR Supporting Resources as defined in a FAIR Implementation Profile (FIP)." .
+
+fip:FAIRification-Workflow a owl:Class, owl:Class;
+  dct:isPartOf fip:FIP-Ontology, fip:FIP-Ontology;
+  rdfs:label "FAIRification Workflow", "FAIRification Workflow";
+  rdfs:subClassOf fip:FAIR-Supporting-Resource, fip:FAIR-Supporting-Technology, fip:FAIR-Supporting-Resource,
+    fip:FAIR-Supporting-Technology;
+  skos:definition "An exectuable, structured, and repeatable sequence of automated and human steps designed to transform non-FAIR digital objects into fully FAIR Digital Objects using a list of FAIR Supporting Resources.",
+    "An exectuable, structured, and repeatable sequence of automated and human steps designed to transform non-FAIR digital objects into fully FAIR Digital Objects using a list of FAIR Supporting Resources.";
+  fip:supports fair:R1.3 .
+
+fip:FIP-Data-related-Question a owl:Class;
+  rdfs:label "FIP Data-related Question";
+  rdfs:subClassOf fip:FIP-Question;
+  skos:definition "A FIP question that is relevant for the actual data (as compared to just their metadata)" .
+
+fip:FIP-Declaration a owl:Class;
+  rdfs:label "FIP Declaration"@en;
+  rdfs:subClassOf fip:FAIR-Declaration;
+  skos:definition "The expression of a community on how they address a FIP question"@en .
+
+fip:FIP-Metadata-related-Question a owl:Class;
+  rdfs:label "FIP Metadata-related Question"@en;
+  rdfs:subClassOf fip:FIP-Question;
+  skos:definition "A FIP question that is relevant for metadata (as compared to the data themselves)"@en .
+
+fip:FIP-No-Choice-Declaration a owl:Class;
+  rdfs:label "FIP No-Choice Declaration"@en;
+  rdfs:subClassOf fip:FIP-Declaration;
+  skos:definition "A declaration stating that no choice has been made (yet)"@en .
+
+fip:FIP-Question a owl:Class;
+  rdfs:label "FIP Question"@en;
+  skos:definition "A question communities have to address when declaring their FAIR Implementation Profiles"@en .
+
+fip:FIP-S-Question a owl:Class;
+  dct:isPartOf fip:FIP-Ontology;
+  rdfs:label "FIP Supporting Question";
+  rdfs:subClassOf fip:FIP-Question;
+  skos:definition "A question communities can address when declaring their FAIR Implementation Profiles" .
+
+fip:FSR-Declaration a owl:Class;
+  rdfs:label "FSR Declaration"@en;
+  rdfs:subClassOf fip:FAIR-Declaration;
+  skos:definition "The statement of a community on the usage of a FAIR Supporting Resource."@en .
+
+fip:Generalist-Registry a owl:Class, owl:Class;
+  rdfs:label "Generalist Registry", "Generalist registry"@en;
+  rdfs:subClassOf fip:Registry, fip:Registry;
+  skos:definition "A registry designed to collect, provide access to, and enable searching of data without any restrictions on the domain.",
+    "A registry designed to collect, provide access to, and enable searching of data without any restrictions on the domain."@en .
+
+fip:Identifier-service a owl:Class, owl:Class;
+  rdfs:label "Identifier Service", "Identifier service"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Supporting-Technology, fip:FAIR-Enabling-Resource,
+    fip:FAIR-Supporting-Technology;
+  skos:definition "A service that provides for any digital object (1) algorithms guaranteeing global uniqueness, (2) policy document that guarantees persistent and (3) resolution of the identifier to machine-actionable metadata describing the object and its location.",
+    "A service that provides for any digital object (1) algorithms guaranteeing global uniqueness, (2) policy document that guarantees persistent and (3) resolution of the identifier to machine-actionable metadata describing the object and its location."@en;
+  fip:enables fair:F1, fair:F1 .
+
+fip:Integration-Service a owl:Class, owl:Class;
+  dct:isPartOf fip:FIP-Ontology, fip:FIP-Ontology;
+  rdfs:label "Integration Service", "Integration Service";
+  rdfs:subClassOf fip:FAIR-Supporting-Resource, fip:FAIR-Supporting-Technology, fip:FAIR-Supporting-Resource,
+    fip:FAIR-Supporting-Technology;
+  skos:definition "A software interface (e.g., Web-API) that provides a structured, secure, and reliable gateway to connect different systems, allowing users or machines to retrieve, query, consolidate, or interact with data and resources across multiple sources.",
+    "A software interface (e.g., Web-API) that provides a structured, secure, and reliable gateway to connect different systems, allowing users or machines to retrieve, query, consolidate, or interact with data and resources across multiple sources.";
+  fip:supports fair:A1.1 .
+
+fip:Knowledge-representation-language a owl:Class, owl:Class;
+  rdfs:label "Knowledge Representation Language", "Knowledge representation language"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Specification, fip:FAIR-Enabling-Resource,
+    fip:FAIR-Specification;
+  skos:definition "A language specification that enables knowledge to be processed by machines.",
+    "A language specification that enables knowledge to be processed by machines."@en;
+  fip:enables fair:I1, fair:I1 .
+
+fip:Mature-Community a owl:Class;
+  rdfs:label "Mature community"@en;
+  rdfs:subClassOf fip:FAIR-Implementation-Community;
+  skos:definition "A well-established community interested to implement FAIR in their data and services."@en .
+
+fip:Metadata-preservation-policy a owl:Class, owl:Class;
+  rdfs:label "Metadata Preservation Policy", "Metadata preservation policy"@en;
+  rdfs:subClassOf fip:FAIR-Data-Policy, fip:FAIR-Enabling-Resource, fip:FAIR-Data-Policy,
+    fip:FAIR-Enabling-Resource;
+  skos:definition "A data policy that describes the conditions under which metadata should be provided in the future.",
+    "A data policy that describes the conditions under which metadata should be provided in the future."@en;
+  fip:enables fair:A2, fair:A2 .
+
+fip:Metadata-schema a owl:Class, owl:Class;
+  rdfs:label "Metadata Schema", "Metadata schema"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Specification, fip:FAIR-Enabling-Resource,
+    fip:FAIR-Specification;
+  skos:definition "A specification that specifies the structured representation of metadata describing attributes of data or other digital objects in terms of semantics, syntax and optionality.",
+    "A specification that specifies the structured representation of metadata describing attributes of data or other digital objects in terms of semantics, syntax and optionality."@en;
+  fip:enables fair:F2, fair:F2 .
+
+fip:Metadata-data-linking-schema a owl:Class, owl:Class;
+  rdfs:label "Metadata-data Linking Schema", "Metadata-data linking schema"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Specification, fip:FAIR-Enabling-Resource,
+    fip:FAIR-Specification;
+  skos:definition "A specification that provides a unique, persistent, (ideally) bi-directional, machine-actionable link between metadata and the data they describe.",
+    "A specification that provides a unique, persistent, (ideally) bi-directional, machine-actionable link between metadata and the data they describe."@en;
+  fip:enables fair:F3, fair:F3 .
+
+fip:Open-Digital-Rights-Language-Specification a owl:Class, owl:Class;
+  dct:isPartOf fip:FIP-Ontology, fip:FIP-Ontology;
+  rdfs:label "Open Digital Rights Language Specification", "Open Digital Rights Language Specification";
+  rdfs:subClassOf fip:FAIR-Specification, fip:FAIR-Supporting-Resource, fip:FAIR-Specification,
+    fip:FAIR-Supporting-Resource;
+  skos:definition "An Open Digital Rights Language (ODRL) specification is a machine-readable expression of permissions, prohibitions, and obligations that governs how a digital asset (such as a dataset, software, or service) can be used.",
+    "An Open Digital Rights Language (ODRL) specification is a machine-readable expression of permissions, prohibitions, and obligations that governs how a digital asset (such as a dataset, software, or service) can be used.";
+  fip:supports fair:R1.1 .
+
+fip:Persistency-Policy a owl:Class;
+  rdfs:label "Persistency Policy"@en;
+  rdfs:subClassOf fip:FAIR-Data-Policy, fip:FAIR-Enabling-Resource;
+  skos:definition "A policy with respect to persistency of resources."@en;
+  fip:enables fair:A2, fair:F1, fair:F4 .
+
+fip:Provenance-model a owl:Class, owl:Class;
+  rdfs:label "Provenance Model", "Provenance model"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Specification, fip:FAIR-Enabling-Resource,
+    fip:FAIR-Specification;
+  skos:definition "A specification that specifies metadata describing the origin and lineage of data or other digital objects.",
+    "A specification that specifies metadata describing the origin and lineage of data or other digital objects."@en;
+  fip:enables fair:R1.2, fair:R1.2 .
+
+fip:Provenance-Tracking-Service a owl:Class, owl:Class;
+  rdfs:label "Provenance Tracking Service", "Provenance tracking service"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Technology, fip:FAIR-Supporting-Technology;
+  skos:definition "A system that systematically captures, stores and manages detailed information about the origin, history, and lifecycle of digital objects creating metadata based on a provenance model.",
+    "A system that systematically captures, stores and manages detailed information about the origin, history, and lifecycle of digital objects creating metadata based on a provenance model. "@en;
+  fip:supports fair:R1.2, fair:R1.2 .
+
+fip:Reference-FAIR-Implementation-Profile a owl:Class;
+  rdfs:label "Reference FAIR Implementation Profile"@en;
+  rdfs:subClassOf fip:FAIR-Implementation-Profile;
+  skos:definition "A list of recommended FAIR Enabling Resources intended to implement the FAIR Guiding Principles, made as a collective decision by the members of a particular community of practice."@en .
+
+fip:Registry a owl:Class;
+  rdfs:label "Registry"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Supporting-Technology;
+  skos:definition "A service that indexes metadata and data and provides search over that index."@en;
+  fip:enables fair:F4 .
+
+fip:Semantic-Interoperability-Profile a owl:Class, owl:DeprecatedClass;
+  rdfs:label "Semantic Interoperability Profile";
+  rdfs:subClassOf fip:FAIR-Supporting-Resource;
+  skos:definition "A Semantic Interoperability Profil (SIP) is a list of FAIR Supporting Resources chosen by a community to support semantic interoperability of (meta)data." .
+
+fip:Semantic-model a owl:Class, owl:Class;
+  rdfs:label "Semantic Model", "Semantic model"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Specification, fip:FAIR-Enabling-Resource,
+    fip:FAIR-Specification;
+  skos:definition "A specification that defines qualified relations between entities describing data or other digital objects according to the Linked Data principles. This can include semantic data models and ontologies.",
+    "A specification that defines qualified relations between entities describing data or other digital objects according to the Linked Data principles. This can include semantic data models and ontologies."@en;
+  fip:enables fair:I3, fair:I3 .
+
+fip:SIP-Declaration a owl:Class;
+  rdfs:label "SIP Declaration"@en;
+  rdfs:subClassOf fip:FAIR-Declaration;
+  skos:definition "The statement of a community on how it addresses a SIP question."@en .
+
+fip:Structured-vocabulary a owl:Class, owl:Class;
+  rdfs:label "Structured Vocabulary", "Structured vocabulary"@en;
+  rdfs:subClassOf fip:FAIR-Enabling-Resource, fip:FAIR-Specification, fip:FAIR-Enabling-Resource,
+    fip:FAIR-Specification;
+  skos:definition "A specification for a controlled list of uniquely identified and unambigous concepts with their definitions represented using web standards.",
+    "A specification for a controlled list of uniquely identified and unambigous concepts with their definitions represented using web standards."@en;
+  fip:enables fair:I2, fair:I2 .
+
+fip:Validation-Service a owl:Class, owl:Class;
+  rdfs:label "Validation Service", "Validation service"@en;
+  rdfs:subClassOf fip:FAIR-Supporting-Technology, fip:FAIR-Supporting-Technology;
+  skos:definition "A system that automatically verifies the accuracy, completeness, or compliance of data, code or processes against predefined criteria or standards.",
+    "A system that automatically verifies the accuracy, completeness, or compliance of data, code or processes against predefined criteria or standards."@en;
+  fip:supports fair:F2, fair:I2, fair:I3, fair:F2, fair:I2, fair:I3 .
+
+fip:Web-API a owl:Class, owl:DeprecatedClass;
+  rdfs:label "Web-API";
+  rdfs:subClassOf fip:FAIR-Supporting-Technology;
+  skos:definition "An Application Programming Interface (API) for the World Wide Web that allows different software applications to communicate with each other." .
+
+fip:availability-in-years a rdf:Property, owl:DatatypeProperty;
+  rdfs:domain fip:fip:FAIR-Data-Policy;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/availability-in-years>;
+  rdfs:label "availability in years"@en;
+  skos:definition "Specifies how many years a resource is preserved according to a preservation policy"@en .
+
+fip:considerations a rdf:Property, owl:DatatypeProperty;
+  rdfs:domain fip:FAIR-Declaration;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/considerations>;
+  rdfs:label "considerations"@en;
+  skos:definition "Considerations that led to a given FIP declaration"@en .
+
+fip:declared-by a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Declaration;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/declared-by>;
+  rdfs:label "declared by"@en;
+  rdfs:range fip:FAIR-Implementation-Community;
+  skos:definition "Connects a FIP declaration to the community that made the declaration"@en .
+
+fip:declared-for-case-study a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Declaration;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/declared-for-case-study>;
+  rdfs:label "declared for case study"@en;
+  rdfs:range fip:FAIR-Case-Study;
+  skos:definition "Connects a FIP declaration to the case study it refers to."@en .
+
+fip:declared-for-digital-object-type a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Declaration;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/declared-for-digital-object-type>;
+  rdfs:label "declared for digital object type"@en;
+  rdfs:range fip:Digital-Object-Type;
+  skos:definition "Connects a FIP declaration to the digital object type it applies to"@en .
+
+fip:declares-current-use-of a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Declaration;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/declares-current-use-of>;
+  rdfs:label "declares current use of"@en;
+  rdfs:range fip:Available-FAIR-Supporting-Resource;
+  skos:definition "Connects a FIP declaration to the resource that the community thereby declares to currently use"@en .
+
+fip:declares-planned-development-of a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Declaration;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/declares-planned-development-of>;
+  rdfs:label "declares planned development of"@en;
+  rdfs:range fip:FAIR-Supporting-Resource-to-be-Developed;
+  skos:definition "Connects a FIP declaration to the resource that the community thereby declares to plan to develop"@en .
+
+fip:declares-planned-replacement-of a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Declaration;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/declares-planned-replacement-of>;
+  rdfs:label "declares planned replacement of"@en;
+  rdfs:range fip:Available-FAIR-Supporting-Resource;
+  skos:definition "Connects a FIP declaration to the resource that the community thereby declares to plan to replace in the future. The same declaration should also state a resource that the community declares to plan to use instead (with fip:declares-planned-use-of)."@en .
+
+fip:declares-planned-use-of a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Declaration;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/declares-planned-use-of>;
+  rdfs:label "declares planned use of"@en;
+  rdfs:range fip:FAIR-Supporting-Resource;
+  skos:definition "Connects a FIP declaration to the resource that the community thereby declares to plan to use in the future"@en .
+
+fip:depends-on a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Enabling-Resource;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/depends-on>;
+  rdfs:label "depends on"@en;
+  rdfs:range fip:FAIR-Supporting-Software;
+  skos:definition "Connects a FAIR Enabling Resource with a FAIR Supporting Software."@en .
+
+fip:enables a rdf:Property, owl:ObjectProperty;
+  rdfs:domain owl:Class;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/enables>;
+  rdfs:label "enables"@en;
+  rdfs:range fair:FAIR-Principle-or-SubPrinciple;
+  skos:definition "Connects a FAIR Enabling Resource class with the FAIR principles it enables"@en .
+
+fip:has-data-steward a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Implementation-Community;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/has-data-steward>;
+  rdfs:label "has data steward"@en;
+  rdfs:subPropertyOf foaf:member;
+  skos:definition "Specifies the data steward for a FAIR implementation community"@en .
+
+fip:has-data-usage-license a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Enabling-Resource;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/has-data-usage-license>;
+  rdfs:label "has data usage license"@en;
+  rdfs:range fip:Data-usage-license;
+  skos:definition "Connects a FAIR Enabling Resource with a data usage license."@en .
+
+fip:has-declaration-index a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Supporting-Resource;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/has-declaration-index>;
+  rdfs:label "has declaration index"@en;
+  rdfs:range npx:NanopubIndex;
+  skos:definition "Connects a FAIR Implementation Profile or a Semantic Interoperability Profile to the index of their declarations."@en .
+
+fip:has-description-source a rdf:Property, owl:ObjectProperty;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/has-description-source>;
+  rdfs:label "has description source"@en;
+  skos:definition "Denotes the source of the description that is asserted via dct:description"@en .
+
+fip:has-MPP a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:Registry;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/has-MPP>;
+  rdfs:label "has metadata preservation policy"@en;
+  rdfs:range fip:Metadata-preservation-policy;
+  skos:definition "Connects a registry with a metadata preservation policy."@en .
+
+fip:has-persistency-policy a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Supporting-Resource;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/has-persistency-policy>;
+  rdfs:label "has persistency policy"@en;
+  rdfs:range fip:Persistency-Policy;
+  skos:definition "Connects a FAIR Supporting Resource with a persistency policy"@en .
+
+fip:has-research-domain a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Implementation-Community;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/has-research-domain>;
+  rdfs:label "has research domain"@en;
+  skos:definition "Connects a FAIR Implementation Community with research domains"@en .
+
+fip:implements a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Enabling-Resource;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/implements>;
+  rdfs:label "implements"@en;
+  rdfs:range fip:FAIR-Specification;
+  skos:definition "Connects a FAIR Enabling Resource with a FAIR Specification"@en .
+
+fip:recommended-by a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Supporting-Resource;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/recommended-by>;
+  rdfs:label "is recommended by"@en;
+  rdfs:range fip:FAIR-Implementation-Community;
+  skos:definition "Connects a FAIR Supporting Resource with a FAIR Implementation Community that recommends the resource"@en .
+
+fip:metadata-availability-in-years a rdf:Property, owl:DatatypeProperty;
+  rdfs:domain fip:Metadata-preservation-policy;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/metadata-availability-in-years>;
+  rdfs:label "metadata availability in years"@en;
+  rdfs:subPropertyOf fip:availability-in-years;
+  skos:definition "Specifies how many years metadata are preserved according to the metadata preservation policy"@en .
+
+fip:refers-to-principle a rdf:Property, owl:ObjectProperty;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/refers-to-principle>;
+  rdfs:label "refers to principle"@en;
+  rdfs:range fair:FAIR-Principle-or-SubPrinciple;
+  skos:definition "Connects an entity (for example a FIP declaration) to a FAIR (sub)principle it refers to"@en .
+
+fip:refers-to-question a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FIP-Declaration;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/refers-to-question>;
+  rdfs:label "refers to question"@en;
+  rdfs:range fip:FIP-Question;
+  skos:definition "Connects a FIP declaration to the FIP question it is addressing"@en .
+
+fip:targets a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Supporting-Resource;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/targets>;
+  rdfs:label "targets"@en;
+  rdfs:range fip:Digital-Object-Type;
+  skos:definition "Specifies the type of digital object targeted by a FAIR Supporting Resources"@en .
+
+fip:has-AAS a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:Registry;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/has-AAS>;
+  rdfs:label "uses authentication and authorization service"@en;
+  rdfs:range fip:Authentication-and-authorization-service;
+  skos:definition "Connects a registry with an authentication and authorization service"@en .
+
+fip:uses-identifier-service a rdf:Property, owl:ObjectProperty;
+  rdfs:domain fip:Registry;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/uses-identifier-service>;
+  rdfs:label "uses identifier service"@en;
+  rdfs:range fip:Identifier-service;
+  skos:definition "Connects a registry with an identifier service."@en .
+
+fip:supports a rdf:Property, owl:ObjectProperty;
+  dct:isPartOf fip:FIP-Ontology;
+  rdfs:domain fip:FAIR-Supporting-Resource;
+  rdfs:label "supports";
+  skos:definition "Connects a FAIR Supporting Resource with the FAIR principles or FAIR processes it facilitates or operationalizes." .
+
+fip:FIP-Question-A1.1-D a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question A1.1-D"@en;
+  skos:definition "Which standardized communication protocol do you use for datasets?"@en;
+  fip:refers-to-principle fair:A1.1 .
+
+fip:FIP-Question-A1.1-MD a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question A1.1-MD"@en;
+  skos:definition "Which standardized communication protocol do you use for metadata records?"@en;
+  fip:refers-to-principle fair:A1.1 .
+
+fip:FIP-Question-A1.2-D a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question A1.2-D"@en;
+  skos:definition "Which authentication & authorisation technique do you use for datasets?"@en;
+  fip:refers-to-principle fair:A1.2 .
+
+fip:FIP-Question-A1.2-MD a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question A1.2-MD"@en;
+  skos:definition "Which authentication & authorisation technique do you use for metadata records?"@en;
+  fip:refers-to-principle fair:A1.2 .
+
+fip:FIP-Question-A2 a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question A2"@en;
+  skos:definition "Which metadata longevity plan do you use?"@en;
+  fip:refers-to-principle fair:A2 .
+
+fip:FIP-Question-F1-D a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question F1-D"@en;
+  skos:definition "What globally unique, persistent, resolvable identifiers do you use for datasets?"@en;
+  fip:refers-to-principle fair:F1 .
+
+fip:FIP-Question-F1-MD a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question F1-MD"@en;
+  skos:definition "What globally unique, persistent, resolvable identifiers do you use for metadata records?"@en;
+  fip:refers-to-principle fair:F1 .
+
+fip:FIP-Question-F2 a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question F2"@en;
+  skos:definition "Which metadata schemas do you use for findability?"@en;
+  fip:refers-to-principle fair:F2 .
+
+fip:FIP-Question-F3 a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question F3"@en;
+  skos:definition "What is the technology that links the persistent identifiers of your data to the metadata description?"@en;
+  fip:refers-to-principle fair:F3 .
+
+fip:FIP-Question-F4-D a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question F4-D"@en;
+  skos:definition "In which search engines are your datasets indexed?"@en;
+  fip:refers-to-principle fair:F4 .
+
+fip:FIP-Question-F4-MD a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question F4-MD"@en;
+  skos:definition "In which search engines are your metadata records indexed?"@en;
+  fip:refers-to-principle fair:F4 .
+
+fip:FIP-Question-I1-D a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question I1-D"@en;
+  skos:definition "Which knowledge representation languages (allowing machine interoperation) do you use for datasets?"@en;
+  fip:refers-to-principle fair:I1 .
+
+fip:FIP-Question-I1-MD a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question I1-MD"@en;
+  skos:definition "Which knowledge representation languages (allowing machine interoperation) do you use for metadata records?"@en;
+  fip:refers-to-principle fair:I1 .
+
+fip:FIP-Question-I2-D a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question I2-D"@en;
+  skos:definition "Which structured vocabularies do you use to encode your datasets?"@en;
+  fip:refers-to-principle fair:I2 .
+
+fip:FIP-Question-I2-MD a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question I2-MD"@en;
+  skos:definition "Which structured vocabularies do you use to annotate your metadata records?"@en;
+  fip:refers-to-principle fair:I2 .
+
+fip:FIP-Question-I3-D a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question I3-D"@en;
+  skos:definition "Which models, schema(s) do you use for your datasets?"@en;
+  fip:refers-to-principle fair:I3 .
+
+fip:FIP-Question-I3-MD a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question I3-MD"@en;
+  skos:definition "Which models, schema(s) do you use for your metadata records?"@en;
+  fip:refers-to-principle fair:I3 .
+
+fip:FIP-Question-R1.1-D a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question R1.1-D"@en;
+  skos:definition "Which usage license do you use for your datasets?"@en;
+  fip:refers-to-principle fair:R1.1 .
+
+fip:FIP-Question-R1.1-MD a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question R1.1-MD"@en;
+  skos:definition "Which usage license do you use for your metadata records?"@en;
+  fip:refers-to-principle fair:R1.1 .
+
+fip:FIP-Question-R1.2-D a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question R1.2-D"@en;
+  skos:definition "Which metadata schemas do you use for describing the provenance of your datasets?"@en;
+  fip:refers-to-principle fair:R1.2 .
+
+fip:FIP-Question-R1.2-MD a owl:NamedIndividual, fip:FIP-Question;
+  rdfs:label "FIP Question R1.2-MD"@en;
+  skos:definition "Which metadata schemas do you use for describing the provenance of your metadata records?"@en;
+  fip:refers-to-principle fair:R1.2 .
+
+fip:FIP-S-Question-A1.1-IS a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question A1.1-IS"@en;
+  skos:definition "What integration service do you use to interact with digital objects?"@en;
+  fip:refers-to-principle fair:A1.1 .
+
+fip:FIP-S-Question-F2-E a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question F2-E"@en;
+  skos:definition "What metadata editor service do you use?"@en;
+  fip:refers-to-principle fair:F2 .
+
+fip:FIP-S-Question-F2-VS a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question F2-VS"@en;
+  skos:definition "What validation service do you use for provided metadata?"@en;
+  fip:refers-to-principle fair:F2 .
+
+fip:FIP-S-Question-F4-FPS a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question F4-FPS"@en;
+  skos:definition "Which FAIR publishing service do you use for your digital objects?"@en;
+  fip:refers-to-principle fair:F4 .
+
+fip:FIP-S-Question-I1-FRS a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question I1-FRS"@en;
+  skos:definition "What FAIR representation services do you use to create FAIR data?"@en;
+  fip:refers-to-principle fair:I1 .
+
+fip:FIP-S-Question-I2-E a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question I2-E"@en;
+  skos:definition "What editor do you use to create vocabularies?"@en;
+  fip:refers-to-principle fair:I2 .
+
+fip:FIP-S-Question-I2-VS a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question I2-VS"@en;
+  skos:definition "What validation service do you use to validate vocabularies?"@en;
+  fip:refers-to-principle fair:I2 .
+
+fip:FIP-S-Question-I3-C a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question I3-C"@en;
+  skos:definition "What crosswalks do you use to link different schemas?"@en;
+  fip:refers-to-principle fair:I3 .
+
+fip:FIP-S-Question-I3-E a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question I3-E"@en;
+  skos:definition "What editor do you use create crosswalks?"@en;
+  fip:refers-to-principle fair:I3 .
+
+fip:FIP-S-Question-I3-VS a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question I3-VS"@en;
+  skos:definition "What validation service do you use for semantic models?"@en;
+  fip:refers-to-principle fair:I3 .
+
+fip:FIP-S-Question-R1.1-ODRL a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question R1.1-ODRL"@en;
+  skos:definition "What Open Digital Rights Language (ODRL) specification do you use for your datasets?"@en;
+  fip:refers-to-principle fair:R1.1 .
+
+fip:FIP-S-Question-R1.2-PTS a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question R1.2-PTS"@en;
+  skos:definition "What provenance tracking service do you use to provide information about metadata and data?"@en;
+  fip:refers-to-principle fair:R1.2 .
+
+fip:FIP-S-Question-R1.3-AS a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question R1.3-AS"@en;
+  skos:definition "Which FAIR analysis service do you use?"@en;
+  fip:refers-to-principle fair:R1.3 .
+
+fip:FIP-S-Question-R1.3-FAS a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question R1.3-FAS"@en;
+  skos:definition "Which FAIR assessment specification do you use?"@en;
+  fip:refers-to-principle fair:R1.3 .
+
+fip:FIP-S-Question-R1.3-FER a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question R1.3-FER"@en;
+  skos:definition "Which FAIR enrichment service do you use for your metadata records?"@en;
+  fip:refers-to-principle fair:R1.3 .
+
+fip:FIP-S-Question-R1.3-FP a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question R1.3-FP"@en;
+  skos:definition "What FAIR practice do you use for creating and maintaining metadata records ?"@en;
+  fip:refers-to-principle fair:R1.3 .
+
+fip:FIP-S-Question-R1.3-FVS a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question R1.3-FVS"@en;
+  skos:definition "Which FAIR visualization service do you use?"@en;
+  fip:refers-to-principle fair:R1.3 .
+
+fip:FIP-S-Question-R1.3-FW a owl:NamedIndividual, fip:FIP-S-Question;
+  rdfs:label "FIP Supporting Question R1.3-FW"@en;
+  skos:definition "Which FAIRification workflow do you use?"@en;
+  fip:refers-to-principle fair:R1.3 .
+
+fip:has-purpose a owl:ObjectProperty;
+  rdfs:domain fip:FAIR-Supporting-Resource;
+  rdfs:isDefinedBy <https://w3id.org/fair/fip/latest/has-purpose>;
+  rdfs:label "has purpose"@en;
+  skos:definition "Specifies the purpose of FAIR Supporting Resources"@en .
+
+<https://w3id.org/np/RAo6ciqn1-yxYXhsvA_iJBCHkypWFREtdhljG8gpofo8o> a npx:NanopubIndex;
+  dct:isPartOf fip:FIP-Ontology;
+  npx:includesElement <https://w3id.org/fair/fip/np/Authentication-and-authorization-service/RAJN77l7NwX8f67U7vOeVjGBRoo2XXyuWhYj9AJfxTsbQ>,
+    <https://w3id.org/fair/fip/np/Available-FAIR-Enabling-Resource/RA7osIO7t73EDH1nWnmu2YlPy1lKDkSoax1FXlLlMOU00>,
+    <https://w3id.org/fair/fip/np/Available-FAIR-Supporting-Resource/RALYptrVTKz8s3bNdInB7iR3gG_azwCIj7c4CkHt_a9wo>,
+    <https://w3id.org/fair/fip/np/Communication-protocol/RAh4wtIRZKmv0WMd_ytDNkoR_LUMSkbxaaE3w1fk-yaF8>,
+    <https://w3id.org/fair/fip/np/Crosswalk/RA2I2OPI958uOFoL9DyNFwklQX3HXQWgg5szBGP0Gqj1Y>,
+    <https://w3id.org/fair/fip/np/Data-Steward-Professional-Profile/RAtcMVJOe4C1nTX0XxPTmXYXRHrVoTZ8ARTxv405fxW-4>,
+    <https://w3id.org/fair/fip/np/Data-usage-license/RAubxBN6aogGuQsUx5IBgUTHYdrOhniDUHQHrpx4tpzG0>,
+    <https://w3id.org/fair/fip/np/Digital-Object-Type/RAPSSM8dsBiEg2MzRQotlULcYsBA8dhBf1_85EGHbuKBA>,
+    <https://w3id.org/fair/fip/np/Domain-Specific-Registry/RA6qyPI54WA1IbqFHuhJ-he4-lp2j404ZSrhmZzdjzOMk>,
+    <https://w3id.org/fair/fip/np/Editor/RA4STUejmid0S2QCXaUccLem3IQ9veB46SGxagNWT7OuU>,
+    <https://w3id.org/fair/fip/np/Emerging-Community/RAtXawgWoVGgkqHUYL384pr2P5CtuS7ZYFKgihN-kc_J0>,
+    <https://w3id.org/fair/fip/np/FAIR-Case-Study/RAgni-4liyVb-nnNVD-9EtK3dJfc0uBkxqdPw4v2KFti0>,
+    <https://w3id.org/fair/fip/np/FAIR-Data-Policy/RAHH3t1Mlbfg-P_GCh_pPsWVEzUqiBXyPQMPQ5ePCcncI>,
+    <https://w3id.org/fair/fip/np/FAIR-Data-Stewardship-Event/RAlkfG0StlGEmnerMrdUX07i19jWEA_DjUZfTWp6UWbLE>,
+    <https://w3id.org/fair/fip/np/FAIR-Data-Stewardship-Plan-Template/RAIkNpQsqji0sF5AYBW-zz60L5DkKCQBpGmTCydQBRoqs>,
+    <https://w3id.org/fair/fip/np/FAIR-Declaration/RAsdeTxhIf47t8Aj5DLKHEB3NYDvSK9L_U-DB0GhsQ_rs>,
+    <https://w3id.org/fair/fip/np/FAIR-Enabling-Resource-to-be-Developed/RArv_tE8T9oHsBdCbdxevb7R2xzO4LLeL8iZmQ8Kbn0WQ>,
+    <https://w3id.org/fair/fip/np/FAIR-Enabling-Resource/RA-Xei81pjoGaU8xZikOhuG2mX2DfvkMh1AMOZ5tEBbuU>,
+    <https://w3id.org/fair/fip/np/FAIR-Implementation-Community/RAXx2sWDEJ3sRacRTryHV9TsOcEeTXyqkD-JgRIUXYdzo>,
+    <https://w3id.org/fair/fip/np/FAIR-Implementation-Profile/RAmqY_NwuE2GhtWdPR1-evUvGSl9r65m8YMZYqoiFD55U>,
+    <https://w3id.org/fair/fip/np/FAIR-Interpretation/RAOyn9DClFwHuaeR-DJeMTNj1PV2POy1YadVlwl4-o1mc>,
+    <https://w3id.org/fair/fip/np/FAIR-Practice/RAJ75qp7cUvH1AaN5cMX0-wYR3PbthdINApgNVlILz6uM>,
+    <https://w3id.org/fair/fip/np/FAIR-Qualification-Criteria/RA6fFsQ6n4_Wy7ISeb3VTFnEve5zGtCeVhgrH2-bfL3XI>,
+    <https://w3id.org/fair/fip/np/FAIR-Representation-Service/RAxkVwDNd68SF42b4PPRVTahvk7GThpg-b0Pjw4veDz8A>,
+    <https://w3id.org/fair/fip/np/FAIR-Specification/RAAySSXCeOJehzn1RFwS5OZ56pmIBoWyISi09z5SjgJAM>,
+    <https://w3id.org/fair/fip/np/FAIR-Supporting-Resource-to-be-Developed/RA6dBfbMRjI2bmG3IOS2XcdGQ9QJ05Mk8PnGMsCnXVd_g>,
+    <https://w3id.org/fair/fip/np/FAIR-Supporting-Resource/RAJ7pju_y4y4I4yyxuPw3kCas5kpG0KtjSxZRrZgnOnHk>,
+    <https://w3id.org/fair/fip/np/FAIR-Supporting-Software/RA4GdGUF5JGmXj0LTkH_GBXOdsMnfROztP_NOCQgBJ36c>,
+    <https://w3id.org/fair/fip/np/FAIR-Supporting-Technology/RAsIcwwIjHNmluU1w8skL83ikATW0lGnjNiBPwqAD4Z0o>,
+    <https://w3id.org/fair/fip/np/FAIR-Training-Material/RAM7OI04z5ueh2IX9dVsCdS4aLP9KeJdM7jVePdwA_9Nc>,
+    <https://w3id.org/fair/fip/np/FIP-Declaration/RA088TBSzUI7ukyCuF8eQhW3sb_1txnofUobAbhGLACag>,
+    <https://w3id.org/fair/fip/np/FIP-Metadata-related-Question/RA0dZMXPXW5JFV3i0TcMUcKNfyjQf7eOXKncKu-H_MXNg>,
+    <https://w3id.org/fair/fip/np/FIP-No-Choice-Declaration/RAGpixzwkgO9ZTd_ceXywEtN4EoegnvNjGF09ovbKXYeg>,
+    <https://w3id.org/fair/fip/np/FIP-Question-A1.1-D/RAARj_ox_uR19dGQ2wqhiZu3v9oXz2RuOOobWieqtNHZg>,
+    <https://w3id.org/fair/fip/np/FIP-Question-A1.1-MD/RAQI6mKWxdtSMwkkLOjt0PU-xo40q4eVhcqeTk7sHQ-DQ>,
+    <https://w3id.org/fair/fip/np/FIP-Question-A1.2-D/RASgZAs2yquXaMZH1mw1o0q_1_EfX2-Eyl5KM8Jn7868I>,
+    <https://w3id.org/fair/fip/np/FIP-Question-A1.2-MD/RA4vU6KJ7UFAOjMutc7OaAgBBFfrSW3LrfefIuTRHWQXk>,
+    <https://w3id.org/fair/fip/np/FIP-Question-A2/RAFO5_s6SeaVlj9-UBgFCsREGb2nthO6m-UR8WjT8YSoo>,
+    <https://w3id.org/fair/fip/np/FIP-Question-F1-D/RA_yH5MvXUHee_rdxHFYe0ErstgZ97W95hrSqlb78dEb4>,
+    <https://w3id.org/fair/fip/np/FIP-Question-F1-MD/RA3JL2E8g6TdgVUwEZL-VbeKDZCboI0xX9hemEUD5NQWg>,
+    <https://w3id.org/fair/fip/np/FIP-Question-F2/RArYgu6jkB4toYrVtTNFiO8-y7dJbYqDyZ4HOXaTRpNDI>,
+    <https://w3id.org/fair/fip/np/FIP-Question-F3/RA4sZQUoD6_pu9k0xHmbevrdw-rb252N63a7s5Z6sQeGI>,
+    <https://w3id.org/fair/fip/np/FIP-Question-F4-D/RAUi6FI8IHRC15aXV2p2yk6Oh8wyWkPohd3MUv9UMQ6Cs>,
+    <https://w3id.org/fair/fip/np/FIP-Question-F4-MD/RAhBPETDZ6cIMrqQhUJyuCPgMPzVorrY9QV5a8ZYXc3Q4>,
+    <https://w3id.org/fair/fip/np/FIP-Question-I1-D/RA_QxT0AXqNi3b9xrhDjb0jTnb1XPR0dnaYfZ_SA6GCFY>,
+    <https://w3id.org/fair/fip/np/FIP-Question-I1-MD/RAYVn-2683nbt_Vc7TftudGfmSaoCaKPms8nwM1y3oa7w>,
+    <https://w3id.org/fair/fip/np/FIP-Question-I2-D/RAJki4LHh48aA6Xy19-rYGwUQ5NcaIqy9DYZ4uMNIbCKc>,
+    <https://w3id.org/fair/fip/np/FIP-Question-I2-MD/RATyyCickxqPR75rckr9vTL6OG7xLAVxZKrUqweiF2BU4>,
+    <https://w3id.org/fair/fip/np/FIP-Question-I3-D/RAtT2UBM13NqZo9z24-NcEO_EuIpotTgiceAmlNThhva0>,
+    <https://w3id.org/fair/fip/np/FIP-Question-I3-MD/RAW8HKvy70ixAZwVEOKUhrG2M9TM7CR-hO5iLdNCEF3gc>,
+    <https://w3id.org/fair/fip/np/FIP-Question-R1.1-D/RAs0YeHmBo5jJIuMtQR_2X5IVRxUJrLueaKZ3Mwx06Al0>,
+    <https://w3id.org/fair/fip/np/FIP-Question-R1.1-MD/RASg4t4TI5IPEgsTuZDNrvaPI6c1_-MdUCUEp4DXWKRQw>,
+    <https://w3id.org/fair/fip/np/FIP-Question-R1.2-D/RA-TkuQ_7EluDwUfEY0DRxe5w7Ug4829ShM77pEwQuHMI>,
+    <https://w3id.org/fair/fip/np/FIP-Question-R1.2-MD/RAgrqmnFtqErqVw4PEGUvVSArdVoYNyYSGEhfD29Ob1yI>,
+    <https://w3id.org/fair/fip/np/FIP-Question/RA8t_hL1RiB6nlbhGg6BP2aNBvYncr-Ck1-snDessclOo>,
+    <https://w3id.org/fair/fip/np/FSR-Declaration/RA1EKwukGSQ_K4eQgI6HaRWlMhnWev8ZBAVhGdgmlcmm8>,
+    <https://w3id.org/fair/fip/np/Generalist-Registry/RAQ4YD-cAsYPJ9TgT5BIARYuIPutd5Ab5DNdgGaOe_hy8>,
+    <https://w3id.org/fair/fip/np/Identifier-service/RA4G1_HzwMUUbpfwBPuzCf6m7j4rCbwcHOHOTvBR2OuTc>,
+    <https://w3id.org/fair/fip/np/Knowledge-representation-language/RAD_2XPrUCaI05LmRIP9za8sk58YOe54cF1msDKJ9S0eo>,
+    <https://w3id.org/fair/fip/np/Mature-Community/RAKpg6thNsaGeOk0vdxwh76RPT1lY-jH5Xe4tlkaASjpM>,
+    <https://w3id.org/fair/fip/np/Metadata-data-linking-schema/RA4MgD6y6KSK0ywD5rWZg2foezfaoGKXkU3Utq9oIiWFM>,
+    <https://w3id.org/fair/fip/np/Metadata-preservation-policy/RAO1B2GML7WovNmGHw5JamNXCWyLrkSfH3LVtQRN7Y9Ko>,
+    <https://w3id.org/fair/fip/np/Metadata-schema/RAqsvaW9VLy3GRrjDxPM34PNdHx-jk9geMa-Ca8pi3y8c>,
+    <https://w3id.org/fair/fip/np/Persistency-Policy/RAMGNNx_ceK7aeMXqIR7Rue0DAHLWLAKW09AQYTRIJpxc>,
+    <https://w3id.org/fair/fip/np/Provenance-Tracking-Service/RAxzs_am5LS1ao9G3CaQ_jWbr5VMU-Mw1RC-T6_HqUvF0>,
+    <https://w3id.org/fair/fip/np/Provenance-model/RAIvcT9gz3ff-mX3tmKhpRZF5McT51dr3cmYo8lxBTVVY>,
+    <https://w3id.org/fair/fip/np/Reference-FAIR-Implementation-Profile/RA2z888DbLynKo_cg-fnhM8KchQjLlAbkwALvS1u5zJyY>,
+    <https://w3id.org/fair/fip/np/Registry/RAzcDsKAiItyHFcvioiId2T0S6mSb1NMAHzvarAEkv15E>,
+    <https://w3id.org/fair/fip/np/SIP-Declaration/RA7pAt4r5qA1xtpSWS83sg1viXMpCNidQGp2A08UVzbKs>,
+    <https://w3id.org/fair/fip/np/Semantic-Interoperability-Profile/RAkUpmlwKDPHZNPQh_VKT5nWCtufDj2xN49uKM1h1iKCw>,
+    <https://w3id.org/fair/fip/np/Semantic-model/RARoYEiYDkCSX7hde4JGr7uoRwuNGfAeLmkLO6ln2nuuA>,
+    <https://w3id.org/fair/fip/np/Structured-vocabulary/RA06TIbfLDGNx_LSiZiJUL9QsrYitir3jnLp521BM-PLs>,
+    <https://w3id.org/fair/fip/np/Validation-Service/RAv7epHaNGpBwL8arQWqNZ-_tbrZSPlf3RNs-RR13cOko>,
+    <https://w3id.org/fair/fip/np/Web-API/RAoEAh629T4oeIpnGUck3VrvP504X13_GBgeVca7s0uS4>,
+    <https://w3id.org/fair/fip/np/availability-in-years/RA6XPeZ1XhQ6nX1FCHKng9fTHorZVc1gDKcdgmzmBYhuo>,
+    <https://w3id.org/fair/fip/np/considerations/RAiyh-P05hiqtCaM2g_5JMO7D0eu5M_MUkfIScVwvUwPo>,
+    <https://w3id.org/fair/fip/np/declared-by/RAhvzNhBMXMgx-MiCoHEeHuKs9ErvOPKg3gMcus9LjOyY>,
+    <https://w3id.org/fair/fip/np/declared-for-case-study/RAnudnTG0qkeXB56d9UwLS0sa0ER_Ci_ny-wDwD3G-MAM>,
+    <https://w3id.org/fair/fip/np/declared-for-digital-object-type/RAnRF3qPKZucu9Y-5VT_1-FCi0Wo-pInlxaMxU5SMBoBc>,
+    <https://w3id.org/fair/fip/np/declares-current-use-of/RABCs39KpyPedhu-rigJ3c2Z0fHKVvFBn_wZGKCPEXHqA>,
+    <https://w3id.org/fair/fip/np/declares-planned-development-of/RABHf3D8y3OZaXv92unBG3fn83_qXSIgSvP_uakLdx3Ko>,
+    <https://w3id.org/fair/fip/np/declares-planned-replacement-of/RAnSZrYzAX2bbrfO25R1bu4VtjnLpDINW9RxiQFm-43sk>,
+    <https://w3id.org/fair/fip/np/declares-planned-use-of/RAxaY9mHvNf1cOch_oSnM2vATEdvUJYJcP2Ua1KkvFdVA>,
+    <https://w3id.org/fair/fip/np/depends-on/RAtLkmsTEvgF1OfLjtegqeEoObe7mCON3XBCDVhcbgfB4>,
+    <https://w3id.org/fair/fip/np/enables/RA4ODNQTs9nSgjbSHlkDn0RNOlsuUVHcuzc5rZqaKurmg>,
+    <https://w3id.org/fair/fip/np/has-AAS/RAwrHdywB1jRAdr_yYZvHGYUVHwbz8E_qgY6OiJCyGLpY>,
+    <https://w3id.org/fair/fip/np/has-MPP/RAs3nHcJIaTOYegLJlxPtdNCH_HEhq4kVkSFl0dFyila0>,
+    <https://w3id.org/fair/fip/np/has-data-steward/RAYFC9tWA2993vLVatw5mJq2Ammt1yzfswG2LB8PPlhy4>,
+    <https://w3id.org/fair/fip/np/has-data-usage-license/RAajDoWPjLPgV2FjWZEz-S32V5fesi5pqMB1sbcybCSCg>,
+    <https://w3id.org/fair/fip/np/has-declaration-index/RA-xRzUYM8lNI0ohP_vOtKb9oVQ2io2H6JEHBcqrzJI4U>,
+    <https://w3id.org/fair/fip/np/has-description-source/RAtatUupbxpdEfLmyvNp6t9Q-I0RO0dkRaL31qAT0JTOw>,
+    <https://w3id.org/fair/fip/np/has-persistency-policy/RAtXe1WQD8C0mJp0mM2GaOJb-KmcBUZ_R3cLFo-Hp5FlU>,
+    <https://w3id.org/fair/fip/np/has-purpose/RAVJ2T4WRzMIobABUm7GkbyhnwQGatPkH2ZYJTmVK0jTs>,
+    <https://w3id.org/fair/fip/np/has-research-domain/RAlqZmb-sKSHjRvqM6a4qCKwA6b4t3w7aaoHGv79CkqK8>,
+    <https://w3id.org/fair/fip/np/implements/RANSyABckVubJPTxhMqDA-VyI8d6B8JDdHVnb3UgPxXdU>,
+    <https://w3id.org/fair/fip/np/metadata-availability-in-years/RA18azOvkrizx4VtsqHy-NH6kXLEHcqNcV1i6tEglCZvA>,
+    <https://w3id.org/fair/fip/np/recommended-by/RATkUdV6nsrXVrHRT5SDsjYmp2KzRvhpKMim3G99MKKAw>,
+    <https://w3id.org/fair/fip/np/refers-to-principle/RAbHFzWTc0DdTrAhvyfuaBs0j8mF6z3kFejMG5oY6ZOIg>,
+    <https://w3id.org/fair/fip/np/refers-to-question/RAJ_DtFUAxXarrb4bEAu9ANSVIOBU6yO4sIrbO_njn584>,
+    <https://w3id.org/fair/fip/np/targets/RAc56Hei74vMARslkkZ_KtYvAUf18S-2ifg9BfthvgkTI>,
+    <https://w3id.org/fair/fip/np/uses-identifier-service/RArY7faYzEWTfdpCdmL8sHsV9tinQFUcns4qjVEfW41EA>,
+    <https://w3id.org/np/RACTsbg77ndi-O9IjLwzYqhHd-HwyQ9tEs3EISH8wInx0>;
+  rdfs:label "FIP Ontology 20260227" .

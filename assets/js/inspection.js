@@ -285,7 +285,7 @@
               "div",
               { class: "inline" },
               select,
-              h("button", { type: "button", id: "prefill-fip-run", onclick: () => prefillFromDashboard(check, FG.sourceEntity("fip-dashboard", select.value, "#fip-")) }, FG.t("selfcheck.prefill.fipButton"))
+              h("button", { type: "button", id: "prefill-fip-run", onclick: () => prefillFromDashboard(check, FG.sourceEntity("fip-dashboard", select.value, "fips")) }, FG.t("selfcheck.prefill.fipButton"))
             ),
             !FG.live.available("fip-dashboard") && snapshot
               ? h(
@@ -329,7 +329,7 @@
     return h("div", { class: "content" },
       h("p", { class: "source-chip" }, label(pre.source) + " · " + FG.formatDate(pre.date), pre.record ? [" · ", FG.external(pre.record, FG.t("selfcheck.evidence.record"))] : null),
       rows.length ? h("dl", { class: "relations evidence-relations" }, rows) : null,
-      pre.testId ? localTestLinks(FG.get("#test-" + pre.testId)) : null,
+      pre.testId ? localTestLinks(FG.localTest(pre.testId)) : null,
       /* A provider observation refers to its one retained assessment, whose native results are in the overview. */
       pre.assessment ? h("p", { class: "small" }, h("button", { type: "button", class: "button-link", onclick: () => {
         const overview = document.getElementById("results-assessments");
@@ -350,12 +350,12 @@
 
   function localTestLine(item) {
     const id = "guide-" + item.identifier.replace(".", "-");
-    const test = FG.get("#test-" + id);
-    const entryPoint = test && FG.refs(test, "additionalProperty").find((property) => property.propertyID === "entryPoint");
+    const test = FG.localTest(id);
+    const entryPoint = test && test.entryPoint;
     return test ? h("div", { class: "test-line", "data-local-test": id }, localTestLinks(test),
       h("p", { class: "small muted" }, FG.t("selfcheck.evidence.local")),
       entryPoint ? h("details", { class: "probe-log" }, h("summary", null, FG.t("selfcheck.evidence.call")),
-        h("div", { class: "content test-invocation" }, h("code", null, entryPoint.value))) : null) : null;
+        h("div", { class: "content test-invocation" }, h("code", null, entryPoint))) : null) : null;
   }
 
   /** Who gave the answer: the reader, a pre-fill they kept, changed or confirmed, or a shared result. A source is
@@ -409,7 +409,7 @@
   const SOURCE_RESOURCE = { champion: "fair-champion", re3data: "re3data", nkr: "nkr", datacite: "datacite", "fip-dashboard": "fip-dashboard",
     "fip-dashboard-snapshot": "fip-dashboard", "f-uji": "f-uji", "fair-checker": "fair-checker" };
   const sourceBadge = (source) => {
-    const resource = FG.get("#resource-" + (SOURCE_RESOURCE[source] || source));
+    const resource = FG.get(FG.address("resources", SOURCE_RESOURCE[source] || source));
     return FG.serviceBadge(resource ? resource.identifier : source, resource ? resource.url : null);
   };
 
@@ -426,9 +426,9 @@
     const owner = entry ? ownership(entry, value, pre) : null;
     const first = entry && pre ? readable(entry)[0] : null;
     if (!owner && !first) {
-      const sources = [...new Set(FG.refs(item, "additionalProperty").map((property) => String(property.propertyID).replace("prefill:", "")))].map(label);
+      const sources = [...new Set(FG.prefillMappings(item).map((mapping) => mapping.identifier))].map(label);
       /* A test the Guide runs in the browser is a source too. */
-      if (FG.get("#test-guide-" + item.identifier.replace(".", "-"))) sources.push(FG.t("selfcheck.question.localTest"));
+      if (FG.localTest("guide-" + item.identifier.replace(".", "-"))) sources.push(FG.t("selfcheck.question.localTest"));
       return h("p", { class: "evidence-line evidence-none small" },
         sources.length ? FG.t("selfcheck.question.evidenceFrom", { sources: sources.join(", ") }) : FG.t("selfcheck.question.noEvidence"));
     }

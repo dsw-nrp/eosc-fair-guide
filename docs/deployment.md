@@ -190,9 +190,9 @@ The workflow creates an annotated tag with `Fair-Guide-Release-Status: testing` 
 defaults to `testing`; malformed or duplicate status markers fail the build.
 
 Local, dirty and `/next/` builds always resolve to `testing`, even at a tag annotated `production`.
-The build freezes the resolved value in UI configuration, health and
-RO-Crate `creativeWorkStatus`; the manifest and image reuse it. Build channel (`release`, `next`, `local`)
-describes source identity and is separate from release status (`testing`, `production`).
+The build freezes the resolved value in UI configuration, health and the RO-Crate's `releaseStatus`, a term of
+the release-status scheme; the manifest and image reuse it. Build channel (`release`, `next`, `local`) describes
+source identity and is separate from release status (`testing`, `production`).
 
 Existing tags, verified artifacts and images retain their recorded status; retries reuse their exact bytes.
 A status change requires a new version and tag selected through **Tag release**, followed by a newly checked

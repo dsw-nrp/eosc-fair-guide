@@ -1,8 +1,3 @@
-/* Universal search of the FAIR Data Guide. Text is searched in the guide's own knowledge base as it is typed,
-   ignoring diacritics and covering both languages. An identifier is routed by what it denotes: its form places
-   most identifiers, the knowledge base places the guide's own identifiers and addresses it lists, and for a DOI or
-   Handle one explicit lookup says what it is. Searching sends nothing anywhere: a service is called only when the
-   user picks an identifier result. Text results hand over to the catalogue. */
 (function () {
   "use strict";
 
@@ -15,6 +10,7 @@
   const STATUS_DELAY = 800;
   const ID_NAMES = { doi: "DOI", handle: "Handle", orcid: "ORCID iD", ror: "ROR ID", url: "URL" };
   const KINDS = ["station", "check", "principle", "resource", "repository", "term", "page", "clause"];
+  const TEXT_PARTS = ["standards", "questions", "advice", "fips"];
   /* Identifiers placed by the knowledge base alone: their routes send nothing, so they answer while typing. */
   const LOCAL = ["guide", "known"];
   const URL = /^https:\/\/\S+$/i;
@@ -23,15 +19,17 @@
   const DATA = ["Dataset", "Collection", "Image", "Audiovisual", "Sound", "Model", "PhysicalObject", "InteractiveResource"];
   const SOFTWARE = ["Software", "ComputationalNotebook", "Workflow"];
   const TEXT = ["Text", "JournalArticle", "Book", "BookChapter", "ConferencePaper", "ConferenceProceeding", "Preprint", "Report", "Dissertation", "Journal", "PeerReview", "Standard"];
-  /* The index holds titles in the reader's language and links into the current lens, so it is rebuilt when either
-     changes; the language and lens change in place, without reloading the page. */
+  /* Titles and links follow the current language, lens and data revision. */
   let index = null;
   let indexFor = "";
+  let handoff = null;
+  let submissionRevision = 0;
+  let dismissSearchError = () => {};
 
   const fold = FG.fold;
   const bothLanguages = FG.bothLanguages;
 
-  /** Every searchable entity with its title, the text it is found by, and where it leads. */
+  /** Every searchable entity. */
   function buildIndex() {
     const entries = [];
     const add = (kind, title, extra, target) => entries.push({ kind, title, target, key: fold(bothLanguages(title)), extra: fold(extra) });
@@ -46,14 +44,13 @@
       });
     }
     for (const entity of FG.graph) {
-      const id = String(entity["@id"]);
       const identifiers = [entity.identifier, ...FG.refs(entity, "alternateIdentifier").map((item) => item.value)].join(" ");
-      if (id.startsWith("#resource-") && entity.name) add("resource", entity.name, bothLanguages(entity.description) + " " + identifiers, { href: FG.entryHref(entity) });
-      /* A repository is found by every form of its name, the abbreviations of both languages included (D-173). */
-      else if (id.startsWith("#repository-") && entity.name) add("repository", entity.name, FG.nameForms(entity) + " " + bothLanguages(entity.keywords) + " " + identifiers, { href: FG.catalogueHref("repositories", FG.repositoryAnchor(entity)) });
-      else if (id.startsWith("#term-") && entity.name && entity.termCode) add("term", entity.name, bothLanguages(entity.description) + " " + identifiers, { href: FG.catalogueHref("terms", FG.termAnchor(entity)) });
-      else if (id.startsWith("#page-") && entity.identifier && entity.headline) add("page", entity.headline, "", { href: FG.href("page", entity.identifier) });
-      else if (id.startsWith("#clause-") && entity.text) {
+      if (entity.resourceType && FG.isRecord(entity, "resources") && entity.name) add("resource", entity.name, bothLanguages(entity.description) + " " + identifiers, { href: FG.entryHref(entity) });
+      /* A repository is found by every form of its name, the abbreviations of both languages included. */
+      else if (FG.isRecord(entity, "repositories") && entity.name) add("repository", entity.name, FG.nameForms(entity) + " " + bothLanguages(entity.keywords) + " " + identifiers, { href: FG.catalogueHref(entity["@id"]) });
+      else if (FG.isRecord(entity, "glossary") && entity.name) add("term", entity.name, FG.refs(entity, "definitionPart").map((definition) => bothLanguages(definition.description)).join(" ") + " " + identifiers, { href: FG.catalogueHref(entity["@id"]) });
+      else if (FG.isRecord(entity, "pages") && entity.identifier && entity.headline) add("page", entity.headline, "", { href: FG.href("page", entity.identifier) });
+      else if (FG.isRecord(entity, "clauses") && entity.text) {
         const principle = FG.principlesOf(entity)[0];
         add("clause", entity.identifier + " " + FG.text(entity.text).slice(0, 90), bothLanguages(entity.text), { href: FG.entryHref(entity) });
       }
@@ -61,17 +58,18 @@
     return entries;
   }
 
-  /** What the query is: an identifier for a tool, or text for the knowledge base. */
+  /** Query classification. */
   const bare = (url) => FG.bareUrl(url);
 
-  /** An identifier of the guide's own: a requirement (A.F1.N1) or a check question (maturity.18). */
+  /** A Guide IRI, record address or bare Guide identifier. */
   function guideEntry(value) {
-    const address = Object.values(FG.config.api.records).find((address) => address === value);
-    if (address) { const [kind, ...parts] = address.split("/"); return { type: "guide", kind, value: parts.join("/") }; }
+    const base = FG.config.namespace ? FG.config.namespace + "id/" : null;
+    const address = FG.recordOf(base && value.startsWith(base) ? value.slice(base.length) : value);
+    if (FG.kind(address) && (FG.apiRecord(address) || FG.get(address))) return { type: "guide", kind: FG.kind(address), value: FG.localId(address) };
     if (!/^[A-Za-z][\w.-]{1,40}$/.test(value)) return null;
-    const clause = FG.get("#clause-" + value) || FG.get("#clause-" + value.toUpperCase());
+    const clause = FG.get(FG.address("clauses", value)) || FG.get(FG.address("clauses", value.toUpperCase()));
     if (clause) return { type: "guide", kind: "clauses", value: clause.identifier };
-    const item = FG.get("#item-" + value.toLowerCase());
+    const item = FG.get(FG.address("questions", value.toLowerCase()));
     if (item && item.identifier) return { type: "guide", kind: "questions", value: item.identifier };
     return null;
   }
@@ -79,12 +77,12 @@
   /** An address of something the catalogue lists: a resource or a repository. */
   function knownByUrl(value) {
     const address = bare(value);
-    const resource = FG.graph.find((entity) => entity.resourceType && String(entity["@id"]).startsWith("#resource-") && bare(entity.url) === address);
-    if (resource) return { type: "known", value, kind: "resources", anchor: FG.config.api.records[FG.id(resource)].split("/").slice(1).join("/"), name: FG.text(resource.name) };
+    const resource = FG.graph.find((entity) => entity.resourceType && FG.isRecord(entity, "resources") && bare(entity.url) === address);
+    if (resource) return { type: "known", value, kind: "resources", anchor: FG.localId(resource), name: FG.text(resource.name) };
     const repository = FG.refs(FG.get("#repositories"), "hasPart").find((entity) => bare(entity.url) === address);
     if (repository) {
       const r3d = FG.refIds(repository, "sameAs").concat(FG.list(repository.identifier)).map(FG.live.parseRe3data).find(Boolean);
-      return { type: "known", value, kind: "repositories", anchor: FG.repositoryAnchor(repository), name: FG.text(repository.name), r3d };
+      return { type: "known", value, kind: "repositories", anchor: FG.localId(repository), name: FG.text(repository.name), r3d };
     }
     return null;
   }
@@ -114,7 +112,7 @@
 
   const idName = (type) => ID_NAMES[type] || FG.t("search.idName." + type);
 
-  /** Matches in the knowledge base, grouped by kind; every word of the query must occur. */
+  /** Matches in the knowledge base, grouped by kind. */
   S.find = function (query) {
     const current = FG.state.lang + "/" + FG.state.lens + "/" + FG.partsLoaded.size + "/" + FG.dataRevision;
     if (!index || indexFor !== current) {
@@ -156,7 +154,7 @@
   const list = (actions) => h("ul", { class: "results-list" }, actions.filter(Boolean).map((action) => h("li", null, action)));
   const basis = (key, params) => h("p", { class: "small muted search-basis" }, FG.t("search.basis." + key, params || {}));
 
-  /** What can be done with an identifier placed by its form or by the knowledge base, without any request. */
+  /** Actions available for a recognised identifier. */
   function routes(found, box) {
     const findOut = resultLink({ onclick: () => lookUp(found, box) }, FG.t("search.findOut"), "identifier", true);
     switch (found.type) {
@@ -185,7 +183,7 @@
     }
   }
 
-  /** One explicit lookup that says what a DOI or Handle is: its registration agency and, for DataCite, its type. */
+  /** Resolve a DOI or Handle's registration agency and type. */
   async function whatIs(found, asked) {
     try {
       if (found.type === "handle") {
@@ -250,7 +248,7 @@
 
   /** The catalogue as the full results page: the same query, in the kind with the first results. */
   function handOff(query, groups) {
-    const kinds = { resource: "resources", repository: "repositories", term: "terms", clause: "clauses" };
+    const kinds = { resource: "resources", repository: "repositories", term: "glossary", clause: "clauses" };
     const first = groups.find((group) => kinds[group.kind]);
     return h("p", { class: "catalogue-handoff" }, h("a", { href: FG.catalogueSearchHref(query, first ? kinds[first.kind] : "resources") }, FG.t("search.inCatalogueAll", { q: query })));
   }
@@ -290,19 +288,21 @@
     return [h("p", { class: "search-hint" }, FG.icon ? FG.icon("identifier") : null, h("span", null, FG.t("search.identifierHint", { type: idName(found.type) })))];
   }
 
-  /** The search form with its results: the guide's own content is searched while typing; the routes for an
-      identifier that lead to outside services appear when the search is confirmed with Enter or the button. */
   S.form = function () {
+    const route = window.location.hash;
     const input = h("input", { id: "search-input", type: "search", autocomplete: "off", spellcheck: "false", placeholder: FG.t("search.placeholder") });
     const results = h("div", { id: "search-results", class: "search-results" });
     const status = h("p", { class: "visually-hidden", role: "status" });
     let typingTimer = null;
     let statusTimer = null;
+    let rendered = "";
+    let submitting = 0;
     const show = (confirmed) => {
       const value = input.value;
       const found = S.classify(value);
-      // Focus loads these parts and calls show again; a partial language graph cannot be indexed yet.
-      if (found.type === "text" && !["standards", "questions", "advice"].every((part) => FG.partHasLanguage(part, FG.state.lang))) return;
+      if (found.type === "text" && !TEXT_PARTS.every((part) => FG.partHasLanguage(part, FG.state.lang))) return;
+      const signature = [value, +confirmed, FG.state.lang, FG.state.lens, FG.dataRevision].join("/");
+      if (signature === rendered) return;
       let content = [];
       let message = "";
       if (found.type === "text" && (confirmed || found.value.length >= MIN_TYPED)) {
@@ -321,30 +321,77 @@
       clearTimeout(statusTimer);
       if (confirmed) status.textContent = message;
       else statusTimer = setTimeout(() => (status.textContent = message), STATUS_DELAY);
+      rendered = signature;
     };
     const typed = () => {
       clearTimeout(typingTimer);
       typingTimer = setTimeout(() => show(false), TYPING_DELAY);
     };
-    const run = (event) => {
-      event.preventDefault();
-      clearTimeout(typingTimer);
-      show(true);
-    };
-    input.addEventListener("input", typed);
-    /* The standards' requirements are searched too: their part loads when the field is first used. */
+    input.addEventListener("input", () => {
+      input.dataset.edited = "1";
+      if (!input.value.trim()) {
+        submissionRevision += 1;
+        handoff = null;
+        dismissSearchError();
+        clearTimeout(typingTimer);
+        show(true);
+      } else typed();
+    });
+    const preload = () => Promise.all(TEXT_PARTS.map((part) => FG.loadPart(part)));
     input.addEventListener("focus", () =>
-      Promise.all([FG.loadPart("standards"), FG.loadPart("questions"), FG.loadPart("advice")]).then(
-        () => input.value.trim() && show(results.dataset.confirmed === "true" && results.dataset.query === input.value.trim()),
+      preload().then(
+        () => !submitting && route === location.hash && input.value.trim() && show(results.dataset.confirmed === "true" && results.dataset.query === input.value.trim()),
         () => null
       )
     );
-    /* The button waits for something to search for; the field's visible label says what that is. */
     const submit = h("button", { type: "submit", class: "button button-primary", "aria-describedby": "search-label" }, FG.icon ? FG.icon("search") : null, FG.t("search.button"));
     const waiting = () => { submit.disabled = !input.value.trim(); };
     input.addEventListener("input", waiting);
     waiting();
-    return h(
+    const run = async (event) => {
+      event.preventDefault();
+      clearTimeout(typingTimer);
+      const submission = ++submissionRevision;
+      handoff = null;
+      submitting += 1;
+      try {
+        const retry = () => {
+          if (submission !== submissionRevision) return true;
+          const hash = window.location.hash, form = document.querySelector("#main form.search");
+          if (form?.dataset.route === hash) {
+            if (form === input.form) return run(event);
+            const current = form.querySelector("#search-input");
+            if (!current.dataset.edited) {
+              current.value = input.value;
+              current.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+            form.requestSubmit();
+            return true;
+          }
+          if (route !== hash) {
+            handoff = { value: input.value, submission };
+            return true;
+          }
+          return null;
+        };
+        const failure = S.classify(input.value).type === "text" ? await preload().then(() => null, (error) => error) : null;
+        if (submission !== submissionRevision) return;
+        if (route !== location.hash && retry()) return;
+        if (S.classify(input.value).type === "text") {
+          if (failure) {
+            dismissSearchError = FG.dataLoadError(failure, retry);
+            return;
+          }
+          if (!TEXT_PARTS.every((part) => FG.partHasLanguage(part, FG.state.lang))) return run(event);
+        }
+        if (!input.isConnected && retry()) return;
+        dismissSearchError();
+        show(true);
+      } finally {
+        submitting -= 1;
+      }
+    };
+    const form = h(
       "form",
       { class: "search", role: "search", onsubmit: run },
       h("label", { for: "search-input", id: "search-label" }, FG.t("search.label")),
@@ -352,5 +399,21 @@
       status,
       results
     );
+    form.dataset.route = route;
+    if (handoff) {
+      const { value, submission } = handoff;
+      handoff = null;
+      if (!input.dataset.edited) {
+        input.value = value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      setTimeout(() => {
+        if (submission === submissionRevision) {
+          if (form.isConnected) form.requestSubmit();
+          else run(new Event("submit", { cancelable: true }));
+        }
+      }, 0);
+    }
+    return form;
   };
 })();

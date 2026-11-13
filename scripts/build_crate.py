@@ -29,31 +29,36 @@ import sys
 import tomllib
 import unicodedata
 import urllib.parse
+from collections import Counter
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 from xml.etree import ElementTree
 
 import build_identity
 from catalogue_identity import (
-    KIND_CODES,
+    KINDS,
     MAX_ID,
     NKR_KIND,
-    SAFE_ID,
-    TYPE_CODES,
+    address_hint,
     alternate_id,
     bare_url,
     has_particles,
+    parse_route,
+    short_id,
     source_scheme,
+    split_address,
     validate_identity,
 )
+from catalogue_identity import address as issue_address
 from corrections import apply as apply_corrections
+from knowledge_graph import NT_FILE, n_triples
 from nkr_contract import NKR_PILOT_NOT_ACCEPTING, nkr_status
 from publication_location import base_url as publication_base
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
-# The record of the favicons the page shows for tools and services, relative to the checkout (D-183).
+# The record of the favicons the page shows for tools and services, relative to the checkout.
 FAVICONS = Path("assets") / "favicons" / "sources.toml"
 
 # The build's own git-derived identity, computed once per process (see build_identity).
@@ -86,7 +91,7 @@ LANGUAGE_SCRIPTS = {lang: f"assets/data/kb-{lang}.js" for lang in ("cs", "en")}
 # a small first download: the requirements of the standards the guide ingests (CoreTrustSeal, CDIF) with their
 # guidance, the records of the FIP Dashboard and KNAV catalogue snapshots, and the text of the guide's pages. Each is
 # a classic script like kb.js; kb.js and the parts together are the crate.
-STANDARD_CLAUSES = ("#clause-CTS.", "#clause-CDIF.", "#clause-FDO.", "#clause-FRSM.")
+STANDARD_CLAUSES = ("clauses/CTS.", "clauses/CDIF.", "clauses/FDO.", "clauses/FRSM.")
 PART_SCRIPTS = {
     "standards": "assets/data/kb-standards.js",
     "fips": "assets/data/kb-fips.js",
@@ -94,12 +99,14 @@ PART_SCRIPTS = {
     "questions": "assets/data/kb-questions.js",
     "model": "assets/data/kb-model.js",
     "advice": "assets/data/kb-advice.js",
+    "api": "assets/data/kb-api.js",  # Descriptions of the API's kinds, used only by the machines view.
 }
 # View code the page loads when the view first opens, beside the shared code every view needs.
 # Views whose code loads when they first open: the catalogue, and the self-check with its parts and report, which a
-# path page also loads when saved answers mark gaps on its rail (D-182).
+# path page also loads when saved answers mark gaps on its rail.
 VIEW_SCRIPTS = {
     "catalogue": "assets/js/catalogue-view.js",
+    "machines": "assets/js/machines.js",
     "check": "assets/js/selfcheck.js",
     "selfcheck": "assets/js/selfcheck.js",
 }
@@ -112,8 +119,9 @@ BASE_URL_ENV = "FAIR_GUIDE_BASE_URL"
 # What the page may download before any user action, gzip-compressed: the page, its scripts and its stylesheets.
 # Above it the build warns, so that loading parts on demand is decided on a measurement.
 PAGE_BUDGET_KB = 300
-# A reference editors mark in a text: [[id|phrase]], where id names a resource or source, or term:<id> a glossary
-# term, and phrase is the words in this language that name it.
+# A reference editors mark in a text: [[<kind>/<id>|phrase]], where the address names a catalogue record (with its
+# scope, `<kind>/<scope>/<id>`, where it has one), and phrase is the words in this language that name it. A kind's
+# list (`[[infrastructures|...]]`) and the Guide's profile (`[[profile|...]]`) are the only targets named otherwise.
 REFERENCE = re.compile(r"\[\[(?P<id>[^\[\]|]+)\|(?P<phrase>[^\[\]|]+)\]\]")
 PAGE_ASSET = re.compile(r'<script src="(?P<script>[^"]+)"|<link rel="stylesheet" href="(?P<style>[^"]+)"')
 
@@ -121,6 +129,7 @@ RO_CRATE = "https://w3id.org/ro/crate/1.2"
 PROCESS_RUN_CRATE = "https://w3id.org/ro/wfrun/process/0.5"
 FAIR_PRINCIPLES = "https://w3id.org/fair/principles/terms/"
 FTR_TEST = "https://w3id.org/ftr#Test"
+FTR_METRIC = "https://w3id.org/ftr#Metric"
 FIP_TERMS = "https://w3id.org/fair/fip/terms/"
 FIP_DASHBOARD = "https://fip-dashboard.dmp.eosc.cz/resources/"
 NKR_OBJECTS = "https://repo.cz/objects/"
@@ -128,6 +137,8 @@ NON_DEPOSIT_STATUSES = frozenset({"planned", "in-development", "prospective"})
 RE3DATA_RECORD = re.compile(r"re3data\.org/repository/(r3d\d+)")
 FTR = "https://w3id.org/ftr#"
 PROV = "http://www.w3.org/ns/prov#"
+# SIO defines its terms under http; "is implementation of" links a test to the metric it implements.
+SIO = "http://semanticscience.org/resource/"
 LANGS = ("cs", "en")
 
 LICENSES = {
@@ -160,9 +171,8 @@ MODEL_TERMS = {
     "scope": "Precisely scoped component or connection observed in an implementation example.",
 }
 TERMS = MODEL_TERMS | {
-    "catalogueAddress": "The compact address of a Guide-owned catalogue record.",
     "disclosureLevel": "Disclosure level (L0 to L3) at which an advice item is shown.",
-    "adviceKind": "Kind of an advice item that is not ordinary advice, such as the AI-in-FAIRification overlay.",
+    "adviceKind": "What an advice item is: a direction to act, a tip, a station's key point or an AI tip.",
     "checkAfter": "What to check after following an AI tip, so that its output is verified before it is used.",
     "promptSample": "A short prompt to copy for an AI tip; the parts in brackets are filled in by the user.",
     "block": "Block of a self-check that a question belongs to; a check's blocks are a defined term set in order.",
@@ -176,6 +186,10 @@ TERMS = MODEL_TERMS | {
     "serviceStatus": "Status of a service or resource in the five-level vocabulary.",
     "statusAsOf": "Date on which a status was last verified.",
     "healthStatus": "Availability of a live test as last observed.",
+    "clauseStatus": "Whether a requirement is current, due for an editorial update or superseded.",
+    "fipStatus": "Whether a FAIR Implementation Profile is published or a draft, as the FIP Dashboard records it.",
+    "declarationStatus": "The status of one declaration in a FAIR Implementation Profile, as the profile states it.",
+    "releaseStatus": "Whether this build of the guide is a testing version or a production release.",
     "resourceType": "Type of a resource, used to filter the resource finder.",
     "guideType": (
         "The guide's resource type of a cited source or a FIP Dashboard resource, from the crosswalk in "
@@ -191,10 +205,15 @@ TERMS = MODEL_TERMS | {
     "relatedTo": "CoreTrustSeal requirement or CDIF profile related to a FAIR principle.",
     "note": "Additional remark shown with a clause or a self-check item.",
     "guidance": "Original description or guidance from the cited published source, in its original language.",
-    "assessmentContext": "Source context that explains an assessment without creating a separate answerable criterion.",
+    "assessmentContext": (
+        "Whether a question is source context that explains an assessment rather than an answerable criterion."
+    ),
     "disclaimer": "Disclaimer that a snapshot's source publishes about its data, shown while it is present.",
-    "prefillLevel": "Highest answer that live evidence can pre-fill for a self-check item that it only partly proves.",
-    "championEvidenceOnly": "Champion tests cover part of a question: Partly when that part is met, No when it fails.",
+    "prefillMapping": "A live source that can suggest an answer to a check question, as a typed pre-fill mapping.",
+    "prefillSource": "The source or service a pre-fill mapping reads, as the guide's catalogue describes it.",
+    "prefillField": "A field of the source's record, or a test of the service, that a pre-fill mapping reads.",
+    "prefillCoverage": "How much of its question a pre-fill mapping covers: the whole question, part of it, or "
+    "FAIR Champion evidence only, which answers Partly when its part is met and No when it fails.",
     "lookup": "Service where a user can find out the answer to a self-check item.",
     "guideState": "The reader's saved state for one check, carried in an exported result crate.",
     "guideSources": "The provenance of the evaluator sources an exported result retains, as JSON.",
@@ -208,9 +227,9 @@ TERMS = MODEL_TERMS | {
     ),
     "lifecycleStage": "Stage of the RDMkit research data life cycle that a path step belongs to.",
     "dataciteRepository": "The repository's ID in DataCite (its DataCite client), as the maintainer reviewed it.",
-    "abbreviation": "The abbreviation of a name in each language, such as ČSDA in Czech and CSDA in English (D-173).",
+    "abbreviation": "The abbreviation of a name in each language, such as ČSDA in Czech and CSDA in English.",
     "operatorSource": "The published page or document that states who operates a service or repository.",
-    "operatedBy": "The large research infrastructure operating a catalogue entry, where a source says so (D-174).",
+    "operatedBy": "The large research infrastructure operating a catalogue entry, where a source says so.",
     "researchField": "The science-disciplinary domain of a large research infrastructure in the national roadmap.",
     "infrastructurePhase": "The life-cycle phase of a large research infrastructure in the national roadmap.",
     "infrastructureCharacter": "Whether an infrastructure is single-sited, multi-sited, distributed or virtual.",
@@ -219,12 +238,10 @@ TERMS = MODEL_TERMS | {
     "nationalNodeOf": "ESFRI research infrastructures that an infrastructure is the Czech node of.",
     "roadmapLocator": "Where in the national roadmap a large research infrastructure's facts are stated.",
     "czechMembershipSince": "The year the Czech Republic entered an ERIC; 'expected' while the ERIC is being set up.",
-    "nodeMembership": "An entry's role in the EOSC CZ Node, with its milestone, date checked and source.",
     "nodeMilestone": "The month of the node's project by which a repository's integration is planned (M6, M12).",
     "nodeState": "The state of the EOSC CZ Node in the EOSC Federation, such as candidate.",
     "nodeStateSince": "The date the EOSC CZ Node reached its state, such as its approval as a candidate node.",
     "operatedBySource": "The published page or document that states which infrastructure operates an entry.",
-    "operates": "Catalogue entries a large research infrastructure operates, where a source states it (D-174).",
     "developerSource": "The published page that states who developed a repository.",
     "mappingBasis": (
         "Basis of a correspondence between life-cycle stages: published by its source, reviewed by the guide, or "
@@ -237,6 +254,8 @@ TERMS = MODEL_TERMS | {
     "rdmkitRecord": "The pinned RDMkit tool record joined to this resource.",
     "trainingSearch": "Training materials about this tool, searched in ELIXIR TeSS.",
     "sourceLocator": "The section or page in the cited version supporting this clause or original definition.",
+    "entryPoint": "The callable name that runs a local assessment criterion in the browser.",
+    "termPosition": "The place of a term among its set's terms, for a set read in order, such as life-cycle stages.",
 }
 
 # Established vocabularies the guide reuses (design: *Established vocabularies, term mapping and the guide's
@@ -245,49 +264,190 @@ TERMS = MODEL_TERMS | {
 SCHEMA = "http://schema.org/"
 DCTERMS = "http://purl.org/dc/terms/"
 DCAT = "http://www.w3.org/ns/dcat#"
+FOAF = "http://xmlns.com/foaf/0.1/"
+# DCMI's genres of a resource; a cited work's class where schema.org's would make it a part of the crate.
+DCMITYPE = "http://purl.org/dc/dcmitype/"
+DQV = "http://www.w3.org/ns/dqv#"
+# A registry's record about one thing.
+CATALOG_RECORD = "dcat:CatalogRecord"
 ADMS = "http://www.w3.org/ns/adms#"
 SKOS = "http://www.w3.org/2004/02/skos/core#"
 XSD = "http://www.w3.org/2001/XMLSchema#"
 RDF_LANG = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+# A Guide class in a declaration; the build writes it at the vocabulary's address (`term_shape`).
+GUIDE = "guide:"
 ESTABLISHED_TERMS: dict[str, str] = {
     "identifier": SCHEMA + "identifier",
     "alternateIdentifier": SCHEMA + "identifier",
     "dataciteRepository": SCHEMA + "identifier",
-    "catalogueAddress": DCTERMS + "identifier",
     "supersededBy": DCTERMS + "isReplacedBy",
     "relatedTo": DCTERMS + "relation",
+    "source": DCTERMS + "source",
     "operatorSource": DCTERMS + "source",
     "operatedBySource": DCTERMS + "source",
     "developerSource": DCTERMS + "source",
+    "definitionPart": DCTERMS + "hasPart",
+    "dependencyManifest": DCTERMS + "references",
     "sourceLocator": DCTERMS + "references",
     "roadmapLocator": DCTERMS + "references",
     "abbreviation": SCHEMA + "alternateName",
+    "primaryTopic": FOAF + "primaryTopic",
+    # A registry's classification of the thing its record describes.
+    "classification": DCTERMS + "type",
+    "qualifiedRelation": DCAT + "qualifiedRelation",
+    "relation": DCTERMS + "relation",
+    "hadRole": DCAT + "hadRole",
+    # Where a resource applies, such as a FIP Dashboard scope; schema.org's spatialCoverage expects a place.
+    "coverage": DCTERMS + "coverage",
+    # A check is an FTR benchmark, which each of its questions names; a question is an FTR metric of the principles it
+    # measures.
+    "hasBenchmark": FTR + "hasBenchmark",
+    "inDimension": DQV + "inDimension",
 }
 
 # The guide's own vocabulary: the terms the guide keeps in its namespace. Each declares the broader established
 # term it specializes (empty where none exists, with the reason in GUIDE_TERM_REASONS), its domain and its range.
 # The typing and status slots specialize their established parent rather than replacing it, because they are
-# several distinct slots over one property that the profile targets individually (design: group 21).
+# several distinct slots over one property that the profile targets individually.
 GUIDE_TERMS: dict[str, str] = {term: definition for term, definition in TERMS.items() if term not in ESTABLISHED_TERMS}
+# The guide's own classes, each with its definition, the established class it specializes and why that class is not
+# used as it stands.
+GUIDE_CLASSES: dict[str, tuple[str, str, str]] = {
+    "AdviceItem": (
+        "Advice the guide gives at a station, addressed to a reader's lens at a disclosure level.",
+        SCHEMA + "CreativeWork",
+        "schema.org's HowTo types describe the steps of one procedure, not advice addressed by lens and level.",
+    ),
+    "PrefillMapping": (
+        "A live source that can suggest an answer to a check question: the source, the fields or tests it reads and "
+        "how much of the question they cover.",
+        SCHEMA + "Intangible",
+        "schema:PropertyValue holds the value of an arbitrary property, not a source, what it reads and its coverage.",
+    ),
+    "Clause": (
+        "A requirement, recommendation, fulfilment or finding the Guide cites from a published source, with its "
+        "wording, conditions and normative strength.",
+        SCHEMA + "CreativeWork",
+        "No established class names a clause of a published source; schema.org and DCTERMS describe whole works.",
+    ),
+    "Resource": (
+        "A service, tool, standard, document, course or other work the Guide's catalogue recommends or cites.",
+        SCHEMA + "CreativeWork",
+        "The catalogue lists services, tools, standards, documents and courses as one kind; no established class "
+        "covers what the Guide recommends and cites.",
+    ),
+    "Repository": (
+        "A data repository the Guide describes, where researchers deposit or find data.",
+        SCHEMA + "DataCatalog",
+        "schema:DataCatalog also types the registries the catalogue lists as resources.",
+    ),
+    "ResearchInfrastructure": (
+        "A large research infrastructure of the national roadmap, an ERIC or another European research infrastructure.",
+        SCHEMA + "Organization",
+        "schema.org has no class for a research infrastructure, and not every organisation is one.",
+    ),
+    "LifecycleModel": (
+        "A model of the research data life cycle: its stages in order, as its source publishes them.",
+        SCHEMA + "DefinedTermSet",
+        "schema:DefinedTermSet also types the Guide's vocabularies and its conceptual model.",
+    ),
+    "Crosswalk": (
+        "A set of correspondences between the stages of two life-cycle models.",
+        SCHEMA + "CreativeWork",
+        "No established class names a crosswalk whose correspondences each carry their basis.",
+    ),
+    "StageCorrespondence": (
+        "A correspondence between stages of two life-cycle models, with its basis and the source that states it.",
+        SCHEMA + "CreativeWork",
+        "SKOS mapping properties relate two concepts directly; a correspondence that carries its basis and its source "
+        "needs a node, and no established class carries both.",
+    ),
+    "TermSet": (
+        "A controlled vocabulary of the Guide, such as its tiers, levels, lenses or statuses.",
+        SCHEMA + "DefinedTermSet",
+        "schema:DefinedTermSet also types the life-cycle models, the conceptual model and the FAIR principles.",
+    ),
+    "AssessmentCriterion": (
+        "A criterion an assessment applies to a self-check question: an evaluator's test or metric, or the Guide's "
+        "own test.",
+        SCHEMA + "CreativeWork",
+        "FTR splits criteria into metrics and tests by how a provider exposes them; the Guide lists every provider's "
+        "criterion as one kind.",
+    ),
+}
+# The classes written on every record of a kind, beyond the established class its builder gives it: the Guide's
+# class where kinds share one, and the class a kind's whole (a model, a crosswalk, a vocabulary) has where its
+# members are selected by it (KIND_SELECTORS).
+KIND_CLASSES: dict[str, tuple[str, ...]] = {
+    "actions": ("prov:Activity",),
+    "clauses": ("Clause",),
+    "crosswalks": ("Crosswalk",),
+    "infrastructures": ("ResearchInfrastructure",),
+    "lifecycles": ("LifecycleModel",),
+    "repositories": ("DataCatalog", "Repository"),
+    "resources": ("Resource",),
+    "tests": ("AssessmentCriterion",),
+    "vocabularies": ("TermSet",),
+}
+# The class of a scoped record of a kind whose unscoped records are wholes: a crosswalk's correspondences.
+SCOPED_KIND_CLASSES: dict[str, tuple[str, ...]] = {"crosswalks": ("StageCorrespondence",)}
+# How a consumer selects each kind's records, which the checks hold to exactly its records: by a class (`class`), by
+# the terms of a set or of every set of a class (`members`), by the term a property names (`term`), less what another
+# selector selects (`except`); a list selects the union. A kind reached only by IRI records why (`reason`). A class
+# is written as in the crate; a set or term by its address, or by its IRI where the Guide does not issue it.
+KIND_SELECTORS: dict[str, Any] = {
+    "actions": {"class": "prov:Activity"},
+    "advice": {"class": "AdviceItem"},
+    "callouts": {"reason": "The Guide's own text, which the stations and pages that show it reach by IRI."},
+    "checks": {"class": "Quiz"},
+    "clauses": {"class": "Clause"},
+    "crosswalks": [{"class": "Crosswalk"}, {"class": "StageCorrespondence"}],
+    "fips": {"class": "fip:FAIR-Implementation-Profile"},
+    "glossary": {"members": "vocabularies/glossary"},
+    "infrastructures": {"class": "ResearchInfrastructure"},
+    "layers": {"term": ["modelKind", "vocabularies/model-kinds/layer"]},
+    "lifecycles": [{"class": "LifecycleModel"}, {"members": {"class": "LifecycleModel"}}],
+    "model-examples": {"term": ["modelKind", "vocabularies/model-kinds/example"]},
+    "models": {
+        "reason": "The Guide's one conceptual model, reached by IRI; its layers, seams and examples are selected by "
+        "their model kind."
+    },
+    "organizations": {
+        "class": "Organization",
+        "except": [{"class": "ResearchInfrastructure"}, {"class": "Resource"}, {"class": "Repository"}],
+    },
+    "pages": {"reason": "The Guide's own text, reached by IRI from its navigation and its references."},
+    "principles": {"members": FAIR_PRINCIPLES},
+    "questions": {"class": "Question"},
+    "repositories": {"class": "Repository"},
+    "resources": {"class": "Resource"},
+    "seams": {"term": ["modelKind", "vocabularies/model-kinds/seam"]},
+    "stations": {"class": "HowToSection"},
+    "tests": {"class": "AssessmentCriterion"},
+    "vocabularies": [
+        {"class": "TermSet"},
+        {"members": {"class": "TermSet"}, "except": {"members": "vocabularies/glossary"}},
+    ],
+}
 GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
-    "preparationStatus": ("", SCHEMA + "ScholarlyArticle", XSD + "string"),
-    "modelKind": ("", SCHEMA + "CreativeWork", XSD + "string"),
-    "implementationLayers": (DCTERMS + "subject", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "preparationStatus": (ADMS + "status", SCHEMA + "ScholarlyArticle", SCHEMA + "DefinedTerm"),
+    "modelKind": ("", "", SCHEMA + "DefinedTerm"),
+    "implementationLayers": (DCTERMS + "subject", "", SCHEMA + "DefinedTerm"),
     "implementationSeams": (DCTERMS + "subject", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
-    "introduction": ("", SCHEMA + "CreativeWork", RDF_LANG),
-    "ordering": ("", SCHEMA + "CreativeWork", RDF_LANG),
-    "feedback": ("", SCHEMA + "CreativeWork", RDF_LANG),
+    "introduction": ("", SCHEMA + "DefinedTermSet", RDF_LANG),
+    "ordering": ("", SCHEMA + "DefinedTermSet", RDF_LANG),
+    "feedback": ("", SCHEMA + "DefinedTermSet", RDF_LANG),
     "transfer": ("", SCHEMA + "DefinedTerm", RDF_LANG),
     "sender": ("", SCHEMA + "DefinedTerm", RDF_LANG),
     "recipient": ("", SCHEMA + "DefinedTerm", RDF_LANG),
     "carrier": ("", SCHEMA + "DefinedTerm", RDF_LANG),
     "maintainers": ("", SCHEMA + "DefinedTerm", RDF_LANG),
     "scope": ("", SCHEMA + "CreativeWork", RDF_LANG),
-    "disclosureLevel": (SCHEMA + "position", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
-    "adviceKind": ("", SCHEMA + "CreativeWork", XSD + "string"),
-    "checkAfter": ("", SCHEMA + "CreativeWork", RDF_LANG),
-    "promptSample": ("", SCHEMA + "CreativeWork", RDF_LANG),
-    "block": ("", SCHEMA + "Question", SCHEMA + "DefinedTermSet"),
+    "disclosureLevel": ("", GUIDE + "AdviceItem", SCHEMA + "DefinedTerm"),
+    "adviceKind": ("", GUIDE + "AdviceItem", SCHEMA + "DefinedTerm"),
+    "checkAfter": ("", GUIDE + "AdviceItem", RDF_LANG),
+    "promptSample": ("", GUIDE + "AdviceItem", RDF_LANG),
+    "block": ("", SCHEMA + "Question", SCHEMA + "DefinedTerm"),
     "defaultProfile": ("", SCHEMA + "Quiz", SCHEMA + "DefinedTerm"),
     "tier": ("", SCHEMA + "Question", SCHEMA + "DefinedTerm"),
     "fixAt": ("", SCHEMA + "Question", SCHEMA + "HowToSection"),
@@ -296,55 +456,70 @@ GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
     "providedByNrpFor": ("", SCHEMA + "Question", SCHEMA + "DefinedTerm"),
     "allowsNotApplicable": ("", SCHEMA + "Question", XSD + "boolean"),
     "serviceStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
-    "statusAsOf": (DCTERMS + "date", SCHEMA + "CreativeWork", XSD + "date"),
-    "healthStatus": (ADMS + "status", SCHEMA + "CreativeWork", XSD + "string"),
+    "statusAsOf": (DCTERMS + "date", "", XSD + "string"),
+    "healthStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "clauseStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "fipStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "declarationStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "releaseStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "resourceType": (DCTERMS + "type", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "guideType": (DCTERMS + "type", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "catalogueType": (DCTERMS + "type", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "repositoryKind": (DCTERMS + "type", SCHEMA + "DataCatalog", SCHEMA + "DefinedTerm"),
     "repositoryFunction": (DCTERMS + "subject", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "acceptsDeposits": ("", SCHEMA + "DataCatalog", XSD + "boolean"),
-    "clauseKind": (DCTERMS + "type", SCHEMA + "CreativeWork", XSD + "string"),
+    "clauseKind": (DCTERMS + "type", GUIDE + "Clause", SCHEMA + "DefinedTerm"),
     "lensOrder": ("", SCHEMA + "CreativeWork", XSD + "string"),
-    "note": (SKOS + "note", SCHEMA + "CreativeWork", RDF_LANG),
+    "note": (SKOS + "note", "", RDF_LANG),
     "guidance": (DCTERMS + "description", SCHEMA + "CreativeWork", RDF_LANG),
-    "assessmentContext": (DCTERMS + "description", SCHEMA + "CreativeWork", RDF_LANG),
+    "assessmentContext": ("", SCHEMA + "Question", XSD + "boolean"),
     "disclaimer": (SKOS + "note", SCHEMA + "CreativeWork", RDF_LANG),
-    "prefillLevel": ("", SCHEMA + "Question", SCHEMA + "DefinedTerm"),
-    "championEvidenceOnly": ("", SCHEMA + "Question", XSD + "boolean"),
-    "lookup": ("", SCHEMA + "Question", SCHEMA + "CreativeWork"),
-    "guideState": ("", SCHEMA + "CreativeWork", XSD + "string"),
-    "guideSources": ("", SCHEMA + "CreativeWork", XSD + "string"),
-    "mappingCoverage": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "prefillMapping": ("", SCHEMA + "Question", GUIDE + "PrefillMapping"),
+    "prefillSource": ("", GUIDE + "PrefillMapping", SCHEMA + "CreativeWork"),
+    "prefillField": ("", GUIDE + "PrefillMapping", XSD + "string"),
+    "prefillCoverage": ("", GUIDE + "PrefillMapping", SCHEMA + "DefinedTerm"),
+    "lookup": ("", SCHEMA + "Question", ""),
+    "guideState": ("", SCHEMA + "Dataset", XSD + "string"),
+    "guideSources": ("", SCHEMA + "Dataset", XSD + "string"),
+    "mappingCoverage": ("", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
     "reviewedVersion": ("", SCHEMA + "CreativeWork", XSD + "string"),
     "lifecycleStage": (DCAT + "theme", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
-    "operatedBy": ("", SCHEMA + "CreativeWork", SCHEMA + "Organization"),
+    "operatedBy": ("", "", SCHEMA + "Organization"),
     "researchField": (DCTERMS + "subject", SCHEMA + "Organization", SCHEMA + "DefinedTerm"),
     "infrastructurePhase": (ADMS + "status", SCHEMA + "Organization", SCHEMA + "DefinedTerm"),
-    "infrastructureCharacter": ("", SCHEMA + "Organization", XSD + "string"),
-    "roadmapSince": ("", SCHEMA + "Organization", XSD + "gYear"),
+    "infrastructureCharacter": ("", SCHEMA + "Organization", SCHEMA + "DefinedTerm"),
+    "roadmapSince": ("", SCHEMA + "Organization", XSD + "string"),
     "esfriStatus": (ADMS + "status", SCHEMA + "Organization", SCHEMA + "DefinedTerm"),
     "nationalNodeOf": ("", SCHEMA + "Organization", SCHEMA + "Organization"),
     "czechMembershipSince": ("", SCHEMA + "Organization", XSD + "string"),
-    "nodeMembership": ("", SCHEMA + "Organization", RDF_LANG),
-    "nodeMilestone": ("", SCHEMA + "Organization", XSD + "string"),
-    "nodeState": (ADMS + "status", SCHEMA + "Organization", XSD + "string"),
-    "nodeStateSince": ("", SCHEMA + "Organization", XSD + "date"),
-    "operates": ("", SCHEMA + "Organization", SCHEMA + "CreativeWork"),
-    "mappingBasis": ("", SCHEMA + "CreativeWork", XSD + "string"),
-    "nameTranslation": ("", SCHEMA + "CreativeWork", XSD + "string"),
-    "descriptionTranslation": ("", SCHEMA + "CreativeWork", XSD + "string"),
-    "quotedDefinition": ("", SCHEMA + "CreativeWork", RDF_LANG),
-    "discipline": (DCTERMS + "subject", SCHEMA + "CreativeWork", XSD + "string"),
-    "rdmkitRecord": ("", SCHEMA + "CreativeWork", SCHEMA + "CreativeWork"),
-    "trainingSearch": ("", SCHEMA + "CreativeWork", SCHEMA + "CreativeWork"),
+    "nodeMilestone": ("", DCAT + "Relationship", XSD + "string"),
+    "nodeState": (ADMS + "status", SCHEMA + "Service", SCHEMA + "DefinedTerm"),
+    "nodeStateSince": ("", SCHEMA + "Service", XSD + "string"),
+    "mappingBasis": ("", GUIDE + "StageCorrespondence", SCHEMA + "DefinedTerm"),
+    "nameTranslation": ("", SCHEMA + "DefinedTerm", XSD + "string"),
+    "descriptionTranslation": ("", SCHEMA + "DefinedTerm", XSD + "string"),
+    "quotedDefinition": ("", SCHEMA + "DefinedTerm", SCHEMA + "CreativeWork"),
+    "discipline": (DCTERMS + "subject", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "rdmkitRecord": ("", SCHEMA + "CreativeWork", ""),
+    "trainingSearch": ("", SCHEMA + "CreativeWork", ""),
+    "entryPoint": ("", GUIDE + "AssessmentCriterion", XSD + "string"),
+    "termPosition": ("", SCHEMA + "DefinedTerm", XSD + "integer"),
 }
+
+
+def term_shape(term: str, base: str) -> tuple[str, str, str]:
+    """A Guide term's broader term, domain and range, with a Guide class written at the vocabulary's address."""
+    return tuple(  # type: ignore[return-value]
+        base + value.removeprefix(GUIDE) if value.startswith(GUIDE) else value
+        for value in GUIDE_TERM_SHAPES.get(term, ("", "", ""))
+    )
+
+
 GUIDE_TERM_REASONS: dict[str, str] = {
     term: reason
     for reason, terms in {
         "No established property expresses current availability for repository deposits.": ["acceptsDeposits"],
         "The guide's Layers-and-Seams conceptual model has no established equivalent.": [
-            "preparationStatus",
             "modelKind",
             "introduction",
             "ordering",
@@ -359,6 +534,7 @@ GUIDE_TERM_REASONS: dict[str, str] = {
         "The guide's self-check machinery is its own; no established property expresses it.": [
             "disclosureLevel",
             "adviceKind",
+            "assessmentContext",
             "checkAfter",
             "promptSample",
             "block",
@@ -369,21 +545,20 @@ GUIDE_TERM_REASONS: dict[str, str] = {
             "appliesTo",
             "providedByNrpFor",
             "allowsNotApplicable",
-            "prefillLevel",
-            "championEvidenceOnly",
+            "prefillMapping",
+            "prefillSource",
+            "prefillField",
+            "prefillCoverage",
             "lookup",
+            "entryPoint",
         ],
-        "The infrastructure that operates an entry, and the entries it operates, are entity references; no single "
-        "established property expresses the relation (D-174).": [
-            "operatedBy",
-            "operates",
-        ],
+        "The infrastructure that operates an entry is an entity reference; no single established property expresses "
+        "the relation.": ["operatedBy"],
         "A national-roadmap or EOSC CZ Node fact the guide records; no established parent.": [
             "infrastructureCharacter",
             "roadmapSince",
             "nationalNodeOf",
             "czechMembershipSince",
-            "nodeMembership",
             "nodeMilestone",
             "nodeStateSince",
         ],
@@ -398,6 +573,8 @@ GUIDE_TERM_REASONS: dict[str, str] = {
             "quotedDefinition",
         ],
         "A join to a source's own record and search.": ["rdmkitRecord", "trainingSearch"],
+        "schema:position's domain admits creative works and list items, not terms, and SKOS orders a scheme's "
+        "members only through an ordered collection's list.": ["termPosition"],
         "A source's own remark, kept distinct from the guide's description.": ["disclaimer", "lensOrder"],
         "The exported result crate's own state and source provenance are the guide's.": ["guideState", "guideSources"],
     }.items()
@@ -405,11 +582,11 @@ GUIDE_TERM_REASONS: dict[str, str] = {
 }
 
 # The guide's own terms the exported result crate carries: the build owns their IRIs and the export reads them from
-# the page configuration rather than declaring its own (design: one shared term context, group 21).
+# the page configuration rather than declaring its own, so the page and its exports share one term context.
 EXPORT_GUIDE_TERMS = ("guideState", "guideSources", "implementationLayers", "implementationSeams")
 
-# Sources are contextual entities. Cited datasets and software are typed through additionalType: as Dataset or
-# SoftwareSourceCode entities, RO-Crate would treat them as data entities or scripts that belong inside the crate.
+# Sources are contextual entities. A cited dataset is a dcat:Dataset and cited software a dcmitype:Software: RO-Crate
+# reads schema.org's Dataset and SoftwareSourceCode as data entities and scripts that belong inside the crate.
 SOURCE_TYPES = {
     "report": "Report",
     "article": "ScholarlyArticle",
@@ -422,8 +599,8 @@ SOURCE_TYPES = {
 }
 
 SOURCE_ADDITIONAL_TYPES = {
-    "dataset": "http://schema.org/Dataset",
-    "software": "http://schema.org/SoftwareSourceCode",
+    "dataset": DCAT + "Dataset",
+    "software": DCMITYPE + "Software",
 }
 
 RESOURCE_TYPES = {
@@ -484,15 +661,18 @@ def apply_base_url(guide: dict[str, Any]) -> None:
     publication location instead of the content's `baseUrl`; nothing overrides the namespace. Content from before the
     setting existed named its terms under its own `baseUrl`, so that value, never the environment, is its namespace."""
 
-    def resolved(key: str, value: str | None) -> str:
+    def resolved(label: str, value: str | None) -> str:
         try:
             return publication_base(value or "")
         except ValueError as error:
-            raise ContentError(f"guide.{key}: {error}") from error
+            raise ContentError(f"{label}: {error}") from error
 
-    namespace = resolved("namespace", guide.get("namespace") or guide.get("baseUrl"))
-    guide["pageUrl"] = resolved("baseUrl", os.environ.get(BASE_URL_ENV) or guide.get("baseUrl"))
+    namespace = resolved("guide.namespace", guide.get("namespace") or guide.get("baseUrl"))
+    content_base = resolved("guide.baseUrl", guide.get("baseUrl"))
+    environment_base = os.environ.get(BASE_URL_ENV)
+    guide["pageUrl"] = resolved(BASE_URL_ENV, environment_base) if environment_base else content_base
     guide["vocabularyBase"] = namespace + "terms#"
+    guide["recordBase"] = namespace + "id/"
     guide["profile"] = f"{namespace}profile/{guide.get('profileVersion', '')}"
 
 
@@ -565,7 +745,10 @@ def resolve_requirements(content: dict[str, Any]) -> None:
             clause = clauses.get(item.get("requirement"))
             if clause is None:
                 continue
-            item.setdefault("statement", clause.get("text"))
+            if "statement" not in item:
+                # The content checks tell a question that takes its clause's text from one that copies it.
+                item["statement"] = clause.get("text")
+                item["statementFromRequirement"] = True
             item["sources"] = [clause["id"]] + [source for source in item.get("sources", []) if source != clause["id"]]
             item.setdefault("principles", linked.get(clause["id"], []))
 
@@ -628,7 +811,8 @@ def as_list(value: Any) -> list[Any]:
 
 
 def prune(entity: dict[str, Any]) -> dict[str, Any]:
-    """Drop properties without a value, unwrap single-item lists, and give every entity a name."""
+    """Drop properties without a value, unwrap single-item lists, and name an entity by its headline or, for a typed
+    identifier, by its scheme. A name never only repeats the entity's identifier, which it carries once."""
     pruned: dict[str, Any] = {}
     for key, value in entity.items():
         if value in (None, [], "", {}):
@@ -636,7 +820,7 @@ def prune(entity: dict[str, Any]) -> dict[str, Any]:
         unwrapped = value[0] if isinstance(value, list) and len(value) == 1 and key != "@type" else value
         pruned[key] = unwrapped
     if "name" not in pruned and "rdfs:label" not in pruned:
-        fallback = pruned.get("identifier") or pruned.get("headline") or pruned.get("propertyID")
+        fallback = pruned.get("headline") or pruned.get("propertyID")
         if fallback is not None:
             pruned["name"] = fallback
     return pruned
@@ -656,6 +840,12 @@ class Graph:
         self.text_links: dict[str, list[dict[str, str]]] = {}
         # Build-only repository identity, shared with retirement reporting; never serialized.
         self.repository_keys: dict[str, set[str]] = {}
+        # Each catalogue record's address, by its published identifier, once the identities are published, and each
+        # build key's published identifier, for build-time readers of the content rows; neither is serialized.
+        self.addresses: dict[str, str] = {}
+        self.published: dict[str, str] = {}
+        # Each provenance action's results as authored, by address, until the identities are published.
+        self.results: dict[str, list[str]] = {}
 
     def add(self, entity: dict[str, Any], content_id: str | None = None) -> str:
         entity = prune(entity)
@@ -686,63 +876,54 @@ class Graph:
         return resolved
 
 
-# The catalogue collections whose emitted compact addresses prose may reference. The rest of the catalogue
-# (principles, checks, provenance actions) is reached from the catalogue itself, not from prose.
-REFERENCE_COLLECTIONS = (
-    "resources",
-    "sources",
-    "repositories",
-    "terms",
-    "stations",
-    "checks",
-    "clauses",
-    "tests",
-    "metrics",
-    "organizations",
-    "fips",
-    "model",
-    "lifecycle",
-    "infrastructures",
+# The kinds of record prose may reference. The rest of the catalogue (principles, questions' answers, provenance
+# actions, vocabularies) is reached from the catalogue itself, not from prose.
+REFERENCE_KINDS = frozenset(
+    {
+        "checks",
+        "clauses",
+        "crosswalks",
+        "fips",
+        "glossary",
+        "infrastructures",
+        "layers",
+        "lifecycles",
+        "model-examples",
+        "models",
+        "organizations",
+        "pages",
+        "questions",
+        "repositories",
+        "resources",
+        "seams",
+        "stations",
+        "tests",
+    }
 )
 
 
-def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
-    """Canonical compact catalogue addresses plus current authored short forms for Guide content and pages."""
-    records = api_records(graph.entities, content)
-    allowed = {
-        entity_id
-        for collection, members in records.items()
-        if collection in REFERENCE_COLLECTIONS
-        for _, entity_id in members
-    }
-    targets = {
-        address: entity_id
-        for entity_id, address in catalogue_addresses(graph.entities, content).items()
-        if entity_id in allowed
-    }
-    targets |= {
-        item["id"]: graph.index[item["id"]][0]
-        for item in content["resources"] + content["sources"]
-        if graph.index.get(item["id"])
-    }
-    targets |= {
-        "term:" + entity_id[len("#term-") :]: entity_id
-        for entity_id in graph.entities
-        if entity_id.startswith("#term-")
-    }
-    targets |= {"page:" + page["id"]: f"#page-{page['id']}" for page in content["pages"]}
-    targets |= {"station:" + data["station"]["id"]: f"#station-{data['station']['id']}" for data in content["stations"]}
-    targets |= {"clause:" + clause["id"]: f"#clause-{clause['id']}" for clause in content["ledger"]}
-    infrastructures = (content.get("infrastructures") or {}).get("infrastructure", [])
-    targets |= {"infrastructure:" + item["id"]: f"#infrastructure-{item['id']}" for item in infrastructures}
-    if infrastructures:
+def reference_targets(
+    content: dict[str, Any], graph: Graph, placements: dict[str, Placement] | None = None
+) -> dict[str, str]:
+    """Every target a prose reference may name, as the entity it names: a record's address or a part's
+    (`pages/machines#tasks`), from the one identity projection, and a kind word for that kind's list. During the
+    build the entities are named by their build keys, afterwards by their published identifiers."""
+    if placements is None and graph.addresses:
+        base = content["guide"]["guide"]["recordBase"]
+        records = {
+            entity_id.removeprefix(base): entity_id for entity_id in graph.entities if entity_id.startswith(base)
+        }
+    else:
+        placements = placements if placements is not None else identity_projection(graph, content)
+        records = {placement.address: key for key, placement in placements.items() if placement.address}
+        records |= {
+            f"{placements[placement.owner].address}#{placement.fragment}": key
+            for key, placement in placements.items()
+            if placement.owner in placements and placements[placement.owner].address
+        }
+    targets = {address: entity_id for address, entity_id in records.items() if address.split("/")[0] in REFERENCE_KINDS}
+    if (content.get("infrastructures") or {}).get("infrastructure"):
         targets["infrastructures"] = "#infrastructures"
-    targets["profile"] = content["guide"]["guide"]["profile"]
-    targets |= {
-        key: entity_ids[0]
-        for key, entity_ids in graph.index.items()
-        if key.startswith(("model:", "layer.", "seam.", "example."))
-    }
     return targets
 
 
@@ -765,7 +946,10 @@ def link_texts(graph: Graph, targets: dict[str, str]) -> None:
             def phrase(match: re.Match[str]) -> str:
                 target = targets.get(match["id"])
                 if target is None:
-                    raise ContentError(f"{owner}: the text refers to an unknown entry '{match['id']}'")
+                    raise ContentError(
+                        f"{owner}: the text refers to an unknown entry '{match['id']}'"
+                        + address_hint(match["id"], set(targets))
+                    )
                 found.setdefault(target, {"ref": target}).setdefault(lang, match["phrase"])
                 return match["phrase"]
 
@@ -774,34 +958,77 @@ def link_texts(graph: Graph, targets: dict[str, str]) -> None:
         for key in [key for key in entity if not key.startswith("@")]:
             entity[key] = clean(entity[key])
         if found:
-            mentioned = [item["@id"] for item in as_list(entity.get("mentions"))]
-            entity["mentions"] = refs(mentioned + [target for target in found if target not in mentioned])
+            # schema:mentions belongs to a CreativeWork; a term describes what its text names with schema:about.
+            relation = "about" if {"DefinedTerm", "DefinedTermSet"} & set(as_list(entity.get("@type"))) else "mentions"
+            mentioned = [item["@id"] for item in as_list(entity.get(relation))]
+            entity[relation] = refs(mentioned + [target for target in found if target not in mentioned])
             graph.text_links[entity_id] = list(found.values())
 
 
+# The statuses that are terms of their own schemes, by the property that names them, each specialising adms:status:
+# the scheme's set, its name and its terms' build prefix. The terms are authored in guide.toml under the property.
+STATUS_SCHEMES: dict[str, tuple[str, str, str]] = {
+    "clauseStatus": ("requirement-statuses", "Requirement statuses", "requirement-status"),
+    "fipStatus": ("fip-statuses", "FIP statuses", "fip-status"),
+    "declarationStatus": ("declaration-statuses", "FIP declaration statuses", "declaration-status"),
+    "healthStatus": ("health-statuses", "Test health", "health"),
+    "preparationStatus": ("preparation-statuses", "Preparation statuses", "preparation"),
+    "releaseStatus": ("release-statuses", "Release statuses", "release"),
+    "nodeState": ("node-states", "EOSC CZ Node states", "node-state"),
+}
+# Every scheme whose terms a property names by code: the statuses, and what kind of advice an item is.
+TERM_SCHEMES: dict[str, tuple[str, str, str]] = {
+    **STATUS_SCHEMES,
+    "adviceKind": ("advice-kinds", "Advice kinds", "advicekind"),
+    "prefillCoverage": ("prefill-coverages", "Pre-fill coverage", "prefill-coverage"),
+    "clauseKind": ("clause-kinds", "Clause kinds", "clausekind"),
+    "modelKind": ("model-kinds", "Model kinds", "modelkind"),
+    "mappingBasis": ("correspondence-bases", "Correspondence bases", "mappingbasis"),
+    "mappingCoverage": ("evaluator-coverages", "Evaluator mapping coverage", "mappingcoverage"),
+    "discipline": ("disciplines-knav", "KNAV catalogue discipline groups", "knavdiscipline"),
+    "coverage": ("scopes-fip-dashboard", "FIP Dashboard scopes", "fdscope"),
+}
+# A scheme whose terms content/guide.toml lists under a name other than the property that names them.
+TERM_LISTS = {"discipline": "knavDiscipline", "coverage": "fipDashboardScope"}
+# A scheme a registry publishes, attributed to that registry's catalogue entry rather than to the Guide.
+REGISTRY_SCHEMES = {"discipline": "knav-dm-tools-catalogue", "coverage": "fip-dashboard"}
+# The term sets the page reads by code alone, with its own labels, never by a term's own name or description.
+CODED_SETS = frozenset(set_id for set_id, _, _ in TERM_SCHEMES.values())
+
+
+def status_term(graph: Graph, prop: str, code: Any) -> dict[str, str] | None:
+    """A status, or another coded value, as the term of its scheme. A code the scheme lacks is refused, so no status
+    stays a string."""
+    if code in (None, ""):
+        return None
+    set_id, _, prefix = TERM_SCHEMES[prop]
+    term_id = f"#{prefix}-{code}"
+    if term_id not in graph.entities:
+        raise ContentError(f"{prop}: '{code}' is no term of the {set_id} scheme in guide.toml")
+    return ref(term_id)
+
+
+def status_code(value: Any) -> str | None:
+    """The code of a status term a published node names (`.../release-statuses/testing` gives `testing`)."""
+    target = value.get("@id") if isinstance(value, dict) else None
+    return str(target).rsplit("/", 1)[-1] if target else None
+
+
 def defined_terms(graph: Graph, set_id: str, set_name: str, prefix: str, items: list[dict[str, Any]]) -> list[str]:
-    """Add a named term set and its terms; return the term IDs. A set names its scheme both as a schema.org
-    DefinedTermSet and as a SKOS ConceptScheme, and each term is a DefinedTerm and a SKOS Concept, so the typing
-    sets are one vocabulary over named schemes (design: group 21)."""
+    """Add a named term set and its terms; return the term IDs. Every term is a DefinedTerm in exactly one
+    DefinedTermSet, which it names with `inDefinedTermSet`; the set lists its terms in order. Their SKOS reading is
+    stated once, in the vocabulary document, so no instance carries a second type or membership."""
     term_ids = [f"#{prefix}-{item['id']}" for item in items]
-    graph.add(
-        {
-            "@id": f"#{set_id}",
-            "@type": ["DefinedTermSet", "skos:ConceptScheme"],
-            "name": set_name,
-            "hasDefinedTerm": refs(term_ids),
-        }
-    )
+    graph.add({"@id": f"#{set_id}", "@type": "DefinedTermSet", "name": set_name, "hasDefinedTerm": refs(term_ids)})
     for item, term_id in zip(items, term_ids, strict=True):
         graph.add(
             {
                 "@id": term_id,
-                "@type": ["DefinedTerm", "skos:Concept"],
+                "@type": "DefinedTerm",
                 "termCode": item["id"],
                 "name": text(item.get("name") or item.get("label")),
                 "description": text(item.get("description")),
                 "inDefinedTermSet": ref(f"#{set_id}"),
-                "skos:inScheme": ref(f"#{set_id}"),
             }
         )
     return term_ids
@@ -846,21 +1073,35 @@ def build_organizations(graph: Graph, guide: dict[str, Any]) -> dict[str, str]:
                 "identifier": organization.get("identifier"),
                 "sameAs": ref(organization["ror"]) if organization.get("ror") else None,
                 "funder": refs([organizations[funder] for funder in as_list(organization.get("funder"))]),
+                # An organisation has no CreativeWork domain; dcterms:source names its published selection.
+                "source": ref(GUIDE_SELECTION),
             },
             "organization:" + organization["id"],
         )
     return organizations
 
 
-def organization_ref(graph: Graph, organizations: dict[str, str], name: str | None) -> dict[str, str] | None:
-    """Reference a known organisation by ID, or add one by name."""
-    if not name:
-        return None
-    if name in organizations:
-        return ref(organizations[name])
-    entity_id = f"#org-{slug(name)}"
-    graph.add({"@id": entity_id, "@type": "Organization", "name": name})
-    return ref(entity_id)
+# What a thing the Guide's own content describes rests on, beside any registry's record about it. A thing that rests
+# on nothing but registry records is one only registries know.
+GUIDE_SELECTION = "#guide-selection"
+
+# The crate-local lists that hold the records of a kind, so a link to a kind's list names the list.
+KIND_LISTS = {
+    "stations": "#path",
+    "clauses": "#ledger",
+    "repositories": "#repositories",
+    "resources": "#resources",
+    "tests": "#tests",
+}
+
+
+def action_target(href: str) -> dict[str, str]:
+    """What an action opens: an outside page, a kind's list (with the topic it narrows to), or a record by its
+    address, which names the record's own IRI once identities are published."""
+    target, mark, query = href.partition("?")
+    if "://" in href or target not in KIND_LISTS:
+        return ref(href)
+    return ref(KIND_LISTS[target] + mark + query)
 
 
 def name_text(value: Any) -> str | None:
@@ -874,20 +1115,98 @@ def name_text(value: Any) -> str | None:
     return None
 
 
-def agent_ref(graph: Graph, name: str) -> str:
-    """The entity for a named agent (an operating, hosting or developing organisation): an existing organisation
-    with the same name where there is one, a new one otherwise. An agent is named by reference, not by a literal."""
-    folded = unicodedata.normalize("NFKD", name).casefold()
+# The build keys of the things a named agent can be: an organisation, an infrastructure, a repository or a resource
+# the Guide describes. A FIP Dashboard organisation record no curated thing names is such an organisation too.
+AGENT_THINGS = ("#org-", "#infrastructure-", "#european-ri-", "#repository-", "#resource-", "#eosc-cz-node")
+
+
+def folded_names(entity: dict[str, Any]) -> set[str]:
+    """An entity's names in every language, its alternate names and its acronym, as an exact name comparison reads
+    them."""
+    values = [value for key in ("name", "alternateName", "abbreviation") for value in name_values(entity.get(key))]
+    return {unicodedata.normalize("NFKC", value).casefold() for value in values}
+
+
+def agent_things(graph: Graph, founded: set[str]) -> dict[str, str]:
+    """Every entity a named agent's name can match, with the thing it stands for: a thing the Guide describes stands
+    for itself, a KNAV or FIP Dashboard record for the curated thing it is linked to, and a record no curated thing
+    stands for founds a thing of its own. `founded` holds the FIP Dashboard organisation records that found
+    organisations of their own."""
+    dashboard_pages = {
+        target: entity_id
+        for entity_id, entity in graph.entities.items()
+        if entity_id.startswith(AGENT_THINGS)
+        for target in ids_of(entity.get("sameAs"))
+        if target.startswith(FIP_DASHBOARD)
+    }
+    things = {entity_id: entity_id for entity_id in graph.entities if entity_id.startswith(AGENT_THINGS)}
+    things |= {key: key for key in founded}
     for entity_id, entity in graph.entities.items():
-        if entity_id.startswith("#org-") and "Organization" in as_list(entity.get("@type")):
-            existing = name_text(entity.get("name"))
-            if existing and unicodedata.normalize("NFKD", existing).casefold() == folded:
-                return entity_id
-    entity_id = f"#org-{slug(name)}"
-    if entity_id in graph.entities:
-        return entity_id
+        if entity_id.startswith("#fer-"):
+            pages = [target for target in ids_of(entity.get("sameAs")) if target in dashboard_pages]
+            things[entity_id] = dashboard_pages[pages[0]] if pages else entity_id
+    for entity_id, entity in graph.entities.items():
+        if entity_id.startswith("#knav-"):
+            standing = next((target for target in ids_of(entity.get("sameAs")) if target in graph.entities), None)
+            things[entity_id] = things.get(standing, standing) if standing else entity_id
+    return things
+
+
+def agent_ref(graph: Graph, name: str, things: dict[str, str]) -> str:
+    """The entity for a named agent (a publisher, an operating, hosting or developing organisation): the one thing the
+    Guide describes under exactly that name, in any language and of any kind (agent_things), or the record an address
+    names. A name two things share is refused, and the content names the agent by address instead; only a name no
+    thing has adds an organisation, which a later agent of that name finds."""
+    if "/" in name and name.split("/", 1)[0] in KINDS:
+        return name  # an address, which becomes the record's IRI once identities are published
+    folded = unicodedata.normalize("NFKC", name).casefold()
+    matches = sorted(
+        {thing for entity_id, thing in things.items() if folded in folded_names(graph.entities[entity_id])}
+    )
+    if len(matches) > 1:
+        raise ContentError(f"the agent '{name}' names several things ({', '.join(matches)}); name it by its address")
+    if matches:
+        return matches[0]
+    # A new organisation is named like any minted record: by the name's words, without particles, within 32
+    # characters.
+    entity_id = f"#org-{short_id(name, set())}"
     graph.add({"@id": entity_id, "@type": "Organization", "name": name})
+    things[entity_id] = entity_id
     return entity_id
+
+
+def organization_record_owners(graph: Graph, content: dict[str, Any]) -> dict[str, str]:
+    """Each FIP Dashboard organisation record's thing, by build key: the curated thing whose row names the record's
+    handle (an organisation's or an infrastructure's `fipDashboard`, a European infrastructure's in its `nodeOf` or
+    `eric` entry, a resource's `fipDashboardOrganization`), or that carries the record's ROR. A name never attaches a
+    record; one no thing names founds an organisation of its own."""
+    handles: dict[str, str] = {}
+    for row in content["guide"].get("organization", []):
+        if isinstance(row.get("fipDashboard"), str):
+            handles[row["fipDashboard"]] = f"#org-{row['id']}"
+    for item in (content.get("infrastructures") or {}).get("infrastructure", []):
+        if item.get("fipDashboard"):
+            handles[item["fipDashboard"]] = f"#infrastructure-{item['id']}"
+        for entry in item.get("nodeOf", []) + item.get("eric", []):
+            if entry.get("fipDashboard"):
+                handles[entry["fipDashboard"]] = f"#european-ri-{slug(entry['name'])}"
+    for resource in content["resources"]:
+        if resource.get("fipDashboardOrganization"):
+            handles[resource["fipDashboardOrganization"]] = f"#resource-{resource['id']}"
+    rors = {
+        target: entity_id
+        for entity_id, entity in graph.entities.items()
+        if entity_id.startswith(AGENT_THINGS)
+        for target in ids_of(entity.get("sameAs"))
+        if target.startswith("https://ror.org/")
+    }
+    owners = {}
+    for snapshot in content["snapshots"]:
+        for row in snapshot.get("organization", []):
+            owner = handles.get(alternate_id(row, "fip-dashboard")) or rors.get(row.get("ror", ""))
+            if owner in graph.entities:
+                owners[f"#fd-org-{row['id']}"] = owner
+    return owners
 
 
 def build_instruments(graph: Graph, guide: dict[str, Any]) -> None:
@@ -906,14 +1225,26 @@ def build_instruments(graph: Graph, guide: dict[str, Any]) -> None:
 
 
 def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
-    for lens in guide.get("lens", []):
+    # A lens is a term of the lens set like any other controlled term, and also an Audience, which `audience` needs.
+    lenses = guide.get("lens", [])
+    graph.add(
+        {
+            "@id": "#lenses",
+            "@type": "DefinedTermSet",
+            "name": "Reader lenses",
+            "hasDefinedTerm": refs([f"#lens-{lens['id']}" for lens in lenses]),
+        }
+    )
+    for lens in lenses:
         graph.add(
             {
                 "@id": f"#lens-{lens['id']}",
-                "@type": "Audience",
+                "@type": ["DefinedTerm", "Audience"],
+                "termCode": lens["id"],
                 "name": text(lens["name"]),
                 "audienceType": lens["id"],
                 "description": text(lens.get("description")),
+                "inDefinedTermSet": ref("#lenses"),
             },
             f"lens:{lens['id']}",
         )
@@ -921,6 +1252,9 @@ def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
     defined_terms(graph, "tiers", "Self-check tiers", "tier", guide.get("tier", []))
     defined_terms(graph, "statuses", "Service statuses", "status", guide.get("status", []))
     defined_terms(graph, "actors", "Actors", "actor", guide.get("actor", []))
+    for actor in guide.get("actor", []):
+        # A clause's actor is an Audience as `schema:audience` requires, beside its controlled-term type.
+        graph.entities[f"#actor-{actor['id']}"]["@type"] = ["DefinedTerm", "Audience"]
     defined_terms(graph, "resource-types", "Resource types", "rtype", guide.get("resourceType", []))
     defined_terms(graph, "repository-kinds", "Repository kinds", "rkind", guide.get("repositoryKind", []))
     defined_terms(
@@ -939,6 +1273,10 @@ def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
     )
     defined_terms(graph, "esfri-statuses", "ESFRI statuses", "esfri", guide.get("esfriStatus", []))
     defined_terms(graph, "node-roles", "EOSC CZ Node roles", "noderole", guide.get("nodeRole", []))
+    for role in guide.get("nodeRole", []):
+        graph.entities[f"#noderole-{role['id']}"]["@type"] = ["DefinedTerm", "dcat:Role"]
+    for prop, (set_id, set_name, prefix) in TERM_SCHEMES.items():
+        defined_terms(graph, set_id, set_name, prefix, guide.get(TERM_LISTS.get(prop, prop), []))
     for help_route in guide.get("help", []):
         graph.add(
             {
@@ -954,9 +1292,10 @@ def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
 
 def build_terms(graph: Graph, vocabulary_base: str) -> None:
     """The guide's own vocabulary: one rdf:Property per term, each declaring the broader established term it
-    specializes where one exists, its domain and its range."""
+    specializes where one exists, its domain and its range, and one rdfs:Class per class with the class it
+    specializes."""
     for term, definition in GUIDE_TERMS.items():
-        broader, domain, range_ = GUIDE_TERM_SHAPES.get(term, ("", "", ""))
+        broader, domain, range_ = term_shape(term, vocabulary_base)
         entity: dict[str, Any] = {
             "@id": vocabulary_base + term,
             "@type": "rdf:Property",
@@ -970,6 +1309,16 @@ def build_terms(graph: Graph, vocabulary_base: str) -> None:
         if range_:
             entity["rdfs:range"] = {"@id": range_}
         graph.add(entity)
+    for name, (definition, broader, _) in GUIDE_CLASSES.items():
+        graph.add(
+            {
+                "@id": vocabulary_base + name,
+                "@type": "rdfs:Class",
+                "rdfs:label": name,
+                "rdfs:comment": definition,
+                "rdfs:subClassOf": {"@id": broader},
+            }
+        )
 
 
 def build_principles(graph: Graph, principles: list[dict[str, Any]]) -> None:
@@ -1025,6 +1374,7 @@ def build_sources(
                 "alternateName": text(source.get("short")),
                 "guideType": guide_type(crosswalk, "form", source.get("type")),
                 "url": source.get("url"),
+                "isBasedOn": ref(GUIDE_SELECTION),
             }
             | citation_properties(graph, source, organizations, people, names),
             source["id"],
@@ -1040,7 +1390,8 @@ def citation_properties(
     authors = citation.get("authors", [])
     return {
         "inLanguage": citation.get("inLanguage"),
-        "publisher": organization_ref(graph, organizations, citation.get("publisher")),
+        "publisher": ref(organizations[citation["publisher"]]) if citation.get("publisher") in organizations else None,
+        "publisherName": citation.get("publisher") if citation.get("publisher") not in organizations else None,
         "version": citation.get("version"),
         "author": refs([people[author] for author in authors if author in people]),
         "creditText": "; ".join(names.get(author, author) for author in authors) or None,
@@ -1048,7 +1399,7 @@ def citation_properties(
         "dateModified": iso(citation["dateModified"]) if citation.get("dateModified") else None,
         "sdDatePublished": iso(citation["dateAccessed"]) if citation.get("dateAccessed") else None,
         "license": citation.get("license"),
-        "preparationStatus": citation.get("preparationStatus"),
+        "preparationStatus": status_term(graph, "preparationStatus", citation.get("preparationStatus")),
     }
 
 
@@ -1072,9 +1423,9 @@ def build_ledger(graph: Graph, clauses: list[dict[str, Any]]) -> None:
                 "about": refs([principle_iri(principle) for principle in clause.get("principles", [])]),
                 "audience": refs([f"#actor-{clause['actor']}"] if clause.get("actor") else []),
                 "isPartOf": refs(graph.resolve([clause["source"]])) if clause.get("source") else None,
-                "clauseKind": clause.get("kind"),
+                "clauseKind": status_term(graph, "clauseKind", clause.get("kind")),
                 "sourceLocator": clause.get("locator"),
-                "creativeWorkStatus": clause.get("status", "current"),
+                "clauseStatus": status_term(graph, "clauseStatus", clause.get("status", "current")),
                 "note": text(clause.get("note")),
             },
             clause["id"],
@@ -1108,7 +1459,9 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
             advice_id = f"#advice-{advice['id']}"
             advice_ids.append(advice_id)
             level = advice["level"]
-            is_tip = level == "L2" or advice.get("kind") in ("ai", "key")
+            # What the item is: an AI tip or a station's key point as the content says, a tip at the Why level, and
+            # otherwise a direction to act.
+            kind = advice.get("kind") or ("tip" if level == "L2" else "direction")
             step_ids = [f"{advice_id}-step-{number}" for number in range(1, len(advice.get("steps", [])) + 1)]
             # The next step first, then at most one related tool.
             actions = as_list(advice.get("action"))
@@ -1118,13 +1471,13 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
             graph.add(
                 {
                     "@id": advice_id,
-                    "@type": "HowToTip" if is_tip else "HowToDirection",
+                    "@type": "AdviceItem",
                     "identifier": advice["id"],
                     "text": text(advice["text"]),
                     "position": advice.get("position", order),
                     "audience": lens_refs(advice["lens"], all_lenses),
                     "disclosureLevel": ref(f"#level-{level}"),
-                    "adviceKind": advice.get("kind"),
+                    "adviceKind": status_term(graph, "adviceKind", kind),
                     "checkAfter": text(advice.get("check")),
                     "promptSample": text(advice.get("prompt")),
                     "citation": refs(graph.resolve(advice.get("sources", []))),
@@ -1146,7 +1499,12 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
                 )
             for action_id, action in zip(action_ids, actions, strict=True):
                 graph.add(
-                    {"@id": action_id, "@type": "Action", "name": text(action["label"]), "target": ref(action["href"])}
+                    {
+                        "@id": action_id,
+                        "@type": "Action",
+                        "name": text(action["label"]),
+                        "target": action_target(action["href"]),
+                    }
                 )
         graph.add(
             {
@@ -1170,13 +1528,43 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
     return station_ids
 
 
-def build_prefill(graph: Graph, item_id: str, prefill: dict[str, Any]) -> list[str]:
-    """One property value per live source that can pre-fill an item, naming the fields, tests or FIP questions."""
+# The catalogue entry of each live source a question's pre-fill names; the DOI or Handle resolver is the Guide's own
+# lookup through either system, which no single entry describes.
+PREFILL_SOURCES = {
+    "datacite": "datacite",
+    "champion": "fair-champion",
+    "fip": "fip-dashboard",
+    "nkr": "nkr",
+    "re3data": "re3data",
+    "resolver": None,
+}
+
+
+def build_prefill(graph: Graph, item_id: str, item: dict[str, Any]) -> list[str]:
+    """One typed mapping per live source that can suggest the item's answer: the source, the fields, tests or FIP
+    questions it reads, and how much of the question it covers. The item's `prefillLevel` and
+    `championEvidenceOnly` are read into that coverage."""
     prefill_ids = []
-    for source, value in prefill.items():
+    for source, value in item.get("prefill", {}).items():
+        if source not in PREFILL_SOURCES:
+            raise ContentError(f"{item_id}: unknown pre-fill source '{source}'")
+        if source == "champion" and item.get("championEvidenceOnly"):
+            coverage = "champion-evidence-only"
+        else:
+            coverage = "partly" if item.get("prefillLevel") == "partly" else "whole"
+        entry = next((key for key in graph.resolve([PREFILL_SOURCES[source] or ""]) if key in graph.entities), None)
         prefill_id = f"{item_id}-prefill-{source}"
         prefill_ids.append(prefill_id)
-        graph.add({"@id": prefill_id, "@type": "PropertyValue", "propertyID": f"prefill:{source}", "value": value})
+        graph.add(
+            {
+                "@id": prefill_id,
+                "@type": "PrefillMapping",
+                "identifier": source,
+                "prefillSource": ref(entry) if entry else None,
+                "prefillField": [str(field) for field in as_list(value)] if value is not True else None,
+                "prefillCoverage": status_term(graph, "prefillCoverage", coverage),
+            }
+        )
     return prefill_ids
 
 
@@ -1218,18 +1606,19 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
         for order, item in enumerate(data.get("item", []), start=1):
             item_id = f"#item-{item['id']}"
             item_ids.append(item_id)
-            prefill_ids = build_prefill(graph, item_id, item.get("prefill", {}))
+            prefill_ids = build_prefill(graph, item_id, item)
             applies = [f"#profile-{profile}" for profile in item.get("profiles", [])]
             applies += [f"#mode-{mode}" for mode in item.get("modes", [])]
             graph.add(
                 {
                     "@id": item_id,
-                    "@type": "Question",
+                    # A question is the FTR metric its manual test and any automated tests implement.
+                    "@type": ["Question", "ftr:Metric"],
                     "identifier": item["id"],
                     "text": text(item["statement"]),
                     "description": text(item.get("help")),
                     "position": order,
-                    "about": refs([principle_iri(principle) for principle in item.get("principles", [])]),
+                    "inDimension": refs([principle_iri(principle) for principle in item.get("principles", [])]),
                     "citation": refs(graph.resolve(item.get("sources", []))),
                     "tier": ref(f"#tier-{item['tier']}"),
                     "block": ref(f"#block-{check['id']}-{item['block']}") if item.get("block") else None,
@@ -1240,25 +1629,23 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
                     "allowsNotApplicable": item.get("allowNotApplicable", False),
                     "assessmentContext": True if item.get("context") else None,
                     "note": text(item.get("note")),
-                    "additionalProperty": refs(prefill_ids),
-                    "prefillLevel": item.get("prefillLevel"),
-                    "championEvidenceOnly": True if item.get("championEvidenceOnly") else None,
+                    "prefillMapping": refs(prefill_ids),
                     "lookup": ref(links[item["lookup"]]) if item.get("lookup") else None,
-                    "isPartOf": ref(check_id),
+                    "hasBenchmark": ref(check_id),
                 },
                 item["id"],
             )
         graph.add(
             {
                 "@id": check_id,
-                "@type": "Quiz",
+                # A check is the FTR benchmark its questions are the metrics of.
+                "@type": ["Quiz", "ftr:Benchmark"],
                 "identifier": check["id"],
                 "name": text(check["name"]),
                 "description": text(check.get("description")),
                 "audience": refs([f"#lens-{lens}" for lens in check.get("lenses", [])]),
                 "timeRequired": f"PT{check['minutes']}M" if check.get("minutes") else None,
                 "defaultProfile": ref(f"#profile-{check['defaultProfile']}") if check.get("defaultProfile") else None,
-                "hasPart": refs(item_ids),
             },
             f"check:{check['id']}",
         )
@@ -1296,7 +1683,7 @@ def build_resources(
             "description": text(resource.get("description")),
             "url": resource.get("url"),
             "audience": lens_refs(resource.get("lenses", "*"), all_lenses),
-            "additionalType": (["http://schema.org/SoftwareApplication"] if resource["type"] == "tool" else [])
+            "additionalType": ([DCMITYPE + "Software"] if resource["type"] == "tool" else [])
             + [FIP_TERMS + fip_class for fip_class in resource.get("fipClass", [])]
             + (
                 [SOURCE_ADDITIONAL_TYPES[citation["type"]]]
@@ -1308,12 +1695,18 @@ def build_resources(
             "serviceStatus": ref(f"#status-{resource['status']}") if resource.get("status") else None,
             "statusAsOf": iso(resource["asOf"]) if resource.get("asOf") else None,
             "operatorName": text((resource.get("operator") or {}).get("name")),
-            "operatorSource": (resource.get("operator") or {}).get("source"),
+            "operatorSource": ref((resource.get("operator") or {}).get("source"))
+            if (resource.get("operator") or {}).get("source")
+            else None,
             "rdmkitRecord": (
-                "https://rdmkit.elixir-europe.org/all_tools_and_resources#" + rdmkit["id"] if rdmkit.get("id") else None
+                ref("https://rdmkit.elixir-europe.org/all_tools_and_resources#" + rdmkit["id"])
+                if rdmkit.get("id")
+                else None
             ),
             "trainingSearch": (
-                "https://tess.elixir-europe.org/search?" + urllib.parse.urlencode({"q": '"' + rdmkit["tess"] + '"'})
+                ref(
+                    "https://tess.elixir-europe.org/search?" + urllib.parse.urlencode({"q": '"' + rdmkit["tess"] + '"'})
+                )
                 if rdmkit.get("tess")
                 else None
             ),
@@ -1323,6 +1716,7 @@ def build_resources(
                 + ([FIP_DASHBOARD + resource["fipDashboard"]] if resource.get("fipDashboard") else [])
                 + ([f"https://doi.org/{citation['doi']}"] if citation and citation.get("doi") else [])
             ),
+            "isBasedOn": [ref(GUIDE_SELECTION)],
         }
         if citation:
             cited.append(resource_id)
@@ -1354,6 +1748,11 @@ def link_resources(graph: Graph, resources: list[dict[str, Any]]) -> None:
                 append_ref(station_entity, "mentions", f"#resource-{resource['id']}")
 
 
+def registry_record_key(scheme: str, value: str) -> str:
+    """The build key of a registry's record about a thing, which the identity projection places under the thing."""
+    return f"#{scheme}-record-{slug(str(value))}"
+
+
 def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, Any]:
     same_as = []
     if repository.get("re3data"):
@@ -1368,7 +1767,7 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
     if repository.get("fipDashboard"):
         same_as.append(FIP_DASHBOARD + repository["fipDashboard"])
     # A name re3data gives only in English takes the first name it tags as Czech for Czech readers; a curated name
-    # (a table, from the entry or its record annotation) corrects both (D-173).
+    # (a table, from the entry or its record annotation) corrects both.
     name = repository["name"]
     czech = repository.get("namesCs") or []
     if isinstance(name, str) and czech and czech[0] != name:
@@ -1389,9 +1788,13 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
         "serviceStatus": ref(f"#status-{repository['status']}") if repository.get("status") else None,
         "statusAsOf": iso(repository["asOf"]) if repository.get("asOf") else None,
         "operatorName": text((repository.get("operator") or {}).get("name")),
-        "operatorSource": (repository.get("operator") or {}).get("source"),
+        "operatorSource": ref((repository.get("operator") or {}).get("source"))
+        if (repository.get("operator") or {}).get("source")
+        else None,
         "developerName": text((repository.get("developer") or {}).get("name")),
-        "developerSource": (repository.get("developer") or {}).get("source"),
+        "developerSource": ref((repository.get("developer") or {}).get("source"))
+        if (repository.get("developer") or {}).get("source")
+        else None,
         "isBasedOn": [ref(based_on)],
     }
 
@@ -1453,13 +1856,18 @@ def nkr_repositories(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     return repositories
 
 
+# The catalogue entry of a source whose snapshot names it otherwise than by the entry's ID.
+SNAPSHOT_CATALOGUES = {"KNAV Data Management Tools Catalogue": "knav-dm-tools-catalogue"}
+
+
 def build_snapshots(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
     """Add one entity per snapshot, with its retrieval date, the catalogue entry of its source where the guide has
-    one and, for the FIP Dashboard, its disclaimer."""
+    one and, for the FIP Dashboard, its disclaimer. A snapshot holds the records it supplies (attach_records)."""
     ids = []
     for snapshot in snapshots:
         info = snapshot["snapshot"]
-        source = f"#resource-{slug(info['source'])}"
+        catalogue = SNAPSHOT_CATALOGUES.get(info["source"], slug(info["source"]))
+        source = next(iter(graph.index.get(catalogue, [])), "")
         ids.append(
             graph.add(
                 {
@@ -1477,14 +1885,23 @@ def build_snapshots(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
                 f"snapshot:{slug(info['source'])}",
             )
         )
+    # A list a registry publishes rests on that registry's catalogue entry.
+    for prop, catalogue in REGISTRY_SCHEMES.items():
+        source = next(iter(graph.index.get(catalogue, [])), "")
+        if source in graph.entities:
+            graph.entities["#" + TERM_SCHEMES[prop][0]]["isBasedOn"] = ref(source)
     return ids
+
+
+ANNOTATION_SCHEMES = {"FAIRsharing": "fairsharing", "DataCite": "datacite"}
 
 
 def annotate_repositories(graph: Graph, repository_ids: list[str], snapshots: list[dict[str, Any]]) -> None:
     """Join each snapshot annotation (FAIRsharing, DataCite) to the repository it names, by re3data record or else
-    by address: its FAIRsharing record becomes one of the repository's identifiers, its DataCite repository is
-    recorded where the guide names none, and the snapshot becomes one of its sources. An annotation adds no
-    repository of its own; one that names no listed repository is left out."""
+    by address, as that registry's record about the repository: a FAIRsharing record with its DOI and name, a
+    DataCite record with its repository ID. The repository keeps the FAIRsharing DOI among its identifiers and the
+    DataCite repository where the Guide names none, and rests on the record. An annotation adds no repository of its
+    own; one that names no listed repository is left out."""
     by_re3data: dict[str, dict[str, Any]] = {}
     by_address: dict[str, dict[str, Any]] = {}
     for entity_id in repository_ids:
@@ -1498,21 +1915,31 @@ def annotate_repositories(graph: Graph, repository_ids: list[str], snapshots: li
         if entity.get("url"):
             by_address.setdefault(bare_url(entity["url"]), entity)
     for snapshot in snapshots:
+        scheme = ANNOTATION_SCHEMES.get(snapshot["snapshot"]["source"])
         for row in snapshot.get("annotation", []):
             entity = (
                 by_re3data.get(row["re3data"]) if row.get("re3data") else by_address.get(bare_url(row.get("url", "")))
             )
-            if entity is None:
+            if entity is None or scheme is None or not row.get(scheme):
                 continue
-            if row.get("fairsharing"):
-                same_as = as_list(entity.get("sameAs"))
-                record = f"https://doi.org/{row['fairsharing']}"
-                if record not in [item.get("@id") for item in same_as if isinstance(item, dict)]:
-                    entity["sameAs"] = same_as + [ref(record)]
-            if row.get("datacite") and not entity.get("dataciteRepository"):
+            record = {
+                "@id": registry_record_key(scheme, row[scheme]),
+                "@type": CATALOG_RECORD,
+                "identifier": row[scheme],
+                "isPartOf": ref(snapshot_id(snapshot)),
+                "isBasedOn": ref(snapshot_id(snapshot)),
+                "primaryTopic": ref(entity["@id"]),
+            }
+            if scheme == "fairsharing":
+                doi = f"https://doi.org/{row['fairsharing']}"
+                record |= {"name": row.get("fairsharingName"), "sameAs": ref(doi)}
+                if doi not in ids_of(entity.get("sameAs")):
+                    entity["sameAs"] = as_list(entity.get("sameAs")) + [ref(doi)]
+            elif not entity.get("dataciteRepository"):
                 entity["dataciteRepository"] = row["datacite"]
-            if snapshot_id(snapshot) not in [item.get("@id") for item in as_list(entity.get("isBasedOn"))]:
-                append_ref(entity, "isBasedOn", snapshot_id(snapshot))
+            graph.add(record)
+            if record["@id"] not in ids_of(entity.get("isBasedOn")):
+                append_ref(entity, "isBasedOn", record["@id"])
 
 
 def nkr_config(snapshots: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -1544,9 +1971,12 @@ def build_repositories(
     resources: list[dict[str, Any]],
     records: list[dict[str, Any]] | None = None,
 ) -> list[str]:
-    """List repositories and registries by meaning, regardless of source. Reviewed record annotations join
+    """List repositories by meaning, regardless of source; a registry is a resource, listed with the resources, whose
+    identities are indexed beside the repositories'. Reviewed record annotations join
     registry identities without changing a snapshot's facts or inferring identity from a similar host or name.
-    Source records remain available as evidence; the catalogue lists the described thing once."""
+    Each registry's row stays that registry's record about the thing, and the catalogue lists the thing once, with
+    the winning values: what the curated entry states, then NKR's name, kind, dated status, keywords and address,
+    then the first registry that states a fact, in the order of RECORD_SCHEMES."""
     records = records or []
     annotations = {item["re3data"]: item for item in records if item.get("re3data")}
     merged: dict[str, dict[str, Any]] = {}
@@ -1565,7 +1995,7 @@ def build_repositories(
             elif prop not in existing or existing[prop] in (None, [], ""):
                 existing[prop] = value
 
-    graph.add({"@id": "#repositories-curated", "@type": "CreativeWork", "name": "Curated repository list"})
+    registry_rows: list[tuple[str, dict[str, Any]]] = []
     from_resources = [
         {key: resource[key] for key in ("id", "name", "url", "status", "asOf") if key in resource}
         | resource["repository"]
@@ -1573,7 +2003,7 @@ def build_repositories(
         for resource in resources
         if resource.get("repository")
     ]
-    sources = [("#repositories-curated", curated + from_resources)]
+    sources = [(GUIDE_SELECTION, curated + from_resources)]
     for snapshot in snapshots:
         sources.append((snapshot_id(snapshot), snapshot.get("repository", [])))
 
@@ -1581,6 +2011,14 @@ def build_repositories(
         nonlocal keys, addresses
         for source_record in repositories:
             is_nkr = based_on == "#snapshot-nkr"
+            if is_nkr:
+                record_key = registry_record_key("nkr", source_record["nkr"])
+            elif based_on == "#snapshot-re3data":
+                # The row is re3data's record; the thing rests on it, and the record keeps re3data's own values.
+                record_key = registry_record_key("re3data", source_record["re3data"])
+                registry_rows.append((record_key, source_record))
+            else:
+                record_key = based_on
             repository = source_record if is_nkr else source_record | annotations.get(source_record.get("re3data"), {})
             record_keys = {repository_key(repository)}
             if repository.get("nkr"):
@@ -1611,9 +2049,7 @@ def build_repositories(
                 addresses = {
                     name: {key if value == other else value for value in values} for name, values in addresses.items()
                 }
-            entity = repository_entity(repository, based_on)
-            if repository.get("fipDashboard"):
-                entity["isBasedOn"].append(ref("#snapshot-fip-dashboard"))
+            entity = repository_entity(repository, record_key)
             if key in merged:
                 merge_into(merged[key], entity)
             else:
@@ -1661,6 +2097,10 @@ def build_repositories(
             functions = dashboard_annotations.get(handle, {}).get("functions", [])
             if functions:
                 entity["repositoryFunction"] = refs([f"#rfunction-{value}" for value in functions])
+            # A reviewed kind is the Guide's classification of the thing the record founds, not the Dashboard's.
+            kind = dashboard_annotations.get(handle, {}).get("kind")
+            if kind:
+                entity.setdefault(PRECEDENCE, {})["repositoryKind"] = ref(f"#rkind-{kind}")
             key = "fip-dashboard:" + str(handle)
             merged[key] = entity | {"_content_id": record["id"], "_resource": True}
             keys[key] = key
@@ -1675,6 +2115,8 @@ def build_repositories(
 
     component_ids = {key: entity["@id"] for key, entity in merged.items()}
     native_statuses = {component_ids[key]: status for key, status in nkr_statuses.items()}
+    # NKR's own values, which its record keeps while the thing takes the winning ones.
+    nkr_values = {component_ids[key]: dict(merged[key].get("_nkr", {})) for key in nkr_owners}
     graph.repository_keys = {name: {component_ids[key]} for name, key in keys.items() if name.startswith("nkr:")}
     graph.repository_keys.update(
         {"url:" + address: {component_ids[key] for key in components} for address, components in addresses.items()}
@@ -1689,47 +2131,91 @@ def build_repositories(
             is_dashboard = entity["@id"] in dashboard_ids
             if is_dashboard and not overrides:
                 continue
-            # The resource's entity takes the repository facts it does not state itself.
+            # The resource's entity takes the repository facts it does not state itself. A repository only the FIP
+            # Dashboard knows takes them, NKR's precedence among them, on the thing its record founds
+            # (attach_records), so the dashboard's record keeps its own values.
             resource = graph.entities[entity["@id"]]
-            resource.update(overrides)
+            target = resource.setdefault(PRECEDENCE, {}) if is_dashboard else resource
+            target.update(overrides)
             for prop in ("repositoryKind", "repositoryFunction", "keywords", "isBasedOn", "dataciteRepository"):
-                if entity.get(prop) and not resource.get(prop):
-                    resource[prop] = entity[prop]
+                if entity.get(prop) and not resource.get(prop) and not target.get(prop):
+                    target[prop] = entity[prop]
             for source in as_list(entity.get("isBasedOn")):
-                if source not in as_list(resource.get("isBasedOn")):
-                    append_ref(resource, "isBasedOn", source["@id"])
-            resource["sameAs"] = as_list(resource.get("sameAs")) + [
-                item for item in as_list(entity.get("sameAs")) if item not in as_list(resource.get("sameAs"))
-            ]
-            if not resource["sameAs"]:
-                del resource["sameAs"]
+                if source not in as_list(resource.get("isBasedOn")) + as_list(target.get("isBasedOn")):
+                    append_ref(target, "isBasedOn", source["@id"])
+            added = [item for item in as_list(entity.get("sameAs")) if item not in as_list(resource.get("sameAs"))]
+            if is_dashboard:
+                if added:
+                    target["sameAs"] = as_list(target.get("sameAs")) + added
+            else:
+                resource["sameAs"] = as_list(resource.get("sameAs")) + added
+                if not resource["sameAs"]:
+                    del resource["sameAs"]
             if not is_dashboard:
                 repository_ids.append(entity["@id"])
             continue
         repository_ids.append(graph.add({"@id": entity.pop("@id"), **entity}, content_id))
 
     annotate_repositories(graph, repository_ids, snapshots)
+    for entity_id, values in nkr_values.items():
+        handle = next(owner for key, owner in nkr_owners.items() if component_ids[key] == entity_id)
+        graph.add(
+            {
+                "@id": registry_record_key("nkr", handle),
+                "@type": CATALOG_RECORD,
+                "identifier": handle,
+                **values,
+                "isPartOf": ref("#snapshot-nkr"),
+                "isBasedOn": ref("#snapshot-nkr"),
+                "primaryTopic": ref(entity_id),
+            }
+        )
 
-    # Registry resources belong here too, even when the guide recommends or cites them elsewhere.
-    for resource in resources:
-        if resource.get("type") == "registry":
-            entity_id = f"#resource-{resource['id']}"
-            entity = graph.entities[entity_id]
-            append_ref(entity, "isBasedOn", "#repositories-curated")
-            if resource.get("fipDashboard"):
-                append_ref(entity, "isBasedOn", "#snapshot-fip-dashboard")
-            if entity_id not in repository_ids:
-                repository_ids.append(entity_id)
+    # A registry is a resource the catalogue lists with the resources; its identities are indexed here too, so a
+    # registry's own records join it as they join a repository.
+    registries = [
+        f"#resource-{resource['id']}"
+        for resource in resources
+        if resource.get("type") == "registry" and f"#resource-{resource['id']}" not in repository_ids
+    ]
     repository_ids.extend(dashboard_ids)
-    for entity_id in repository_ids:
+
+    # re3data's record of each repository it lists, about the thing that rests on it, with re3data's own values.
+    topics = {
+        source: entity_id
+        for entity_id in repository_ids
+        for holder in (graph.entities[entity_id], graph.entities[entity_id].get(PRECEDENCE, {}))
+        for source in ids_of(holder.get("isBasedOn"))
+    }
+    for record_key, row in registry_rows:
+        own = repository_entity(row, "#snapshot-re3data")
+        graph.add(
+            {
+                "@id": record_key,
+                "@type": CATALOG_RECORD,
+                "identifier": row["re3data"],
+                "name": text(row["name"]),
+                "url": row.get("url"),
+                "repositoryKind": own["repositoryKind"],
+                "keywords": own["keywords"],
+                "inLanguage": own["inLanguage"],
+                "sameAs": own["sameAs"],
+                "isPartOf": ref("#snapshot-re3data"),
+                "isBasedOn": ref("#snapshot-re3data"),
+                "primaryTopic": ref(topics[record_key]),
+            }
+        )
+    for entity_id in repository_ids + registries:
         entity = graph.entities[entity_id]
+        holder = entity.get(PRECEDENCE, entity)
         if (
-            entity.get("serviceStatus") in [ref("#status-" + value) for value in NON_DEPOSIT_STATUSES]
+            holder.get("serviceStatus", entity.get("serviceStatus"))
+            in [ref("#status-" + value) for value in NON_DEPOSIT_STATUSES]
             or native_statuses.get(entity_id) == NKR_PILOT_NOT_ACCEPTING
         ):
-            entity["acceptsDeposits"] = False
+            holder["acceptsDeposits"] = False
         else:
-            entity.pop("acceptsDeposits", None)
+            holder.pop("acceptsDeposits", None)
         for record in as_list(entity.get("sameAs")):
             url = record.get("@id", "") if isinstance(record, dict) else str(record)
             if url.startswith(FIP_DASHBOARD):
@@ -1740,7 +2226,7 @@ def build_repositories(
         {
             "@id": "#repositories",
             "@type": "CreativeWork",
-            "name": "Repositories and registries",
+            "name": "Repositories",
             "hasPart": refs(repository_ids),
         }
     )
@@ -1750,18 +2236,24 @@ def build_repositories(
 KNAV_REGISTRY = "knav-tools"  # the life-cycle model of the KNAV catalogue's steps (content/lifecycle/)
 
 
-def build_knav_tools(graph: Graph, content: dict[str, Any]) -> list[str]:
+def build_knav_tools(graph: Graph, content: dict[str, Any]) -> None:
     """The tools of the KNAV Data Management Tools Catalogue snapshot, each with its life-cycle steps, discipline
     groups and the catalogue's licence. A tool that a curated entry (`knav`) or a record annotation names is that
     entry: its record says so in `sameAs` and the catalogue lists the entry once."""
     snapshot = next((item for item in content["snapshots"] if item.get("tool")), None)
     if snapshot is None:
-        return []
+        return
     info = snapshot["snapshot"]
     standing: dict[str, str] = {}
     for entry in content["resources"] + content["repositories"] + content["sources"]:
         if entry.get("knav") and graph.index.get(entry["id"]):
             standing[entry["knav"]] = graph.index[entry["id"]][0]
+    for item in (content.get("infrastructures") or {}).get("infrastructure", []):
+        if item.get("knav"):
+            standing[item["knav"]] = f"#infrastructure-{item['id']}"
+        for entry in item.get("nodeOf", []) + item.get("eric", []):
+            if entry.get("knav"):
+                standing[entry["knav"]] = f"#european-ri-{slug(entry['name'])}"
     # A FIP Dashboard record a curated entry links is listed as that entry, so a tool joined to it is too.
     curated_records = {
         entry["fipDashboard"]: graph.index[entry["id"]][0]
@@ -1779,39 +2271,26 @@ def build_knav_tools(graph: Graph, content: dict[str, Any]) -> list[str]:
                     or graph.index.get(f"fip-dashboard.{dashboard}", [f"#fer-{dashboard}"])[0]
                 )
             standing[record["knav"]] = target
-    tool_ids = []
     for tool in snapshot["tool"]:
-        tool_ids.append(
-            graph.add(
-                {
-                    "@id": f"#knav-{tool['id']}",
-                    "@type": "CreativeWork",
-                    "identifier": tool["id"],
-                    "name": tool["name"],
-                    "description": {"@value": tool["description"], "@language": "en"},
-                    "url": tool.get("url"),
-                    "lifecycleStage": refs([lifecycle_stage_id(KNAV_REGISTRY, step) for step in tool["steps"]]),
-                    "discipline": tool.get("disciplines", []),
-                    "license": info.get("license"),
-                    "isBasedOn": ref(snapshot_id(snapshot)),
-                    "sameAs": ref(standing[alternate_id(tool, "knav")])
-                    if alternate_id(tool, "knav") in standing
-                    else None,
-                },
-                f"knav.{alternate_id(tool, 'knav')}",
-            )
+        graph.add(
+            {
+                "@id": f"#knav-{tool['id']}",
+                "@type": "CreativeWork",
+                "identifier": tool["id"],
+                "name": tool["name"],
+                "description": {"@value": tool["description"], "@language": "en"},
+                "url": tool.get("url"),
+                "lifecycleStage": refs([lifecycle_stage_id(KNAV_REGISTRY, step) for step in tool["steps"]]),
+                "discipline": [status_term(graph, "discipline", group) for group in tool.get("disciplines", [])],
+                "license": info.get("license"),
+                "isBasedOn": ref(snapshot_id(snapshot)),
+                "sameAs": ref(standing[alternate_id(tool, "knav")]) if alternate_id(tool, "knav") in standing else None,
+                # The catalogue lists tools: a thing only it knows is a tool by the Guide's own types, while the
+                # record keeps KNAV's values.
+                PRECEDENCE: {"guideType": ref("#rtype-tool")},
+            },
+            f"knav.{alternate_id(tool, 'knav')}",
         )
-    graph.add(
-        {
-            "@id": "#knav-tools",
-            "@type": "CreativeWork",
-            "name": "KNAV Data Management Tools Catalogue",
-            "url": info.get("url"),
-            "isBasedOn": ref(snapshot_id(snapshot)),
-            "hasPart": refs(tool_ids),
-        }
-    )
-    return ["#knav-tools"]
 
 
 DASHBOARD_FIP_CLASS = {
@@ -1872,7 +2351,7 @@ def catalogue_entry(graph: Graph, row: dict[str, Any]) -> str | None:
 
 
 def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
-    """The large research infrastructures of the national roadmap (D-174): each with its names, hosting institution,
+    """The large research infrastructures of the national roadmap: each with its names, hosting institution,
     field, phase, character, year of inclusion and ESFRI status (Annex 1), the European research infrastructures it is
     the Czech node of (Annex 7), the ERICs it belongs to through the Czech Republic's membership (Annex 6), and the
     catalogue entries it operates where a source states it. Three relations stay distinct: node, ERIC membership and
@@ -1885,25 +2364,26 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
     collection_sources = list(based_on)
     ids = []
 
-    def european_ri(name: str, status: str) -> str:
+    def european_ri(name: str) -> dict[str, Any]:
+        """A European research infrastructure, by its name in the roadmap. A node of it and an ERIC of the same name
+        are one infrastructure, so both relations point to one entity with both facts."""
         entity_id = f"#european-ri-{slug(name)}"
         if entity_id not in graph.entities:
-            graph.add({"@id": entity_id, "@type": "Organization", "name": name, "esfriStatus": ref(f"#esfri-{status}")})
-        return entity_id
+            graph.add({"@id": entity_id, "@type": "Organization", "name": name})
+        # The roadmap names it, so the Guide describes it whatever registry also records it.
+        if based_on:
+            graph.entities[entity_id].setdefault("source", ref(based_on[0]))
+        return graph.entities[entity_id]
+
+    def node_of(name: str, status: str) -> str:
+        entity = european_ri(name)
+        entity.setdefault("esfriStatus", ref(f"#esfri-{status}"))
+        return entity["@id"]
 
     def eric(name: str, since: str) -> str:
-        entity_id = f"#eric-{slug(name)}"
-        if entity_id not in graph.entities:
-            graph.add(
-                {
-                    "@id": entity_id,
-                    "@type": "Organization",
-                    "name": name,
-                    "czechMembershipSince": since,
-                    "isBasedOn": refs(based_on[:1]),
-                }
-            )
-        return entity_id
+        entity = european_ri(name)
+        entity.setdefault("czechMembershipSince", since)
+        return entity["@id"]
 
     for item in items:
         entity_id = f"#infrastructure-{item['id']}"
@@ -1911,14 +2391,12 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
             [source for source in (info.get("source"), item.get("namesSource", info.get("namesSource"))) if source]
         )
         collection_sources.extend(source for source in item_sources if source not in collection_sources)
-        operated = []
         for row in item.get("operates", []):
             target = catalogue_entry(graph, row)
             if target is None:
                 raise ContentError(f"infrastructure {item['id']}: operates an unknown catalogue entry {row}")
             graph.entities[target]["operatedBy"] = ref(entity_id)
-            graph.entities[target]["operatedBySource"] = row.get("evidence")
-            operated.append(target)
+            graph.entities[target]["operatedBySource"] = ref(row["evidence"]) if row.get("evidence") else None
         ids.append(
             graph.add(
                 {
@@ -1935,13 +2413,12 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
                     "infrastructureCharacter": ref(f"#richaracter-{item['character']}"),
                     "roadmapSince": str(item["included"]),
                     "esfriStatus": refs([f"#esfri-{status}" for status in item.get("esfri", [])]),
-                    "nationalNodeOf": refs([european_ri(row["name"], row["esfri"]) for row in item.get("nodeOf", [])]),
+                    "nationalNodeOf": refs([node_of(row["name"], row["esfri"]) for row in item.get("nodeOf", [])]),
                     "memberOf": refs([eric(row["name"], row["entry"]) for row in item.get("eric", [])]),
-                    "operates": refs(operated),
                     # The FIP of the infrastructure's community in the FIP Dashboard snapshot, where it has one.
                     "subjectOf": ref(graph.index["fip:" + item["fip"]][0]) if item.get("fip") else None,
                     "roadmapLocator": item.get("annex1"),
-                    "isBasedOn": refs(item_sources),
+                    "source": refs(item_sources),
                 },
                 f"infrastructure:{item['id']}",
             )
@@ -1951,7 +2428,8 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
             "@id": "#infrastructures",
             "@type": "CreativeWork",
             "name": "Large research infrastructures",
-            "hasPart": refs(ids),
+            # The roadmap's list names organisations, which are no part of a creative work: it is about them.
+            "about": refs(ids),
             "isBasedOn": refs(collection_sources),
             "dateModified": iso(info["checked"]) if info.get("checked") else None,
         }
@@ -1960,8 +2438,8 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
 
 
 def build_node(graph: Graph, data: dict[str, Any]) -> list[str]:
-    """The EOSC CZ Node (D-172): its operator, its state and its members. Each member entry carries its membership:
-    the role, any planned milestone, the date checked and the source, so a badge says no more than the charter does."""
+    """The EOSC CZ Node as a service platform, with one DCAT qualified relation per onboarded entry. Each
+    relationship is also a CreativeWork: it is the dated evidence statement whose charter its citation names."""
     node = data.get("node")
     if not node:
         return []
@@ -1971,36 +2449,35 @@ def build_node(graph: Graph, data: dict[str, Any]) -> list[str]:
     for member in data.get("member", []):
         target = catalogue_entry(graph, member)
         if target is None:
-            raise ContentError(f"EOSC CZ Node: member {member} names no catalogue entry")
-        membership_id = f"#node-membership-{slug(target.lstrip('#'))}"
+            raise ContentError(f"node member {member}: an unknown catalogue entry")
+        relation_id = f"#node-membership-{target.removeprefix('#')}"
         graph.add(
             {
-                "@id": membership_id,
-                "@type": "OrganizationRole",
-                "roleName": ref(f"#noderole-{member['role']}"),
+                "@id": relation_id,
+                "@type": ["dcat:Relationship", "CreativeWork"],
+                "relation": ref(target),
+                "hadRole": ref(f"#noderole-{member['role']}"),
                 "nodeMilestone": member.get("milestone"),
                 "statusAsOf": iso(node["checked"]),
                 "citation": refs(sources[:1]),
                 "description": member.get("locator"),
-                "member": ref(target),
-                "memberOf": ref("#eosc-cz-node"),
             }
         )
-        graph.entities[target]["nodeMembership"] = ref(membership_id)
-        memberships.append(membership_id)
+        memberships.append(relation_id)
     graph.add(
         {
             "@id": "#eosc-cz-node",
-            "@type": "Organization",
+            "@type": "Service",
             "identifier": node["id"],
+            "resourceType": ref("#rtype-service"),
             "name": node["name"],
             "url": node.get("url"),
-            "nodeState": node.get("state"),
+            "provider": ref(operator) if operator in graph.entities else None,
+            "nodeState": status_term(graph, "nodeState", node.get("state")),
             "statusAsOf": iso(node["checked"]),
             "nodeStateSince": iso(node["stateDate"]) if node.get("stateDate") else None,
-            "operatedBy": ref(operator) if operator in graph.entities else None,
-            "isBasedOn": refs(sources),
-            "member": refs(memberships),
+            "source": refs(sources),
+            "qualifiedRelation": refs(memberships),
         },
         "node:eosc-cz-node",
     )
@@ -2030,6 +2507,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
                 "alternateName": organization.get("acronym"),
                 "url": organization.get("url"),
                 "sameAs": refs([organization["ror"]] if organization.get("ror") else []),
+                "isBasedOn": based_on,
             }
         )
     defined_terms(
@@ -2057,7 +2535,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
                 "additionalType": FIP_TERMS + fip_class if fip_class else None,
                 "catalogueType": ref(f"#fd-type-{resource['type']}") if resource.get("type") else None,
                 "guideType": guide_type(crosswalk, "fd", resource.get("type")),
-                "spatialCoverage": resource.get("scope"),
+                "coverage": status_term(graph, "coverage", resource.get("scope")),
                 "about": refs([principle_iri(principle) for principle in resource.get("principles", [])]),
                 "provider": organization_ref(resource.get("provider")),
                 "sameAs": refs(
@@ -2089,7 +2567,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
                     "additionalType": FIP_TERMS + "FIP-Declaration",
                     "about": ref(principle_iri(declaration["principle"])),
                     "mentions": ref("#fer-" + resources[declaration["resource"]]),
-                    "creativeWorkStatus": declaration.get("status"),
+                    "declarationStatus": status_term(graph, "declarationStatus", declaration.get("status")),
                     "description": text(declaration.get("note")),
                     "isPartOf": ref(fip_id),
                 }
@@ -2106,7 +2584,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
                 "keywords": text(fip.get("domain")),
                 "version": fip.get("version"),
                 "dateModified": fip.get("updated"),
-                "creativeWorkStatus": fip.get("status"),
+                "fipStatus": status_term(graph, "fipStatus", fip.get("status")),
                 "url": fip.get("url"),
                 "author": organization_ref(fip.get("community")),
                 "sameAs": ref(f"{base}/profiles/{alternate_id(fip, 'fip-dashboard')}")
@@ -2120,21 +2598,13 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
         )
     graph.add(
         {
-            "@id": "#fers",
-            "@type": "CreativeWork",
-            "name": "FAIR-enabling resources (FIP Dashboard)",
-            "hasPart": refs(fer_ids),
-        }
-    )
-    graph.add(
-        {
             "@id": "#fips",
             "@type": "CreativeWork",
             "name": "FAIR Implementation Profiles (FIP Dashboard)",
             "hasPart": refs(fip_ids),
         }
     )
-    return ["#fers", "#fips"]
+    return ["#fips"]
 
 
 def build_glossary(graph: Graph, glossary: dict[str, Any], clauses: list[dict[str, Any]] | None = None) -> None:
@@ -2154,9 +2624,27 @@ def build_glossary(graph: Graph, glossary: dict[str, Any], clauses: list[dict[st
         }
     )
     for term in glossary.get("term", []):
+        term_id = f"#term-{term['id']}"
+        definition_id = term_id + "#definition"
+        if term.get("definition"):
+            # A quoted definition is a work of its own, under the term's IRI: its text, licence and source belong to
+            # that work, not to the DefinedTerm, whose domain schema.org does not admit for licence or citation.
+            graph.add(
+                {
+                    "@id": definition_id,
+                    "@type": "CreativeWork",
+                    "description": text({term.get("definitionLanguage", "cs"): term["definition"]})
+                    if isinstance(term.get("definition"), str)
+                    else text(term.get("definition")),
+                    "license": ref(info["license"]) if info.get("license") else None,
+                    # schema:citation also admits text, so the source page is cited by its address, not as a work
+                    # whose own class is unknown.
+                    "citation": term.get("url"),
+                }
+            )
         graph.add(
             {
-                "@id": f"#term-{term['id']}",
+                "@id": term_id,
                 "@type": "DefinedTerm",
                 "identifier": term["id"],
                 "termCode": alternate_id(term, "heslar"),
@@ -2164,11 +2652,8 @@ def build_glossary(graph: Graph, glossary: dict[str, Any], clauses: list[dict[st
                     [f"#clause-{item['id']}" for item in clauses or [] if str(term["id"]) in item.get("terms", [])]
                 ),
                 "name": text(term["label"]),
-                "description": text({term.get("definitionLanguage", "cs"): term["definition"]})
-                if isinstance(term.get("definition"), str)
-                else text(term.get("definition")),
+                "definitionPart": ref(definition_id) if term.get("definition") else None,
                 "url": term.get("url"),
-                "license": info.get("license") if term.get("definition") else None,
                 "inDefinedTermSet": ref("#glossary"),
             },
             f"term:{term['id']}",
@@ -2239,13 +2724,15 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
                 "name": text(test.get("label")) or test["id"],
                 "url": champion_endpoint(champion, test),
                 "description": text(test.get("description")),
-                "subjectOf": refs(
+                "citation": (
                     [test.get("record") or champion["testRecord"].format(id=native), champion["documentation"]]
                     if champion.get("testRecord") and champion.get("documentation")
                     else []
                 ),
                 "about": ref(principle_iri(test["principle"])) if test.get("principle") else None,
-                "healthStatus": test.get("health"),
+                # The metric the test implements, as its own FTR record at FAIR Champion names it.
+                "isImplementationOf": ref(test["metric"]) if test.get("metric") else None,
+                "healthStatus": status_term(graph, "healthStatus", test.get("health")),
                 "statusAsOf": iso(test["asOf"]) if test.get("asOf") else None,
             },
             f"test:{test['id']}",
@@ -2288,25 +2775,23 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
                     "license": ref(LICENSES["CC-BY-4.0"][0]),
                 }
             )
-        entry_id = "#entry-localtest-" + test["id"]
-        graph.add({"@id": entry_id, "@type": "PropertyValue", "propertyID": "entryPoint", "value": test["entryPoint"]})
         test_id = "#test-" + test["id"]
         test_ids.append(test_id)
         graph.add(
             {
                 "@id": test_id,
                 "@type": "CreativeWork",
-                "additionalType": FTR_TEST,
                 "identifier": test["id"],
                 "name": text(test["label"]),
                 "description": text(test["description"]),
                 "url": test["script"],
                 "isImplementationOf": ref(question_id),
-                "about": question.get("about"),
+                # A local test is about the principles its question measures.
+                "about": question.get("inDimension"),
                 "citation": question.get("citation"),
                 "hasPart": refs(files),
                 "subjectOf": ref(doc_id),
-                "additionalProperty": refs([entry_id]),
+                "entryPoint": test["entryPoint"],
             },
             f"test:{test['id']}",
         )
@@ -2354,7 +2839,7 @@ def build_providers(graph: Graph, live: dict[str, Any]) -> list[str]:
                         "name": f"{provider['name']} {metric['id']} → {mapping['question']}",
                         "about": ref("#item-" + mapping["question"]),
                         "isBasedOn": ref(entity_id),
-                        "mappingCoverage": mapping["coverage"],
+                        "mappingCoverage": status_term(graph, "mappingCoverage", mapping["coverage"]),
                         "reviewedVersion": reviewed,
                         "description": text(mapping.get("note")),
                         "dateModified": iso(provider["observed"]) if provider.get("observed") else None,
@@ -2371,14 +2856,16 @@ def build_providers(graph: Graph, live: dict[str, Any]) -> list[str]:
                 {
                     "@id": entity_id,
                     "@type": "CreativeWork",
-                    "additionalType": FTR_TEST,
+                    # A criterion the Guide invokes through the provider's API is an FTR test; one an imported
+                    # report states its results against is the provider's FTR metric.
+                    "additionalType": FTR_TEST if provider.get("mode") == "service" else FTR_METRIC,
                     "identifier": metric["id"],
                     "name": {"@language": "en", "@value": metric["name"]},
                     "alternateName": text(metric.get("label")),
                     "about": ref(principle_iri(metric["principle"])),
                     "isPartOf": ref(f"#resource-{provider['resource']}"),
                     "url": invocation or provider.get("form"),
-                    "subjectOf": refs(documentation),
+                    "citation": documentation,
                     "reviewedVersion": reviewed,
                     "hasPart": refs(mapping_ids),
                 },
@@ -2387,7 +2874,7 @@ def build_providers(graph: Graph, live: dict[str, Any]) -> list[str]:
     return criteria
 
 
-WEB_APPLICATION = "https://schema.org/WebApplication"
+WEB_APPLICATION = SCHEMA + "WebApplication"
 
 
 def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
@@ -2397,7 +2884,10 @@ def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
         page_ids.append(page_id)
         section_ids = []
         for number, section in enumerate(page.get("section", []), start=1):
-            section_id = f"{page_id}-{number}"
+            # A section's own id is its fragment, so reordering a page moves no IRI; its place is only its position.
+            if not section.get("id"):
+                raise ContentError(f"page '{page['id']}': section {number} has no id")
+            section_id = f"{page_id}-{section['id']}"
             section_ids.append(section_id)
             action_id = f"{section_id}-action" if section.get("action") else None
             graph.add(
@@ -2415,14 +2905,19 @@ def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
             if action_id:
                 action = section["action"]
                 graph.add(
-                    {"@id": action_id, "@type": "Action", "name": text(action["label"]), "target": ref(action["href"])}
+                    {
+                        "@id": action_id,
+                        "@type": "Action",
+                        "name": text(action["label"]),
+                        "target": action_target(action["href"]),
+                    }
                 )
         graph.add(
             {
                 "@id": page_id,
                 "@type": "CreativeWork",
                 "identifier": page["id"],
-                "additionalType": WEB_APPLICATION if page.get("helper") else None,
+                "additionalType": WEB_APPLICATION if page.get("helper") else None,  # a type (type_records)
                 "headline": text(page["title"]),
                 "description": text(page.get("description")),
                 "hasPart": refs(section_ids),
@@ -2445,14 +2940,259 @@ def build_actions(graph: Graph, actions: list[dict[str, Any]], people: dict[str,
                 "description": action.get("description"),
                 "agent": ref(people.get(action["agent"], f"#person-{action['agent']}")),
                 "instrument": refs([f"#instrument-{instrument}" for instrument in action.get("instruments", [])]),
-                "object": refs(graph.resolve(action.get("objects", []))),
-                "result": refs(graph.resolve(action.get("results", []))),
+                # A clause or a cited work, by its address, which becomes its IRI once identities are published.
+                "object": refs(action.get("objects", [])),
                 "endTime": iso(action["endTime"]),
                 "actionStatus": ref("http://schema.org/CompletedActionStatus"),
             },
             f"action:{action['id']}",
         )
+        graph.results[action_id] = list(action.get("results", []))
     return action_ids
+
+
+# The registries whose records describe things, by the fragment a record takes under its thing, in the order a thing
+# lists its records: the first registry that records a thing the Guide does not describe founds it, and a fact
+# neither the curated entry nor NKR states comes from the first registry that states it.
+RECORD_SCHEMES = ("re3data", "fip-dashboard", "fip-dashboard-organization", "knav", "nkr", "fairsharing", "datacite")
+# A registry's record about a thing, by the family of its build key, and the fragment it takes under the thing.
+REGISTRY_RECORDS = (
+    ("#knav-", "knav"),
+    ("#fer-", "fip-dashboard"),
+    ("#fd-org-", "fip-dashboard-organization"),
+    *((registry_record_key(scheme, ""), scheme) for scheme in ("nkr", "re3data", "fairsharing", "datacite")),
+)
+# The facts other registries win for a thing a registry record founds, held on that record until it founds the thing.
+PRECEDENCE = "_precedence"
+# What a thing only a registry knows carries itself: its identity, name, address and the facts lists filter on.
+FOUNDED_FACTS = (
+    "@type",
+    "additionalType",
+    "identifier",
+    "name",
+    "alternateName",
+    "url",
+    "resourceType",
+    "guideType",
+    "repositoryKind",
+    "repositoryFunction",
+    "serviceStatus",
+    "statusAsOf",
+    "acceptsDeposits",
+    "lifecycleStage",
+    "discipline",
+    "sameAs",
+)
+
+
+def attach_records(graph: Graph, base: str) -> None:
+    """Make each registry record a `dcat:CatalogRecord` about the one thing it describes. A record of a thing the
+    Guide describes already sits under it (`<thing>#knav`); a thing only a registry knows is founded by its record:
+    the thing keeps its identity, name, address and filter facts, and the registry's own record, with its text and
+    attribution, moves under it. Each record names its thing and rests on the snapshot that supplied it, which lists
+    the record; the thing does not name its records again."""
+    for key, published in list(graph.published.items()):
+        scheme = next((name for prefix, name in REGISTRY_RECORDS if key.startswith(prefix)), None)
+        if scheme is None or not published.startswith(base) or published not in graph.entities:
+            continue
+        if published.partition("#")[2] not in ("", scheme):
+            continue  # a part of a record, such as a FIP Dashboard verification, is not itself a record
+        thing = published.split("#")[0]
+        if "#" in published:
+            record = graph.entities[published]
+            record.pop(PRECEDENCE, None)
+        else:
+            record = graph.entities.pop(published)
+            founded = {"@id": published} | {
+                prop: record[prop] for prop in FOUNDED_FACTS if prop in record and prop != "@id"
+            }
+            for prop, value in record.pop(PRECEDENCE, {}).items():
+                if prop in ("isBasedOn", "sameAs"):
+                    founded[prop] = as_list(founded.get(prop)) + [
+                        item for item in as_list(value) if item not in as_list(founded.get(prop))
+                    ]
+                else:
+                    founded[prop] = value
+            record = record | {"@id": f"{published}#{scheme}"}
+            # The build key keeps naming the thing, which its content row describes; the record moves under it.
+            graph.entities[published] = founded
+            graph.entities[record["@id"]] = record
+        # A record is a catalogue record and a creative work whatever its registry describes, never of its thing's
+        # class, so selecting a class finds things and not records. How the registry classifies the thing, such as a
+        # FIP Dashboard resource's FIP class or a repository kind, is the record's own classification.
+        record["@type"] = ["CreativeWork", CATALOG_RECORD]
+        classification = [
+            *(ref(value) for value in as_list(record.pop("additionalType", None)) if isinstance(value, str)),
+            *as_list(record.pop("repositoryKind", None)),
+        ]
+        if classification:
+            record["classification"] = classification if len(classification) > 1 else classification[0]
+        # A record is about its thing, not the same as it: primaryTopic replaces an earlier sameAs to the thing.
+        same = [
+            item for item in as_list(record.get("sameAs")) if not (isinstance(item, dict) and item.get("@id") == thing)
+        ]
+        if same:
+            record["sameAs"] = same if len(same) > 1 else same[0]
+        else:
+            record.pop("sameAs", None)
+        record["primaryTopic"] = ref(thing)
+    # A record names its thing and rests on its snapshot, which holds it; the thing does not name its records again
+    # and rests only on what is not one of them, such as the Guide's selection.
+    for record_id, record in list(graph.entities.items()):
+        thing = graph.entities.get(next(iter(ids_of(record.get("primaryTopic"))), ""))
+        if thing is None or CATALOG_RECORD not in as_list(record.get("@type")):
+            continue
+        snapshot = next(source for source in ids_of(record.get("isBasedOn")) if source.startswith("#snapshot-"))
+        append_ref(graph.entities[snapshot], "hasPart", record_id)
+        others = [source for source in ids_of(thing.get("isBasedOn")) if not source.startswith(thing["@id"] + "#")]
+        if others:
+            thing["isBasedOn"] = refs(list(dict.fromkeys(others)))
+        else:
+            thing.pop("isBasedOn", None)
+    # An author, provider or publisher is the thing, never the registry's record about it. Snapshot builders use
+    # record IRIs before the one-thing join runs, so resolve every such agent after all primaryTopic statements exist.
+    for entity in graph.entities.values():
+        for prop in ("author", "provider", "publisher"):
+            resolved = []
+            for target in ids_of(entity.get(prop)):
+                record = graph.entities.get(target, {})
+                resolved.append(next(iter(ids_of(record.get("primaryTopic"))), target))
+            if resolved != ids_of(entity.get(prop)):
+                entity[prop] = refs(resolved) if len(resolved) > 1 else ref(resolved[0])
+            for target in resolved:
+                # One real-world thing can be both a described service and the organisation that provides or authors
+                # a work. State that role explicitly; catalogue kind selection still keeps it out of organisations.
+                thing_entity = graph.entities.get(target)
+                if thing_entity is not None and not {"Organization", "Person"} & set(
+                    as_list(thing_entity.get("@type"))
+                ):
+                    thing_entity["@type"] = [*as_list(thing_entity.get("@type")), "Organization"]
+
+
+# Established classes written in their compact form, as the crate's context names them.
+CLASS_PREFIXES = (
+    (SCHEMA, ""),
+    (FTR, "ftr:"),
+    (FIP_TERMS, "fip:"),
+    (PROV, "prov:"),
+    (DCAT, "dcat:"),
+    (DCMITYPE, "dcmitype:"),
+)
+
+
+def compact_class(iri: str) -> str:
+    return next((prefix + iri.removeprefix(base) for base, prefix in CLASS_PREFIXES if iri.startswith(base)), iri)
+
+
+def has_type(entity: dict[str, Any], name: str) -> bool:
+    return name in as_list(entity.get("@type"))
+
+
+def parts_stated_once(graph: Graph) -> None:
+    """State each part-whole relation in one direction. A whole names its parts, the fragments under its own IRI, with
+    hasPart, as a snapshot names its records and the crate's root its files; a record names the record it belongs to
+    with isPartOf, as an advice item its station and a correspondence its crosswalk."""
+    for whole_id, whole in graph.entities.items():
+        kept = []
+        for part_id in ids_of(whole.get("hasPart")):
+            part = graph.entities.get(part_id)
+            if part is None or whole_id not in ids_of(part.get("isPartOf")):
+                kept.append(part_id)
+                continue
+            if part_id.startswith(whole_id + "#") or whole_id.startswith("#snapshot-") or whole_id == "./":
+                rest = [item for item in ids_of(part.get("isPartOf")) if item != whole_id]
+                if rest:
+                    part["isPartOf"] = refs(rest) if len(rest) > 1 else ref(rest[0])
+                else:
+                    part.pop("isPartOf")
+                kept.append(part_id)
+        if "hasPart" in whole and len(kept) < len(ids_of(whole["hasPart"])):
+            if kept:
+                whole["hasPart"] = refs(kept) if len(kept) > 1 else ref(kept[0])
+            else:
+                whole.pop("hasPart")
+
+
+def terms_name_their_sets(graph: Graph) -> None:
+    """State a term's membership once, by the term: a set does not list its terms, and its order is each term's
+    position among them, taken from the set's list or the term's own position."""
+    for entity in graph.entities.values():
+        for position, term_id in enumerate(ids_of(entity.pop("hasDefinedTerm", None)), 1):
+            term = graph.entities.get(term_id)
+            if term is not None and "termPosition" not in term:
+                term["termPosition"] = term.pop("position", position)
+    for entity in graph.entities.values():
+        if "DefinedTerm" in as_list(entity.get("@type")) and "position" in entity:
+            entity["termPosition"] = entity.pop("position")
+
+
+def type_records(graph: Graph, base: str) -> set[str]:
+    """Write every class a node has as its type: a class its builder named as an additional type, and the class that
+    selects its kind (KIND_CLASSES), so a consumer selects a kind by class and never reads a type from a string.
+    Return the schema.org classes written by name, which the crate's context declares, since RO-Crate's context names
+    only some of them."""
+    named: set[str] = set()
+    for entity_id, entity in graph.entities.items():
+        classes = [compact_class(value) for value in as_list(entity.pop("additionalType", None))]
+        named |= {name for name in classes if ":" not in name and not name.startswith("http")}
+        if entity_id.startswith(base) and "#" not in entity_id:
+            kind, *rest = entity_id.removeprefix(base).split("/")
+            whole = len(rest) == 1 or kind == "tests"
+            classes += KIND_CLASSES.get(kind, ()) if whole else SCOPED_KIND_CLASSES.get(kind, ())
+        if classes:
+            types = list(dict.fromkeys(as_list(entity.get("@type")) + classes))
+            entity["@type"] = types[0] if len(types) == 1 else types
+    return named
+
+
+def records_by_thing(entities: dict[str, dict[str, Any]]) -> dict[str, list[str]]:
+    """Each thing's registry records, which name it with primaryTopic."""
+    found: dict[str, list[str]] = {}
+    for record_id, record in entities.items():
+        if CATALOG_RECORD in as_list(record.get("@type")):
+            for thing in ids_of(record.get("primaryTopic")):
+                found.setdefault(thing, []).append(record_id)
+    return found
+
+
+def founding_record(thing: dict[str, Any], records: dict[str, list[str]]) -> str | None:
+    """The registry record that founds a thing only registries know: the first of its records, in the order of
+    RECORD_SCHEMES, when the thing rests on nothing else. None for a thing the Guide's own content describes.
+    `records` is records_by_thing of the graph."""
+    own = records.get(thing["@id"], [])
+    if not own or thing.get("isBasedOn") or thing.get("source"):
+        return None
+    return min(own, key=lambda source: RECORD_SCHEMES.index(source.rsplit("#", 1)[1]))
+
+
+def attach_results(graph: Graph, base: str) -> None:
+    """Each provenance action's results, which name items by address (`stations/plan`, `advice/plan.*`,
+    `callouts/sensitive-data#steward`), as the published records and parts they match. `guide` names the Guide's
+    metadata, and `*` a change of the Guide as a whole, such as a structural migration: both record the Guide itself,
+    so a record's list of changes holds only the changes made to it."""
+    addresses = {entity_id: entity_id.removeprefix(base) for entity_id in graph.entities if entity_id.startswith(base)}
+    for action_key, patterns in graph.results.items():
+        matched: list[str] = []
+        for pattern in patterns:
+            if pattern in ("guide", "*"):
+                matched.append("./")
+            else:
+                matched += [entity_id for entity_id, address in addresses.items() if result_covers(pattern, address)]
+        action = graph.entities[graph.published.get(action_key, action_key)]
+        if matched:
+            action["result"] = refs(list(dict.fromkeys(matched)))
+
+
+def result_covers(pattern: str, address: str) -> bool:
+    """Whether a provenance result names an address: exactly, or as a prefix with a trailing `*`, which matches
+    records (`advice/plan.*`) and matches parts only where the pattern names a part (`callouts/sensitive-data#*`).
+    `*` alone names the Guide as a whole, and so covers every item."""
+    if pattern == "*":
+        return True
+    if not pattern.endswith("*"):
+        return address == pattern
+    prefix = pattern[:-1]
+    return address.startswith(prefix) and ("#" in prefix or "#" not in address)
 
 
 def build_model(graph: Graph, data: dict[str, Any]) -> list[str]:
@@ -2477,12 +3217,12 @@ def build_model(graph: Graph, data: dict[str, Any]) -> list[str]:
                 "@type": "DefinedTerm",
                 "identifier": f"{kind}.{item['id']}",
                 "termCode": f"{kind}.{item['id']}",
-                "modelKind": kind,
+                "modelKind": status_term(graph, "modelKind", kind),
                 "position": position,
                 "name": text(item["name"]),
                 "description": text(item["description"]),
                 "inDefinedTermSet": ref(model_id),
-                "citation": refs(graph.resolve([item.get("source", model["source"])])),
+                "source": refs(graph.resolve([item.get("source", model["source"])])),
             }
             if kind == "seam":
                 entity |= {
@@ -2500,7 +3240,7 @@ def build_model(graph: Graph, data: dict[str, Any]) -> list[str]:
                 "@id": entity_id,
                 "@type": "CreativeWork",
                 "identifier": f"example.{item['id']}",
-                "modelKind": "example",
+                "modelKind": status_term(graph, "modelKind", "example"),
                 "name": text(item["name"]),
                 "description": text(item["description"]),
                 "scope": text(item["scope"]),
@@ -2548,7 +3288,6 @@ def build_model(graph: Graph, data: dict[str, Any]) -> list[str]:
                 "description": text(worked["description"]),
                 # Finalised after provenance actions exist: the last step may be a recorded revision.
                 "isPartOf": ref(model_id),
-                "exampleOfWork": ref(model_id),
             },
             "model:worked-example",
         )
@@ -2561,35 +3300,33 @@ def build_model(graph: Graph, data: dict[str, Any]) -> list[str]:
             "description": text(model["description"]),
             **{key: text(model[key]) for key in ("introduction", "ordering", "feedback")},
             "citation": source,
-            "hasPart": refs(parts),
+            # Layers and seams belong to the set, not to a CreativeWork; only the model's works are its parts.
+            "hasPart": refs(parts[len(terms) :]),
             "hasDefinedTerm": refs(terms),
             "workExample": ref("#model-worked-example") if model.get("workedExample") else None,
         },
         f"model:{model['id']}",
     )
-    for association in data.get("association", []):
-        target = association["target"]
-        entity_ids = graph.index.get(target)
-        if not entity_ids:
-            raise ContentError(f"model association names an unknown content ID '{target}'")
-        for entity_id in entity_ids:
-            for field, prefix, output in (
-                ("layers", "layer", "implementationLayers"),
-                ("seams", "seam", "implementationSeams"),
-            ):
-                keys = association.get(field, [])
-                if field == "layers":
-                    keys = list(
-                        dict.fromkeys(
-                            keys + [layer for seam in association.get("seams", []) for layer in seam_layers[seam]]
-                        )
-                    )
-                for key in keys:
-                    append_ref(graph.entities[entity_id], output, f"#{prefix}-{key}")
     return [model_id]
 
 
-# The life-cycle model whose stages the path follows (D-162): a station's `lifecycleStage` names one of its stages.
+def attach_associations(graph: Graph, data: dict[str, Any], base: str) -> None:
+    """Each explicitly authored association, on the record its target names by address once identities are
+    published: the layers it names and those of the seams it names, and the seams."""
+    seam_layers = {item["id"]: item["layers"] for item in data.get("seam", [])}
+    for association in data.get("association", []):
+        entity = graph.entities.get(base + association["target"])
+        if entity is None:
+            raise ContentError(f"model association names no record: '{association['target']}'")
+        seams = association.get("seams", [])
+        layers = dict.fromkeys(association.get("layers", []) + [layer for seam in seams for layer in seam_layers[seam]])
+        for key in layers:
+            append_ref(entity, "implementationLayers", graph.published[f"#layer-{key}"])
+        for key in seams:
+            append_ref(entity, "implementationSeams", graph.published[f"#seam-{key}"])
+
+
+# The life-cycle model whose stages the path follows: a station's `lifecycleStage` names one of its stages.
 PATH_LIFECYCLE = "rdmkit"
 
 
@@ -2621,25 +3358,45 @@ def build_lifecycles(
             definition = [{"@value": stage["definition"], "@language": language}]
             if stage.get("translation"):
                 definition.append({"@value": stage["translation"], "@language": "cs"})
+            stage_id = lifecycle_stage_id(model["id"], stage["id"])
+            definition_id = stage_id + "#definition"
+            graph.add(
+                {
+                    "@id": definition_id,
+                    "@type": "CreativeWork",
+                    "description": definition,
+                    "citation": refs(graph.resolve([model["source"]])),
+                    "license": refs([licences[model["source"]]] if licences.get(model["source"]) else []),
+                }
+            )
+            czech_definition_id = None
+            if stage.get("czechDefinition"):
+                czech_definition_id = stage_id + "#czech-definition"
+                czech_source = model.get("czechSource")
+                graph.add(
+                    {
+                        "@id": czech_definition_id,
+                        "@type": "CreativeWork",
+                        "description": {"@value": stage["czechDefinition"], "@language": "cs"},
+                        "citation": refs(graph.resolve([czech_source])) if czech_source else None,
+                        "license": refs([licences[czech_source]] if licences.get(czech_source) else []),
+                    }
+                )
             stage_ids.append(
                 graph.add(
                     {
-                        "@id": lifecycle_stage_id(model["id"], stage["id"]),
+                        "@id": stage_id,
                         "@type": "DefinedTerm",
                         "identifier": stage["id"],
                         "termCode": stage["id"],
                         "position": position,
                         "name": text(stage["name"]),
-                        "description": definition,
+                        "definitionPart": ref(definition_id),
                         "nameTranslation": as_list(stage.get("translated")),
                         "descriptionTranslation": ["cs"] if stage.get("translation") else None,
-                        "quotedDefinition": {"@value": stage["czechDefinition"], "@language": "cs"}
-                        if stage.get("czechDefinition")
-                        else None,
+                        "quotedDefinition": ref(czech_definition_id) if czech_definition_id else None,
                         "note": {"@value": stage["note"], "@language": language} if stage.get("note") else None,
                         "inDefinedTermSet": ref(set_id),
-                        "citation": refs(graph.resolve(cited)),
-                        "license": list(dict.fromkeys(licences[source] for source in cited if licences.get(source))),
                     },
                     key,
                 )
@@ -2673,7 +3430,7 @@ def build_lifecycles(
                     "identifier": key,
                     "name": text({lang: " ↔ ".join(names[stage][lang] for stage in keys) for lang in LANGS}),
                     "about": refs([lifecycle_stage_id(*stage.split(".", 1)) for stage in keys]),
-                    "mappingBasis": item["basis"],
+                    "mappingBasis": status_term(graph, "mappingBasis", item["basis"]),
                     "citation": refs(graph.resolve([item["source"]])) if item.get("source") else None,
                     "description": text(item.get("note")),
                     "isPartOf": ref("#lifecycle-crosswalk"),
@@ -2733,6 +3490,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         }
     )
     graph.add({"@id": "./", "@type": "Dataset"}, "guide")  # completed below, after its parts exist
+    graph.add({"@id": GUIDE_SELECTION, "@type": "CreativeWork", "name": "The Guide's selection"})
     graph.add(
         {"@id": PROCESS_RUN_CRATE, "@type": ["CreativeWork", "Profile"], "name": "Process Run Crate", "version": "0.5"}
     )
@@ -2753,8 +3511,9 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     build_principles(graph, content["principles"])
     names = {person["id"]: person["name"] for person in guide_file.get("person", [])}
     crosswalk = type_crosswalk(guide_file)
-    source_ids = build_sources(graph, content["sources"], organizations, people, names, crosswalk=crosswalk)
+    # The vocabularies come first: every status names a term of its scheme, a source's included.
     build_vocabularies(graph, guide_file)
+    source_ids = build_sources(graph, content["sources"], organizations, people, names, crosswalk=crosswalk)
     build_glossary(graph, content["glossary"], content["ledger"])
     # Resources exist before the ledger, because a clause may cite a resource; the stations they are recommended at
     # are linked once the stations exist.
@@ -2785,7 +3544,9 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     )
     infrastructure_ids = build_infrastructures(graph, content.get("infrastructures") or {})
     node_ids = build_node(graph, content.get("node") or {})
-    knav_ids = build_knav_tools(graph, content)
+    if node_ids:
+        append_ref(graph.entities["#resources"], "hasPart", node_ids[0])
+    build_knav_tools(graph, content)
     callout_ids = build_callouts(graph, content["callouts"], all_lenses)
     test_ids = build_tests(graph, content["live"])
     build_providers(graph, content["live"])
@@ -2794,7 +3555,13 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     action_ids = build_actions(graph, content["provenance"], people)
     if content.get("model", {}).get("model", {}).get("workedExample"):
         worked = content["model"]["model"]["workedExample"]
-        graph.entities["#model-worked-example"]["hasPart"] = refs(graph.resolve(worked["steps"]))
+        steps = worked["steps"]
+        actions = [entity_id for entity_id in steps if entity_id.startswith("actions/")]
+        works = [entity_id for entity_id in steps if entity_id not in actions]
+        example = graph.entities["#model-worked-example"]
+        example["hasPart"] = refs(works)
+        # An action is no CreativeWork: the example offers its final revision as an action, after its work steps.
+        example["potentialAction"] = refs(actions)
 
     licenses = []
     for spdx in ("CC-BY-4.0", "MIT"):
@@ -2827,20 +3594,32 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         {
             "@id": "#guide-source",
             "@type": "CreativeWork",
-            "additionalType": "http://schema.org/SoftwareSourceCode",
+            "additionalType": DCMITYPE + "Software",
             "name": "FAIR Data Guide source code",
-            "codeRepository": guide.get("url"),
+            # DCM's software class fits a cited work, without pretending the work has schema.org's software-specific
+            # properties: the address and manifests are links, and its languages are discovery keywords.
+            "url": guide.get("url"),
             "version": guide["version"],
-            "programmingLanguage": ["JavaScript", "Python", "HTML", "CSS"],
-            "softwareRequirements": [
-                guide.get("url", "").rstrip("/") + "/blob/HEAD/pyproject.toml",
-                guide.get("url", "").rstrip("/") + "/blob/HEAD/package-lock.json",
-                guide.get("url", "").rstrip("/") + "/blob/HEAD/requirements-dev.txt",
-            ],
+            "keywords": ["JavaScript", "Python", "HTML", "CSS"],
+            "dependencyManifest": refs(
+                [
+                    guide.get("url", "").rstrip("/") + "/blob/HEAD/pyproject.toml",
+                    guide.get("url", "").rstrip("/") + "/blob/HEAD/package-lock.json",
+                    guide.get("url", "").rstrip("/") + "/blob/HEAD/requirements-dev.txt",
+                ]
+            ),
             "citation": guide.get("url", "").rstrip("/") + "/blob/HEAD/CITATION.cff",
             "license": ref(LICENSES["MIT"][0]),
             "author": refs([people[person] for person in guide.get("editors", [])]),
             "isPartOf": ref(software_id),
+        }
+    )
+    graph.add(
+        {
+            "@id": "#guide-help",
+            "@type": "WebPage",
+            "name": "FAIR Data Guide README",
+            "url": guide.get("url", "").rstrip("/") + "/blob/HEAD/README_en.md",
         }
     )
     graph.add(
@@ -2851,7 +3630,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             "description": "The guide software; its content knowledge base is a separately described dataset.",
             "softwareVersion": guide["version"],
             "version": guide["version"],
-            "creativeWorkStatus": build_identity_facts()["status"],
+            "releaseStatus": status_term(graph, "releaseStatus", build_identity_facts()["status"]),
             "url": guide.get("url"),
             "license": ref(LICENSES["MIT"][0]),
             "author": refs([people[person] for person in guide.get("editors", [])]),
@@ -2859,7 +3638,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
                 "Web browser; Python 3.11 or later and the pinned Node.js packages for the build; "
                 "Node.js for development checks"
             ),
-            "softwareHelp": guide.get("url", "").rstrip("/") + "/blob/HEAD/README_en.md",
+            "softwareHelp": ref("#guide-help"),
             "hasPart": refs(["#guide-source", "./"]),
             "subjectOf": ref("./"),
         }
@@ -2867,13 +3646,14 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     for field in ("publisher", "funder"):
         if guide.get(field) and guide[field] not in organizations:
             raise ContentError(f"guide: unknown {field} organisation '{guide[field]}'")
+    graph.add({"@id": "#ai-statement", "@type": "CreativeWork", "text": text(guide.get("aiStatement"))})
     root = {
         "@id": "./",
         "@type": "Dataset",
         "name": text(guide["name"]),
         "description": text(guide["description"]),
         "version": guide["version"],
-        "creativeWorkStatus": build_identity_facts()["status"],
+        "releaseStatus": status_term(graph, "releaseStatus", build_identity_facts()["status"]),
         "disambiguatingDescription": text(guide.get("testingNotice"))
         if build_identity_facts()["status"] == "testing"
         else None,
@@ -2887,7 +3667,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         "publisher": ref(organizations[guide["publisher"]]) if guide.get("publisher") else None,
         "funder": ref(organizations[guide["funder"]]) if guide.get("funder") else None,
         "creditText": text(guide.get("acknowledgement")),
-        "usageInfo": text(guide.get("aiStatement")),
+        "usageInfo": ref("#ai-statement") if guide.get("aiStatement") else None,
         "isBasedOn": refs(graph.resolve(guide.get("isBasedOn", []))),
         "conformsTo": refs([PROCESS_RUN_CRATE, guide["profile"]]),
         "mainEntity": ref("#path"),
@@ -2900,7 +3680,6 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             action_ids
             + ["#ledger", "#sources", "#resources", "#repositories"]
             + catalogue_ids
-            + knav_ids
             + snapshot_ids
             + check_ids
             + callout_ids
@@ -2952,29 +3731,50 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
                 )
                 append_ref(entity, "alternateIdentifier", datacite_entity)
             entity.pop("dataciteRepository", None)
-    # An agent (an operating, hosting or developing organisation) is named by reference to an entity, not by a
-    # literal name: one way to name an agent and its source (design: group 21).
+    # An agent (a publisher, an operating, hosting or developing organisation) is named by reference to an entity,
+    # not by a literal name, once every thing it can be exists.
+    founded = {key for key in graph.entities if key.startswith("#fd-org-")} - set(
+        organization_record_owners(graph, content)
+    )
+    things = agent_things(graph, founded)
+    agents: list[str] = []
     for entity in list(graph.entities.values()):
         for name_key, agent_key in (
+            ("publisherName", "publisher"),
             ("operatorName", "publisher"),
             ("developerName", "attributedTo"),
             ("hostingInstitution", "publisher"),
         ):
             name = name_text(entity.get(name_key))
             if name:
-                append_ref(entity, agent_key, agent_ref(graph, name))
+                agents.append(agent_ref(graph, name, things))
+                append_ref(entity, agent_key, agents[-1])
             entity.pop(name_key, None)
-    link_texts(graph, reference_targets(content, graph))
-    for entity_id, address in catalogue_addresses(graph.entities, content).items():
-        graph.entities[entity_id]["catalogueAddress"] = address
+    placements = identity_projection(graph, content)
+    issued = {placement.address for placement in placements.values() if placement.address}
+    unknown = sorted({agent for agent in agents if "/" in agent and agent not in issued})
+    if unknown:
+        raise ContentError("an agent names no record: " + ", ".join(unknown))
+    link_texts(graph, reference_targets(content, graph, placements))
+    publish_identities(graph, placements, guide["recordBase"])
+    attach_associations(graph, content.get("model", {}), guide["recordBase"])
+    attach_records(graph, guide["recordBase"])
+    attach_results(graph, guide["recordBase"])
+    terms_name_their_sets(graph)
+    parts_stated_once(graph)
+    named_classes = type_records(graph, guide["recordBase"])
 
     context: dict[str, Any] = {
         term: ESTABLISHED_TERMS.get(term, vocabulary_base + term) for term in [*ESTABLISHED_TERMS, *GUIDE_TERMS]
     }
-    context["isImplementationOf"] = "https://semanticscience.org/resource/SIO_000233"
-    context["skos:Concept"] = SKOS + "Concept"
-    context["skos:ConceptScheme"] = SKOS + "ConceptScheme"
-    context["skos:inScheme"] = {"@id": SKOS + "inScheme", "@type": "@id"}
+    context.update((name, vocabulary_base + name) for name in GUIDE_CLASSES)
+    context["ftr"] = FTR
+    context["fip"] = FIP_TERMS
+    context["dcat"] = DCAT
+    context["dcmitype"] = DCMITYPE
+    context.update((name, SCHEMA + name) for name in sorted(named_classes))
+    context["isImplementationOf"] = SIO + "SIO_000233"
+    context[CATALOG_RECORD] = DCAT + "CatalogRecord"
     context["publisher"] = DCTERMS + "publisher"
     context["attributedTo"] = PROV + "wasAttributedTo"
     return {"@context": [f"{RO_CRATE}/context", context], "@graph": list(graph.entities.values())}
@@ -2984,7 +3784,10 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
 # Page blocks
 
 
-API_COLLECTIONS = (
+API_COLLECTIONS = tuple(sorted(KINDS))
+# Stored-record groups used only by catalogue_addresses to recover an owned record's identity and kind. These are
+# not published API paths: cataloguing still distinguishes cited works and organisations before the one projection.
+CATALOGUE_RECORD_GROUPS = (
     "principles",
     "stations",
     "checks",
@@ -3003,18 +3806,17 @@ API_COLLECTIONS = (
     "infrastructures",
 )
 API_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
-# Where the API's own files sit in the site; records are `api/<collection>/<record ID>.json`.
+# Where API v1's files sit in the site; records are `api/v1/<kind>/<id>.json`, or scoped under that kind.
 API_FILES = {
-    "health": "api/health.json",
+    "health": "api/v1/health.json",
     "description": "openapi.json",
     "docs": "api/",
-    "context": "api/context.jsonld",
-    "meta": "api/meta.json",
-    "record": "api/{record}.json",  # a list (`principles`) or a canonical record (`pr/R1.1`)
+    "context": "api/v1/context.jsonld",
+    "index": "api/v1/index.json",
+    "record": "api/v1/{record}.json",
 }
-API_FILES["test"] = API_FILES["record"].replace(
-    "{record}", "tests/{id}"
-)  # a question's manual test, which results name
+# Saved-result revisions 1 to 3 retain this support path; it describes a question and is not an FTR test.
+API_FILES["test"] = "api/tests/{id}.json"
 API_PREFIXES = {
     "#station-": "stations",
     "#check-": "checks",
@@ -3032,11 +3834,13 @@ API_PREFIXES = {
 }
 
 
-def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) -> dict[str, list[tuple[str, str]]]:
-    """What the static API publishes: per collection, each record's ID and the entity it describes, in the crate's
-    order. A record ID names a file, so it is unique within its collection and safe as a path segment. A FIP
-    Dashboard resource that a curated resource stands for is published as that resource; the manual tests of the
-    check questions are added by the API build."""
+def catalogue_record_keys(
+    entities: dict[str, dict[str, Any]], content: dict[str, Any]
+) -> dict[str, list[tuple[str, str]]]:
+    """The catalogue records among the built entities, by their build keys, before their identities are published:
+    per collection, each record's ID and the entity it describes, in the crate's order. A record ID names a file, so
+    it is unique within its collection and safe as a path segment. A FIP Dashboard resource that a curated resource
+    stands for is published as that resource; the manual tests of the check questions are added by the API build."""
 
     def part_ids(whole: str) -> set[str]:
         return {part["@id"] for part in as_list(entities.get(whole, {}).get("hasPart"))}
@@ -3051,20 +3855,23 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
         for target in as_list(entity.get("sameAs"))
         if isinstance(target, dict)
     }
-    linked_fers = {
+    fers = {
         "#fer-" + row["id"]
         for snapshot in content.get("snapshots", [])
         for row in snapshot.get("resource", [])
-        if alternate_id(row, "fip-dashboard") and FIP_DASHBOARD + alternate_id(row, "fip-dashboard") in described
+        if not (alternate_id(row, "fip-dashboard") and FIP_DASHBOARD + alternate_id(row, "fip-dashboard") in described)
     }
-    fers = part_ids("#fers") - linked_fers
     sources = part_ids("#sources")
-    records: dict[str, list[tuple[str, str]]] = {name: [] for name in API_COLLECTIONS}
+    records: dict[str, list[tuple[str, str]]] = {name: [] for name in CATALOGUE_RECORD_GROUPS}
     for entity_id, entity in entities.items():
+        if "#" in entity_id[1:]:
+            continue  # a part of a record, placed under its whole; never a standalone collection record
         collection = next((name for prefix, name in API_PREFIXES.items() if entity_id.startswith(prefix)), None)
         record = entity.get("identifier")
         if collection == "repositories" and entity.get("@type") != "DataCatalog":
             continue  # the repository kinds, a term set
+        if entity_id.removeprefix("#") in CODED_SETS:
+            continue  # a coded term set, such as the clause kinds, is a vocabulary whatever its name begins with
         if collection in ("repositories", "changes"):
             record = entity_id.split("-", 1)[1]
         elif collection == "lifecycle":
@@ -3077,7 +3884,7 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
             pass
         elif entity_id.startswith("#principle-") and entity.get("termCode"):
             collection, record = "principles", entity["termCode"]
-        elif entity_id.startswith("#item-") and entity.get("@type") == "Question":
+        elif entity_id.startswith("#item-") and "Question" in as_list(entity.get("@type")):
             collection = "metrics"
         elif (entity_id.startswith("#resource-") and entity.get("resourceType")) or entity_id in fers:
             collection = "resources"
@@ -3089,17 +3896,66 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
             collection, record = "organizations", organizations[entity_id]
         elif FIP_TERMS + "FAIR-Implementation-Profile" in as_list(entity.get("additionalType")):
             collection = "fips"
-        elif entity_id.startswith("#knav-") and entity_id != "#knav-tools" and not entity.get("sameAs"):
+        elif entity_id.startswith("#knav-") and not entity.get("sameAs"):
             # A catalogue tool no entry of the guide stands for, under the catalogue's identifier for it.
             collection, record = "resources", f"knav.{entity['identifier']}"
         if entity_id == "#implementation-model":
             collection, record = "model", entity["identifier"]
         if entity_id == "#eosc-cz-node":
-            # The EOSC CZ Node is an organisation of its own, beside the curated ones (D-172).
-            collection, record = "organizations", entity["identifier"]
+            # The EOSC CZ Node is a service platform the Guide lists as a resource.
+            collection, record = "resources", entity["identifier"]
         if collection is None:
             continue
         if not isinstance(record, str) or not API_ID.match(record):
+            raise ContentError(f"{entity_id}: no record ID the API can publish under {collection}/ ({record!r})")
+        if any(existing == record for existing, _ in records[collection]):
+            raise ContentError(f"{entity_id}: two entities share the API record {collection}/{record}")
+        records[collection].append((record, entity_id))
+    return records
+
+
+# Every address kind publishes a list under that same kind; sources are resources, and scoped identities stay nested.
+API_KIND_COLLECTIONS = {kind: kind for kind in API_COLLECTIONS}
+
+
+def guide_address(entity_id: str, base: str) -> str | None:
+    """The address a published identifier names, `<address>` for a record or `<address>#<fragment>` for its part;
+    None for a file, an outside IRI or a crate-local node."""
+    return entity_id[len(base) :] if entity_id.startswith(base) else None
+
+
+def record_address(entity_id: str, base: str) -> str | None:
+    """A record's address from its published identifier; None for a part or anything that is not a record."""
+    address = guide_address(entity_id, base)
+    return address if address and "#" not in address else None
+
+
+def kind_of(entity_id: str, base: str) -> str | None:
+    """The kind of the record an identifier names, or of the record its part belongs to."""
+    address = guide_address(entity_id, base)
+    return address.split("/", 1)[0] if address else None
+
+
+def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) -> dict[str, list[tuple[str, str]]]:
+    """What the static API publishes, from the published identities: per collection, each record's ID and the entity
+    it describes, in the crate's order. A record's collection follows from its kind; a record ID names a file, so it
+    is unique within its collection and safe as a path segment. The manual tests of the check questions are added by
+    the API build."""
+    base = content["guide"]["guide"]["recordBase"]
+    records: dict[str, list[tuple[str, str]]] = {name: [] for name in API_COLLECTIONS}
+    for entity_id, entity in entities.items():
+        address = record_address(entity_id, base)
+        if address is None:
+            continue
+        try:
+            kind, scope, identifier = split_address(address)
+        except ValueError as error:
+            raise ContentError(f"{entity_id}: {error}") from error
+        collection = API_KIND_COLLECTIONS.get(kind)
+        if collection is None or (kind == "vocabularies" and "DefinedTermSet" not in as_list(entity.get("@type"))):
+            continue
+        record = "/".join(address.split("/")[1:])
+        if not all(API_ID.fullmatch(part) for part in record.split("/")):
             raise ContentError(f"{entity_id}: no record ID the API can publish under {collection}/ ({record!r})")
         if any(existing == record for existing, _ in records[collection]):
             raise ContentError(f"{entity_id}: two entities share the API record {collection}/{record}")
@@ -3169,34 +4025,60 @@ def catalogue_records(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return result
 
 
+# The crosswalk between the life-cycle models' stages; its mappings are scoped by it.
+CROSSWALK_ID = "lifecycle-stages"
+# The scope of the FAIR Champion tests the Guide curates, beside the external evaluators' own resource IDs.
+CHAMPION_SCOPE = "fair-champion"
+# A published API collection's record kind, where the collection is named by a role rather than by its kind.
+COLLECTION_KINDS = {"sources": "resources", "metrics": "questions", "changes": "actions", "terms": "glossary"}
+
+
+# The kind and scope of the members of the model and life-cycle collections, by the build key's prefix; the rest of
+# those collections are the model itself and the life-cycle models and stages.
+MEMBER_ROUTES = (
+    ("#layer-", "layers", None),
+    ("#seam-", "seams", None),
+    ("#model-example-", "model-examples", None),
+    ("#crosswalk-", "crosswalks", CROSSWALK_ID),
+    ("#lifecycle-crosswalk", "crosswalks", None),
+)
+
+
+def record_route(
+    entity_id: str, entity: dict[str, Any], collection: str, repositories: set[str]
+) -> tuple[str, str | None]:
+    """The kind and scope a published record is issued under, from what it is rather than how it is classified."""
+    if entity_id in repositories:
+        # A registry describes other resources; it is a resource, not a repository, whatever list holds it.
+        return ("resources" if entity.get("resourceType") == ref("#rtype-registry") else "repositories"), None
+    if collection == "tests":
+        if entity_id.startswith("#criterion-"):
+            return "tests", as_list(entity.get("isPartOf"))[0]["@id"].removeprefix("#resource-")
+        return "tests", "guide" if entity_id.startswith("#test-guide-") else CHAMPION_SCOPE
+    if collection in ("model", "lifecycle"):
+        route = next(((kind, scope) for prefix, kind, scope in MEMBER_ROUTES if entity_id.startswith(prefix)), None)
+        if route is None and collection == "lifecycle":
+            model = entity_id.removeprefix("#lifecycle-")
+            route = "lifecycles", model.split(".", 1)[0] if "." in model else None
+        return route or ("models", None)
+    return COLLECTION_KINDS.get(collection, collection), None
+
+
 def catalogue_addresses(entities: dict[str, dict[str, Any]], content: dict[str, Any]) -> dict[str, str]:
-    """Project stored Guide IDs and frozen prefixes once; external identities never issue a published address."""
+    """Project stored Guide IDs and frozen kinds once; external identities never issue a published address."""
     records = catalogue_records(content)
     repositories = {item["@id"] for item in as_list(entities.get("#repositories", {}).get("hasPart"))}
     result: dict[str, str] = {}
-    for entity_id, old in api_paths(api_records(entities, content)).items():
+    for entity_id, old in api_paths(catalogue_record_keys(entities, content)).items():
         entity = entities[entity_id]
         collection, identifier = old.split("/", 1)
-        kind = {"sources": "resources", "metrics": "questions", "changes": "actions"}.get(collection, collection)
-        subtype = ""
-        if entity_id in repositories:
-            kind = "repositories"
-            subtype = (entity.get("repositoryKind") or {}).get("@id", "").removeprefix("#rkind-")
-            if not subtype and entity.get("resourceType") == ref("#rtype-registry"):
-                subtype = "registry"
-        elif kind == "resources":
-            subtype = (
-                (entity.get("resourceType") or entity.get("guideType") or {})
-                .get("@id", "#rtype-tool")
-                .removeprefix("#rtype-")
-            )
-        elif kind == "infrastructures":
-            subtype = (entity.get("researchField") or {}).get("@id", "").removeprefix("#rifield-")
-        elif kind == "tests":
-            subtype = "guide" if entity_id.startswith("#test-guide-") else "fair-champion"
-            if entity_id.startswith("#criterion-"):
-                subtype = as_list(entity.get("isPartOf"))[0]["@id"].removeprefix("#resource-")
-                identifier = str(entity["identifier"])
+        kind, scope = record_route(entity_id, entity, collection, repositories)
+        if entity_id.startswith("#criterion-"):
+            identifier = str(entity["identifier"])
+        elif kind == "lifecycles" and scope:
+            identifier = identifier.split(".", 1)[1]
+        elif entity_id == "#lifecycle-crosswalk":
+            identifier = CROSSWALK_ID
         row = records.get(entity_id, {})
         if "guideId" in row:
             raise ContentError(f"{entity_id}: obsolete guideId field; id is the one primary value")
@@ -3205,24 +4087,301 @@ def catalogue_addresses(entities: dict[str, dict[str, Any]], content: dict[str, 
             raise ContentError(
                 f"{entity_id}: Guide slug contains a particle; use an official abbreviation or source URL words"
             )
-        prefix = row.get("guideRoute") or "/".join(filter(None, (KIND_CODES[kind], TYPE_CODES.get(subtype, subtype))))
-        if prefix.split("/")[0] not in KIND_CODES.values() or len(prefix.split("/")) > 2:
-            raise ContentError(f"{entity_id}: invalid Guide route prefix {prefix}")
-        address = prefix + "/" + identifier
-        if not all(SAFE_ID.fullmatch(part) for part in address.split("/")) or len(identifier) > MAX_ID:
+        try:
+            if row.get("guideRoute"):
+                kind, scope = parse_route(row["guideRoute"])
+            address = issue_address(kind, identifier, scope)
+        except ValueError as error:
+            raise ContentError(f"{entity_id}: {error}") from error
+        if len(identifier) > MAX_ID:
+            raise ContentError(f"{entity_id}: overlong Guide identifier {identifier}; assign a short primary id")
+        holder = next((other for other, issued in result.items() if issued == address), None)
+        if holder is not None:
             raise ContentError(
-                f"{entity_id}: invalid or overlong Guide identifier {identifier}; assign a short primary id"
+                f"two entries share Guide address {address}: {holder}, {entity_id}; review their identities"
             )
-        if address in result.values():
-            raise ContentError(f"{entity_id}: two entries share Guide address {address}; review their identities")
         result[entity_id] = address
     return result
+
+
+# ---------------------------------------------------------------------------
+# One identity projection
+
+# Nodes that organise the crate itself keep their crate-local identifiers: the lists the catalogue groups, the
+# source snapshots, the Guide's own software, and the instruments, people without an ORCID iD and help routes its
+# provenance and pages name.
+# They are not catalogue records, so they have no address. Any other node without an address is refused.
+CRATE_LOCAL = re.compile(
+    r"#(?:repositories|sources|resources|ledger|path|fips|infrastructures|tests"
+    r"|guide-selection|guide-source|guide-software|guide-help|ai-statement|(?:snapshot|instrument|help|person)-[A-Za-z0-9._-]+)\Z"
+)
+# The properties by which a record holds a part that has no address of its own.
+PART_PROPERTIES = (
+    "hasPart",
+    "potentialAction",
+    "alternateIdentifier",
+    "definitionPart",
+    "quotedDefinition",
+    "prefillMapping",
+    "qualifiedRelation",
+    "review",
+)
+
+
+class Placement(NamedTuple):
+    """Where an entity is published: a record at its address, a part of another entity under a fragment, or an
+    identifier kept as it is (a file of the crate, an outside IRI or a crate-local node)."""
+
+    address: str | None = None
+    owner: str | None = None
+    fragment: str | None = None
+    kept: str | None = None
+
+
+def identity_projection(graph: Graph, content: dict[str, Any]) -> dict[str, Placement]:
+    """Place every entity of the built graph, by its build key: each catalogue record at one address, each part under
+    the record it belongs to, a registry's record under the thing it describes, and files, outside IRIs and
+    crate-local nodes as they are. An entity that fits none of these, or two that would share a place, is refused."""
+    entities = graph.entities
+    rows = catalogue_records(content)
+    placed: dict[str, Placement] = {
+        key: Placement(address=address) for key, address in catalogue_addresses(entities, content).items()
+    }
+
+    def thing(key: str, kind: str, identifier: str, scope: str | None = None) -> None:
+        if key in entities and key not in placed:
+            try:
+                placed[key] = Placement(address=issue_address(kind, identifier, scope))
+            except ValueError as error:
+                raise ContentError(f"{key}: {error}") from error
+
+    def part(key: str, owner: str, fragment: str) -> None:
+        if key in entities and key not in placed:
+            placed[key] = Placement(owner=owner, fragment=fragment)
+
+    # Records the API publishes from API v1 on: advice, pages and callouts.
+    for data in content["stations"]:
+        for advice in data.get("advice", []):
+            thing(f"#advice-{advice['id']}", "advice", advice["id"])
+    for page in content["pages"]:
+        thing(f"#page-{page['id']}", "pages", page["id"])
+    for callout in content["callouts"]:
+        thing(f"#callout-{callout['id']}", "callouts", callout["id"])
+
+    # The European research infrastructures, which a registry's record may be about.
+    for key in entities:
+        if key.startswith("#european-ri-"):
+            thing(key, "infrastructures", key.removeprefix("#european-ri-"))
+
+    # A registry's record about a thing the Guide describes sits under that thing.
+    topic_records = {
+        registry_record_key(scheme, ""): scheme for scheme in ("nkr", "re3data", "fairsharing", "datacite")
+    }
+    for key, entity in entities.items():
+        scheme = next((name for prefix, name in topic_records.items() if key.startswith(prefix)), None)
+        if scheme and key not in placed:
+            topic = next(iter(ids_of(entity.get("primaryTopic"))), None)
+            if topic in placed:
+                part(key, topic, scheme)
+        if key.startswith("#knav-") and key not in placed:
+            same = [target for target in ids_of(entity.get("sameAs")) if target in placed and target != key]
+            if len(same) == 1:
+                part(key, same[0], "knav")
+    dashboard_things = {
+        target.removeprefix(FIP_DASHBOARD): key
+        for key, entity in entities.items()
+        if key in placed
+        for target in ids_of(entity.get("sameAs"))
+        if target.startswith(FIP_DASHBOARD)
+    }
+    owners = organization_record_owners(graph, content)
+    for key in list(entities):
+        row = rows.get(key, {})
+        handle = alternate_id(row, "fip-dashboard") if row else None
+        if key.startswith("#fer-") and handle in dashboard_things:
+            part(key, dashboard_things[handle], "fip-dashboard")
+        elif key.startswith("#fd-org-"):
+            if key in owners:
+                part(key, owners[key], "fip-dashboard-organization")
+            else:
+                thing(key, "organizations", str(row.get("id") or key.removeprefix("#fd-org-")))
+
+    # The remaining organisations, the European research infrastructures and the controlled vocabularies.
+    for key, entity in entities.items():
+        if key.startswith("#org-"):
+            thing(key, "organizations", key.removeprefix("#org-"))
+        elif key.startswith("#lens-"):
+            thing(key, "vocabularies", key.removeprefix("#lens-"), "lenses")
+        elif "DefinedTermSet" in as_list(entity.get("@type")) and key.startswith("#"):
+            thing(key, "vocabularies", key.removeprefix("#"))
+    for key, entity in entities.items():
+        term_set = next(iter(ids_of(entity.get("inDefinedTermSet"))), None)
+        if term_set in placed and placed[term_set].address and placed[term_set].address.startswith("vocabularies/"):
+            code = str(entity.get("termCode") or entity.get("identifier") or "")
+            check = term_set.removeprefix("#blocks-")
+            if term_set.startswith("#blocks-"):
+                code = code.removeprefix(check + "-")
+            thing(key, "vocabularies", code, placed[term_set].address.split("/", 1)[1])
+
+    # Parts: what a record holds under its own fragment, placed once its whole is placed.
+    holders: dict[str, list[str]] = {}
+    for key, entity in entities.items():
+        for prop in PART_PROPERTIES:
+            for target in ids_of(entity.get(prop)):
+                holders.setdefault(target, []).append(key)
+    progress = True
+    while progress:
+        progress = False
+        for key, entity in entities.items():
+            if key in placed or not key.startswith("#") or CRATE_LOCAL.match(key):
+                continue
+            # The whole a part names itself comes first; otherwise the one record that holds it.
+            wholes = [whole for whole in ids_of(entity.get("isPartOf")) if whole in placed] or list(
+                dict.fromkeys(whole for whole in holders.get(key, []) if whole in placed)
+            )
+            if len(wholes) == 1:
+                part(key, wholes[0], part_fragment(key, entity, wholes[0]))
+                progress = True
+    for key, entity in entities.items():
+        if key in placed:
+            continue
+        if CRATE_LOCAL.match(key) or not key.startswith("#"):
+            placed[key] = Placement(kept=key)
+        elif key.startswith("#local-test-documentation-") and isinstance(entity.get("url"), str):
+            placed[key] = Placement(kept=entity["url"])  # a section of a file of the crate
+    unplaced = sorted(set(entities) - set(placed))
+    if unplaced:
+        raise ContentError("entities with no address or whole to belong to: " + ", ".join(unplaced[:12]))
+    return placed
+
+
+def ids_of(value: Any) -> list[str]:
+    return [item["@id"] for item in as_list(value) if isinstance(item, dict) and isinstance(item.get("@id"), str)]
+
+
+def name_values(value: Any) -> list[str]:
+    return [item.get("@value", "") if isinstance(item, dict) else str(item) for item in as_list(value) if item]
+
+
+def part_fragment(key: str, entity: dict[str, Any], whole: str) -> str:
+    """A part's fragment under its whole: a name for what it is to the whole, or the rest of its build key after the
+    whole's, which for a page section is its own id."""
+    named = {
+        "#mapping-": lambda: "mapping-" + key.removeprefix("#mapping-" + whole.removeprefix("#criterion-") + "-"),
+        "#node-membership-": lambda: "membership-" + key.removeprefix("#node-membership-"),
+        "#model-context-": lambda: "context-" + str(entity.get("identifier", "")).rsplit(".", 1)[-1],
+    }
+    fragment = next((rule() for prefix, rule in named.items() if key.startswith(prefix)), None)
+    if entity.get("@type") == "PropertyValue" and entity.get("propertyID") and key.startswith("#alternate-"):
+        fragment = "id-" + slug(str(entity["propertyID"]))
+    elif fragment is None and whole == "#implementation-model" and key.startswith("#model-"):
+        fragment = key.removeprefix("#model-")
+    elif fragment is None and key.startswith((whole + "#", whole + "-")):
+        fragment = key[len(whole) + 1 :]
+    if fragment is None:
+        raise ContentError(f"{key}: no fragment for a part of {whole}")
+    return fragment
+
+
+def published_ids(placements: dict[str, Placement], base: str) -> dict[str, str]:
+    """Each build key's published identifier: `<base><address>` for a record, the record's identifier and a fragment
+    for a part (a part of a part joins both fragments), and the kept identifier otherwise."""
+    result: dict[str, str] = {}
+
+    def resolve(key: str, seen: tuple[str, ...] = ()) -> str:
+        if key in result:
+            return result[key]
+        placement = placements[key]
+        if placement.address:
+            value = base + placement.address
+        elif placement.kept:
+            value = placement.kept
+        else:
+            if key in seen:
+                raise ContentError(f"{key}: a part cannot contain itself")
+            whole = resolve(placement.owner, (*seen, key))
+            value = whole + ("-" if "#" in whole else "#") + str(placement.fragment)
+        result[key] = value
+        return value
+
+    for key in placements:
+        resolve(key)
+    clashes = {value for value, count in Counter(result.values()).items() if count > 1}
+    if clashes:
+        raise ContentError("two entities share a published identifier: " + ", ".join(sorted(clashes)[:6]))
+    return result
+
+
+def publish_identities(graph: Graph, placements: dict[str, Placement], base: str) -> dict[str, str]:
+    """Re-key the built graph to the published identifiers: every entity, every reference and the build's indexes.
+    A record whose build key was an outside IRI (a DOI) keeps it in sameAs. Returns the addresses of the records."""
+    mapping = published_ids(placements, base)
+
+    # A reference may name a record by its address, as an action's target does; it becomes the record's IRI.
+    by_address = {placement.address: mapping[key] for key, placement in placements.items() if placement.address}
+
+    def rewrite(value: Any) -> Any:
+        if isinstance(value, list):
+            return [rewrite(item) for item in value]
+        if isinstance(value, dict):
+            return {
+                name: mapping.get(item) or by_address.get(item, item)
+                if name == "@id" and isinstance(item, str)
+                else rewrite(item)
+                for name, item in value.items()
+            }
+        return value
+
+    graph.entities = {mapping[key]: rewrite(entity) for key, entity in graph.entities.items()}
+    for key, placement in placements.items():
+        if placement.address and "://" in key:
+            append_ref(graph.entities[mapping[key]], "sameAs", key)  # an outside identity, such as a DOI
+    graph.index = {content_id: [mapping.get(key, key) for key in keys] for content_id, keys in graph.index.items()}
+    graph.text_links = {
+        mapping.get(key, key): [link | {"ref": mapping.get(link["ref"], link["ref"])} for link in links]
+        for key, links in graph.text_links.items()
+    }
+    graph.repository_keys = {
+        name: {mapping.get(key, key) for key in keys} for name, keys in graph.repository_keys.items()
+    }
+    graph.addresses = {mapping[key]: placement.address for key, placement in placements.items() if placement.address}
+    graph.published = mapping
+    return graph.addresses
+
+
+def record_base_of(crate: dict[str, Any]) -> str:
+    """The record base of a published crate: the namespace its profile names, followed by `id/`; for a crate without
+    the Guide's profile, the base its records share, or none."""
+    root = next((entity for entity in crate["@graph"] if entity["@id"] == "./"), {})
+    profiles = [
+        reference
+        for reference in ids_of(root.get("conformsTo"))
+        if "/profile/" in reference and "w3id.org/ro/" not in reference
+    ]
+    if profiles:
+        return profiles[0].split("profile/", 1)[0] + "id/"
+    records = [entity["@id"] for entity in crate["@graph"] if "/id/" in entity["@id"] and "://" in entity["@id"]]
+    return records[0].split("/id/", 1)[0] + "/id/" if records else "urn:fair-guide:no-records/"
+
+
+def relative_ids(value: Any, base: str) -> Any:
+    """The page's view of published identifiers: a record, or a part of one, by its address relative to the Guide's
+    namespace; files, outside IRIs and crate-local nodes as they are."""
+    if isinstance(value, list):
+        return [relative_ids(item, base) for item in value]
+    if isinstance(value, dict):
+        return {
+            name: item.removeprefix(base) if name == "@id" and isinstance(item, str) else relative_ids(item, base)
+            for name, item in value.items()
+        }
+    return value
 
 
 LINKSET_FILE = "linkset.json"
 # What the build generates and the repository must not hold; the API's records and its description as well.
 GENERATED = (
     CRATE_FILE,
+    NT_FILE,
     PREVIEW_FILE,
     KB_SCRIPT,
     UI_SCRIPT,
@@ -3238,8 +4397,11 @@ def is_generated(path: str) -> bool:
     """Whether a repository path is build output: a generated file, or a JSON file of the API."""
     return (
         path in GENERATED
+        or path == "404.html"
+        or (path.startswith("id/") and path.endswith(".html"))
         or (path.startswith("api/") and path.endswith((".json", ".jsonld")))
         or bool(PROFILE_PAGE.match(path))
+        or (not path.startswith(PROFILE_DIR + "/") and bool(re.fullmatch(r"profile/[^/]+/recipes/.+\.rq", path)))
     )
 
 
@@ -3365,6 +4527,7 @@ def signposts(content: dict[str, Any], crate: dict[str, Any]) -> list[dict[str, 
     root = next(entity for entity in crate["@graph"] if entity["@id"] == "./")
     links = [
         {"rel": "describedby", "href": CRATE_FILE, "type": "application/ld+json", "profile": RO_CRATE},
+        {"rel": "describedby", "href": NT_FILE, "type": "application/n-triples"},
         {
             "rel": "service-desc",
             "href": API_FILES["description"],
@@ -3524,14 +4687,23 @@ def page_config(
             "datePublished": iso(guide["datePublished"]),
             "freshnessDays": guide.get("freshnessDays", 180),
             "pageUrl": guide.get("pageUrl"),
+            # Records are named by address relative to `<namespace>id/`; the kinds are the address's first segment.
+            "namespace": guide["recordBase"].removesuffix("id/"),
+            "kinds": sorted(KINDS),
+            # The registries whose records describe things, in the order a thing lists them (founding first).
+            "recordSchemes": list(RECORD_SCHEMES),
             "textLinks": text_links or {},
             "foldedSections": [
-                f"#page-{page['id']}-{number}"
+                f"pages/{page['id']}#{section['id']}"
                 for page in content["pages"]
-                for number, section in enumerate(page.get("section", []), start=1)
+                for section in page.get("section", [])
                 if section.get("details")
             ],
-            "api": {"files": API_FILES, "collections": list(API_COLLECTIONS), "records": api or {}},
+            "api": {
+                "files": API_FILES,
+                "records": api or {},
+                "recipes": {"root": f"profile/{guide.get('profileVersion', '')}/recipes/"},
+            },
             "signposts": links or [],
             "connectors": live.get("connector", []),
             "links": live.get("links", {}),
@@ -3548,10 +4720,12 @@ def page_config(
                 "roCrate": RO_CRATE,
                 "ftr": FTR,
                 "prov": PROV,
+                "dqv": DQV,
                 "fipTerms": FIP_TERMS,
                 "guide": guide["vocabularyBase"],
                 "guideTerms": {term: guide["vocabularyBase"] + term for term in EXPORT_GUIDE_TERMS},
-                "webApplication": WEB_APPLICATION,
+                # The landing page of the Guide's profile, at its version's address.
+                "profilePage": f"profile/{guide.get('profileVersion', '')}/index.html",
             },
             "favicons": {
                 "hosts": sorted(entry["host"] for entry in content.get("favicons", []) if not entry.get("key")),
@@ -3644,11 +4818,48 @@ def data_script(key: str, value: Any, about: str) -> str:
     )
 
 
-def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     """The crate as the page loads it: the core every view needs, and the parts (PART_SCRIPTS) that views load when
     they first need them. A part holds whole entities, or properties of core entities (original passages and source
-    bylines); the core and the parts together are the crate."""
+    bylines); the core and the parts together are the crate. What goes where follows each entity's address under the
+    record base (`base`, inferred from the crate when omitted) and the registries' records."""
     graph = crate["@graph"]
+    base = base or record_base_of(crate)
+
+    def address(entity: dict[str, Any]) -> str:
+        return guide_address(entity["@id"], base) or ""
+
+    def kind(entity: dict[str, Any]) -> str:
+        return address(entity).split("/", 1)[0]
+
+    def fragment(entity: dict[str, Any]) -> str:
+        return address(entity).partition("#")[2]
+
+    def scope(entity: dict[str, Any]) -> str:
+        parts = address(entity).split("#")[0].split("/")
+        return parts[1] if len(parts) == 3 else ""
+
+    # The FIP Dashboard's and the KNAV catalogue's records of resources and repositories.
+    registry = {
+        entity["@id"]
+        for entity in graph
+        if CATALOG_RECORD in as_list(entity.get("@type"))
+        and kind(entity) in ("resources", "repositories")
+        and fragment(entity) in ("fip-dashboard", "knav")
+    }
+
+    records = records_by_thing({entity["@id"]: entity for entity in graph})
+
+    def from_registry(entity: dict[str, Any]) -> bool:
+        """A record a registry published, or a part of one: the FIP Dashboard's and the KNAV catalogue's."""
+        return (
+            entity["@id"] in registry
+            or entity["@id"].split("#")[0] in registry
+            or (kind(entity) in ("resources", "repositories") and fragment(entity).startswith(RECORD_SCHEMES))
+            # A thing only a registry knows loads with the record that founds it.
+            or founding_record(entity, records) in registry
+        )
+
     guidance_sources = {
         reference["@id"] for entity in graph if entity.get("guidance") for reference in as_list(entity.get("isPartOf"))
     }
@@ -3656,55 +4867,66 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
         reference["@id"] for entity in graph if entity["@id"] == "./" for reference in as_list(entity.get("isBasedOn"))
     }
     guidance_sources -= initial_sources
-    pages = [entity for entity in graph if str(entity["@id"]).startswith("#page-") and "isPartOf" not in entity]
+    pages = [
+        entity for entity in graph if kind(entity) == "pages" and not fragment(entity) and "isPartOf" not in entity
+    ]
     sections = {ref["@id"] for page in pages for ref in as_list(page.get("hasPart"))}
     sections |= {
         ref["@id"] for entity in graph if entity["@id"] in sections for ref in as_list(entity.get("potentialAction"))
     }
     parts: dict[str, dict[str, Any]] = {name: {"entities": [], "properties": {}} for name in PART_SCRIPTS}
     core = []
-    path_stages = f"#lifecycle-{PATH_LIFECYCLE}."
+    path_model = f"lifecycles/{PATH_LIFECYCLE}"
     for entity in graph:
-        if entity["@id"] == "#implementation-model" or str(entity["@id"]).startswith(
-            ("#layer-", "#seam-", "#model-context-", "#model-example-", "#model-worked-")
+        if kind(entity) in ("models", "layers", "seams", "model-examples") or (
+            kind(entity) == "stations" and fragment(entity).startswith("context-")
         ):
             parts["model"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith(path_stages):
+        elif address(entity).startswith(path_model + "/"):
             # The path's stages name the rail on every view; their definitions load with the other life-cycle models.
             detail = {
                 key: entity[key]
-                for key in ("description", "descriptionTranslation", "quotedDefinition", "citation", "license")
+                for key in ("definitionPart", "descriptionTranslation", "quotedDefinition")
                 if key in entity
             }
             parts["model"]["properties"][entity["@id"]] = detail
             core.append({key: value for key, value in entity.items() if key not in detail})
-        elif entity["@id"] == f"#lifecycle-{PATH_LIFECYCLE}":
+        elif address(entity) == path_model:
             # The path's model names its stages' source on the landing, with a link to the page that publishes it.
-            detail = {key: entity[key] for key in ("citation", "hasDefinedTerm") if key in entity}
+            detail = {key: entity[key] for key in ("citation",) if key in entity}
             parts["model"]["properties"][entity["@id"]] = detail
             core.append({key: value for key, value in entity.items() if key not in detail})
-        elif str(entity["@id"]).startswith(("#lifecycle-", "#crosswalk-")):
+        elif kind(entity) in ("lifecycles", "crosswalks"):
             parts["model"]["entities"].append(entity)
         elif entity.get("@type") == "rdf:Property" and entity.get("rdfs:label") in MODEL_TERMS:
             # Full definitions are needed only with the model; its property IRIs remain in the core context.
             parts["model"]["entities"].append(entity)
-        elif entity.get("@type") == "rdf:Property":
+        elif entity.get("@type") in ("rdf:Property", "rdfs:Class"):
             # Vocabulary definitions serve source detail and machine readers, rather than initial navigation.
             # Keep their full definitions with the standards part, which the machine-data page also loads.
             parts["standards"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith("#alternate-term-"):
+        elif entity["@id"].startswith("#instrument-"):
+            # Instrument detail is provenance metadata and loads with the actions that name it.
+            parts["standards"]["entities"].append(entity)
+        elif kind(entity) == "vocabularies" and address(entity).split("/")[1] in CODED_SETS:
+            # Statuses, advice kinds and pre-fill coverage are read by their codes, which their references carry;
+            # the terms themselves serve detail and machine readers.
+            parts["standards"]["entities"].append(entity)
+        elif kind(entity) == "glossary" and fragment(entity).startswith("id-"):
             # Imported glossary IDs are detail metadata; catalogue/search load them with the definitions.
             parts["standards"]["entities"].append(entity)
         # The FIP Dashboard snapshot (the profiles and the resource records they declare) and the KNAV catalogue's.
-        elif str(entity["@id"]).startswith(("#item-", "#criterion-", "#mapping-")):
+        elif kind(entity) == "questions" or (
+            kind(entity) == "tests" and scope(entity) not in ("guide", CHAMPION_SCOPE)
+        ):
             # External evaluators' criteria and their reviewed mappings load with the questions they relate to.
             parts["questions"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith(("#fip-", "#fer-", "#knav-", "#infrastructure", "#european-ri-", "#eric-")):
+        elif kind(entity) in ("fips", "infrastructures") or from_registry(entity):
             # The large research infrastructures load with the catalogue, as the registries' records do.
             parts["fips"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith(STANDARD_CLAUSES):
+        elif address(entity).startswith(STANDARD_CLAUSES):
             parts["standards"]["entities"].append(entity)
-        elif entity.get("@type") in ("CreateAction", "UpdateAction") and (
+        elif (has_type(entity, "CreateAction") or has_type(entity, "UpdateAction")) and (
             entity.get("description") or entity.get("result")
         ):
             # The catalogue uses detailed provenance and a station's sources what changed it, both after this part
@@ -3716,17 +4938,20 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
             }
             parts["standards"]["properties"][entity["@id"]] = detail
             core.append({key: value for key, value in entity.items() if key not in detail})
-        elif entity.get("adviceKind") == "ai" and ("promptSample" in entity or "checkAfter" in entity):
+        elif status_code(entity.get("adviceKind")) == "ai" and ("promptSample" in entity or "checkAfter" in entity):
             # An AI tip's prompt and what to check afterwards show on its station and the AI page, which load this.
             detail = {key: entity[key] for key in ("promptSample", "checkAfter") if key in entity}
             parts["standards"]["properties"][entity["@id"]] = detail
             core.append({key: value for key, value in entity.items() if key not in detail})
         elif entity["@id"] in sections:
             parts["pages"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith("#term-") and entity.get("description"):
-            # Glossary labels serve navigation immediately; original definitions load with sourced detail/search.
-            parts["standards"]["properties"][entity["@id"]] = {"description": entity["description"]}
-            core.append({key: value for key, value in entity.items() if key != "description"})
+        elif kind(entity) == "glossary" and fragment(entity) in ("definition", "czech-definition"):
+            # Original definitions are works of their own, loaded with sourced detail and search.
+            parts["standards"]["entities"].append(entity)
+        elif kind(entity) == "glossary" and not fragment(entity) and entity.get("definitionPart"):
+            # The definition's link loads with it; the first download needs only each term's label.
+            parts["standards"]["properties"][entity["@id"]] = {"definitionPart": entity["definitionPart"]}
+            core.append({key: value for key, value in entity.items() if key != "definitionPart"})
         elif "guidance" in entity:
             parts["standards"]["properties"][entity["@id"]] = {"guidance": entity["guidance"]}
             core.append({key: value for key, value in entity.items() if key != "guidance"})
@@ -3740,7 +4965,8 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
     # with their own deferred entities, so concurrent part loading cannot drop a patch for a missing target.
     for index, original in enumerate(core):
         entity = original
-        if entity.get("disclosureLevel", {}).get("@id") in ("#level-L1", "#level-L2", "#level-L3"):
+        level = guide_address(entity.get("disclosureLevel", {}).get("@id", ""), base)
+        if level in ("vocabularies/levels/L1", "vocabularies/levels/L2", "vocabularies/levels/L3"):
             detail = {key: value for key, value in entity.items() if key in ("text", "description")}
             if detail:
                 parts["advice"]["properties"][entity["@id"]] = detail
@@ -3840,9 +5066,9 @@ def split_languages(value: Any) -> tuple[Any, dict[str, Any], list[dict[str, Any
             # themselves tables (the language facet's labels) is structure, and both languages keep all of it.
             bilingual = all(lang in node for lang in LANGS) and not any(isinstance(node[lang], dict) for lang in LANGS)
             source_language = node.get("inLanguage") if not node.get("resourceType") else None
-            glossary = str(node.get("@id", "")).startswith("#term-") and node.get("termCode")
-            # A repository's or an infrastructure's entry keeps its name in the other language too (D-173).
-            named = node.get("@type") == "DataCatalog" or "abbreviation" in node
+            glossary = str(node.get("@id", "")).startswith("glossary/") and node.get("termCode")
+            # A repository's or an infrastructure's entry keeps its name in the other language too.
+            named = has_type(node, "DataCatalog") or "abbreviation" in node
             for key, item in node.items():
                 if bilingual and key in LANGS:
                     common[key] = ""
@@ -3930,7 +5156,7 @@ PREVIEW_PATH = "next/"
 CRAWLER_FILES = ("robots.txt", "sitemap.xml")
 
 
-def crawler_files(base: str) -> dict[str, str]:
+def crawler_files(base: str, landing_pages: tuple[str, ...] = ()) -> dict[str, str]:
     """Discovery at the actual publication root. A subpath cannot publish the origin's robots policy.
 
     Preview HTML remains crawlable so its noindex can be read. Only root hosting emits robots.txt; either hosting
@@ -3938,7 +5164,8 @@ def crawler_files(base: str) -> dict[str, str]:
     """
     base = publication_base(base)
     urlset = ElementTree.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
-    for path in SITEMAP_PATHS:
+    preview = urllib.parse.urlsplit(base).path.rstrip("/").endswith("/next")
+    for path in SITEMAP_PATHS + (() if preview else landing_pages):
         ElementTree.SubElement(ElementTree.SubElement(urlset, "url"), "loc").text = base + path
     ElementTree.indent(urlset)
     sitemap = ElementTree.tostring(urlset, encoding="unicode", xml_declaration=True) + "\n"
@@ -3958,26 +5185,60 @@ def outputs(
     content = load_content(root / "content") if content is None else content
     graph = Graph() if graph is None else graph
     crate = build_crate(content, graph) if crate is None else crate
+    initial_ui = dict(content["ui"])
+    api_strings = content["ui"]["api"]
+    # Keep only the shared JSON-link labels initially; the other API documentation belongs to the machines part.
+    initial_ui["api"] = {key: api_strings[key] for key in ("record", "recordTitle")}
     links = signposts(content, crate)
     page = render_page(
-        (root / PAGE_FILE).read_text(encoding="utf-8"), content, crate, icon_sprite(root / "assets" / "icons")
+        (root / PAGE_FILE).read_text(encoding="utf-8"),
+        content | {"ui": initial_ui},
+        crate,
+        icon_sprite(root / "assets" / "icons"),
     )
-    core, parts = split_crate(crate)
-    ui = page_config(
-        content,
-        graph.text_links,
-        {key: entity["catalogueAddress"] for key, entity in graph.entities.items() if entity.get("catalogueAddress")},
-        links,
-    )
-    ui["config"]["catalogueKinds"] = {code: kind for kind, code in KIND_CODES.items()}
-    # The page uses config.api.records; the complete graph field returns with its deferred data part.
-    for index, entity in enumerate(core["@graph"]):
-        if entity.get("catalogueAddress"):
-            parts["fips"]["properties"].setdefault(entity["@id"], {})["catalogueAddress"] = entity["catalogueAddress"]
-            core["@graph"][index] = {key: value for key, value in entity.items() if key != "catalogueAddress"}
+    core, parts = split_crate(crate, content["guide"]["guide"]["recordBase"])
+    parts["api"]["ui"] = {"api": api_strings}
+    # The page names a record by its address and a part by the address and a fragment, relative to the namespace.
+    base = content["guide"]["guide"]["recordBase"]
+    core = relative_ids(core, base)
+    parts = {
+        name: relative_ids(part, base)
+        | {
+            "properties": {
+                key.removeprefix(base): relative_ids(value, base) for key, value in part["properties"].items()
+            }
+        }
+        for name, part in parts.items()
+    }
+    entities = {entity["@id"]: entity for entity in crate["@graph"]}
+    # Keep the namespace in config, not in every key: lookup normalizes full IRIs back to this same local address.
+    records = {
+        record_address(entity_id, base): record_address(entity_id, base)
+        for members in api_records(entities, content).values()
+        for _, entity_id in members
+    }
+    text_links = {
+        key.removeprefix(base): [link | {"ref": link["ref"].removeprefix(base)} for link in found]
+        for key, found in graph.text_links.items()
+    }
+    # Synchronous references need their target address before the infrastructure graph arrives. Keep only those
+    # addresses initially visible; the remaining infrastructure records still load with fips or the machines page.
+    referenced = {link["ref"] for found in text_links.values() for link in found}
+    infrastructure_records = {
+        address: path
+        for address, path in records.items()
+        if address.startswith("infrastructures/") and address not in referenced
+    }
+    records = {address: path for address, path in records.items() if address not in infrastructure_records}
+    ui = page_config(content | {"ui": initial_ui}, text_links, records, links)
     ui["config"]["parts"] = dict(PART_SCRIPTS)
     ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
     ui["config"]["partLanguages"] = dict(PART_LANGUAGE_SCRIPTS)
+    parts["fips"]["config"] = {"api": {"records": infrastructure_records}}
+    parts["api"]["config"] = {"api": {"records": infrastructure_records}}
+    parts["pages"]["config"] = {"signposts": ui["config"].pop("signposts")}
+    api_metadata = ui["config"]["api"]
+    parts["api"]["config"]["api"]["recipes"] = api_metadata.pop("recipes")
     # Helper labels belong with the pages that use them, not the initial download.
     # Helper and machine-data labels belong with the pages that use them: they load with the pages part rather
     # than the initial download, which stays within its budget.
@@ -3997,9 +5258,13 @@ def outputs(
     localized_core, core_languages, core_search = split_languages(core)
     localized_ui, ui_languages, _ = split_languages(ui)
     localized_parts = {name: split_languages(part) for name, part in parts.items()}
+    # Production discovery follows the same per-record projection as API v1 and the landing pages.
+    record_paths = api_paths(api_records({entity["@id"]: entity for entity in crate["@graph"]}, content))
+    landing_paths = tuple(sorted("id/" + path.removesuffix(".json") + ".html" for path in record_paths.values()))
     return (
         {
             CRATE_FILE: json.dumps(crate, ensure_ascii=False, indent=2) + "\n",
+            NT_FILE: n_triples(crate, page_config(content)["config"]["pageUrl"]),
             KB_SCRIPT: data_script(
                 "kb",
                 localized_core,
@@ -4037,14 +5302,24 @@ def outputs(
             for lang, path in paths.items()
         }
         | profile_shapes(root, vocabulary_base(content["guide"]["guide"]).removesuffix("terms#"))
+        | profile_recipes(root, content["guide"]["guide"])
         | profile_page(root, content["guide"]["guide"])
         | vocabulary_page(root, content["guide"]["guide"])
-        | crawler_files(content["guide"]["guide"]["pageUrl"])
+        | crawler_files(content["guide"]["guide"]["pageUrl"], landing_paths)
     )
 
 
 PROFILE_PAGE = re.compile(r"^profile/[^/]+/index\.html$")
 VOCABULARY_FILE = "terms/fair-guide.ttl"
+# How the Guide's controlled vocabularies read in SKOS, stated once for every term and set rather than on each
+# instance. These are subclass and subproperty axioms in the Guide's own document, never equivalences.
+SKOS_ALIGNMENT = (
+    "# Every controlled term of the Guide is a schema:DefinedTerm in one schema:DefinedTermSet. These axioms let a",
+    "# SKOS consumer read them as concepts in schemes; they state no equivalence between the two vocabularies.",
+    "schema:DefinedTerm rdfs:subClassOf skos:Concept .",
+    "schema:DefinedTermSet rdfs:subClassOf skos:ConceptScheme .",
+    "schema:inDefinedTermSet rdfs:subPropertyOf skos:inScheme .",
+)
 
 
 def turtle_text(value: str) -> str:
@@ -4069,14 +5344,24 @@ def vocabulary_document(guide: dict[str, Any]) -> str:
         "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
         "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .",
         "@prefix owl: <http://www.w3.org/2002/07/owl#> .",
+        f"@prefix schema: <{SCHEMA}> .",
+        f"@prefix skos: <{SKOS}> .",
         "",
         f"<{base.rstrip('#')}> a owl:Ontology ;",
         '    rdfs:label "EOSC CZ FAIR guide vocabulary"@en ;',
         '    rdfs:comment "The guide\'s own terms, with the established term each specializes."@en .',
         "",
+        *SKOS_ALIGNMENT,
+        "",
     ]
+    for name, (definition, broader, _) in GUIDE_CLASSES.items():
+        lines.append(f"<{base}{name}> a rdfs:Class ;")
+        lines.append(f'    rdfs:label "{name}"@en ;')
+        lines.append(f'    rdfs:comment "{turtle_text(definition)}"@en ;')
+        lines.append(f"    rdfs:subClassOf <{broader}> .")
+        lines.append("")
     for term, definition in GUIDE_TERMS.items():
-        broader, domain, range_ = GUIDE_TERM_SHAPES.get(term, ("", "", ""))
+        broader, domain, range_ = term_shape(term, base)
         lines.append(f"<{base}{term}> a rdf:Property ;")
         lines.append(f'    rdfs:label "{term}"@en ;')
         lines.append(f'    rdfs:comment "{turtle_text(definition)}"@en ;')
@@ -4109,6 +5394,10 @@ GUIDE_TERM_GROUPS: list[tuple[str, list[str]]] = [
             "lifecycleStage",
             "serviceStatus",
             "healthStatus",
+            "clauseStatus",
+            "fipStatus",
+            "declarationStatus",
+            "releaseStatus",
             "infrastructurePhase",
             "esfriStatus",
             "nodeState",
@@ -4117,7 +5406,7 @@ GUIDE_TERM_GROUPS: list[tuple[str, list[str]]] = [
     ("Descriptions and notes", ["guidance", "assessmentContext", "note", "disclaimer"]),
     (
         "Dated and reviewed status",
-        ["statusAsOf", "reviewedVersion", "mappingCoverage", "mappingBasis", "championEvidenceOnly", "prefillLevel"],
+        ["statusAsOf", "reviewedVersion", "mappingCoverage", "mappingBasis"],
     ),
     (
         "Self-check machinery",
@@ -4132,14 +5421,20 @@ GUIDE_TERM_GROUPS: list[tuple[str, list[str]]] = [
             "providedByNrpFor",
             "allowsNotApplicable",
             "lookup",
+            "prefillMapping",
+            "prefillSource",
+            "prefillField",
+            "prefillCoverage",
             "adviceKind",
             "checkAfter",
             "promptSample",
             "guideState",
             "guideSources",
+            "entryPoint",
         ],
     ),
-    ("Roles and relations", ["operatedBy", "operates"]),
+    ("Roles and relations", ["operatedBy"]),
+    ("Term order", ["termPosition"]),
     (
         "Layers-and-Seams model",
         [
@@ -4165,7 +5460,6 @@ GUIDE_TERM_GROUPS: list[tuple[str, list[str]]] = [
             "roadmapSince",
             "nationalNodeOf",
             "czechMembershipSince",
-            "nodeMembership",
             "nodeMilestone",
             "nodeStateSince",
             "lensOrder",
@@ -4187,13 +5481,20 @@ def vocabulary_page(root: Path, guide: dict[str, Any]) -> dict[str, str]:
     def link(iri: str) -> str:
         return f'<a href="{escape(iri, quote=True)}"><code>{escape(iri)}</code></a>' if iri else ""
 
-    sections = []
+    classes = [
+        f'\n      <article class="detail-entry" id="{escape(name, quote=True)}">'
+        f'<h3><a href="#{escape(name, quote=True)}"><code>{escape(name)}</code></a></h3>'
+        f"<p>{escape(definition)}</p>"
+        f'<p class="detail-meta">specializes {link(broader)}: {escape(reason)}</p></article>'
+        for name, (definition, broader, reason) in GUIDE_CLASSES.items()
+    ]
+    sections = [f'\n    <section class="detail-group">\n      <h2>Classes</h2>{"".join(classes)}\n    </section>']
     for heading, terms in GUIDE_TERM_GROUPS:
         blocks = []
         for term in terms:
             if term not in GUIDE_TERMS:
                 continue
-            broader, domain, range_ = GUIDE_TERM_SHAPES.get(term, ("", "", ""))
+            broader, domain, range_ = term_shape(term, vocabulary_base(guide))
             relation = f"specializes {link(broader)}" if broader else escape(GUIDE_TERM_REASONS.get(term, ""))
             blocks.append(
                 f'\n      <article class="detail-entry" id="{escape(term, quote=True)}">'
@@ -4223,7 +5524,9 @@ def vocabulary_page(root: Path, guide: dict[str, Any]) -> dict[str, str]:
       terms below are the ones it introduces itself. Each has its own address here —
       <code>&lt;address&gt;terms#&lt;term&gt;</code> — which opens its entry, and declares the broader established
       term it specializes (or why none exists), the domain it is used on and its range. Machine readers use the
-      <a href="{VOCABULARY_FILE}" type="text/turtle">Turtle document</a>.</p>{"".join(sections)}
+      <a href="{VOCABULARY_FILE}" type="text/turtle">Turtle document</a>. Every controlled term the guide publishes
+      is a <code>schema:DefinedTerm</code> in one <code>schema:DefinedTermSet</code>; the Turtle document also states,
+      once, how they read as SKOS concepts in schemes.</p>{"".join(sections)}
       <p><a href="../">The FAIR Data Guide</a></p>
     </main>
   </body>
@@ -4254,6 +5557,9 @@ def vocabulary_errors(
             errors.append(f"guide term '{term}' is not in a vocabulary-page group")
         if f"<{base}{term}>" not in document:
             errors.append(f"published guide term '{term}' is absent from the vocabulary document")
+    for name in GUIDE_CLASSES:
+        if f"<{base}{name}> a rdfs:Class" not in document:
+            errors.append(f"guide class '{name}' is absent from the vocabulary document")
     return errors
 
 
@@ -4341,6 +5647,22 @@ def profile_shapes(root: Path, base: str) -> dict[str, str]:
         None,
     )
     return {path: text.replace(written, base) if written else text for path, text in shapes.items()}
+
+
+def profile_recipes(root: Path, guide: dict[str, Any]) -> dict[str, str]:
+    """Publish each authored SPARQL recipe at the active profile version, with its bilingual description."""
+    recipe_source = root / PROFILE_DIR / "recipes"
+    published: dict[str, str] = {}
+    for path in sorted(recipe_source.glob("*.rq")):
+        text = path.read_text(encoding="utf-8")
+        for language in LANGS:
+            if not re.search(rf"^# {language}: \S", text, re.M):
+                raise ContentError(f"{path.relative_to(root)}: recipe lacks its {language} description")
+        written = re.search(r"^PREFIX guide: <([^>]*)>", text, re.M)
+        if written:
+            text = text.replace(written.group(1), guide["vocabularyBase"])
+        published[f"profile/{guide.get('profileVersion', '')}/recipes/{path.name}"] = text
+    return published
 
 
 def page_payload(generated: dict[str, str], root: Path = ROOT, lang: str = "cs") -> dict[str, int]:

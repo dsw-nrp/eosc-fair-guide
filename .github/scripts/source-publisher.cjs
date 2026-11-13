@@ -248,7 +248,7 @@ async function reply({ github, context }, results, code, publication = "") {
   return body;
 }
 
-// A run fails only when a maintainer must act (decision 29); a source the next scheduled run retries is a warning.
+// A run fails only when a maintainer must act; a source the next scheduled run retries is a warning.
 const ACT = new Set(["rejected", "human-edits", "missing"]);
 const RETRY = new Set(["failed", "empty", "moved"]);
 

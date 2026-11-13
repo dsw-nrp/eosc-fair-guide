@@ -1,0 +1,15 @@
+# cs: Vybere zdroje, které rada citovaná u požadavku o opakovatelnosti uvádí. Nehodnotí FAIR stav zdrojů.
+# en: Selects resources named by advice citing an R1.1 clause. This does not assess the resources' FAIR status.
+PREFIX schema: <http://schema.org/>
+PREFIX guide: <https://w3id.org/eosc-cz/fair-guide/terms#>
+
+SELECT DISTINCT ?resource
+WHERE {
+  VALUES ?principle { <https://w3id.org/eosc-cz/fair-guide/id/principles/R1.1> }
+  ?clause schema:about ?principle .
+  ?advice a guide:AdviceItem ;
+    schema:citation ?clause ;
+    schema:mentions ?resource .
+  ?resource a guide:Resource .
+}
+ORDER BY ?resource

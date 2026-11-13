@@ -15,6 +15,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_crate  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from addresses import iri  # noqa: E402
 from test_scripts import FixtureCase  # noqa: E402
 
 EVALUATOR = """
@@ -70,7 +73,9 @@ class ProviderCase(FixtureCase):
     def setUp(self) -> None:
         super().setUp()
         self.append("live.toml", EVALUATOR)
-        self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "provider:*"]')
+        self.edit(
+            "provenance.toml", '"tests/fair-champion/test_one"]', '"tests/fair-champion/test_one", "tests/evaluator/*"]'
+        )
         script = self.root / "assets" / "js" / "providers.js"
         script.parent.mkdir(parents=True, exist_ok=True)
         script.write_text("/* fixture */\n", encoding="utf-8")
@@ -121,26 +126,26 @@ class ProviderContentTests(ProviderCase):
         self.assertError("name is the provider's own wording")
 
     def test_every_criterion_needs_paradata(self) -> None:
-        self.edit("provenance.toml", ', "provider:*"]', "]")
-        self.assertError("criterion:provider:evaluator.M1: no provenance action covers this item")
+        self.edit("provenance.toml", ', "tests/evaluator/*"]', "]")
+        self.assertError("criterion:tests/evaluator/M1: no provenance action covers this item")
 
 
 class ProviderCrateTests(ProviderCase):
     def test_criteria_and_mappings_are_crate_entities_loaded_with_the_questions(self) -> None:
         outputs = build_crate.outputs(self.root)
         graph = {entity["@id"]: entity for entity in json.loads(outputs[build_crate.CRATE_FILE])["@graph"]}
-        criterion = graph["#criterion-evaluator-M1"]
+        criterion = graph[iri("tests/service/M1")]
         self.assertEqual(criterion["identifier"], "M1")
         self.assertEqual(criterion["name"], {"@language": "en", "@value": "The provider's own wording."})
-        self.assertEqual(criterion["about"], {"@id": build_crate.principle_iri("F1")})
+        self.assertEqual(criterion["about"], {"@id": iri("principles/F1")})
         self.assertEqual(criterion["url"], "https://evaluator.example.org/api/metric_M1")
-        mapping = graph["#mapping-evaluator-M1-gate.01"]
-        self.assertEqual(mapping["about"], {"@id": "#item-gate.01"})
-        self.assertEqual(mapping["mappingCoverage"], "whole")
+        mapping = graph[iri("tests/service/M1#mapping-gate.01")]
+        self.assertEqual(mapping["about"], {"@id": iri("questions/gate.01")})
+        self.assertEqual(mapping["mappingCoverage"], {"@id": iri("vocabularies/evaluator-coverages/whole")})
         self.assertEqual(build_crate.as_list(mapping["reviewedVersion"]), ["api 1.0"])
-        unmapped = graph["#criterion-evaluator-M2"]
+        unmapped = graph[iri("tests/service/M2")]
         self.assertNotIn("hasPart", unmapped, "an unmapped criterion stays listed without an invented association")
-        entity = '{"@id":"#criterion-evaluator-M1","@type"'
+        entity = '{"@id":"tests/service/M1","@type"'  # the page names it by its address
         self.assertIn(entity, outputs[build_crate.PART_SCRIPTS["questions"]])
         self.assertNotIn(entity, outputs[build_crate.KB_SCRIPT], "criteria stay off the initial download")
 

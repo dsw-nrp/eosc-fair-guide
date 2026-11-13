@@ -1,21 +1,33 @@
 @prefix fg: <https://fair.eosc.cz/terms#> .
 @prefix fair-guide: <https://fair.eosc.cz/profile/fair-guide/> .
+@prefix ftr: <https://w3id.org/ftr#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix schema: <http://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-# The conceptual model is independent of FAIR principles, reader lenses and source-issued requirements.
+# The conceptual model is independent of FAIR principles, reader lenses and source-issued requirements. Its layers and
+# seams are the model's terms, and its examples are parts of them; each shape selects them by that, never by the property
+# it requires, so an item that loses its kind, its transfer or its scope still fails.
 
 fair-guide:ImplementationModelItem a sh:NodeShape ;
     sh:name "Implementation model item" ;
-    sh:description "Layers, seams and examples have bilingual descriptions and retain their source" ;
-    sh:targetSubjectsOf fg:modelKind ;
-    sh:property [ sh:path fg:modelKind ; sh:in ( "layer" "seam" "example" ) ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:description "Layers, seams and examples have their kind, bilingual descriptions and their source" ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """
+        SELECT ?this WHERE { { ?this <http://schema.org/inDefinedTermSet> <https://fair.eosc.cz/id/models/layers-seams> } UNION { ?this <http://schema.org/isPartOf> ?term . ?term <http://schema.org/inDefinedTermSet> <https://fair.eosc.cz/id/models/layers-seams> } }
+    """ ] ;
+    sh:property [ sh:path fg:modelKind ; sh:class schema:DefinedTerm ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path ( fg:modelKind schema:termCode ) ; sh:in ( "layer" "seam" "example" ) ] ;
     sh:property [ sh:path schema:identifier ; sh:minCount 1 ; sh:maxCount 1 ] ;
     sh:property [ sh:path schema:name ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] ;
     sh:property [ sh:path schema:description ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] ;
-    sh:property [ sh:path schema:citation ; sh:minCount 1 ] ;
     sh:or (
-        [ sh:property [ sh:path fg:modelKind ; sh:hasValue "example" ] ]
+        [ sh:property [ sh:path dcterms:source ; sh:minCount 1 ] ]
+        [ sh:property [ sh:path schema:citation ; sh:minCount 1 ] ]
+    ) ;
+    sh:or (
+        [ sh:property [ sh:path ( fg:modelKind schema:termCode ) ; sh:hasValue "example" ] ]
         [ sh:property [ sh:path fg:serviceStatus ; sh:maxCount 0 ] ;
           sh:property [ sh:path fg:statusAsOf ; sh:maxCount 0 ] ]
     ) .
@@ -23,7 +35,9 @@ fair-guide:ImplementationModelItem a sh:NodeShape ;
 fair-guide:ImplementationSeam a sh:NodeShape ;
     sh:name "Implementation seam" ;
     sh:description "A seam names the transferred information, actors, carrier and maintaining actors" ;
-    sh:targetSubjectsOf fg:transfer ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """
+        SELECT ?this WHERE { ?this <https://fair.eosc.cz/terms#modelKind> <https://fair.eosc.cz/id/vocabularies/model-kinds/seam> }
+    """ ] ;
     sh:class schema:DefinedTerm ;
     sh:property [ sh:path schema:inDefinedTermSet ; sh:class schema:DefinedTermSet ; sh:minCount 1 ] ;
     sh:property [ sh:path fg:implementationLayers ; sh:class schema:DefinedTerm ; sh:minCount 1 ] ;
@@ -36,9 +50,11 @@ fair-guide:ImplementationSeam a sh:NodeShape ;
 fair-guide:ImplementationExample a sh:NodeShape ;
     sh:name "Scoped implementation example" ;
     sh:description "Only a precise, evidenced example carries an observed implementation status" ;
-    sh:targetSubjectsOf fg:scope ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """
+        SELECT ?this WHERE { ?this <https://fair.eosc.cz/terms#modelKind> <https://fair.eosc.cz/id/vocabularies/model-kinds/example> }
+    """ ] ;
     sh:class schema:CreativeWork ;
-    sh:property [ sh:path fg:modelKind ; sh:hasValue "example" ] ;
+    sh:property [ sh:path ( fg:modelKind schema:termCode ) ; sh:hasValue "example" ] ;
     sh:property [ sh:path schema:isPartOf ; sh:class schema:DefinedTerm ; sh:minCount 1 ; sh:maxCount 1 ] ;
     sh:property [ sh:path fg:scope ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] ;
     sh:property [ sh:path fg:serviceStatus ; sh:class schema:DefinedTerm ; sh:minCount 1 ; sh:maxCount 1 ] ;
@@ -48,10 +64,11 @@ fair-guide:ImplementationExample a sh:NodeShape ;
 fair-guide:ApprovedModelManuscript a sh:NodeShape ;
     sh:name "Approved model manuscript" ;
     sh:description "The in-preparation exception is restricted to one conceptual source, with no publication claims" ;
-    sh:targetSubjectsOf fg:preparationStatus ;
+    sh:targetNode <https://fair.eosc.cz/id/resources/layers-seams-manuscript> ;
     sh:class schema:ScholarlyArticle ;
     sh:property [ sh:path schema:identifier ; sh:hasValue "layers-seams-manuscript" ] ;
-    sh:property [ sh:path fg:preparationStatus ; sh:hasValue "in-preparation" ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:preparationStatus ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:node [ sh:property [ sh:path schema:termCode ; sh:hasValue "in-preparation" ] ] ] ;
     sh:property [ sh:path schema:datePublished ; sh:maxCount 0 ] ;
     sh:property [ sh:path schema:publisher ; sh:maxCount 0 ] ;
     sh:property [ sh:path schema:license ; sh:maxCount 0 ] .
@@ -92,8 +109,24 @@ fair-guide:Station a sh:NodeShape ;
 
 fair-guide:AdviceItem a sh:NodeShape ;
     sh:name "Advice item" ;
-    sh:description "An advice item has Czech and English text, a lens, a disclosure level and at least one cited clause" ;
-    sh:targetSubjectsOf fg:disclosureLevel ;
+    sh:description "An advice item has Czech and English text, a lens, a disclosure level, its kind and at least one cited clause" ;
+    sh:targetClass fg:AdviceItem ;
+    sh:property [
+        sh:name "Advice level" ;
+        sh:path fg:disclosureLevel ;
+        sh:class schema:DefinedTerm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "An advice item MUST have exactly one disclosure level" ;
+    ] ;
+    sh:property [
+        sh:name "Advice kind" ;
+        sh:path fg:adviceKind ;
+        sh:class schema:DefinedTerm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "An advice item MUST name its kind: a direction, a tip, a key point or an AI tip" ;
+    ] ;
     sh:property [
         sh:name "Advice text in Czech" ;
         sh:path schema:text ;
@@ -131,8 +164,16 @@ fair-guide:AdviceItem a sh:NodeShape ;
 
 fair-guide:Clause a sh:NodeShape ;
     sh:name "Ledger clause" ;
-    sh:description "A clause has an identifier, Czech and English text and a published source" ;
-    sh:targetSubjectsOf fg:clauseKind ;
+    sh:description "A clause has an identifier, its kind, Czech and English text and a published source" ;
+    sh:targetClass fg:Clause ;
+    sh:property [
+        sh:name "Clause kind" ;
+        sh:path fg:clauseKind ;
+        sh:class schema:DefinedTerm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "A clause MUST have exactly one kind" ;
+    ] ;
     sh:property [
         sh:name "Clause identifier" ;
         sh:path schema:identifier ;
@@ -193,22 +234,34 @@ fair-guide:CheckItem a sh:NodeShape ;
     ] ;
     sh:property [
         sh:name "Item check" ;
-        sh:path schema:isPartOf ;
+        sh:path ftr:hasBenchmark ;
         sh:class schema:Quiz ;
         sh:minCount 1 ;
-        sh:message "A self-check item MUST belong to a check" ;
+        sh:maxCount 1 ;
+        sh:message "A self-check item MUST belong to a check, its FTR benchmark" ;
     ] .
 
 fair-guide:Resource a sh:NodeShape ;
     sh:name "Resource" ;
-    sh:description "A resource has a name, an HTTPS link and a dated status" ;
-    sh:targetSubjectsOf fg:resourceType ;
+    sh:description "A resource has a name and the Guide's type: its own, or the one its citation form or registry gives" ;
+    sh:targetClass fg:Resource ;
     sh:property [
         sh:name "Resource name" ;
         sh:path schema:name ;
         sh:minCount 1 ;
         sh:message "A resource MUST have a name" ;
     ] ;
+    sh:or (
+        [ sh:property [ sh:path fg:resourceType ; sh:class schema:DefinedTerm ; sh:minCount 1 ] ]
+        [ sh:property [ sh:path fg:guideType ; sh:class schema:DefinedTerm ; sh:minCount 1 ] ]
+    ) ;
+    sh:message "A resource MUST have the Guide's type" .
+
+# A resource the Guide types itself is one it recommends: it has an HTTPS link and a dated status.
+fair-guide:CuratedResource a sh:NodeShape ;
+    sh:name "Curated resource" ;
+    sh:description "A resource the Guide types itself has an HTTPS link and a dated status" ;
+    sh:targetSubjectsOf fg:resourceType ;
     sh:property [
         sh:name "Resource link" ;
         sh:path schema:url ;
@@ -216,13 +269,22 @@ fair-guide:Resource a sh:NodeShape ;
         sh:pattern "^https://" ;
         sh:message "A resource MUST have an HTTPS link" ;
     ] ;
-    sh:property [
-        sh:name "Resource status" ;
-        sh:path fg:serviceStatus ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:message "A resource MUST have exactly one status" ;
-    ] ;
+    sh:or (
+        [ sh:property [
+            sh:name "Resource status" ;
+            sh:path fg:serviceStatus ;
+            sh:minCount 1 ;
+            sh:maxCount 1 ;
+            sh:message "A resource MUST have exactly one status"
+        ] ]
+        [ sh:property [
+            sh:name "Node state" ;
+            sh:path fg:nodeState ;
+            sh:minCount 1 ;
+            sh:maxCount 1 ;
+            sh:message "An EOSC Node MUST have its federation state"
+        ] ]
+    ) ;
     sh:property [
         sh:name "Resource status date" ;
         sh:path fg:statusAsOf ;
@@ -234,34 +296,51 @@ fair-guide:Resource a sh:NodeShape ;
 
 fair-guide:Repository a sh:NodeShape ;
     sh:name "Repository" ;
-    sh:description "A repository has an HTTPS address, or is not yet public with planned/development status and an NKR record" ;
-    sh:targetSubjectsOf fg:repositoryKind ;
-    sh:or (
-        [ sh:property [ sh:path schema:url ; sh:minCount 1 ; sh:pattern "^https://" ] ]
+    sh:description "A repository has its kind and an HTTPS address, or is not yet public with planned/development status and an NKR record" ;
+    sh:targetClass fg:Repository ;
+    sh:property [
+        sh:name "Repository kind" ;
+        sh:path fg:repositoryKind ;
+        sh:class schema:DefinedTerm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "A repository MUST have exactly one kind" ;
+    ] ;
+    sh:and (
         [
-            sh:property [
-                sh:path fg:serviceStatus ; sh:minCount 1 ; sh:maxCount 1 ;
-                sh:node [ sh:property [ sh:path schema:termCode ; sh:minCount 1 ; sh:in ( "planned" "in-development" ) ] ]
-            ] ;
-            sh:property [
-                sh:path schema:sameAs ;
-                sh:qualifiedValueShape [ sh:pattern "^https://repo[.]cz/objects/.+" ] ;
-                sh:qualifiedMinCount 1
-            ]
+            sh:or (
+                [ sh:property [ sh:path schema:url ; sh:minCount 1 ; sh:pattern "^https://" ] ]
+                [
+                    sh:property [
+                        sh:path fg:serviceStatus ; sh:minCount 1 ; sh:maxCount 1 ;
+                        sh:node [ sh:property [ sh:path schema:termCode ; sh:minCount 1 ; sh:in ( "planned" "in-development" ) ] ]
+                    ] ;
+                    sh:property [
+                        sh:path schema:sameAs ;
+                        sh:qualifiedValueShape [ sh:pattern "^https://repo[.]cz/objects/.+" ] ;
+                        sh:qualifiedMinCount 1
+                    ]
+                ]
+            ) ;
+            sh:message "A repository needs an HTTPS address, or planned/development status with an NKR record"
+        ]
+        [
+            sh:or (
+                [ sh:property [ sh:path schema:isBasedOn ; sh:minCount 1 ] ]
+                [ sh:property [
+                    sh:path [ sh:inversePath foaf:primaryTopic ] ;
+                    sh:class dcat:CatalogRecord ;
+                    sh:minCount 1
+                ] ]
+            ) ;
+            sh:message "A repository MUST credit the Guide's selection or a registry record about it"
         ]
     ) ;
-    sh:message "A repository needs an HTTPS address, or planned/development status with an NKR record" ;
     sh:property [
         sh:name "Repository link" ;
         sh:path schema:url ;
         sh:pattern "^https://" ;
         sh:message "A repository MUST have an HTTPS link" ;
-    ] ;
-    sh:property [
-        sh:name "Repository source" ;
-        sh:path schema:isBasedOn ;
-        sh:minCount 1 ;
-        sh:message "A repository MUST credit the list or snapshot it comes from" ;
     ] .
 
 fair-guide:ProvenanceAction a sh:NodeShape ;

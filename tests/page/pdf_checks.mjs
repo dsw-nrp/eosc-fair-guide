@@ -10,10 +10,14 @@ export function assertNoBlankPages(pdf) {
     const reference = object.match(/\/Contents (\d+) 0 R/);
     assert(reference, "a generated page has a content stream");
     const content = objects.get(reference[1]);
-    const stream = content?.match(/stream\r?\n([\s\S]*?)\r?\nendstream/);
-    assert(stream?.[1].length, `PDF page ${index + 1} has content instead of an empty trailing page`);
-    assert(stream && /\/FlateDecode/.test(content), "the Chromium content stream can be inspected");
-    assert(/\bBT\b/.test(inflateSync(Buffer.from(stream[1], "latin1")).toString("latin1")), `PDF page ${index + 1} contains text instead of a trailing blank`);
+    /* The stream is read by its declared length: compressed bytes may end with a carriage return, which a
+       delimiter such as `\r?\nendstream` would take from the data. */
+    const head = content?.match(/\/Length (\d+)[\s\S]*?stream\r?\n/);
+    const start = head ? head.index + head[0].length : 0;
+    const stream = head ? content.slice(start, start + Number(head[1])) : "";
+    assert(stream.length, `PDF page ${index + 1} has content instead of an empty trailing page`);
+    assert(/\/FlateDecode/.test(content), "the Chromium content stream can be inspected");
+    assert(/\bBT\b/.test(inflateSync(Buffer.from(stream, "latin1")).toString("latin1")), `PDF page ${index + 1} contains text instead of a trailing blank`);
   }
   return pages.length;
 }

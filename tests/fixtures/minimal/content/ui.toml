@@ -1,2 +1,13 @@
 [app]
 title = { cs = "Test", en = "Test" }
+
+[api]
+# These shared record links stay in the initial UI file; the machines part carries the rest.
+metaTag = { cs = "Popis API a jeho JSON-LD kontext", en = "The API's provenance and its JSON-LD context" }
+record = { cs = "JSON", en = "JSON" }
+recordTitle = { cs = "Záznam v API Průvodce", en = "Record in the Guide's API" }
+
+[api.test]
+name = { cs = "Ruční test otázky {id}", en = "Manual test of question {id}" }
+description = { cs = "Test provádí člověk v sebehodnocení.", en = "A person runs the test in the self-check." }
+contextDescription = { cs = "Položka vysvětluje kontext.", en = "The item explains the context." }

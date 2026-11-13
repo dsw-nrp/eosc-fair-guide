@@ -1,0 +1,14 @@
+# cs: Vybere záznamy s evidencí Zenoda. Identita repozitáře zůstává jedna; záznamy nejsou další repozitáře.
+# en: Selects registry records about Zenodo. The repository keeps one identity; records are not more repositories.
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?record ?source
+WHERE {
+  VALUES ?thing { <https://w3id.org/eosc-cz/fair-guide/id/repositories/zenodo> }
+  ?record a dcat:CatalogRecord, schema:CreativeWork ;
+    foaf:primaryTopic ?thing .
+  OPTIONAL { ?record schema:isBasedOn ?source . }
+}
+ORDER BY ?record

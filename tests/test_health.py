@@ -18,9 +18,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_api  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_crate  # noqa: E402
 import check_all  # noqa: E402
 import check_health  # noqa: E402
+from addresses import iri  # noqa: E402
 
 TODAY = date(2026, 10, 11)
 
@@ -43,7 +46,7 @@ class HealthTests(unittest.TestCase):
         self.assertFalse(reviewed["stale"])
         for field, replacement in [
             ("text", row["text"] + " Changed context."),
-            ("address", "res/tool/github"),
+            ("address", "resources/github"),
             ("path", "pages[new].body.en"),
         ]:
             with self.subTest(field=field):
@@ -161,22 +164,24 @@ class HealthTests(unittest.TestCase):
         matches = [
             item
             for item in unlinked
-            if "[software]" in item["path"] and "[version]" in item["path"] and item["entry"] == "#knav-github"
+            if "[software]" in item["path"] and "[version]" in item["path"] and item["entry"] == iri("resources/github")
         ]
         self.assertEqual({item["language"] for item in matches}, {"cs", "en"})
-        self.assertTrue(all(item["address"] == "res/tool/github" for item in matches))
-        section["body"] = {"cs": "Použijte [[res/tool/github|GitHub]].", "en": "Use [[res/tool/github|GitHub]]."}
+        self.assertTrue(all(item["address"] == "resources/github" for item in matches))
+        section["body"] = {"cs": "Použijte [[resources/github|GitHub]].", "en": "Use [[resources/github|GitHub]]."}
         linked = check_health.missing_links(content)
         self.assertFalse(
             any(
-                item["entry"] == "#knav-github" and "[software]" in item["path"] and "[version]" in item["path"]
+                item["entry"] == iri("resources/github")
+                and "[software]" in item["path"]
+                and "[version]" in item["path"]
                 for item in linked
             )
         )
         section["body"] = {"cs": "GitHubby", "en": "GitHubby"}
         self.assertFalse(
             any(
-                item["entry"] == "#knav-github" and "[version]" in item["path"]
+                item["entry"] == iri("resources/github") and "[version]" in item["path"]
                 for item in check_health.missing_links(content)
             )
         )
@@ -426,9 +431,11 @@ class HealthTests(unittest.TestCase):
         self.assertEqual(first["run"]["status"], "not_run")
         self.assertEqual(first["run"]["jobs"], [])
         self.assertNotIn("@context", first)
-        self.assertIn("health.json", api.meta()["hasPart"])
+        self.assertIn("health.json", api.index()["hasPart"])
+        for kind in build_api.kb.API_COLLECTIONS:
+            self.assertIn(f"{kind}.json", api.index()["hasPart"])
         description = json.loads(api.files()[build_api.OPENAPI_FILE])
-        self.assertEqual(description["paths"]["/api/health.json"]["get"]["operationId"], "getHealth")
+        self.assertEqual(description["paths"]["/api/v1/health.json"]["get"]["operationId"], "getHealth")
         self.assertEqual(
             description["components"]["schemas"]["HealthRun"]["properties"]["status"]["enum"],
             ["not_run", "passed", "partial", "failed"],
@@ -442,15 +449,15 @@ class HealthTests(unittest.TestCase):
         coverage = linked["original_coverage"]
         self.assertEqual(
             next(item for item in coverage["questions"] if item["id"] == "software.20")["api_record"],
-            "q/software.20.json",
+            "questions/software.20.json",
         )
         self.assertEqual(
             next(item for item in coverage["clauses"] if item["id"] == "OPENSSF.01")["api_record"],
-            "cl/OPENSSF.01.json",
+            "clauses/OPENSSF.01.json",
         )
         self.assertEqual(
             next(item for item in coverage["advice"] if item["id"] == "plan.01")["api_record"],
-            "step/plan.json#advice-plan.01",
+            "advice/plan.01.json",
         )
         self.assertEqual(linked["generated_at"], report["generated_at"])
         self.assertEqual(report, original)
@@ -458,16 +465,16 @@ class HealthTests(unittest.TestCase):
     def test_automated_api_test_embeds_documentation_with_site_relative_urls(self) -> None:
         api = build_api.Api(build_crate.build_crate(self.content), self.content)
         test = next(item for item in self.content["live"]["test"] if item["id"] == "guide-cdif-01")
-        record = api.record("tests", test["id"], "#test-" + test["id"])
-        self.assertEqual(record["url"], "../../../" + test["script"])
+        record = api.record("tests", test["id"], iri("tests/guide/" + test["id"]))
+        self.assertEqual(record["url"], "../../../../" + test["script"])
         self.assertIsInstance(record["subjectOf"], dict)
-        self.assertEqual(record["subjectOf"]["url"], "../../../" + test["documentation"])
-        self.assertEqual(record["subjectOf"]["isPartOf"], "../../../" + test["documentation"].split("#")[0])
+        self.assertEqual(record["subjectOf"]["url"], "../../../../" + test["documentation"])
+        self.assertEqual(record["subjectOf"]["isPartOf"], "../../../../" + test["documentation"].split("#")[0])
 
     def test_failed_build_leaves_existing_site_health_bytes_untouched(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             site = Path(temp) / "site"
-            (site / "api").mkdir(parents=True)
+            (site / build_api.HEALTH_FILE).parent.mkdir(parents=True)
             health = site / build_api.HEALTH_FILE
             health.write_text("old site health", encoding="utf-8")
             dashboard = site / "health" / "index.html"
@@ -484,7 +491,7 @@ class HealthTests(unittest.TestCase):
     def test_successful_run_publication_replaces_build_snapshot_with_actual_outcomes(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             site = Path(temp) / "site"
-            (site / "api").mkdir(parents=True)
+            (site / build_api.HEALTH_FILE).parent.mkdir(parents=True)
             build_crate.mark_site(site)
             (site / build_api.HEALTH_FILE).write_text("{}", encoding="utf-8")
             (site / build_api.OPENAPI_FILE).write_text("{}", encoding="utf-8")
@@ -503,7 +510,7 @@ class HealthTests(unittest.TestCase):
             dashboard = (site / "health" / "index.html").read_text(encoding="utf-8")
             self.assertIn(published["generated_at"], dashboard)
             self.assertIn("bad schema", dashboard)
-            self.assertIn('href="../api/health.json"', dashboard)
+            self.assertIn('href="../api/v1/health.json"', dashboard)
             self.assertIn('href="../index.html"', dashboard)
             self.assertIn("failed", (site / "health" / "summary.md").read_text(encoding="utf-8"))
 
@@ -548,7 +555,7 @@ class HealthTests(unittest.TestCase):
     def test_api_publication_refuses_an_api_the_build_did_not_make(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             site = Path(temp)
-            (site / "api").mkdir()
+            (site / build_api.HEALTH_FILE).parent.mkdir(parents=True)
             (site / build_api.HEALTH_FILE).write_text("authored", encoding="utf-8")
             (site / build_api.OPENAPI_FILE).write_text("{}", encoding="utf-8")
             with self.assertRaises(build_crate.UnsafeOutputError):

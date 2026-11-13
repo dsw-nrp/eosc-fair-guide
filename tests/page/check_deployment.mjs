@@ -27,7 +27,7 @@ sys.path.insert(0, 'scripts')
 import assemble_pages, package_site
 stage,prod,out=map(Path,sys.argv[1:])
 for site,sha in [(stage,'b'*40),(prod,'a'*40)]:
-    path=site/'api/health.json'
+    path=site/'api/v1/health.json'
     report=json.loads(path.read_text(encoding='utf-8'))
     config_path=site/'assets/data/ui.js'
     prefix='window.FairGuideData.ui = '
@@ -46,11 +46,14 @@ assemble_pages.assemble(stage,'b'*40,out,production=artifact,production_tag='v'+
 assert.equal(prepared.status, 0, prepared.stderr || prepared.stdout);
 const mime = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png" };
 const server = createServer((request, response) => {
-  const name = decodeURIComponent(new URL(request.url, "http://localhost").pathname).replace(/\/$/, "/index.html");
+  const requested = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+  const name = (requested.startsWith("/eosc-fair-guide/") ? requested.slice("/eosc-fair-guide".length) : requested)
+    .replace(/\/$/, "/index.html");
   const path = resolve(output, "." + name);
   if (!path.startsWith(output + sep)) { response.writeHead(403).end(); return; }
-  try { response.writeHead(200, { "Content-Type": mime[extname(path)] || "application/octet-stream" }).end(readFileSync(path)); }
-  catch { response.writeHead(404).end(); }
+  const file = existsSync(path) ? path : resolve(output, "404.html");
+  const missing = file !== path;
+  response.writeHead(missing ? 404 : 200, { "Content-Type": mime[extname(file)] || "application/octet-stream" }).end(readFileSync(file));
 });
 await new Promise((done) => server.listen(0, "127.0.0.1", done));
 const origin = `http://127.0.0.1:${server.address().port}`;
@@ -85,13 +88,13 @@ try {
   }
   await page.goto(origin + "/next/api/");
   const description = JSON.parse(readFileSync(resolve(output, "next/openapi.json"), "utf8"));
-  const operation = description.paths["/api/health.json"].get;
+  const operation = description.paths["/api/v1/health.json"].get;
   const selector = `#operations-${operation.tags[0]}-${operation.operationId}`;
   await page.waitForSelector(selector);
   assert(await page.locator(".staging-notice").isVisible(), "standalone API documentation has the notice");
   await page.locator(selector + " .opblock-summary").first().click();
   await page.locator(selector + " .try-out__btn").click();
-  const requested = page.waitForResponse(origin + "/next/api/health.json");
+  const requested = page.waitForResponse(origin + "/next/api/v1/health.json");
   // Swagger's Execute is a submit control; Playwright 1.64 can report a scheduled navigation that never
   // clears. The response assertion below is the contract, so do not wait for that navigation.
   await page.locator(selector + " .execute").click({ noWaitAfter: true });
@@ -100,7 +103,26 @@ try {
   assert.equal(response.status(), 200);
   assert.deepEqual(external, [], "assembly starts no external requests");
   assert.deepEqual(problems, [], "assembled views have no script errors");
-  console.log("check_deployment: assembled Guide navigation, both languages/widths, noindex/notice, axe, reflow and preview Swagger requests pass");
+  const missing = await page.goto(origin + "/missing-record");
+  assert.equal(missing.status(), 404, "a missing path behaves like GitHub Pages' not-found response");
+  assert((await page.locator("main").innerText()).includes("does not identify an entry"), "missing path yields the bilingual 404 page");
+  assert.equal(await page.locator("head meta[name='robots']").getAttribute("content"), "noindex");
+  const search = await page.locator("main a[href*='catalogue']").getAttribute("href");
+  assert(search.startsWith("https://") && search.endsWith("/index.html#/cs/V/catalogue"), "404 links to the absolute catalogue search");
+  const nested = await page.goto(origin + "/id/resources/no-such-record");
+  assert.equal(nested.status(), 404, "a nested missing record also returns the bilingual 404 page");
+  assert((await page.locator("main").innerText()).includes("Nenalezeno"));
+  const styles = await page.locator("head link[rel='stylesheet']").evaluateAll((links) => links.map((link) => link.href));
+  assert.equal(styles.length, 2, "the 404 page uses both shared stylesheets");
+  for (const url of styles) {
+    const target = new URL(url);
+    assert.equal(target.origin, origin, "stylesheet resolution stays on the serving origin");
+    assert(target.pathname.startsWith("/eosc-fair-guide/assets/css/"), "stylesheet resolution preserves the project subpath");
+    const loaded = await page.request.get(url);
+    assert.equal(loaded.status(), 200, `nested 404 stylesheet did not load: ${url}`);
+  }
+  await page.screenshot({ path: resolve(screenshots, "404-nested.png"), fullPage: false });
+  console.log("check_deployment: assembled Guide navigation, both languages/widths, noindex/notice, axe, reflow, preview Swagger requests and 404 pages pass");
 } finally {
   await browser.close();
   await new Promise((done) => server.close(done));

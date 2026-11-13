@@ -9,15 +9,30 @@ def publication_files(base="https://example.org/guide/", *, semantic=None, built
     config = {"pageUrl": base, "vocab": {"guide": vocab}}
     if built is not None:
         config["build"] = built
+    status = (built or {}).get("status", "production")
+    release_status = {"@id": base + "id/vocabularies/release-statuses/" + status}
     crate = {
         "@context": ["https://w3id.org/ro/crate/1.2/context", {"scope": vocab + "scope"}],
         "@graph": [
-            {"@id": "./", "@type": "Dataset", "version": version, "conformsTo": {"@id": profile}},
+            {
+                "@id": "./",
+                "@type": "Dataset",
+                "version": version,
+                "conformsTo": {"@id": profile},
+                "releaseStatus": release_status,
+            },
             {"@id": profile, "@type": "Profile"},
             {"@id": vocab + "scope", "@type": "rdf:Property"},
+            {"@id": "#guide-software", "@type": "SoftwareApplication", "releaseStatus": release_status},
         ],
     }
     return {
         "assets/data/ui.js": ("window.FairGuideData.ui = " + json.dumps({"config": config}) + ";\n").encode(),
         "ro-crate-metadata.json": json.dumps(crate).encode(),
+        # The deployment artifact must serve both languages even when a route has no record.
+        "404.html": (
+            b'<!doctype html><html lang="cs"><head><meta name="robots" content="noindex">'
+            b"<title>Nenalezeno / Not found</title></head><body><p>Nenalezeno.</p>"
+            b'<p lang="en">Not found.</p></body></html>'
+        ),
     }
