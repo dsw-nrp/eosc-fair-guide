@@ -64,3 +64,12 @@
   Eight further bilingual desktop/320 px screen/print captures verify the retained re3data control; these were
   visually inspected. Required hosted checks pass on all six published implementation heads, and PR descriptions
   and heads are read back exactly. The subsequent completion record receives its own required hosted checks before handoff.
+  Second runtime review 5906482392 confirms the previous blocking repairs and identifies abandoned staging residue
+  and a Python 3.12-only directory-link method. The approved repair retains Python 3.11, inspects links/reparse
+  metadata without newer Path methods, and removes only owned generated staging directories after recovery.
+  Fail-first tests reproduce both problems, including the AttributeError on real Python 3.11.15. All 28 favicon
+  tests pass on Python 3.11.15 and 3.14.7 with retained asset bytes, unrelated entries, link/reparse rejection and
+  fail-closed inspection covered. Python 3.11 is isolated in the repository cache without PATH or registry changes.
+  Missing-set check semantics and input-host work-path validation are recorded as advisory observations in
+  review-r2.md; no separate issue is filed and no source or favicon acquisition is repeated. Complete integrated
+  local acceptance, forward propagation and hosted verification of this second repair remain pending.
