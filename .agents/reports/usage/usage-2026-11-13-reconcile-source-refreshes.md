@@ -64,3 +64,22 @@
   Missing-set check semantics and input-host work-path validation are recorded as advisory observations in
   review-r2.md; no separate issue is filed and no source or favicon acquisition is repeated. Complete integrated
   local acceptance, forward propagation and hosted verification of this second repair remain pending.
+  The maintainer subsequently authorizes all remaining observations in this same change. Planning precedes the
+  expanded apply: inferred organisations are reserved through the shared build resolver; favicon integrity
+  requires explicit set metadata; working identities/paths are contained before image writes; maintenance
+  acquisition uses direct public HTTPS with all-answer DNS validation, numeric pinning, peer checks, normal TLS
+  verification and per-hop enforcement. Environment proxies are excluded, with reviewed offline inputs retained.
+  Deterministic revisions cover browser data and consumer code. Initial pairs and deferred registrations are
+  checked before mutation; neutral parts and translations are accepted together. Bilingual Retry/Reload recovery
+  preserves saved answers and current input. Assessment-only configuration moves into the existing questions
+  part to preserve the 300 KB limit; search-focus preloading remains intentional.
+  Fail-first tests reproduce incomplete reservations, missing-set false success, Windows path escape, stale
+  revisions and partial graph mutation. A first full attempt exposes URL-sensitive fixtures and a discovery
+  loader refactor; module loading retains its original behavior, fixtures parse versioned paths, and held-route
+  waits fail with a bounded diagnostic. Visual inspection also catches scroll anchoring hiding the recovery
+  panel; the panel now scrolls into view with checked spacing, touch targets and reflow. Twenty bilingual
+  desktop/320 px HTTP/file/iframe/print captures are retained, with representative states visually inspected.
+  Complete integrated acceptance passes 36/36 checks in 252.3 seconds, including the expanded assessment group.
+  Node runtime tests pass 19/19; adjacent identity/agent/registry tests pass 55/55. No source or favicon refresh
+  is repeated. Focused minimum-version verification, committed-stage freshness/fidelity, forward publication and
+  exact-head hosted acceptance are recorded as the final delivery step rather than inferred from this local pass.

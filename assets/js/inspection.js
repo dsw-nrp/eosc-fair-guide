@@ -118,7 +118,7 @@
         .filter((path) => !(FG.jsonLd && path === FG.config.discovery.assessmentScript)); // already loaded by discovery
       for (const path of paths) await new Promise((resolve, reject) => {
         const script = document.createElement("script");
-        script.src = path;
+        script.src = path + "?v=" + encodeURIComponent(FG.config.revision);
         script.onload = resolve;
         script.onerror = () => { script.remove(); reject(new Error("assessment module unavailable")); };
         document.head.appendChild(script);

@@ -1,5 +1,31 @@
 ## ADDED Requirements
 
+### Requirement: Browser data belongs to one compatible build revision
+
+The initial KB/UI pair, display-language payloads and deferred neutral/translated parts SHALL carry one build
+revision. The loader SHALL reject missing or incompatible revisions before merging data. A part and its selected
+translation SHALL be accepted together and each contribution SHALL be merged at most once. Versioned local requests
+SHALL preserve file, HTTP and iframe operation without external requests on load.
+
+#### Scenario: A cached part comes from another build
+
+- **GIVEN** a usable current view with saved answers and reader input
+- **WHEN** a requested neutral or translated part has another or no revision
+- **THEN** the graph, configuration, UI and answers retain their accepted state
+- **AND** a neutral bilingual loading error offers recovery without asserting an empty source or a failed requirement
+
+#### Scenario: Retry receives corrected matching data
+
+- **WHEN** the rejected payload is corrected and the reader retries
+- **THEN** it is fetched again, accepted data is reused and the requested view becomes usable without duplicate entities
+- **AND** saved answers remain unchanged
+
+#### Scenario: The initial files belong to different builds
+
+- **WHEN** the Guide starts with an incompatible initial KB/UI pair
+- **THEN** it stops normal rendering and provides a bilingual reload action
+- **AND** reloading retains saved answers
+
 ### Requirement: Entry actions wait for their deferred evidence
 
 A maturity entry action SHALL retain its re3data target and wait for required questions data before interpreting

@@ -132,6 +132,15 @@ ol {
   padding: 0 var(--space-4);
 }
 
+.data-load-error {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.data-load-error > p {
+  flex-basis: 100%;
+}
+
 /* Header */
 
 .site-header {

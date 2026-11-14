@@ -20,6 +20,7 @@ Uses only the Python standard library. The content model is documented in ``docs
 from __future__ import annotations
 
 import gzip
+import hashlib
 import html
 import json
 import os
@@ -1214,6 +1215,28 @@ def organization_record_owners(graph: Graph, content: dict[str, Any]) -> dict[st
     return owners
 
 
+def resolve_named_agents(graph: Graph, content: dict[str, Any]) -> list[str]:
+    """Resolve the same named publishers/operators in full and identity-only graphs."""
+    founded = {key for key in graph.entities if key.startswith("#fd-org-")} - set(
+        organization_record_owners(graph, content)
+    )
+    things = agent_things(graph, founded)
+    agents = []
+    for entity in list(graph.entities.values()):
+        for name_key, agent_key in (
+            ("publisherName", "publisher"),
+            ("operatorName", "publisher"),
+            ("developerName", "attributedTo"),
+            ("hostingInstitution", "publisher"),
+        ):
+            name = name_text(entity.get(name_key))
+            if name:
+                agents.append(agent_ref(graph, name, things))
+                append_ref(entity, agent_key, agents[-1])
+            entity.pop(name_key, None)
+    return agents
+
+
 def build_instruments(graph: Graph, guide: dict[str, Any]) -> None:
     for instrument in guide.get("instrument", []):
         graph.add(
@@ -1392,6 +1415,15 @@ def build_sources(
     return source_ids
 
 
+def publisher_properties(citation: dict[str, Any], organizations: dict[str, str]) -> dict[str, Any]:
+    """Publisher identity independent of citation rendering and its controlled vocabularies."""
+    publisher = citation.get("publisher")
+    return {
+        "publisher": ref(organizations[publisher]) if publisher in organizations else None,
+        "publisherName": publisher if publisher not in organizations else None,
+    }
+
+
 def citation_properties(
     graph: Graph, citation: dict[str, Any], organizations: dict[str, str], people: dict[str, str], names: dict[str, str]
 ) -> dict[str, Any]:
@@ -1400,8 +1432,6 @@ def citation_properties(
     authors = citation.get("authors", [])
     return {
         "inLanguage": citation.get("inLanguage"),
-        "publisher": ref(organizations[citation["publisher"]]) if citation.get("publisher") in organizations else None,
-        "publisherName": citation.get("publisher") if citation.get("publisher") not in organizations else None,
         "version": citation.get("version"),
         "author": refs([people[author] for author in authors if author in people]),
         "creditText": "; ".join(names.get(author, author) for author in authors) or None,
@@ -1410,7 +1440,7 @@ def citation_properties(
         "sdDatePublished": iso(citation["dateAccessed"]) if citation.get("dateAccessed") else None,
         "license": citation.get("license"),
         "preparationStatus": status_term(graph, "preparationStatus", citation.get("preparationStatus")),
-    }
+    } | publisher_properties(citation, organizations)
 
 
 def build_ledger(graph: Graph, clauses: list[dict[str, Any]]) -> None:
@@ -2324,22 +2354,35 @@ def catalogue_identity_graph(content: dict[str, Any]) -> tuple[Graph, dict[str, 
             if section == "resources":
                 row.setdefault("type", "service")
     graph = Graph()
+    organizations = build_organizations(graph, content["guide"])
     # Reuse the actual repository reconciliation, without requiring page text, checks or lifecycle metadata.
     for section, prefix in (("resources", "#resource-"), ("sources", "#source-")):
         for entry in content[section]:
+            entity = {
+                "@id": source_key(entry) if section == "sources" else prefix + entry["id"],
+                "@type": "CreativeWork",
+                "identifier": entry["id"],
+                "name": text(entry.get("name") or entry.get("title")),
+                "url": entry.get("url"),
+                "resourceType": ref("#rtype-" + entry.get("type", "document")),
+                "sameAs": refs([FIP_DASHBOARD + entry["fipDashboard"]]) if entry.get("fipDashboard") else None,
+                "operatorName": text((entry.get("operator") or {}).get("name")),
+            }
+            citation = entry if section == "sources" else entry.get("citation")
+            if citation:
+                entity |= publisher_properties(citation, organizations)
+            graph.add(entity, entry["id"])
+    for snapshot in content["snapshots"]:
+        for row in snapshot.get("organization", []):
             graph.add(
                 {
-                    "@id": source_key(entry) if section == "sources" else prefix + entry["id"],
-                    "@type": "CreativeWork",
-                    "identifier": entry["id"],
-                    "name": text(entry.get("name") or entry.get("title")),
-                    "url": entry.get("url"),
-                    "resourceType": ref("#rtype-" + entry.get("type", "document")),
-                    "sameAs": refs([FIP_DASHBOARD + entry["fipDashboard"]]) if entry.get("fipDashboard") else None,
-                },
-                entry["id"],
+                    "@id": "#fd-org-" + row["id"],
+                    "@type": "Organization",
+                    "name": text(row["name"]),
+                    "alternateName": row.get("acronym"),
+                    "sameAs": ref(row["ror"]) if row.get("ror") else None,
+                }
             )
-    for snapshot in content["snapshots"]:
         for row in snapshot.get("resource", []):
             graph.add(
                 {
@@ -2348,7 +2391,7 @@ def catalogue_identity_graph(content: dict[str, Any]) -> tuple[Graph, dict[str, 
                     "identifier": row["id"],
                     "name": text(row.get("name")),
                     "url": row.get("url"),
-                    "sameAs": ref(FIP_DASHBOARD + alternate_id(row, "fip-dashboard")),
+                    "sameAs": ref(FIP_DASHBOARD + native) if (native := alternate_id(row, "fip-dashboard")) else None,
                 }
             )
     graph.add({"@id": "#sources", "hasPart": refs([source_key(row) for row in content["sources"]])})
@@ -2356,7 +2399,21 @@ def catalogue_identity_graph(content: dict[str, Any]) -> tuple[Graph, dict[str, 
         graph, content["repositories"], content["snapshots"], content["resources"], content["repository_records"]
     )
     for item in content["infrastructures"].get("infrastructure", []):
-        graph.add({"@id": "#infrastructure-" + item["id"], "identifier": item["id"]})
+        graph.add(
+            {
+                "@id": "#infrastructure-" + item["id"],
+                "identifier": item["id"],
+                "name": text(item.get("name")),
+                "abbreviation": item.get("acronym"),
+                "hostingInstitution": item.get("host"),
+            }
+        )
+        for entry in item.get("nodeOf", []) + item.get("eric", []):
+            key = "#european-ri-" + slug(entry["name"])
+            if key not in graph.entities:
+                graph.add({"@id": key, "name": text(entry["name"])})
+    if node := (content.get("node") or {}).get("node"):
+        graph.add({"@id": "#eosc-cz-node", "identifier": node["id"], "name": node["name"]})
     owners = knav_record_owners(graph, content)
     for snapshot in content["snapshots"]:
         for tool in snapshot.get("tool", []):
@@ -2371,7 +2428,21 @@ def catalogue_identity_graph(content: dict[str, Any]) -> tuple[Graph, dict[str, 
                 },
                 "knav." + str(native),
             )
+    resolve_named_agents(graph, content)
     addresses = catalogue_addresses(graph.entities, content)
+    addresses.update(
+        {
+            key: issue_address("organizations", key.removeprefix("#org-"))
+            for key in graph.entities
+            if key.startswith("#org-")
+        }
+    )
+    owned = organization_record_owners(graph, content)
+    for snapshot in content["snapshots"]:
+        for row in snapshot.get("organization", []):
+            key = "#fd-org-" + row["id"]
+            if key not in owned:
+                addresses[key] = issue_address("organizations", row["id"])
     for item in content["infrastructures"].get("infrastructure", []):
         addresses["#infrastructure-" + item["id"]] = "infrastructures/" + item["id"]
         for entry in item.get("nodeOf", []) + item.get("eric", []):
@@ -3821,23 +3892,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             entity.pop("dataciteRepository", None)
     # An agent (a publisher, an operating, hosting or developing organisation) is named by reference to an entity,
     # not by a literal name, once every thing it can be exists.
-    founded = {key for key in graph.entities if key.startswith("#fd-org-")} - set(
-        organization_record_owners(graph, content)
-    )
-    things = agent_things(graph, founded)
-    agents: list[str] = []
-    for entity in list(graph.entities.values()):
-        for name_key, agent_key in (
-            ("publisherName", "publisher"),
-            ("operatorName", "publisher"),
-            ("developerName", "attributedTo"),
-            ("hostingInstitution", "publisher"),
-        ):
-            name = name_text(entity.get(name_key))
-            if name:
-                agents.append(agent_ref(graph, name, things))
-                append_ref(entity, agent_key, agents[-1])
-            entity.pop(name_key, None)
+    agents = resolve_named_agents(graph, content)
     placements = identity_projection(graph, content)
     issued = {placement.address for placement in placements.values() if placement.address}
     unknown = sorted({agent for agent in agents if "/" in agent and agent not in issued})
@@ -5336,7 +5391,9 @@ def outputs(
     parts["api"]["config"] = {"api": {"records": registry_records}}
     parts["pages"]["config"] = {"signposts": ui["config"].pop("signposts")}
     parts["questions"]["config"] = {
-        key: value for key in ("nkr", "re3data") if (value := ui["config"].pop(key, None)) is not None
+        key: value
+        for key in ("nkr", "re3data", "champion", "providers")
+        if (value := ui["config"].pop(key, None)) is not None
     }
     parts["questions"]["config"]["api"] = {"records": registry_records}
     api_metadata = ui["config"]["api"]
@@ -5360,6 +5417,13 @@ def outputs(
     localized_core, core_languages, core_search = split_languages(core)
     localized_ui, ui_languages, _ = split_languages(ui)
     localized_parts = {name: split_languages(part) for name, part in parts.items()}
+    # A revision covers the data and its consumer code, independently of timestamps or checkout location.
+    digest = hashlib.sha256(script_json([core, ui, parts, page]).encode("utf-8"))
+    for path in sorted((root / "assets/js").glob("*.js")):
+        digest.update(path.name.encode("utf-8") + b"\0" + path.read_bytes())
+    revision = digest.hexdigest()[:24]
+    localized_ui["config"]["revision"] = revision
+    page = re.sub(r'(<script\b[^>]*\bsrc=")([^"?]+\.js)(")', rf"\g<1>\g<2>?v={revision}\3", page)
     # Production discovery follows the same per-record projection as API v1 and the landing pages.
     record_paths = api_paths(api_records({entity["@id"]: entity for entity in crate["@graph"]}, content))
     landing_paths = tuple(sorted("id/" + path.removesuffix(".json") + ".html" for path in record_paths.values()))
@@ -5371,17 +5435,22 @@ def outputs(
                 "kb",
                 localized_core,
                 "Neutral knowledge-base structure; with selected language values and deferred parts it is the crate.",
-            ),
+            )
+            + f"window.FairGuideData.revision = {json.dumps(revision)};\n",
             UI_SCRIPT: data_script("ui", localized_ui, "Interface structure and configuration."),
             PAGE_FILE: page,
             PREVIEW_FILE: page,
             LINKSET_FILE: json.dumps(linkset(links), ensure_ascii=False, indent=2) + "\n",
         }
-        | {path: part_script(name, localized_parts[name][0]) for name, path in PART_SCRIPTS.items()}
+        | {
+            path: part_script(name, localized_parts[name][0] | {"revision": revision})
+            for name, path in PART_SCRIPTS.items()
+        }
         | {
             path: language_script(
                 lang,
                 {
+                    "revision": revision,
                     "kb": core_languages[lang],
                     "ui": ui_languages[lang],
                     "search": [{"path": entry["path"], "words": entry["words"][lang]} for entry in core_search],
@@ -5393,6 +5462,7 @@ def outputs(
             path: language_script(
                 lang,
                 {
+                    "revision": revision,
                     "values": localized_parts[name][1][lang],
                     "search": [
                         {"path": entry["path"], "words": entry["words"][lang]} for entry in localized_parts[name][2]
@@ -5774,7 +5844,8 @@ def page_payload(generated: dict[str, str], root: Path = ROOT, lang: str = "cs")
     files = [PAGE_FILE] + [match.group("script") or match.group("style") for match in PAGE_ASSET.finditer(page)]
     files.append(LANGUAGE_SCRIPTS[lang])
     sizes = {}
-    for name in files:
+    for url in files:
+        name = urllib.parse.urlsplit(url).path
         text = generated[name] if name in generated else (root / name).read_text(encoding="utf-8")
         sizes[name] = len(gzip.compress(text.encode("utf-8"), compresslevel=9, mtime=0))
     return sizes

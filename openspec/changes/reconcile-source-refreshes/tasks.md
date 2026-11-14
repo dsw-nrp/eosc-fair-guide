@@ -128,9 +128,9 @@ tasks and require new acceptance evidence before delivery preparation is complet
   asset dates; serialize manifest strings consistently.
 - [x] 8.5 Share legacy snapshot route/address inference across allocation, retirement and reservations to match projection;
   prove no spurious retirement. Verify complete nonempty API lookup assertions and remove the obsolete badge comment.
-- [ ] 8.6 Run focused and complete checks on the repaired runtime, propagate its commit through the four source
+- [x] 8.6 Run focused and complete checks on the repaired runtime, propagate its commit through the four source
   branches and reader without rewriting their histories, and verify source fidelity, freshness and the 300 KB bound.
-- [ ] 8.7 Read back the published heads and PR descriptions, verify required hosted checks, and record the disposition
+- [x] 8.7 Read back the published heads and PR descriptions, verify required hosted checks, and record the disposition
   of every review finding and pre-existing observation without implying separate issues were filed.
 
 ## 9. Address the second runtime review
@@ -139,10 +139,31 @@ tasks and require new acceptance evidence before delivery preparation is complet
   retained verified files, unrelated entries and rejected links/reparse points or inspection failures.
 - [x] 9.2 Recover abandoned stages through the ownership guard and preserve that guard on Python 3.11 without
   raising the declared floor, changing asset/manifest semantics or fetching favicons again.
-- [ ] 9.3 Verify the favicon suite on real Python 3.11 and the current interpreter, run complete integrated local
+- [x] 9.3 Verify the favicon suite on real Python 3.11 and the current interpreter, run complete integrated local
   acceptance, propagate forward merges through the existing PR stack, and recheck source fidelity and the byte bound.
-- [ ] 9.4 Record every new finding/observation, read back PR heads and descriptions, verify required hosted checks
+- [x] 9.4 Record every new finding/observation, read back PR heads and descriptions, verify required hosted checks
   on the published heads, and refresh the handoff without merges, issue closure, spec sync or archival.
+
+## 10. Consolidate the remaining observations into this change
+
+- [x] 10.1 Reproduce incomplete inferred-organisation reservations with the built catalogue and a synthetic
+  Carpentries import; add full/identity-only parity and minimal-content regressions.
+- [x] 10.2 Share agent identity resolution and reserve inferred organisations before source allocation; preserve
+  current addresses, explicit source joins and reviewable collision refusal without counters.
+- [x] 10.3 Reproduce missing/empty favicon-set false success; require a valid manifest, retain explicitly recorded
+  empty/pruned sets and permit bootstrap only through the acquisition path after recovery.
+- [x] 10.4 Reproduce the Windows work-path escape and validate names/containment before writes for network and
+  offline inputs; prove refusal leaves verified assets and unrelated paths unchanged.
+- [x] 10.5 Implement and test direct public-only HTTPS acquisition, per-hop policy, all-answer DNS validation,
+  pinned connections/peers, TLS verification, proxy exclusion and honest retained-asset failure reasons on Python 3.11.
+- [x] 10.6 Generate deterministic build revisions for initial and deferred data, version script requests and reject
+  absent/mismatched initial or deferred registrations before state/data mutation.
+- [x] 10.7 Make part/translation acceptance transactional and preserve single-flight, accepted-data reuse, Retry,
+  neutral Reload recovery, saved answers and current input; verify both languages, file/HTTP and iframe states.
+- [x] 10.8 Update maintained design/content/maintenance documentation, changelog, dispositions and paradata; keep
+  the 300 KB limit through existing-part deferral if necessary and run complete native checks and visual review.
+- [ ] 10.9 Prepare focused commits, propagate through the existing PR stack with preserved ancestry and source facts,
+  read back descriptions/heads and verify required hosted checks on every actual head before final handoff.
 
 ## Workflow follow-up
 

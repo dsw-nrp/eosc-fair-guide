@@ -924,6 +924,8 @@ def reserved_identifiers(root: Path, target: Path) -> set[str]:
     """Reserve issued addresses, including typed retirements; legacy bare retirements stay conservative."""
     content = identity_content(root)
     reserved = set(content_addresses(content).values()) - {"guide"}
+    _, projected = kb.catalogue_identity_graph(content)
+    reserved.update(projected.values())
     if target.name == "glossary.toml":
         reserved = {value for value in reserved if not value.startswith("glossary/")}
     for path in sorted((root / "content").rglob("*.toml")):
@@ -960,11 +962,12 @@ def identity_content(root: Path) -> dict[str, Any]:
         "repositories": read("repositories.toml").get("repository", []),
         "repository_records": read("repositories.toml").get("record", []),
         "snapshots": [
-            read(str(path.relative_to(root / "content")))
+            {"snapshot": {"source": path.stem}} | read(str(path.relative_to(root / "content")))
             for path in sorted((root / "content/snapshots").glob("*.toml"))
         ],
         "glossary": read("glossary.toml"),
         "infrastructures": read("infrastructures.toml"),
+        "node": read("eosc-node.toml"),
         "pages": read("pages.toml").get("page", []),
         "ledger": read("ledger.toml").get("clause", []),
         "stations": [],
