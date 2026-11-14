@@ -82,13 +82,14 @@ try {
     assert.deepEqual(errors, []);
     await context.close();
   }
-  for (const lang of ["cs", "en"]) for (const width of [1280, 320]) {
+  for (const failure of ["stale", "absent"]) for (const lang of ["cs", "en"]) for (const width of [1280, 320]) {
     const context = await browser.newContext({ viewport: { width, height: 900 } }), page = await context.newPage();
     let stale = true;
     await context.route("https://guide-initial.test/**", async (route) => {
       const path = new URL(route.request().url()).pathname;
       let body = readFileSync(resolve(site, "." + path));
       if (stale && path === "/assets/data/kb.js") body = body.toString().replaceAll(revision, "older-build");
+      if (stale && failure === "absent" && ["/assets/data/kb.js", "/assets/data/ui.js"].includes(path)) body = "/* initial data absent */";
       await route.fulfill({ body, contentType: path.endsWith(".js") ? "text/javascript" : path.endsWith(".css") ? "text/css" : "text/html" });
     });
     await page.addInitScript(() => localStorage.setItem("eosc-fair-guide", JSON.stringify({ answers: { fixture: { retained: true } } })));
@@ -96,7 +97,7 @@ try {
     await page.locator(".data-load-error").waitFor();
     assert.equal(await page.evaluate(() => window.FairGuide.graph), undefined);
     assert.equal(await page.locator("#main > p").count(), 0, "initial failure retires the loading message");
-    await presentation(page, page, `${lang}-initial-http-${width}`);
+    await presentation(page, page, `${lang}-initial-${failure}-http-${width}`);
     stale = false;
     await page.locator(".data-load-error button").last().click();
     await page.locator("#search-input").waitFor();
