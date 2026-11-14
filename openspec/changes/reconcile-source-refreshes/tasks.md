@@ -162,7 +162,7 @@ tasks and require new acceptance evidence before delivery preparation is complet
   neutral Reload recovery, saved answers and current input; verify both languages, file/HTTP and iframe states.
 - [x] 10.8 Update maintained design/content/maintenance documentation, changelog, dispositions and paradata; keep
   the 300 KB limit through existing-part deferral if necessary and run complete native checks and visual review.
-- [ ] 10.9 Prepare focused commits, propagate through the existing PR stack with preserved ancestry and source facts,
+- [x] 10.9 Prepare focused commits, propagate through the existing PR stack with preserved ancestry and source facts,
   read back descriptions/heads and verify required hosted checks on every actual head before final handoff.
 
 ## Workflow follow-up
