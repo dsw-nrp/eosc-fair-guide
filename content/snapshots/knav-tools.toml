@@ -1092,9 +1092,9 @@ disciplines = ["all"]
 description = "Collection of structured exercises designed to help researchers improve their data management practices across the data lifecycle. Focuses on reproducible, discrete data management activities and serves as a supplementary resource to existing data management training and education."
 
 [[tool]]
-id = "re3data-2"
+id = "re3data"
 alternateIds = [{ "scheme" = "knav", "value" = "re3data" }]
-guideRoute = "res/tool"
+guideRoute = "resources"
 name = "Re3Data"
 url = "https://www.re3data.org/"
 steps = ["storing-archiving", "reusing"]
