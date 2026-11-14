@@ -3343,7 +3343,7 @@
   let inspectionFailed = false;
   const loadScript = (path) => new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = path;
+    script.src = path + "?v=" + encodeURIComponent(FG.config.revision);
     script.onload = resolve;
     script.onerror = () => { script.remove(); reject(new Error("check module unavailable: " + path)); };
     document.head.appendChild(script);

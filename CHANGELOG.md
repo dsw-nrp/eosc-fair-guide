@@ -7,6 +7,9 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+- Security: favicon acquisition now uses direct, certificate-verified public HTTPS with DNS/peer pinning on every
+  redirect; environment proxies are excluded. Use reviewed offline inputs when direct access is unavailable.
+
 - Breaking: source refreshes now refuse unresolved identity collisions within one kind and scope instead of
   allocating numbered identifiers; review the identity match or supply a reviewed descriptive identifier before retrying.
 

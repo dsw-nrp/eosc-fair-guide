@@ -19,7 +19,10 @@ await context.route(origin + "/**", async (route) => {
 
 async function hold(page, pattern) {
   const entered = Promise.withResolvers(), release = Promise.withResolvers();
-  await page.route(pattern, async (route) => {
+  const timeout = setTimeout(() => entered.reject(new Error("Deferred script was not requested: " + pattern)), 15000);
+  timeout.unref();
+  await page.route(pattern + "*", async (route) => {
+    clearTimeout(timeout);
     entered.resolve();
     await release.promise;
     await route.fallback();

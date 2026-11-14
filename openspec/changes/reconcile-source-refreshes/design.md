@@ -218,10 +218,10 @@ uses the repository kind consistently in reservation, allocation and retirement.
 the complete published API projection and require both referenced and deferred cases to be nonempty. Update the
 citation carriers and the counter-refusal release note/label under existing repository policy.
 
-The proposed cross-version part revision protocol is an advisory follow-up requiring a separate delivery-contract
-decision; it is not silently added here. Record the pre-existing network-policy, redirect, preloading and
-agent-derived reservation observations with explicit dispositions. The bounded manifest escaping observation is
-handled with the publication repair. No new GitHub issue is implied by that record.
+The cross-version protocol, network policy and inferred-agent reservations were initially recorded as advisory
+follow-ups. The maintainer subsequently authorized fixing all of them in this active change; the consolidated
+decisions below supersede those deferrals. Intentional search-focus preloading remains unchanged. The bounded
+manifest escaping observation is already handled with the publication repair. No new GitHub issue is implied.
 
 ### Second runtime review: cleanup and Python compatibility
 
@@ -235,6 +235,68 @@ assets directory before recursive removal; leave unrelated entries and the insta
 Vendoring remains a single maintenance process, as its shared work directory already requires. Never infer a
 complete published asset set from an abandoned stage.
 
-Keep the two newly noted pre-existing observations explicit: empty/missing-set `--check` behavior and input-host
-validation of work filenames are advisory follow-ups. They are not silently incorporated into the two bounded
-repairs, and no separate issue is implied. The deferred-part revision protocol remains separately planned.
+Empty/missing-set checking and work-filename validation were initially advisory observations. They are promoted
+into the consolidated remediation below by the maintainer's explicit instruction to fix all remaining items.
+
+## Consolidated remediation of remaining observations
+
+The maintainer's instruction to fix all remaining items and fold them into this change authorizes this planning
+extension and its implementation through apply. Preserve the existing PR stack and approval boundaries for merge,
+issue closure, spec sync, archive and release. The scope comprises all six outstanding defects/policies; intentional
+search-focus preloading remains a reviewed choice rather than a defect.
+
+### Complete organisation reservations
+
+Share named-agent resolution between the full build and its identity-only projection. Include organisations
+inferred from publishers, operators, developers and infrastructure hosts when reserving existing addresses.
+Keep this projection independent of complete page/check/lifecycle content. Compare it against the complete
+catalogue and reproduce the Carpentries collision. An incoming unjoined organisation that collides is refused
+for review before snapshot replacement; this adds neither counters nor automatic source joins by name.
+
+### Explicit favicon integrity and contained working files
+
+The read-only check requires an existing directory and a readable manifest with valid set metadata. An explicitly
+recorded empty set is valid. Vendoring may bootstrap an absent set as an explicit acquisition operation, after
+backup recovery; an existing directory with no valid manifest is not a verified empty set. Preserve prune and
+partial-refresh meanings and previously verified bytes/dates.
+
+Validate each host/key-derived working identity and verify its resolved file path is inside the owned work
+directory before the first image write. Apply the same rules to offline fixtures and network acquisitions;
+reject Windows separators, drive/absolute paths and traversal without normalising them into a different identity.
+
+### Public-only HTTPS acquisition
+
+Favicon acquisition uses direct HTTPS with normal certificate and hostname verification. Reject credentials,
+invalid ports/hosts and non-HTTPS URLs; reject non-public, loopback, private, link-local, multicast, reserved,
+unspecified and site-local destinations, including mapped-address forms. Resolve all candidate addresses before
+connecting and refuse a mixed public/private answer set. Connect to a validated numeric address without a second
+DNS lookup, verify the connected peer, and preserve the original TLS hostname. Repeat the policy at every redirect
+hop, refusing a downgrade before any HTTP request. Cross-host HTTPS image CDNs remain possible under this policy.
+
+Ambient proxies are deliberately excluded from this acquisition path: delegating resolution to a proxy would
+bypass the validated/pinned destination. Document that maintainer-facing change and the offline `--input`
+alternative; do not change the Guide's browser connectors or unrelated refresh clients. Offline fixtures make
+no DNS or network requests and still obey filename containment. Policy refusals produce a bounded failed
+acquisition reason and retain prior icons, never a false unavailable observation. Test DNS answers, rebinding,
+connected peers, TLS context/hostname, redirects and proxy exclusion with controlled fixtures; never probe a real
+private service. Preserve Python 3.11 and use only the standard library.
+
+### Revision-compatible data loading
+
+Generate one deterministic content/runtime revision for each build. Stamp the initial KB/UI pair, display-language
+payloads and every neutral/translated deferred part. Version local script requests with that revision to separate
+ordinary HTTP caches while retaining classic scripts and file/iframe operation. A missing or mismatched revision
+is rejected before it can be merged. Initial KB/UI mismatches stop normal rendering with a bilingual recovery action.
+
+Stage a neutral part and its selected translation until both are accepted, then merge each accepted contribution
+once. A failed or obsolete payload cannot mutate the graph, UI, configuration or answer state. Keep single-flight
+loads, accepted payload reuse, language switching and existing Retry semantics. Retry refetches failed registrations;
+an outdated initial build can offer an explicit Reload action that retains saved answers. Until that action,
+preserve the current view and input and report only a neutral loading failure, never an empty registry or failed
+FAIR requirement. Saved-result and public crate/API formats remain unchanged.
+
+Exercise absent/stale registrations, mixed neutral/translated revisions, both language orders, concurrent loads,
+Retry after correction and an outdated initial pair on HTTP, file and iframe routes. Inspect the bilingual recovery
+states at desktop/320 px and print. Keep the 307,200-byte limit. If revision handling consumes the narrow remaining
+margin, move assessment-only configuration to the existing questions part and verify every consumer; do not trim
+source passages or raise the budget.

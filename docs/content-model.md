@@ -226,6 +226,11 @@ address (`operator = { name = "repositories/zenodo", ... }`). Only a name no thi
 A FIP Dashboard organisation record joins a thing only through its ROR or a reviewed handle, never through its
 name, and takes the fragment `#fip-dashboard-organization`.
 
+Refresh allocation reserves these inferred organisation addresses through the same agent resolver used by the
+complete build. This identity projection needs no page, check or lifecycle content. An incoming organisation
+whose seed reaches an existing address still needs a reviewed join or a distinct descriptive identity; allocation
+neither merges it by a similar name nor adds a numeric suffix.
+
 Each relation and its inverse is written in one documented direction, never both for the same pair. A term names
 its set, and the set does not list it again; a snapshot or another whole names its parts with `schema:hasPart`,
 while a record of a kind that names its whole uses `schema:isPartOf` only where that whole does not repeat it. A
@@ -979,14 +984,23 @@ The same generated manifest records one latest `[[observation]]` per host or inf
 `checked` (TOML date), `outcome` and `reason`, with optional `key`. `available/acquired` requires a matching
 asset and acquisition date. `unavailable` uses `no-usable-image` after completed negative checks, or
 `not-renderable` when candidates cannot produce a usable normalized image. `failed` uses `timeout`,
-`rate-limited`, `service-error`, `network-error`, `redirect-refused` or `response-too-large`; it never establishes
+`rate-limited`, `service-error`, `network-error`, `redirect-refused`, `destination-refused` or `response-too-large`; it never establishes
 that an icon does not exist. A host without an observation is unattempted. Infrastructure entries without a
 reviewed own site or with `logo = false` are excluded rather than given a fictitious network observation.
 New negative/failed attempts retain a verified old asset's source, bytes and original retrieval date. Only
 explicit `--prune` removes assets. Offline `--check` validates identities, dates, allowed outcomes/reasons and
-asset consistency without fetching; a new unattempted host does not make it fail. Coverage reports available
+asset consistency without fetching; a new unattempted host does not make it fail. A missing directory, manifest
+or valid `[favicons]` size/date header fails integrity checking. Acquisition can bootstrap an absent directory;
+an explicitly recorded empty set remains valid, including after pruning. Work keys and paths are checked before
+any image write. Coverage reports available
 assets separately from latest acquired/unavailable/failed attempts, since a retained icon may have a newer
 failed attempt. Maintenance observations are not included in browser configuration.
+Acquisition permits public HTTPS only on every hop. It validates all DNS answers, connects directly to a vetted
+numeric address, checks the connected peer and verifies the certificate against the original hostname. Private,
+loopback, link-local, reserved and tunnel/translation destinations are refused, including mixed DNS answers;
+`failed/destination-refused` retains a verified old asset. Environment proxies are deliberately excluded from this
+maintenance transport; use reviewed offline `--input` fixtures when direct public access is unavailable. The policy
+does not change browser connectors or other source-refresh clients.
 Infrastructure marks use their reviewed official sites and optional own logos, keyed by infrastructure rather than
 inferred from the national portal or a shared institutional host. `--infrastructures` refreshes only these marks
 after verifying existing service files; their original retrieval dates remain. Identical normalized marks share

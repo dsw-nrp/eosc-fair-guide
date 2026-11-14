@@ -1,5 +1,63 @@
 ## ADDED Requirements
 
+### Requirement: Favicon integrity requires an explicit asset set
+
+The offline check SHALL reject a missing asset directory, absent/unreadable manifest or invalid set metadata.
+A manifest that explicitly records a valid empty set SHALL be accepted. Acquisition MAY bootstrap an absent set
+after recovery; integrity checking alone SHALL NOT silently turn absence into a verified empty set.
+
+#### Scenario: The recorded asset directory disappears
+
+- **WHEN** the offline favicon check runs without its expected directory or manifest
+- **THEN** it fails with an integrity problem rather than reporting zero verified icons
+- **AND** it makes no network request or filesystem repair
+
+#### Scenario: A deliberate prune records no remaining icons
+
+- **GIVEN** a valid generated manifest recording the empty set
+- **WHEN** the offline check runs
+- **THEN** it accepts that explicitly recorded state
+
+### Requirement: Favicon work files stay inside their owned directory
+
+Every source-derived working identity and resolved output path SHALL be validated before the first image write.
+Offline fixtures SHALL obey the same filesystem boundary. Invalid identities SHALL be refused without changing
+the installed verified set or writing outside the owned work directory.
+
+#### Scenario: A fixture host contains Windows path separators
+
+- **WHEN** acquisition would use the malformed host as a working filename
+- **THEN** it refuses the identity before writing image bytes
+- **AND** verified assets and unrelated files remain unchanged
+
+### Requirement: Favicon acquisition reaches only validated public HTTPS destinations
+
+Acquisition SHALL use certificate-verified direct HTTPS and validate every initial and redirected destination.
+It SHALL reject credentials, invalid URLs, non-public addresses and non-HTTPS hops before sending requests.
+Ambient proxies SHALL NOT bypass that boundary. Offline fixtures SHALL require no DNS or network access.
+
+#### Scenario: A public name resolves to public and private addresses
+
+- **WHEN** the destination is resolved for acquisition
+- **THEN** the mixed answer set is refused before any connection
+- **AND** a failed observation cannot remove a previously verified icon or establish unavailability
+
+#### Scenario: An HTTPS response redirects through HTTP
+
+- **WHEN** the redirect destination is inspected
+- **THEN** the downgrade is refused before an HTTP request, even if a later hop could return to HTTPS
+
+### Requirement: Favicon connections pin validated public addresses
+
+Every resolved address SHALL be public unicast. Connections SHALL use a validated numeric address without another
+DNS lookup, verify the connected peer and retain the original TLS hostname for certificate verification.
+
+#### Scenario: DNS changes after validation
+
+- **WHEN** a validated request connects
+- **THEN** it uses the approved numeric address and original TLS hostname without resolving the hostname again
+- **AND** an unexpected or non-public connected peer is refused before sending the HTTP request
+
 ### Requirement: Favicon publication preserves a recoverable verified set
 
 The vendor SHALL stage and validate the complete manifest and images before replacing the active set. Failed
