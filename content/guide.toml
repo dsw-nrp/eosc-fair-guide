@@ -4,7 +4,7 @@
 version = "1.0.0-alpha.5"
 testingNotice = { cs = "Průvodce je ve fázi testování. Obsah se může měnit a zatím jej neschválila iniciativa EOSC CZ.", en = "This Guide is in testing. Its content may change, and the EOSC CZ initiative has not approved it yet." }
 datePublished = 2026-11-01
-# Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case (D-177; content check).
+# Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case; the content check reads them.
 genericGuideUses = ["průvodce licencemi", "průvodcem licencemi", "praktický průvodce", "interaktivní průvodce", "interaktivního průvodce", "an interactive guide"]
 name = { cs = "Průvodce FAIR daty", en = "FAIR Data Guide" }
 description = { cs = "Interaktivní průvodce, který vede výzkumníky, data stewardy, správce repozitářů a oborové komunity od plánu projektu k FAIR datům. Vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2) a odráží současný stav národních služeb.", en = "An interactive guide that leads researchers, data stewards, repository administrators and research communities from the project plan to FAIR data. It builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2) and reflects the current state of national services." }
@@ -20,11 +20,13 @@ url = "https://github.com/dsw-nrp/eosc-fair-guide"
 # the actual Pages configuration before validation and sets FAIR_GUIDE_BASE_URL. Runtime HTTP links follow their
 # own window.
 baseUrl = "https://dsw-nrp.github.io/eosc-fair-guide/"
-# The namespace of the Guide's own vocabulary (<namespace>terms#) and RO-Crate profile
-# (<namespace>profile/<profileVersion>). It does not follow the publication location: changing it renames every
-# Guide term, so it is a reviewed breaking change. Releases up to 1.0.0-alpha.3 used https://fair.eosc.cz/.
-namespace = "https://dsw-nrp.github.io/eosc-fair-guide/"
-profileVersion = "0.1"
+# The namespace of the Guide's own vocabulary (<namespace>terms#), RO-Crate profile
+# (<namespace>profile/<profileVersion>) and records (<namespace>id/<address>), registered with w3id, whose redirect
+# leads to wherever the Guide is published. It does not follow the publication location: changing it renames every
+# Guide term and record, so it is a reviewed breaking change. Releases up to 1.0.0-alpha.3 used https://fair.eosc.cz/
+# and up to 1.0.0-alpha.5 https://dsw-nrp.github.io/eosc-fair-guide/.
+namespace = "https://w3id.org/eosc-cz/fair-guide/"
+profileVersion = "0.2"
 freshnessDays = 180
 # The guide is compiled and developed by its editors; the authors of its content basis are credited on the
 # sources it is based on (isBasedOn).
@@ -186,7 +188,7 @@ kind = "software"
 
 [[instrument]]
 id = "openai-gpt-6-runtime"
-name = "GPT-6 via OpenAI Codex (exact backend not exposed)"
+name = "GPT-6 via OpenAI Codex"
 version = "not exposed by the runtime"
 url = "https://openai.com/codex/"
 kind = "ai-model"
@@ -230,6 +232,13 @@ kind = "ai-model"
 id = "einfra-kimi-k3"
 name = "Kimi K3 (Moonshot AI)"
 version = "kimi-k3"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
+kind = "ai-model"
+
+[[instrument]]
+id = "einfra-kimi-k3-1-pro"
+name = "Kimi K3.1 Pro (Moonshot AI)"
+version = "e-infra-cz/kimi-k3.1-pro"
 url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
 kind = "ai-model"
 
@@ -391,6 +400,211 @@ name = { cs = "plánováno", en = "planned" }
 id = "prospective"
 name = { cs = "výhledové", en = "prospective" }
 
+# The other statuses the Guide records, each a scheme of its own: a requirement's, a FIP's and its declarations'
+# as the FIP Dashboard gives them, a test's last observed health, the approved manuscript's preparation and the
+# Guide's own release. Each is named through a property that specialises adms:status.
+[[clauseStatus]]
+id = "current"
+name = { cs = "platné", en = "current" }
+
+[[clauseStatus]]
+id = "refresh"
+name = { cs = "k aktualizaci", en = "to be updated" }
+
+[[clauseStatus]]
+id = "superseded"
+name = { cs = "nahrazené", en = "superseded" }
+
+[[fipStatus]]
+id = "published"
+name = { cs = "zveřejněný profil", en = "published profile" }
+
+[[fipStatus]]
+id = "draft"
+name = { cs = "koncept profilu", en = "draft profile" }
+
+[[declarationStatus]]
+id = "in-use"
+name = { cs = "používá se", en = "in use" }
+
+[[declarationStatus]]
+id = "planned"
+name = { cs = "plánováno", en = "planned" }
+
+[[declarationStatus]]
+id = "under-consideration"
+name = { cs = "zvažuje se", en = "under consideration" }
+
+[[declarationStatus]]
+id = "to-be-replaced"
+name = { cs = "bude nahrazeno", en = "to be replaced" }
+
+[[healthStatus]]
+id = "available"
+name = { cs = "funguje", en = "available" }
+
+[[healthStatus]]
+id = "degraded"
+name = { cs = "funguje omezeně", en = "degraded" }
+
+[[healthStatus]]
+id = "unavailable"
+name = { cs = "nefunguje", en = "unavailable" }
+
+[[preparationStatus]]
+id = "in-preparation"
+name = { cs = "v přípravě", en = "in preparation" }
+
+[[releaseStatus]]
+id = "testing"
+name = { cs = "testovací verze", en = "testing version" }
+
+[[releaseStatus]]
+id = "production"
+name = { cs = "produkční verze", en = "production version" }
+
+[[nodeState]]
+id = "candidate"
+name = { cs = "kandidátský uzel", en = "candidate node" }
+
+[[nodeState]]
+id = "operational"
+name = { cs = "v produkčním provozu", en = "in production operations" }
+
+# How much of its question a live source's pre-fill covers.
+[[prefillCoverage]]
+id = "whole"
+name = { cs = "celá otázka", en = "the whole question" }
+
+[[prefillCoverage]]
+id = "partly"
+name = { cs = "část otázky", en = "part of the question" }
+description = { cs = "Zdroj navrhne nejvýš Částečně.", en = "The source suggests Partly at most." }
+
+[[prefillCoverage]]
+id = "champion-evidence-only"
+name = { cs = "jen podklad z FAIR Champion", en = "FAIR Champion evidence only" }
+description = { cs = "Splněná část navrhne Částečně, nesplněná Ne.", en = "A part met suggests Partly, a part failed No." }
+
+# What a ledger clause is: a requirement or recommendation of its source, how NRP fulfils one, or a finding.
+[[clauseKind]]
+id = "requirement"
+name = { cs = "požadavek", en = "requirement" }
+
+[[clauseKind]]
+id = "recommendation"
+name = { cs = "doporučení", en = "recommendation" }
+
+[[clauseKind]]
+id = "fulfilment"
+name = { cs = "plnění", en = "fulfilment" }
+description = { cs = "Jak požadavek plní NRP.", en = "How NRP fulfils a requirement." }
+
+[[clauseKind]]
+id = "statement"
+name = { cs = "zjištění", en = "finding" }
+description = { cs = "Co zdroj zjistil, bez požadavku.", en = "What the source found, without a requirement." }
+
+# What a record of the Layers-and-Seams model is: a layer, a seam between layers or a scoped implementation example.
+[[modelKind]]
+id = "layer"
+name = { cs = "vrstva implementace", en = "implementation layer" }
+
+[[modelKind]]
+id = "seam"
+name = { cs = "návaznost", en = "seam" }
+
+[[modelKind]]
+id = "example"
+name = { cs = "příklad implementace", en = "implementation example" }
+
+# The basis of a correspondence between life-cycle stages.
+[[mappingBasis]]
+id = "published"
+name = { cs = "uvádí zdroj", en = "published by the source" }
+
+[[mappingBasis]]
+id = "reviewed"
+name = { cs = "posoudil Průvodce", en = "reviewed by the Guide" }
+
+[[mappingBasis]]
+id = "unconfirmed"
+name = { cs = "nepotvrzeno", en = "unconfirmed" }
+
+# How much of a self-check question an external evaluator's criterion covers. Only whole coverage may suggest an
+# answer, and only from a native pass.
+[[mappingCoverage]]
+id = "whole"
+name = { cs = "celá otázka", en = "the whole question" }
+
+[[mappingCoverage]]
+id = "partial"
+name = { cs = "část otázky", en = "part of the question" }
+
+# The discipline groups the KNAV Data Management Tools Catalogue publishes for its tools, in its own words; the Czech
+# names are the Guide's translation.
+[[knavDiscipline]]
+id = "all"
+name = { cs = "obecné, pro všechny obory", en = "General, for all disciplines" }
+
+[[knavDiscipline]]
+id = "biology-chemistry"
+name = { cs = "biologické a chemické vědy", en = "Biological and Chemical Sciences" }
+
+[[knavDiscipline]]
+id = "physics-materials"
+name = { cs = "fyzikální a materiálové vědy", en = "Physical and Material Sciences" }
+
+[[knavDiscipline]]
+id = "computer-information"
+name = { cs = "počítačové a informační vědy", en = "Computer and Information Sciences" }
+
+[[knavDiscipline]]
+id = "astronomy"
+name = { cs = "astronomie a příbuzné vědy", en = "Astronomy and related Sciences" }
+
+[[knavDiscipline]]
+id = "social-sciences-humanities"
+name = { cs = "společenské a humanitní vědy", en = "Social Sciences and Humanities" }
+
+[[knavDiscipline]]
+id = "earth-sciences"
+name = { cs = "vědy o Zemi", en = "Earth Sciences" }
+
+# The scopes the FIP Dashboard publishes for a FAIR-enabling resource.
+[[fipDashboardScope]]
+id = "global"
+name = { cs = "celosvětový dosah", en = "global coverage" }
+
+[[fipDashboardScope]]
+id = "european"
+name = { cs = "evropský dosah", en = "European coverage" }
+
+[[fipDashboardScope]]
+id = "national"
+name = { cs = "národní dosah", en = "national coverage" }
+
+# What an advice item is: a direction to act, a tip that explains, a station's key point or an AI tip.
+[[adviceKind]]
+id = "direction"
+name = { cs = "doporučení", en = "direction" }
+description = { cs = "Krok, který doporučení radí udělat.", en = "A step the advice recommends taking." }
+
+[[adviceKind]]
+id = "tip"
+name = { cs = "tip", en = "tip" }
+description = { cs = "Vysvětlení nebo souvislost na úrovni Proč.", en = "An explanation or context at the Why level." }
+
+[[adviceKind]]
+id = "key"
+name = { cs = "klíčová myšlenka", en = "key point" }
+description = { cs = "Hlavní myšlenka zastávky pro jeden pohled.", en = "The station's one core idea for a lens." }
+
+[[adviceKind]]
+id = "ai"
+name = { cs = "tip k AI", en = "AI tip" }
+description = { cs = "Kde při FAIRifikaci pomůže AI a co ověřit.", en = "Where AI helps in FAIRification and what to check." }
+
 [[tier]]
 id = "minimum"
 name = { cs = "Minimum", en = "Minimum" }
@@ -418,26 +632,31 @@ description = { cs = "co standard vyžaduje, u podmíněných prvků tam, kde se
 
 [[resourceType]]
 id = "service"
+favicon = true
 name = { cs = "služba", en = "service" }
 fipDashboard = ["identifier-service", "authentication-service"]
 
 [[resourceType]]
 id = "tool"
+favicon = true
 name = { cs = "nástroj", en = "tool" }
 fipDashboard = ["tool"]
 citation = ["software"]
 
 [[resourceType]]
 id = "registry"
+favicon = true
 name = { cs = "repozitář nebo registr", en = "repository or registry" }
-fipDashboard = ["repository"]
+fipDashboard = ["repository", "registry"]
 
 [[resourceType]]
 id = "guide"
+favicon = true
 name = { cs = "příručka", en = "guide" }
 
 [[resourceType]]
 id = "document"
+favicon = true
 name = { cs = "dokument", en = "document" }
 citation = ["document", "webpage", "presentation"]
 
@@ -448,6 +667,7 @@ citation = ["report", "article"]
 
 [[resourceType]]
 id = "standard"
+favicon = true
 name = { cs = "standard", en = "standard" }
 fipDashboard = ["metadata-schema", "access-protocol", "provenance-model"]
 citation = ["standard"]
@@ -604,95 +824,95 @@ name = { cs = "Zachovat zdrojový kód", en = "Preserve source code" }
 [[task]]
 lens = "V"
 label = { cs = "Poskytovatel chce plán správy dat", en = "My funder requires a data management plan" }
-href = "#station-plan"
+href = "stations/plan"
 icon = "clipboard-list"
 
 [[task]]
 lens = "V"
 label = { cs = "Mám hotová data a potřebuji pro ně DOI", en = "My data are ready and need a DOI" }
-href = "#station-repository"
+href = "stations/repository"
 icon = "box-archive"
 
 [[task]]
 lens = "V"
 label = { cs = "Chci sdílet citlivá data od respondentů", en = "I need to share sensitive respondent data" }
-href = "#station-licence"
+href = "stations/licence"
 icon = "scale-balanced"
 
 [[task]]
 lens = "V"
 label = { cs = "Používám cizí data a potřebuji je citovat", en = "I am reusing data and need to cite them" }
-href = "#station-citation"
+href = "stations/citation"
 icon = "quote-right"
 
 [[task]]
 lens = "DS"
 label = { cs = "Pomáhám týmu připravit plán správy dat", en = "I am helping a team prepare a data management plan" }
-href = "#station-plan"
+href = "stations/plan"
 icon = "clipboard-list"
 
 [[task]]
 lens = "DS"
 label = { cs = "Datům chybí srozumitelný popis", en = "The data need clearer documentation" }
-href = "#station-metadata"
+href = "stations/metadata"
 icon = "tags"
 
 [[task]]
 lens = "DS"
 label = { cs = "Instituce připravuje datovou strategii", en = "My institution is preparing its data strategy" }
-href = "#station-plan"
+href = "stations/plan"
 icon = "building-columns"
 
 [[task]]
 lens = "DS"
 label = { cs = "Tým chce zopakovat výpočetní postup", en = "A team needs to reproduce an analysis" }
-href = "#station-analyse"
+href = "stations/analyse"
 icon = "gears"
 
 [[task]]
 lens = "SR"
 label = { cs = "Začínáme s výzkumným repozitářem", en = "We are starting a research repository" }
-href = "#station-plan"
+href = "stations/plan"
 icon = "box-archive"
 
 [[task]]
 lens = "SR"
 label = { cs = "Repozitář připravujeme na podmínky NRP", en = "We are preparing our repository for NRP conditions" }
-href = "#station-repository"
+href = "stations/repository"
 icon = "door-open"
 
 [[task]]
 lens = "SR"
 label = { cs = "Naše záznamy nejsou v NMA", en = "Our records are missing from NMA" }
-href = "#station-findability"
+href = "stations/findability"
 icon = "plug"
 
 [[task]]
 lens = "SR"
 label = { cs = "Potřebujeme vyjasnit práva k vkládaným datům", en = "We need to clarify rights to deposited data" }
-href = "#station-licence"
+href = "stations/licence"
 icon = "scale-balanced"
 
 [[task]]
 lens = "K"
 label = { cs = "Domlouváme společná pravidla správy dat", en = "We are agreeing common data-management practices" }
-href = "#station-plan"
+href = "stations/plan"
 icon = "people-group"
 
 [[task]]
 lens = "K"
 label = { cs = "Vybíráme společná metadata a slovníky", en = "We are choosing shared metadata and vocabularies" }
-href = "#station-metadata"
+href = "stations/metadata"
 icon = "tags"
 
 [[task]]
 lens = "K"
 label = { cs = "Hledáme infrastrukturu pro náš obor", en = "We need infrastructure for our field" }
-href = "#station-repository"
+href = "stations/repository"
 icon = "box-archive"
 
 [[task]]
 lens = "K"
 label = { cs = "Chceme sdílet ověřený analytický postup", en = "We want to share a proven analysis workflow" }
-href = "#station-analyse"
+href = "stations/analyse"
 icon = "gears"

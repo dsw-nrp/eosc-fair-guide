@@ -25,6 +25,7 @@ import re
 import sys
 import tempfile
 import tomllib
+import unicodedata
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -34,7 +35,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import check_content  # noqa: E402
 import duplicate_repairs  # noqa: E402
-from build_crate import ROOT, ContentError, load_content  # noqa: E402
+from build_crate import (  # noqa: E402
+    ROOT,
+    ContentError,
+    Graph,
+    build_crate,
+    founding_record,
+    load_content,
+    records_by_thing,
+)
 from catalogue_identity import alternate_id, bare_url  # noqa: E402
 from nkr_contract import nkr_status  # noqa: E402
 
@@ -291,6 +300,8 @@ def entries(content: dict[str, Any]) -> list[Entry]:
 class DuplicateReport:
     errors: list[str] = field(default_factory=list)
     suggestions: list[Suggestion] = field(default_factory=list)
+    # Pairs a person should look at: a record and a thing that may describe one thing. Never an error or a fix.
+    reviews: list[str] = field(default_factory=list)
 
     def error(self, where: str, message: str) -> None:
         self.errors.append(f"{where}: {message}")
@@ -298,6 +309,122 @@ class DuplicateReport:
 
 def entry_kind(entry: Entry) -> str:
     return entry.name.split(":", 1)[0]
+
+
+# Public suffixes of two labels the Guide's sources use; any other domain's registrable part is its last two labels.
+TWO_LABEL_SUFFIXES = {"ac.uk", "co.uk", "gov.uk", "org.uk", "com.au", "edu.au", "ac.jp", "co.jp"}
+# Words that name no particular thing, so a shared one is no reason to look at a pair.
+GENERIC_WORDS = frozenset(
+    [
+        "access",
+        "archive",
+        "catalog",
+        "catalogue",
+        "center",
+        "centre",
+        "czech",
+        "data",
+        "digital",
+        "fair",
+        "guide",
+        "infrastructure",
+        "institute",
+        "library",
+        "management",
+        "metadata",
+        "national",
+        "network",
+        "online",
+        "open",
+        "platform",
+        "plan",
+        "plans",
+        "policy",
+        "portal",
+        "project",
+        "republic",
+        "repositories",
+        "repository",
+        "research",
+        "science",
+        "service",
+        "services",
+        "software",
+        "standard",
+        "system",
+        "tool",
+        "tools",
+        "university",
+        "via",
+        "with",
+    ]
+)
+
+
+def registrable_domains(entry: Entry) -> set[str]:
+    """The registrable domains of an entry's addresses (`cesnet.cz` for `owncloud.cesnet.cz`)."""
+    found = set()
+    for key in entry.keys:
+        if key.startswith("url:"):
+            labels = key.removeprefix("url:").split("/")[0].lower().removeprefix("www.").split(".")
+            size = 3 if ".".join(labels[-2:]) in TWO_LABEL_SUFFIXES else 2
+            if len(labels) >= size:
+                found.add(".".join(labels[-size:]))
+    return found
+
+
+def distinctive_words(entry: Entry, skipped: set[str]) -> set[str]:
+    """The words of an entry's names that could name one thing: not generic, not part of a shared domain."""
+    return {
+        word
+        for key in entry.keys
+        if key.startswith("name:")
+        for word in key.removeprefix("name:").split()
+        if len(word) >= 4 and word not in GENERIC_WORDS and word not in skipped
+    }
+
+
+def review_pairs(found: list[Entry], same: Any, accepted: list[frozenset[str]]) -> list[str]:
+    """Each registry record and curated thing that may describe one thing without any key joining them: the same
+    registrable domain with a distinctive name word in common, or the same name and provider.
+    A person decides; nothing joins or links on these grounds."""
+    things = [entry for entry in found if entry.curated and entry.group in ("things", "organisations")]
+    records = [entry for entry in found if not entry.curated and entry.group in ("things", "organisations")]
+    reviews = []
+    for record in records:
+        for item in things:
+            if record.group != item.group or same(record.name, item.name):
+                continue
+            if any({record.name, item.name} <= group for group in accepted):
+                continue
+            reason = ""
+            domains = registrable_domains(record) & registrable_domains(item)
+            if domains:
+                skipped = {part for domain in domains for label in domain.split(".") for part in label.split("-")}
+                common = distinctive_words(record, skipped) & distinctive_words(item, skipped)
+                if common:
+                    reason = f"the same registrable domain ({', '.join(sorted(domains))}) and the name word(s) "
+                    reason += ", ".join(sorted(common))
+            provider = provider_of(record.record) if record.record else ""
+            if not reason and provider and provider == provider_of(item.record or {}):
+                names = {key for key in record.keys if key.startswith("name:")} & item.keys
+                if names:
+                    reason = f"the same name and provider ({provider})"
+            if reason:
+                reviews.append(f"{record.name} may describe {item.name}: {reason}; link the record or accept the pair")
+    return reviews
+
+
+def provider_of(row: dict[str, Any]) -> str:
+    """The normalised name of who provides an entry, as its row states it: provider, operator or publisher."""
+    for name in ("provider", "operator", "publisher"):
+        value = row.get(name)
+        if isinstance(value, dict):
+            value = value.get("name", "")
+        found = words(value)
+        if found:
+            return found[0]
+    return ""
 
 
 def key_value(entry: Entry, prefix: str) -> str:
@@ -517,6 +644,9 @@ def check(content: dict[str, Any], accepted: list[dict[str, Any]]) -> DuplicateR
     for index, accepted_set in enumerate(accepted_sets):
         if accepted_set and accepted_set not in used:
             report.error(f"duplicates:{index + 1}", "the accepted group no longer occurs; remove it")
+    report.reviews = review_pairs(
+        found, lambda one, other: components.find(one) == components.find(other), accepted_sets
+    )
     return report
 
 
@@ -525,6 +655,7 @@ def report_payload(report: DuplicateReport) -> dict[str, Any]:
         "formatVersion": 1,
         "check": "duplicates",
         "errors": list(report.errors),
+        "reviews": list(report.reviews),
         "suggestions": [
             {
                 "entry": suggestion.entry,
@@ -678,6 +809,70 @@ def _accepted(root: Path) -> list[dict[str, Any]]:
     return tomllib.loads(path.read_text(encoding="utf-8")).get("accepted", []) if path.exists() else []
 
 
+def _distinct(root: Path) -> list[dict[str, Any]]:
+    path = root / "content" / ACCEPTED_FILE
+    return tomllib.loads(path.read_text(encoding="utf-8")).get("distinct", []) if path.exists() else []
+
+
+# The kinds of the things a name can describe twice: what an agent can be.
+NAMED_KINDS = ("organizations", "infrastructures", "repositories", "resources")
+
+
+def shared_names(content: dict[str, Any], distinct: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
+    """Things the Guide describes under one exact name, in any language, as the build publishes them: errors, and
+    pairs a person should look at. Two such things are one thing, unless a reviewed `[[distinct]]` group in
+    content/duplicates.toml says why they are two. A thing a FIP Dashboard organisation record founds because no
+    reviewed handle or ROR names it is listed for review instead: a name never attaches a record."""
+    graph = Graph()
+    build_crate(content, graph)
+    base = content["guide"]["guide"]["recordBase"]
+    records = records_by_thing(graph.entities)
+    named: dict[str, set[str]] = {}
+    for entity_id, entity in graph.entities.items():
+        address = entity_id.removeprefix(base)
+        if entity_id.startswith(base) and "#" not in address and address.split("/", 1)[0] in NAMED_KINDS:
+            for value in as_names(entity.get("name")):
+                named.setdefault(unicodedata.normalize("NFKC", value).casefold(), set()).add(address)
+    groups = [(frozenset(group.get("addresses", [])), group) for group in distinct]
+    errors, reviews, used = [], [], set()
+    for addresses in sorted({frozenset(found) for found in named.values() if len(found) > 1}, key=sorted):
+        accepted = next((members for members, _ in groups if addresses <= members), None)
+        if accepted is not None:
+            used.add(accepted)
+            continue
+        shared = sorted(name for name, found in named.items() if found >= addresses)[0]
+        message = f"{', '.join(sorted(addresses))} share the name '{shared}'"
+        founded = [
+            address
+            for address in addresses
+            if str(founding_record(graph.entities[base + address], records)).endswith("#fip-dashboard-organization")
+        ]
+        if founded:
+            reviews.append(
+                message + "; a FIP Dashboard organisation record attaches only by a reviewed handle or its ROR: add "
+                "one to the row that describes it, or accept them as distinct"
+            )
+        else:
+            errors.append(
+                message + "; describe one thing once, or accept them as [[distinct]] in content/duplicates.toml"
+                " with the reason they are two"
+            )
+    for members, group in groups:
+        if members not in used:
+            errors.append(f"{', '.join(sorted(members))}: an accepted distinct group that no longer shares a name")
+        if not group.get("reason"):
+            errors.append(f"{', '.join(sorted(members))}: an accepted distinct group needs its reason")
+    return errors, reviews
+
+
+def as_names(value: Any) -> list[str]:
+    return [item.get("@value", "") if isinstance(item, dict) else str(item) for item in as_list(value) if item]
+
+
+def as_list(value: Any) -> list[Any]:
+    return value if isinstance(value, list) else [] if value is None else [value]
+
+
 def apply_local(
     root: Path, report: DuplicateReport, *, person: str, content: dict[str, Any]
 ) -> tuple[DuplicateReport, bool]:
@@ -765,8 +960,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"check_duplicates: cannot read the content: {error}", file=sys.stderr)
         return 2
     report = check(content, accepted)
+    try:
+        named, review = shared_names(content, _distinct(args.root))
+    except ContentError as error:
+        print(f"check_duplicates: cannot build the content: {error}", file=sys.stderr)
+        return 2
+    report.errors.extend(named)
+    report.reviews.extend(review)
     for error in report.errors:
         print(f"error: {error}")
+    for review in report.reviews:
+        print(f"review: {review}")
     for suggestion in report.suggestions:
         table = f" [{suggestion.table}]" if suggestion.table else ""
         print(

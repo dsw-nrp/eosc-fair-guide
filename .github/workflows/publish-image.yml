@@ -2,10 +2,9 @@ name: Publish the Guide image
 
 # Called from the release after the tag's deployment. It serves the exact verified release artifact — the
 # digest-checked `guide-site-<sha>.tar.gz` — as a container, signed and attested; nothing is rebuilt here beyond
-# the thin image around the artifact. The image always carries the release's version, the tag without its `v`
-# (decision 31); `latest` moves to the newest approved release and `stable` to the newest approved non-prerelease,
-# never back (decision 30). The base image is
-# Digest-pinned and Dependabot keeps it current.
+# the thin image around the artifact. The image always carries the release's version, the tag without its `v`;
+# `latest` moves to the newest approved release and `stable` to the newest approved non-prerelease, never back, so a
+# superseded release keeps its own tag. The base image is digest-pinned and Dependabot keeps it current.
 on:
   workflow_call:
     inputs:
@@ -123,12 +122,14 @@ jobs:
         run: |
           trap 'docker rm -f guide >/dev/null 2>&1 || true' EXIT
           docker run --rm -d --name guide -p 8080:8080 "$IMAGE@$DIGEST"
+          HEALTH_PATH=$(cat .cache/image/health-path.txt)
           HEALTH=""
           for attempt in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:8080/api/health.json -o health.json; then HEALTH=1; break; fi
+            if curl -fsS -D health-headers.txt "http://127.0.0.1:8080/${HEALTH_PATH}" -o health.json; then HEALTH=1; break; fi
             sleep 2
           done
           test -n "$HEALTH"
+          python -c 'from pathlib import Path; lines = Path("health-headers.txt").read_text().splitlines(); assert any(line.casefold() == "cache-control: no-store" for line in lines)'
           curl -fsS http://127.0.0.1:8080/assets/data/ui.js -o image-ui.js
           python scripts/image_release.py verify --health health.json --identity .cache/image/identity.json --config image-ui.js --commit "$RELEASE_COMMIT"
       - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
@@ -196,7 +197,7 @@ jobs:
           digest_of() {
             docker buildx imagetools inspect --raw "$1" | sha256sum | cut -d' ' -f1
           }
-          # The image carries the version, the release tag without its v (decision 31). The version tag must point at
+          # The image carries the version, the release tag without its v. The version tag must point at
           # the audited index before any moving alias is touched.
           VERSION="${RELEASE_TAG#v}"
           docker buildx imagetools create --tag "$IMAGE:$VERSION" "$IMAGE@$DIGEST"

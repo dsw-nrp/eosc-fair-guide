@@ -1,0 +1,12 @@
+# cs: Vybere dva posuzované testy FAIR Champion k metrice FAIR o trvalých identifikátorech metadat.
+# en: Selects the two assessed FAIR Champion tests for the FAIR Metrics persistent-metadata-identifier metric.
+PREFIX guide: <https://w3id.org/eosc-cz/fair-guide/terms#>
+PREFIX sio: <http://semanticscience.org/resource/>
+
+SELECT ?test
+WHERE {
+  VALUES ?question { <https://w3id.org/fair-metrics/general/FM_F1_M_IdentPersistent> }
+  ?test a guide:AssessmentCriterion ;
+    sio:SIO_000233 ?question .
+}
+ORDER BY ?test

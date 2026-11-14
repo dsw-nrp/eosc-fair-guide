@@ -10,7 +10,7 @@ license = "https://creativecommons.org/publicdomain/zero/1.0/"
 [[repository]]
 id = "lindat-clariah-cz"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100010386" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "LINDAT/CLARIAH-CZ repository"
 url = "https://lindat.mff.cuni.cz/repository/home"
 kind = "domain"
@@ -30,7 +30,7 @@ qualityManagement = true
 [[repository]]
 id = "csda"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100010484" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "Czech Social Science Data Archive"
 url = "https://archiv.soc.cas.cz/en/pristup-k-datum-2/nase-data"
 kind = "domain"
@@ -50,7 +50,7 @@ qualityManagement = true
 [[repository]]
 id = "geomind"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100010629" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "GEOMIND"
 url = "https://www.re3data.org/repository/r3d100010629"
 kind = "domain"
@@ -70,7 +70,7 @@ qualityManagement = true
 [[repository]]
 id = "benchmark-energy-geometry"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100011166" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "Benchmark Energy & Geometry Database"
 url = "https://www.re3data.org/repository/r3d100011166"
 kind = "domain"
@@ -90,7 +90,7 @@ qualityManagement = true
 [[repository]]
 id = "archives-programs-data-physics"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100011452" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "Archives of programs and data for physics"
 url = "https://www.re3data.org/repository/r3d100011452"
 kind = "domain"
@@ -110,7 +110,7 @@ qualityManagement = false
 [[repository]]
 id = "spectr-w3"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100011460" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "SPECTR-W3"
 url = "https://www.re3data.org/repository/r3d100011460"
 kind = "domain"
@@ -130,7 +130,7 @@ qualityManagement = false
 [[repository]]
 id = "mzcloud"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100012313" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "mzCloud"
 url = "https://www.mzcloud.org/"
 kind = "domain"
@@ -150,7 +150,7 @@ qualityManagement = true
 [[repository]]
 id = "map-collection"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100012473" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "Map collection Charles University Faculty of Science"
 namesCs = ["Digitálni mapová sbirka", "Mapová sbírka Přírodovědecké fakulty UK"]
 url = "https://natur.cuni.cz/en/geography/departments-and-work-places/map-collection"
@@ -171,7 +171,7 @@ qualityManagement = false
 [[repository]]
 id = "deims"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100012910" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "DEIMS"
 url = "https://deims.org"
 kind = "domain"
@@ -191,7 +191,7 @@ qualityManagement = true
 [[repository]]
 id = "czech-national-corpus"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100013045" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "Czech National Corpus"
 namesCs = ["CNK", "Český národní korpus"]
 url = "https://korpus.cz/"
@@ -212,7 +212,7 @@ qualityManagement = false
 [[repository]]
 id = "amcr"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100013576" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "Archaeological Map of the Czech Republic"
 namesCs = ["Archeologická mapa České republiky", "Digitální archiv AMČR"]
 url = "https://digiarchiv.aiscr.cz/"
@@ -233,7 +233,7 @@ qualityManagement = true
 [[repository]]
 id = "pandora"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100013698" }]
-guideRoute = "repo"
+guideRoute = "repositories"
 name = "Pandora"
 url = "https://pandora.earth/"
 re3data = "r3d100013698"
@@ -252,7 +252,7 @@ qualityManagement = false
 [[repository]]
 id = "eli-eric-open-data"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100013889" }]
-guideRoute = "repo/inst"
+guideRoute = "repositories"
 # A reviewed inclusion (content/repositories.toml): hosted in the Czech Republic, not tagged with it.
 name = "ELI ERIC Open Data Repository"
 url = "https://data.eli-laser.eu/"
@@ -272,7 +272,7 @@ qualityManagement = false
 [[repository]]
 id = "asep"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100014032" }]
-guideRoute = "repo/inst"
+guideRoute = "repositories"
 name = "ASEP Repository"
 namesCs = ["Repozitář ASEP"]
 url = "https://asep.lib.cas.cz/arl-cav/en/"
@@ -293,7 +293,7 @@ qualityManagement = false
 [[repository]]
 id = "archaeovault"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100014899" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 name = "ArchaeoVault"
 url = "https://archaeo-vault.cz/"
 kind = "domain"
@@ -313,7 +313,7 @@ qualityManagement = false
 [[repository]]
 id = "datarepo"
 alternateIds = [{ "scheme" = "re3data", "value" = "r3d100014970" }]
-guideRoute = "repo"
+guideRoute = "repositories"
 name = "Data Catch-all Repository"
 namesCs = ["Datový catch-all repozitář"]
 url = "https://datarepo.eosc.cz"

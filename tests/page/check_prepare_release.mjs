@@ -245,7 +245,7 @@ for (const mutate of [
   assert.equal(state.tags.size, 1, 'retry cannot change the tag decision or create another annotation');
 }
 {
-  // A release follows every release tag (decision 30): a lower one is refused before anything is written.
+  // A release follows every release tag: a lower one is refused before anything is written.
   const {state, github, core, read} = fixture();
   state.tagList = ['v1.2.3', 'v1.0.0', 'not-a-release'];
   const lower = /Version 1\.2\.3-alpha\.1 is not above the newest release tag v1\.2\.3/;

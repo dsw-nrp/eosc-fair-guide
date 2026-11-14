@@ -60,7 +60,7 @@ class ContributorTests(unittest.TestCase):
     def action(self, action_id: str, agent: str) -> str:
         return (
             f'\n[[action]]\nid = "{action_id}"\ntype = "update"\nname = "Edit"\nagent = "{agent}"\n'
-            'instruments = ["model"]\nresults = ["one.03"]\nendTime = 2099-01-01T00:00:00+00:00\n'
+            'instruments = ["model"]\nresults = ["advice/one.03"]\nendTime = 2099-01-01T00:00:00+00:00\n'
         )
 
     def test_identities_roles_and_suggestions(self) -> None:

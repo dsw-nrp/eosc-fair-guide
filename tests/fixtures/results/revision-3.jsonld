@@ -1,0 +1,8 @@
+{
+  "@context": [{"ftr": "https://w3id.org/ftr#", "guideSources": "https://w3id.org/eosc-cz/fair-guide/terms#guideSources"}],
+  "@graph": [
+    {"@id": "./", "@type": "Dataset", "guideState": "{\"format\":\"eosc-fair-guide-result\",\"v\":3,\"check\":\"fip\",\"mode\":null,\"profile\":null,\"target\":\"https://example.org/dataset/1\",\"items\":{\"fip.01\":{\"value\":\"yes\",\"origin\":\"user\",\"prefill\":null}},\"assessments\":[]}", "guideSources": "{}"},
+    {"@id": "#result-fip.01", "@type": ["CreativeWork", "TestResult"], "prov:value": "pass",
+      "ftr:outputFromTest": {"@id": "https://dsw-nrp.github.io/eosc-fair-guide/api/tests/fip.01.json"}}
+  ]
+}

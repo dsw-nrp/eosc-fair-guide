@@ -1,0 +1,7 @@
+{
+  "columns": ["test"],
+  "rows": [
+    ["https://w3id.org/eosc-cz/fair-guide/id/tests/fair-champion/fc-metadata-pid"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/tests/fair-champion/test_FM_F1_M_IdentPersistent"]
+  ]
+}

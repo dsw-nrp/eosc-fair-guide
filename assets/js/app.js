@@ -1,19 +1,24 @@
-/* Start-up and rendering of the FAIR Data Guide. The page makes no request to an external service on load. */
+/* Guide rendering; external requests require reader action. */
 (function () {
   "use strict";
 
   const FG = window.FairGuide;
+  let dismissLoadError = () => {};
 
-  /** A failed local data download keeps the current view available and offers the same action again. */
+  /** Keep the usable view and offer Retry after a local data failure. */
   FG.dataLoadError = function (error, retry) {
     console.error(error.message);
     const app = document.getElementById("app");
-    app.querySelector(".data-load-error")?.remove();
-    app.prepend(FG.h("div", { class: "wrap data-load-error", role: "alert" },
+    dismissLoadError();
+    const dismiss = () => alert.remove();
+    const alert = FG.h("div", { class: "wrap data-load-error", role: "alert" },
       FG.h("p", null, FG.h("span", { lang: "cs" }, "Průvodce se nepodařilo načíst."), " / ",
         FG.h("span", { lang: "en" }, "The Guide could not be loaded.")),
-      FG.h("button", { type: "button", onclick: () => { app.querySelector(".data-load-error")?.remove(); retry(); } },
-        FG.h("span", { lang: "cs" }, "Zkusit znovu"), " / ", FG.h("span", { lang: "en" }, "Retry"))));
+      FG.h("button", { type: "button", onclick: () => { if (alert.isConnected) { dismiss(); retry(); } } },
+        FG.h("span", { lang: "cs" }, "Zkusit znovu"), " / ", FG.h("span", { lang: "en" }, "Retry")));
+    app.prepend(alert);
+    dismissLoadError = dismiss;
+    return dismiss;
   };
 
   FG.navigate = function (hash) {
@@ -58,15 +63,24 @@
   }
 
   FG.render = function () {
-    const route = FG.parseHash(window.location.hash);
+    let route = FG.parseHash(window.location.hash);
+    /* `#/id/<address>` opens the record's catalogue entry in the saved language and lens (or Czech with the `V` lens),
+       and becomes the full route before the view is shown or published to an embedding page. */
+    if (route.entry) {
+      window.history.replaceState(null, "", FG.catalogueHref(route.entry));
+      route = FG.parseHash(window.location.hash);
+    }
     /* A view whose parts have not arrived yet renders once they have; the previous view stays until then. */
     const needed = [...(VIEW_PARTS[route.view] || [])];
     if (route.lang !== FG.state.lang) needed.push(...FG.partsLoaded);
     if (route.view === "path" && !FG.landingShown(route)) needed.push("standards", "model", "advice");
     if (route.view === "page" && ["model", "machines", "about"].includes(route.arg)) needed.push("model");
+    if (route.view === "page" && route.arg === "machines") needed.push("api");
     if (route.view === "page" && route.arg === "ai") needed.push("standards", "advice");
+    /* A catalogue entry of advice or a page draws on its part. */
+    if (route.view === "catalogue" && route.extra && ["advice", "pages"].includes(route.arg)) needed.push(route.arg);
     if (route.view === "page" && ["model", "machines"].includes(route.arg)) needed.push("standards", "questions");
-    if (route.view === "path" && (route.arg || Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length))) needed.push("questions");
+    if (route.view === "path" && (!FG.landingShown(route) || Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length))) needed.push("questions");
     const missing = [...new Set(needed)].filter((name) => !FG.partHasLanguage(name, route.lang));
     const helperNeeded = route.view === "page" && FG.list(FG.config.helpers?.pages).includes(route.arg) && !(FG.helpers && FG.helpers[route.arg]);
     /* A check and the checks' overview are both the self-check's view; a path with saved answers and the about page's
@@ -74,12 +88,14 @@
     const viewName = route.view === "check" ? "selfcheck" : route.view;
     const answered = Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length);
     const checkCode = (route.view === "path" && answered) || (route.view === "page" && route.arg === "about");
-    const viewNeeded = (Boolean(FG.config.views && FG.config.views[route.view]) && !FG.views[viewName]) || (checkCode && !FG.views.selfcheck);
+    const viewNeeded = (Boolean(FG.config.views && FG.config.views[route.view]) && !FG.views[viewName]) || (checkCode && !FG.views.selfcheck)
+      || (route.view === "page" && route.arg === "machines" && !FG.views.endpointTable);
     if (!FG.languagesLoaded.has(route.lang) || missing.length || helperNeeded || viewNeeded) {
       const key = route.lang + "/" + missing.join(",") + (helperNeeded ? "/helper" : "") + (viewNeeded ? "/view" : "");
       if (waitingFor === key) return;
       waitingFor = key;
-      Promise.all([FG.loadLanguage(route.lang), ...missing.map((name) => FG.loadPart(name, route.lang)), ...(helperNeeded ? [FG.loadHelpers()] : []), ...(viewNeeded ? [FG.loadView(checkCode ? "check" : route.view)] : [])]).then(() => {
+      Promise.all([FG.loadLanguage(route.lang), ...missing.map((name) => FG.loadPart(name, route.lang)), ...(helperNeeded ? [FG.loadHelpers()] : []),
+        ...(viewNeeded ? [FG.loadView(checkCode ? "check" : (route.view === "page" && route.arg === "machines" ? "machines" : route.view))] : [])]).then(() => {
         if (waitingFor === key) waitingFor = "";
         FG.render();
       }).catch((error) => {
@@ -99,9 +115,8 @@
     const app = document.getElementById("app");
     FG.exports = [];
     const main = FG.h("main", { id: "main", tabindex: "-1" }, view(route));
-    const entryId = route.view === "catalogue" && route.extra
-      ? Object.keys(FG.config.api.records).find((id) => FG.config.api.records[id] === route.arg + "/" + route.extra) : null;
-    const pageTitle = (entryId && FG.text(FG.get(entryId)?.name)) || main.querySelector("h1")?.textContent.trim() || FG.t("app.title");
+    const record = route.view === "catalogue" && route.extra ? FG.get(FG.address(route.arg, route.extra)) : null;
+    const pageTitle = (record && FG.text(record.name || record.headline)) || main.querySelector("h1")?.textContent.trim() || FG.t("app.title");
     document.title = (pageTitle === FG.t("app.title") ? pageTitle : pageTitle + " | " + FG.t("app.title")) + " | EOSC CZ";
     /* A single check saves its result in its own export area; every other view gets the shared one. */
     if (!(isCheck && route.arg)) main.append(FG.exportBar());
@@ -129,8 +144,9 @@
       }
       FG.focusSelector = null;
     } else {
-      const entry = route.extra ? main.querySelector("#item-" + CSS.escape(route.extra)) : null;
-      const anchor = route.extra ? main.querySelector("#" + CSS.escape(route.extra)) || entry : null;
+      /* An entry's card is `item-<id>`; a part of a page, such as a glossary term or a section, is its bare ID. */
+      const entry = route.extra ? document.getElementById("item-" + route.extra) : null;
+      const anchor = route.extra ? document.getElementById(route.extra) || entry : null;
       if (entry && anchor === entry && (FG.focusAfterRender || FG.firstRender)) {
         /* A link to one entry of a list, followed or opened directly: bring it to the middle of the view and mark it
            briefly. */

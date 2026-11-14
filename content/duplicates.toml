@@ -3,7 +3,7 @@
 # other one, and an accepted group that no longer occurs.
 
 [[accepted]]
-entries = ["term:research-infrastructure", "term:research-infrastructure-2"]
+entries = ["term:large-research-infrastructure", "term:research-infrastructure"]
 reason = "Heslář gives two concepts, a large research infrastructure and a research infrastructure, the same English label."
 
 [[accepted]]
@@ -17,3 +17,16 @@ reason = "The KNAV catalogue lists three services of the EOSC EU Node (large fil
 [[accepted]]
 entries = ["fip-dashboard:dsw", "knav:data-stewardship-wizard"]
 reason = "Two instances of the Data Stewardship Wizard: the FIP Dashboard record stands for the guide's DMP.eosc.cz, the national instance, and the KNAV catalogue lists ELIXIR's instance for researchers."
+
+# Things the Guide describes under one exact name that are two things, by their addresses, each with its reason.
+[[distinct]]
+addresses = ["infrastructures/cnc", "repositories/czech-national-corpus"]
+reason = "The Czech National Corpus is a large research infrastructure of the national roadmap and, under the same name, the corpus repository that infrastructure operates."
+
+[[distinct]]
+addresses = ["organizations/csda", "repositories/csda"]
+reason = "The Czech Social Science Data Archive is a department of the Institute of Sociology, which publishes data, and, under the same name, the data repository the department operates."
+
+[[distinct]]
+addresses = ["organizations/dsw", "resources/data-stewardship-wizard"]
+reason = "The FIP Dashboard's organisation record names the project that develops the Data Stewardship Wizard; the KNAV catalogue's record names ELIXIR's instance of the tool for researchers."

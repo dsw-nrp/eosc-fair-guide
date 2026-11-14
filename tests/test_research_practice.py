@@ -9,6 +9,9 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_crate  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from addresses import iri  # noqa: E402
+
 
 class ResearchPracticeTests(unittest.TestCase):
     @classmethod
@@ -28,7 +31,7 @@ class ResearchPracticeTests(unittest.TestCase):
         self.assertEqual(software["softwareVersion"], dataset["version"])
         self.assertEqual(dataset["isPartOf"], {"@id": "#guide-software"})
         self.assertEqual(software["subjectOf"], {"@id": "./"})
-        self.assertEqual(source["codeRepository"], self.content["guide"]["guide"]["url"])
+        self.assertEqual(source["url"], self.content["guide"]["guide"]["url"])
 
     def test_source_metrics_are_complete_and_distinct_from_data_principles(self) -> None:
         checks = {data["check"]["id"]: data for data in self.content["checks"]}
@@ -50,9 +53,9 @@ class ResearchPracticeTests(unittest.TestCase):
 
     def test_lazy_questions_preserve_complete_crate_and_path_metadata(self) -> None:
         core, parts = build_crate.split_crate(self.crate)
-        self.assertFalse(any(entity["@type"] == "Question" for entity in core["@graph"]))
+        self.assertFalse(any("Question" in build_crate.as_list(entity["@type"]) for entity in core["@graph"]))
         questions = {entity["@id"]: entity for entity in parts["questions"]["entities"]}
-        for item_id in ("#item-software.01", "#item-fdo.01", "#item-dataset.01"):
+        for item_id in (iri("questions/software.01"), iri("questions/fdo.01"), iri("questions/dataset.01")):
             self.assertEqual(questions[item_id], self.entities[item_id])
         rebuilt = {entity["@id"]: dict(entity) for entity in core["@graph"]}
         for part in parts.values():

@@ -16,7 +16,7 @@ function dispatch(context) {
   if (!version) throw Error(`Enter the version as ${ACCEPTED_FORM}`);
   return {base, version, branch: `release/${version}`};
 }
-/** A release follows every existing release tag (decision 30). A lower tag could never deploy, because only the newest
+/** A release follows every existing release tag. A lower tag could never deploy, because only the newest
     tag replaces production; the tag ruleset forbids deleting it; and it would become the next release's lineage base. */
 async function newerThanEveryTag(github, context, version) {
   const tags = (await github.paginate(github.rest.repos.listTags, {...context.repo, per_page: 100}))

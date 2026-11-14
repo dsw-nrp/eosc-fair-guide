@@ -1,0 +1,9 @@
+{
+  "columns": ["clause", "text"],
+  "rows": [
+    ["https://w3id.org/eosc-cz/fair-guide/id/clauses/A.F1.R1", "Repozitář přiděluje PID při publikaci, přednostně DOI, jinak jiný uznávaný PID."],
+    ["https://w3id.org/eosc-cz/fair-guide/id/clauses/A.F1.R1", "The repository assigns a PID at publication, preferably a DOI, otherwise another recognised PID."],
+    ["https://w3id.org/eosc-cz/fair-guide/id/clauses/A.MIN1", "Minimum: a persistent identifier (preferably a DOI) and a landing page."],
+    ["https://w3id.org/eosc-cz/fair-guide/id/clauses/A.MIN1", "Minimum: trvalý identifikátor (přednostně DOI) a landing page."]
+  ]
+}

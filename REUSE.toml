@@ -33,6 +33,78 @@ precedence = "override"
 SPDX-FileCopyrightText = "The RO-Crate Community"
 SPDX-License-Identifier = "CC0-1.0"
 
+# Pinned copies of the vocabularies the graph refers to, unchanged; tests/fixtures/vocabularies/sources.toml records
+# where and when each was retrieved. The W3C namespace documents are under the W3C Software and Document License,
+# whose 2023 version differs from the 2015 text only in naming the copyright holder.
+[[annotations]]
+path = "tests/fixtures/vocabularies/schema.ttl"
+precedence = "override"
+SPDX-FileCopyrightText = "The Schema.org community <https://schema.org/>"
+SPDX-License-Identifier = "CC-BY-SA-3.0"
+
+[[annotations]]
+path = ["tests/fixtures/vocabularies/dcterms.ttl", "tests/fixtures/vocabularies/dcmitype.ttl"]
+precedence = "override"
+SPDX-FileCopyrightText = "Dublin Core Metadata Initiative <https://www.dublincore.org/>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = "tests/fixtures/vocabularies/dcat.ttl"
+precedence = "override"
+SPDX-FileCopyrightText = "World Wide Web Consortium <https://www.w3.org/>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = [
+  "tests/fixtures/vocabularies/dqv.ttl",
+  "tests/fixtures/vocabularies/owl.ttl",
+  "tests/fixtures/vocabularies/prof.ttl",
+  "tests/fixtures/vocabularies/prof-roles.ttl",
+  "tests/fixtures/vocabularies/prov-o.ttl",
+  "tests/fixtures/vocabularies/rdf.ttl",
+  "tests/fixtures/vocabularies/rdfs.ttl",
+  "tests/fixtures/vocabularies/skos.rdf",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "World Wide Web Consortium <https://www.w3.org/>"
+SPDX-License-Identifier = "W3C-20150513"
+
+[[annotations]]
+path = "tests/fixtures/vocabularies/foaf.rdf"
+precedence = "override"
+SPDX-FileCopyrightText = "Dan Brickley and Libby Miller <http://xmlns.com/foaf/spec/>"
+SPDX-License-Identifier = "CC-BY-1.0"
+
+[[annotations]]
+path = "tests/fixtures/vocabularies/ftr.ttl"
+precedence = "override"
+SPDX-FileCopyrightText = "The FAIR Testing Resource Vocabulary authors <https://w3id.org/ftr>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = "tests/fixtures/vocabularies/adms.ttl"
+precedence = "override"
+SPDX-FileCopyrightText = "Semantic Interoperability Community (SEMIC) <https://semic.eu>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = "tests/fixtures/vocabularies/sio.rdf"
+precedence = "override"
+SPDX-FileCopyrightText = "Michel Dumontier and the SIO contributors <http://semanticscience.org/>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = "tests/fixtures/vocabularies/fip.ttl"
+precedence = "override"
+SPDX-FileCopyrightText = "The FIP ontology's nanopublication authors <https://w3id.org/fair/fip/terms/>"
+SPDX-License-Identifier = "CC0-1.0 AND CC-BY-4.0"
+
+[[annotations]]
+path = "tests/fixtures/vocabularies/fair-principles.ttl"
+precedence = "override"
+SPDX-FileCopyrightText = "The FAIR Vocabulary authors <https://w3id.org/fair/principles/terms/>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
 # The page carries code and its title and description. Generated files (the crate, its preview, the data scripts, the
 # linkset and the API) are built into _site/ and not committed; the content they come from is licensed above.
 [[annotations]]

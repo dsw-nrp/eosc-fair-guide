@@ -9,8 +9,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_api  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_crate  # noqa: E402
 import check_content  # noqa: E402
+from addresses import iri  # noqa: E402
 
 
 class QuestionSourceTests(unittest.TestCase):
@@ -22,7 +25,7 @@ class QuestionSourceTests(unittest.TestCase):
 
     def test_original_language_is_preserved_and_separate_from_guide_translation(self) -> None:
         for clause_id, language in (("A.F1.R1", "cs"), ("FDO.FDO-GR9", "en"), ("CDIF.REQ1", "en")):
-            entity = self.entities["#clause-" + clause_id]
+            entity = self.entities[iri("clauses/") + clause_id]
             self.assertEqual(entity["guidance"]["@language"], language)
             self.assertNotEqual(entity["guidance"], entity["text"])
             self.assertTrue(entity["isPartOf"])
@@ -45,11 +48,11 @@ class QuestionSourceTests(unittest.TestCase):
         contexts = {entity["identifier"] for entity in self.crate["@graph"] if entity.get("assessmentContext")}
         self.assertEqual(contexts, {"fdo.09", "fdo.29", "fdo.32"})
         for item_id in contexts:
-            entity = self.entities["#item-" + item_id]
+            entity = self.entities[iri("questions/") + item_id]
             self.assertTrue(entity["citation"])
             self.assertTrue(entity["description"])
-        self.assertIn("can be of different types", self.entities["#clause-FDO.FDO-GR9"]["guidance"]["@value"])
-        self.assertIn("strongly recommended", self.entities["#clause-FDO.FDO-GR6"]["guidance"]["@value"])
+        self.assertIn("can be of different types", self.entities[iri("clauses/FDO.FDO-GR9")]["guidance"]["@value"])
+        self.assertIn("strongly recommended", self.entities[iri("clauses/FDO.FDO-GR6")]["guidance"]["@value"])
 
     def test_lazy_parts_reconstruct_full_source_attribution(self) -> None:
         core, parts = build_crate.split_crate(self.crate)
@@ -76,17 +79,18 @@ class QuestionSourceTests(unittest.TestCase):
 
     def test_historical_api_test_discloses_source_context_instead_of_an_assessment(self) -> None:
         api = build_api.Api(self.crate, self.content)
-        record = api.manual_test("fdo.09", "#item-fdo.09")
+        record = api.saved_result_reference("fdo.09", iri("questions/fdo.09"))
         self.assertTrue(record["assessmentContext"])
         self.assertIn("does not represent", record["description"]["en"])
-        self.assertNotIn("assessmentContext", api.manual_test("fdo.01", "#item-fdo.01"))
+        self.assertNotIn("assessmentContext", api.saved_result_reference("fdo.01", iri("questions/fdo.01")))
 
     def test_report_version_and_metric_set_version_are_distinct(self) -> None:
-        clause = self.entities["#clause-FRSM.FRSM-11"]
-        self.assertEqual(clause["isPartOf"], {"@id": "https://doi.org/10.5281/zenodo.15535629"})
+        clause = self.entities[iri("clauses/FRSM.FRSM-11")]
+        report = self.entities[clause["isPartOf"]["@id"]]
+        self.assertIn({"@id": "https://doi.org/10.5281/zenodo.15535629"}, build_crate.as_list(report["sameAs"]))
         self.assertIn("Only applicable if APIs are implemented", clause["guidance"]["@value"])
         self.assertEqual(self.entities[clause["isPartOf"]["@id"]]["version"], "1.1")
-        fdo_source = self.entities["#clause-FDO.FDO-GR9"]["isPartOf"]["@id"]
+        fdo_source = self.entities[iri("clauses/FDO.FDO-GR9")]["isPartOf"]["@id"]
         self.assertEqual(self.entities[fdo_source]["version"], "3.0")
 
     def test_each_question_has_originals_or_a_reviewed_source_link_basis(self) -> None:
@@ -99,7 +103,7 @@ class QuestionSourceTests(unittest.TestCase):
         missing = set()
         for check in self.content["checks"]:
             for item in check["item"]:
-                value = self.entities["#item-" + item["id"]].get("citation", [])
+                value = self.entities[iri("questions/") + item["id"]].get("citation", [])
                 references = value if isinstance(value, list) else [value]
                 self.assertTrue(references, item["id"])
                 if not any("guidance" in self.entities.get(ref["@id"], {}) for ref in references):
@@ -109,13 +113,13 @@ class QuestionSourceTests(unittest.TestCase):
         )
 
     def test_originals_keep_legally_and_operationally_important_conditions(self) -> None:
-        law = self.entities["#clause-LAW-328-2025.83.2"]["guidance"]["@value"]
+        law = self.entities[iri("clauses/LAW-328-2025.83.2")]["guidance"]["@value"]
         self.assertIn("zvláštním právem pořizovatele databáze", law)
         self.assertIn("(4)", law)
-        dataset = self.entities["#clause-OS3-RULES.24"]["guidance"]["@value"]
+        dataset = self.entities[iri("clauses/OS3-RULES.24")]["guidance"]["@value"]
         self.assertIn("nezáleží na konkrétní roli", dataset)
         self.assertIn("pracovní smlouva", dataset)
-        openssf = self.entities["#clause-OPENSSF.01"]
+        openssf = self.entities[iri("clauses/OPENSSF.01")]
         self.assertIn("voluntarily self-certify", openssf["guidance"]["@value"])
         source = self.entities[openssf["isPartOf"]["@id"]]
         self.assertEqual(source["version"], "2024-08-16")

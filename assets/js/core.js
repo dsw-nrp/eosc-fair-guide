@@ -14,8 +14,7 @@
 
   /* ---------------------------------------------------------------- knowledge base */
 
-  /* The crate and the interface data arrive as generated classic scripts (assets/data/), which load from a local
-     file as well as from a web host. */
+  /* Generated classic scripts supply the crate and UI on file:// and HTTP. */
   FG.load = function () {
     const crate = window.FairGuideData.kb;
     const page = window.FairGuideData.ui;
@@ -31,7 +30,8 @@
   /** A genuine upstream identifier, kept separate from the Guide-owned primary. */
   FG.sourceIdentifier = (entity, scheme) => FG.refs(entity, "alternateIdentifier")
     .find((item) => item && item.propertyID === scheme)?.value || null;
-  FG.sourceEntity = (scheme, value, prefix = "") => {
+  /** The one record a source system knows by this identifier, optionally only of a kind or passing a test. */
+  FG.sourceEntity = (scheme, value, accept = null) => {
     if (!sourceIndex || sourceIndex.graph !== FG.graph || sourceIndex.size !== FG.graph.length) {
       const schemes = new Map();
       for (const entity of FG.graph) {
@@ -49,7 +49,7 @@
     }
     const candidates = value === null ? FG.graph.filter((entity) => FG.sourceIdentifier(entity, scheme) === null)
       : sourceIndex.schemes.get(scheme)?.get(value) || [];
-    const matches = candidates.filter((entity) => entity["@id"].startsWith(prefix));
+    const matches = candidates.filter((entity) => !accept || (typeof accept === "function" ? accept(entity) : FG.isRecord(entity, accept)));
     return matches.length === 1 ? matches[0] : null;
   };
 
@@ -58,8 +58,7 @@
   const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
   FG.unsafeKey = (name) => UNSAFE_KEYS.has(name);
 
-  /* Language patches follow the generated tree. Null array positions leave structural or original values alone;
-     objects are updated in place, so the graph index and references keep the same identity on language switching. */
+  /* Patch translations in place to preserve graph identity; null leaves structure and originals unchanged. */
   function mergeData(target, patch) {
     for (const [key, value] of Object.entries(patch || {})) {
       if (value === null || UNSAFE_KEYS.has(key)) continue;
@@ -80,17 +79,25 @@
   }
 
   const scriptLoads = new Map();
-  function loadScript(path) {
+  function loadScript(path, registered = null) {
     if (!scriptLoads.has(path)) {
       scriptLoads.set(path, new Promise((resolve, reject) => {
         const script = document.createElement("script");
         script.src = path;
-        script.onload = resolve;
-        script.onerror = () => {
+        const failed = (error) => {
           scriptLoads.delete(path);
           script.remove();
-          reject(new Error("The Guide could not load its local data file: " + path));
+          reject(error);
         };
+        script.onload = () => {
+          try {
+            const data = registered?.();
+            if (registered && !data) throw new Error("The Guide's data is missing: " + path);
+            resolve(data);
+          }
+          catch (error) { failed(error); }
+        };
+        script.onerror = () => failed(new Error("The Guide could not load its local data file: " + path));
         document.head.append(script);
       }));
     }
@@ -98,15 +105,14 @@
   }
 
   FG.loadHelpers = () => loadScript(FG.config.helpers.script);
-  /** A view whose code loads when it first opens (the catalogue). */
+  /** Deferred view code. */
   FG.loadView = (name) => loadScript(FG.config.views[name]);
 
   FG.languagesLoaded = new Set();
   FG.loadLanguage = async function (lang) {
     if (FG.languagesLoaded.has(lang)) return;
-    await loadScript(FG.config.languages[lang]);
-    const values = (window.FairGuideData.languages || {})[lang];
-    if (!values) throw new Error("The Guide's language data is missing: " + lang);
+    const values = await loadScript(FG.config.languages[lang], () => window.FairGuideData.languages?.[lang]);
+    if (FG.languagesLoaded.has(lang)) return;
     mergeData(window.FairGuideData.kb, values.kb);
     mergeData(window.FairGuideData.ui, values.ui);
     bindSearch(window.FairGuideData.kb, values.search);
@@ -114,50 +120,47 @@
     FG.invalidateData();
   };
 
-  /* Views load their neutral part and selected language only. Switching language fills translations of the parts
-     already needed without changing answers or refetching neutral entities. All files are local classic scripts. */
+  /* Local classic scripts load neutral parts once; language changes patch their translations in place. */
   FG.partsLoaded = new Set();
   const partLoads = {};
   const partLanguagesLoaded = new Set();
   FG.partHasLanguage = (name, lang) => partLanguagesLoaded.has(name + "/" + lang);
-  FG.loadPart = async function (name, lang) {
-    if (!partLoads[name]) {
-      partLoads[name] = loadScript(FG.config.parts[name]).then(() => {
-        const part = (window.FairGuideData.parts || {})[name];
-        if (!part) throw new Error("The Guide's data part is missing: " + name);
-        for (const entity of part.entities || []) {
-          FG.graph.push(entity);
-          FG.byId.set(entity["@id"], entity);
-        }
-        FG.partsLoaded.add(name);
-        FG.invalidateData();
-        return part;
-      }).catch((error) => {
-        delete partLoads[name];
-        throw error;
-      });
-    }
-    const part = await partLoads[name];
+  FG.loadPart = function (name, lang) {
     const language = lang || FG.state.lang;
-    let translated = false;
-    if (!FG.partHasLanguage(name, language)) {
-      await loadScript(FG.config.partLanguages[name][language]);
-      const values = ((window.FairGuideData.partLanguages || {})[name] || {})[language];
-      if (!values) throw new Error("The Guide's part translation is missing: " + name + "/" + language);
-      mergeData(part, values.values);
-      bindSearch(part, values.search);
-      partLanguagesLoaded.add(name + "/" + language);
-      translated = true;
+    const key = name + "/" + language;
+    if (!partLoads[key]) {
+      partLoads[key] = (async () => {
+        if (!partLoads[name]) {
+          partLoads[name] = loadScript(FG.config.parts[name], () => window.FairGuideData.parts?.[name]).then((part) => {
+            for (const entity of part.entities || []) {
+              FG.graph.push(entity);
+              FG.byId.set(entity["@id"], entity);
+            }
+            FG.partsLoaded.add(name);
+            FG.invalidateData();
+            return part;
+          }).catch((error) => {
+            delete partLoads[name];
+            throw error;
+          });
+        }
+        const part = await partLoads[name];
+        if (FG.partHasLanguage(name, language)) return;
+        const values = await loadScript(FG.config.partLanguages[name][language], () => window.FairGuideData.partLanguages?.[name]?.[language]);
+        mergeData(part, values.values);
+        bindSearch(part, values.search);
+        partLanguagesLoaded.add(key);
+        for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
+        if (part.ui) mergeData(FG.ui, part.ui);
+        if (part.config) mergeData(FG.config, part.config);
+        FG.invalidateData();
+      })();
+      partLoads[key].catch(() => { delete partLoads[key]; });
     }
-    if (translated) {
-      for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
-      if (part.ui) mergeData(FG.ui, part.ui);
-      if (part.config) mergeData(FG.config, part.config);
-      FG.invalidateData();
-    }
+    return partLoads[key];
   };
 
-  /** Explicit data exports keep bilingual API-style records. Reading a view does not require this load. */
+  /** Explicit exports load both languages; ordinary views need only one. */
   FG.completeLanguages = () => Promise.all(LANGS.flatMap((lang) => [FG.loadLanguage(lang),
     ...[...FG.partsLoaded].map((name) => FG.loadPart(name, lang))]));
 
@@ -170,10 +173,100 @@
   FG.refIds = (entity, prop) => FG.list(entity && entity[prop]).map(FG.id).filter(Boolean);
   FG.hasRef = (entity, prop, id) => FG.refIds(entity, prop).includes(id);
   FG.ofType = (type) => FG.graph.filter((entity) => FG.list(entity["@type"]).includes(type));
-  FG.byPosition = (a, b) => (a.position || 0) - (b.position || 0);
+  /* A record's position, or a term's place among its set's terms. */
+  FG.byPosition = (a, b) => ((a.position ?? a.termPosition) || 0) - ((b.position ?? b.termPosition) || 0);
+  /* The terms of a set in order: a term names its set, and the set does not list them. */
+  let termIndex = { size: -1, sets: new Map() };
+  FG.termsOf = (set) => {
+    if (termIndex.size !== FG.graph.length) {
+      const sets = new Map();
+      for (const entity of FG.graph) {
+        const id = FG.id(entity.inDefinedTermSet);
+        if (id) sets.set(id, (sets.get(id) || []).concat(entity));
+      }
+      for (const terms of sets.values()) terms.sort(FG.byPosition);
+      termIndex = { size: FG.graph.length, sets };
+    }
+    return termIndex.sets.get(FG.id(set)) || [];
+  };
+
+  /* ---------------------------------------------------------------- record identity */
+
+  /* The page names a record by its address, `<kind>/<id>` or `<kind>/<scope>/<id>`, and a part of one by the address
+     and a fragment (`advice/plan.05#step-1`), as the build publishes them relative to the Guide's namespace. The
+     crate's own lists and files keep their names (`#repositories`). A kind is read from the address, never from the
+     form of an identifier. */
+  FG.address = (kind, id, scope) => [kind, scope, id].filter((part) => part != null && part !== "").join("/");
+  FG.term = (set, code) => "vocabularies/" + set + "/" + code;
+  /** Whether an advice item is of a kind: a direction, a tip, a station's key point or an AI tip. */
+  FG.isAdviceKind = (item, code) => FG.id(item && item.adviceKind) === FG.term("advice-kinds", code);
+  FG.kind = function (value) {
+    const id = String(FG.id(value) || "");
+    const kind = id.split("/")[0];
+    return id.includes("/") && FG.list(FG.config && FG.config.kinds).includes(kind) ? kind : null;
+  };
+  /** The record a part belongs to, or the record itself. */
+  FG.recordOf = (value) => String(FG.id(value) || "").split("#")[0];
+  /** A part's fragment under its record (`step-1`), or "" for a record. */
+  FG.fragment = (value) => String(FG.id(value) || "").split("#")[1] || "";
+  /** The identifier within its kind: the address without its kind (`rdmkit/plan` for a scoped stage). */
+  FG.localId = (value) => FG.recordOf(value).split("/").slice(1).join("/");
+  /** The Guide's persistent IRI of a record or part, for chips and exports. */
+  FG.iri = (value) => (FG.kind(value) ? (FG.config.namespace || "") + "id/" + FG.id(value) : FG.id(value));
+  /** Whether something is a record of a kind itself, not a part of one. */
+  FG.isRecord = (value, kind) => FG.kind(value) === kind && !FG.fragment(value);
+  /** A vocabulary term's code, the last segment of its address (`vocabularies/statuses/operational`). */
+  FG.termKey = (value) => String(FG.id(value) || "").split("/").pop();
+  /** Whether a link target is a place in the Guide: a record's address or one of the crate's own lists. */
+  FG.inPage = (target) => String(target || "").startsWith("#") || Boolean(FG.kind(target));
+  /** An external evaluator's criterion: a test scoped by a reviewed provider, apart from FAIR Champion's tests and
+      the Guide's own. */
+  FG.isCriterion = (value) => FG.isRecord(value, "tests")
+    && FG.list(FG.config.providers && FG.config.providers.list).some((provider) => FG.localId(value).startsWith(provider.id + "/"));
+  /** The Guide's own test of a question (`guide-dataset-01`), and a FAIR Champion test, by their IDs. */
+  FG.localTest = (id) => FG.get(FG.address("tests", id, "guide"));
+  FG.championTest = (id) => FG.get(FG.address("tests", id, "fair-champion"));
+  /** The thing a registry's record is about (`foaf:primaryTopic`), or the entity itself. */
+  FG.thingOf = (record) => FG.id(record && record.primaryTopic) || FG.id(record);
+  /** The registry record that founds a thing only registries know: the first of its records, in the build's order
+      of registries, when the thing rests on nothing else; none for a thing the Guide's own content describes. */
+  FG.foundingRecord = function (thing) {
+    if (!thing || FG.refIds(thing, "isBasedOn").length || FG.refIds(thing, "source").length) return null;
+    return FG.id(FG.recordsOf(thing)[0]) || null;
+  };
+  /* A thing's registry records, which name it as their primary topic, in the build's order of registries. */
+  let recordIndex = { size: -1, things: new Map() };
+  FG.recordsOf = (thing) => {
+    if (recordIndex.size !== FG.graph.length) {
+      const order = FG.list(FG.config && FG.config.recordSchemes);
+      const things = new Map();
+      for (const entity of FG.graph) {
+        const topic = FG.id(entity.primaryTopic);
+        if (topic) things.set(topic, (things.get(topic) || []).concat(entity));
+      }
+      for (const records of things.values()) records.sort((a, b) => order.indexOf(FG.fragment(a)) - order.indexOf(FG.fragment(b)));
+      recordIndex = { size: FG.graph.length, things };
+    }
+    return recordIndex.things.get(FG.id(thing)) || [];
+  };
+  /** The Node's qualified relation to an entry, read from the Node rather than duplicated on the entry. */
+  FG.nodeRelation = function (entity) {
+    const node = FG.get("resources/eosc-cz-node");
+    return FG.refs(node, "qualifiedRelation").find((relation) => FG.id(relation.relation) === FG.id(entity)) || null;
+  };
+  /** Whether a registry's record founds its thing, one only registries know. */
+  FG.foundedBy = (record) => Boolean(record) && FG.foundingRecord(FG.get(FG.thingOf(record))) === FG.id(record);
+  /** A snapshot of a source, one of the crate's own nodes. */
+  FG.isSnapshot = (value) => String(FG.id(value) || "").startsWith("#snapshot-");
+  /** The snapshot of a catalogue, by the catalogue's own entry. */
+  FG.snapshotOf = (catalogue) => FG.graph.find((entity) => FG.isSnapshot(entity) && FG.id(entity.about) === catalogue);
+  /** A catalogue's records of resources and repositories, as its snapshot holds them. */
+  FG.registryRecords = (catalogue, fragment) => FG.refs(FG.snapshotOf(catalogue), "hasPart")
+    .filter((record) => FG.fragment(record) === fragment && ["resources", "repositories"].includes(FG.kind(record)));
 
   /** The implementation model is an independent organising vocabulary, with explicit editorial associations. */
-  FG.modelTerms = (kind) => FG.refs(FG.get("#implementation-model"), "hasDefinedTerm").filter((term) => !kind || term.modelKind === kind).sort(FG.byPosition);
+  FG.model = () => FG.graph.find((entity) => FG.kind(entity) === "models" && !FG.fragment(entity));
+  FG.modelTerms = (kind) => FG.termsOf(FG.model()).filter((term) => !kind || FG.termKey(term.modelKind) === kind).sort(FG.byPosition);
   FG.modelLink = (term) => FG.h("a", { class: "model-tag", href: FG.entryHref(term) }, FG.span(term.name));
   FG.modelRows = function (entity) {
     return ["implementationLayers", "implementationSeams"].flatMap((property) => {
@@ -207,8 +300,8 @@
 
   /** One badge for an external tool or service wherever the Guide shows it, beside its name: in the catalogue, among
       a step's resources and in the self-check's evidence. It is the service's own favicon wherever one could be
-      obtained (D-183); otherwise the icon of its catalogue kind on the kind's colour, as the kind facet shows it, so
-      one service looks the same everywhere (D-185). */
+      obtained; otherwise the icon of its catalogue kind on the kind's colour, as the kind facet shows it, so
+      one service looks the same everywhere. */
   FG.serviceBadge = function (key, url, kind = "resources") {
     const mark = FG.config.favicons?.marks?.[key];
     const favicon = mark ? "assets/favicons/" + mark : FG.faviconOf(url);
@@ -224,7 +317,9 @@
     const icon = ((FG.config && FG.config.icons && FG.config.icons.kind) || {})[kind];
     return FG.h("span", { class: "service-badge service-placeholder kind-" + kind, "data-service": key ? String(key) : null, "aria-hidden": "true" }, FG.icon(icon));
   };
-  FG.modelContexts = (station, lens) => FG.graph.filter((entity) => String(entity["@id"]).startsWith("#model-context-") && FG.hasRef(entity, "isPartOf", station["@id"]) && FG.hasRef(entity, "audience", "#lens-" + lens));
+  /* What an entity is part of: the record it names, or for a fragment the record it is under, which names it. */
+  FG.wholeOf = (entity) => FG.id(entity && entity.isPartOf) || (FG.fragment(entity) ? FG.recordOf(entity) : null);
+  FG.modelContexts = (station, lens) => FG.graph.filter((entity) => FG.fragment(entity).startsWith("context-") && FG.recordOf(entity) === station["@id"] && FG.hasRef(entity, "audience", FG.term("lenses", lens)));
 
   /** Pick the value in the requested language; fall back to another language and report it. */
   FG.textOf = function (value, lang) {
@@ -246,7 +341,7 @@
   };
 
   /** A repository's or an infrastructure's name in one language with that language's abbreviation, where it has one
-      the name does not already contain: "Český sociálněvědní datový archiv (ČSDA)" (D-173). */
+      the name does not already contain: "Český sociálněvědní datový archiv (ČSDA)". */
   FG.abbreviatedName = function (entity, lang) {
     const name = FG.text(entity.name, lang);
     const abbreviation = entity.abbreviation ? FG.text(entity.abbreviation, lang) : "";
@@ -337,10 +432,18 @@
   FG.exports = [];
   FG.offerExport = (entry) => FG.exports.push(entry);
 
+  /* The namespace is shared configuration, not a prefix in every lookup key; both local addresses and full IRIs work. */
+  FG.apiRecord = function (value) {
+    const id = String(FG.id(value) || "");
+    if (id.includes("#")) return undefined;
+    const base = FG.config.namespace ? FG.config.namespace + "id/" : "";
+    const key = id.startsWith(base) ? id.slice(base.length) : id;
+    return FG.config.api?.records[key];
+  };
   /** An entity's record in the guide's API, as a path under the page; null where it has none. */
   FG.recordHref = function (entity) {
     const api = FG.config.api;
-    const record = api && api.records[FG.id(entity)];
+    const record = api && FG.apiRecord(entity);
     return record ? api.files.record.replace("{record}", record) : null;
   };
 
@@ -392,19 +495,14 @@
 
   /* ---------------------------------------------------------------- references in text */
 
-  /** Where a reference in text leads: its catalogue entry, page or lifecycle station. */
+  /** Where a reference in text leads: its catalogue entry, page (at the section it names) or lifecycle station. */
   FG.referenceHref = function (id) {
     if (id === "#infrastructures") return FG.catalogueHref("infrastructures");
-    if (String(id).startsWith("#page-")) return FG.href("page", String(id).slice(6));
-    const address = FG.config.api?.records[id];
-    if (address) {
-      const [kind, ...parts] = address.split("/");
-      if (FG.catalogueKind(kind) === "stations") return FG.href("path", parts.join("/"));
-      if (kind === "check") return FG.href("check", parts.join("/"));
-      return FG.catalogueHref(kind, parts.join("/"));
-    }
-    const base = FG.config.pageUrl || "";
-    return base && String(id).startsWith(base) ? String(id).slice(base.length).replace(/\/?$/, "/") : null;
+    const kind = FG.kind(id);
+    if (kind === "pages") return FG.href("page", FG.localId(id)) + (FG.fragment(id) ? "/" + encodeURIComponent(FG.fragment(id)) : "");
+    if (kind === "stations") return FG.href("path", FG.localId(id));
+    if (kind === "checks") return FG.href("check", FG.localId(id));
+    return FG.config.api?.records[id] ? FG.catalogueHref(id) : null;
   };
 
   /** A text as nodes, with the first occurrence of each phrase its entity names by reference linked; a link already
@@ -739,7 +837,7 @@
   };
 
   /** The reader's own read mark on a step: set it or take it off. Every visible control for the step follows without a
-      re-render, so the control the reader used keeps the focus (D-190). */
+      re-render, so the control the reader used keeps the focus. */
   FG.toggleReadStation = function (stationId) {
     const reads = FG.list(FG.state.readStations);
     FG.state.readStations = reads.includes(stationId) ? reads.filter((id) => id !== stationId) : reads.concat(stationId);
@@ -789,17 +887,22 @@
 
   const VIEWS = ["path", "check", "explorer", "catalogue", "tools", "page", "selfcheck"];
 
-  /** In-page targets that name crate entities, as used by advice actions. */
+  /** The route that opens a record: a station on the path, a check, a page, or any other record's catalogue entry. */
+  FG.recordRoute = function (address) {
+    const kind = FG.kind(address);
+    const id = FG.localId(address);
+    if (!kind || !id) return null;
+    if (kind === "stations") return { view: "path", arg: id };
+    if (kind === "checks") return { view: "check", arg: id };
+    if (kind === "pages") return { view: "page", arg: id };
+    return { view: "catalogue", arg: kind, extra: id };
+  };
+
+  /** In-page targets, as advice actions use them: a record by its address, or a crate list (with a topic). */
   FG.entityRoute = function (hash) {
+    if (FG.kind(hash)) return FG.recordRoute(hash);
     const id = hash.replace(/^#/, "");
     let match;
-    if ((match = id.match(/^station-(.+)$/))) return { view: "path", arg: match[1] };
-    if ((match = id.match(/^check-(.+)$/))) return { view: "check", arg: match[1] };
-    if ((match = id.match(/^page-(.+)$/))) return { view: "page", arg: match[1] };
-    if ((match = id.match(/^resource-(.+)$/))) {
-      const address = FG.config.api.records["#resource-" + match[1]];
-      return address ? { view: "catalogue", arg: address.split("/")[0], extra: address.split("/").slice(1).join("/") } : null;
-    }
     /* A topic (`#resources?type=standard,vocabulary`) opens the kind narrowed to it, for the reader's lens. */
     if ((match = id.match(/^(resources|repositories)\?(.+)$/)) && FG.catalogueTopic) return { view: "catalogue", arg: FG.catalogueTopic(match[1], match[2]) };
     if (id === "repositories") return FG.repositoryFinderHref ? FG.parseHash(FG.repositoryFinderHref()) : { view: "catalogue", arg: "repositories" };
@@ -819,11 +922,19 @@
       if (/ro-crate-preview\.html$/.test(window.location.pathname)) {
         return Object.assign(route, FG.parseHash(FG.href("page", "machines")));
       }
-      return route;
+      // A bare Guide URL opens the lifecycle landing; saved station history belongs to the Path menu and resume.
+      return Object.assign(route, { arg: "start" });
     }
     if (!hash.startsWith("#/")) {
       const target = FG.entityRoute(hash);
       return target ? Object.assign(route, target) : route;
+    }
+    // The one route without the reader's state: `#/id/<address>` names the catalogue entry of the record a persistent
+    // IRI names, stations and checks included, in the saved language and lens; FG.render replaces it with the full
+    // route. An address no record has reaches the catalogue, which says so.
+    if (hash.startsWith("#/id/")) {
+      const address = hash.slice(5).split("#")[0].split("/").map((part) => { try { return decodeURIComponent(part); } catch { return ""; } }).filter(Boolean).join("/");
+      return Object.assign(route, { view: "catalogue", arg: address.split("/")[0] || null, extra: address.split("/").slice(1).join("/") || null, entry: address });
     }
     const parts = hash
       .slice(2)
@@ -881,7 +992,7 @@
 
   /** Turn an advice action target into a link: in-page entity targets become routes, keeping the entry they name. */
   FG.actionHref = function (target) {
-    if (target.startsWith("#")) {
+    if (FG.inPage(target)) {
       const route = FG.entityRoute(target);
       return route ? FG.routeHref(route) : "#";
     }
@@ -890,7 +1001,7 @@
 
   /* ---------------------------------------------------------------- shared lookups */
 
-  FG.lenses = () => FG.ofType("Audience").filter((entity) => entity["@id"].startsWith("#lens-"));
+  FG.lenses = () => FG.ofType("Audience").filter((entity) => String(entity["@id"]).startsWith("vocabularies/lenses/"));
   FG.stations = () => FG.refs(FG.get("#path"), "step").sort(FG.byPosition);
   /** FAIR principles in a fixed order: F, A, I, R, then by number (A1 before A1.1 before A2). */
   FG.principleOrder = function (a, b) {
@@ -909,7 +1020,30 @@
   };
 
   /** The principles an entity is about, in the fixed order. */
-  FG.principlesOf = (entity) => FG.refs(entity, "about").filter((ref) => ref.termCode).sort(FG.principleOrder);
+  /** The principles something is about; a check question measures them as its FTR dimensions. */
+  FG.principlesOf = (entity) => FG.refs(entity, "about").concat(FG.refs(entity, "inDimension")).filter((ref) => ref.termCode).sort(FG.principleOrder);
+  /** A question's pre-fill mappings: which live source can suggest its answer (`datacite`, `champion`…), the fields
+      or tests the source reads, and how much of the question it covers (`whole`, `partly`, `champion-evidence-only`). */
+  FG.prefillMappings = (item) => FG.refs(item, "prefillMapping");
+  FG.prefillOf = (item, source) => FG.prefillMappings(item).find((mapping) => mapping.identifier === source) || null;
+  FG.prefillCoverage = (mapping) => (mapping ? FG.termKey(mapping.prefillCoverage) : "");
+  /** Whether live evidence can suggest at most Partly for a question it only partly proves. */
+  FG.prefillPartly = (item) => FG.prefillMappings(item).some((mapping) => FG.prefillCoverage(mapping) === "partly");
+  /** A check's questions in position order. */
+  let questionIndex = { revision: -1, checks: new Map() };
+  FG.questionsOf = (check) => {
+    if (questionIndex.revision !== FG.dataRevision) {
+      const checks = new Map();
+      for (const entity of FG.graph) {
+        const owner = FG.id(entity.hasBenchmark);
+        if (owner) checks.set(owner, (checks.get(owner) || []).concat(entity));
+      }
+      for (const questions of checks.values()) questions.sort(FG.byPosition);
+      questionIndex = { revision: FG.dataRevision, checks };
+    }
+    return questionIndex.checks.get(FG.id(check)) || [];
+  };
+  FG.checkOf = (question) => FG.get(question && question.hasBenchmark);
   FG.principles = () => FG.principlesOf(FG.root);
   FG.termName = (id) => FG.text(FG.get(id) && FG.get(id).name);
 })();

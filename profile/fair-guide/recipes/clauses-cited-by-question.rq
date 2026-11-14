@@ -1,0 +1,13 @@
+# cs: Vypíše položky knihy požadavků citované otázkou dataset.01 a jejich text v původním jazyce zdroje.
+# en: Lists the ledger clauses cited by question dataset.01 and their text in each source's original language.
+PREFIX schema: <http://schema.org/>
+PREFIX guide: <https://w3id.org/eosc-cz/fair-guide/terms#>
+
+SELECT ?clause ?text
+WHERE {
+  VALUES ?question { <https://w3id.org/eosc-cz/fair-guide/id/questions/dataset.01> }
+  ?question schema:citation ?clause .
+  ?clause a guide:Clause ;
+    schema:text ?text .
+}
+ORDER BY ?clause

@@ -105,12 +105,21 @@ class PublicationLocationTests(unittest.TestCase):
                         self.assertEqual(identity["vocabulary_base"], semantic + "terms#")
                         self.assertEqual(content["guide"]["guide"]["pageUrl"], location)
                         iris = {item["@id"] for item in crate["@graph"]}
-                        owned = {iri for iri in iris if iri.startswith(semantic)}
+                        records = {iri for iri in iris if iri.startswith(semantic + "id/")}
+                        owned = {iri for iri in iris if iri.startswith(semantic)} - records
                         # Every Guide term plus the profile: the probe exercises the actual semantic IRIs, whatever
                         # their number in this content tree.
-                        expected = {semantic + "terms#" + term for term in build_crate.GUIDE_TERMS}
-                        self.assertEqual(owned, expected | {semantic + "profile/0.1"})
-                        other = {iri for iri in iris if not iri.startswith(semantic)}
+                        expected = {
+                            semantic + "terms#" + term
+                            for term in [*build_crate.GUIDE_TERMS, *build_crate.GUIDE_CLASSES]
+                        }
+                        version = content["guide"]["guide"]["profileVersion"]
+                        self.assertEqual(owned, expected | {semantic + "profile/" + version})
+                        # The records move with the namespace and keep their addresses; everything else stays.
+                        logical = {iri.removeprefix(semantic + "id/") for iri in records}
+                        other = {iri for iri in iris if not iri.startswith(semantic)} | {
+                            ("address", a) for a in logical
+                        }
                         if external is None:
                             external = other
                         self.assertEqual(other, external, "logical and external identities stay unchanged")
@@ -126,8 +135,9 @@ class PublicationLocationTests(unittest.TestCase):
                             broken.add(triple)
                         predicate = URIRef(semantic + "terms#modelKind")
                         target = next(broken.subjects(predicate=predicate))
-                        # Removing required source evidence is caught at the selected namespace too.
+                        # Removing both forms of required source evidence is caught at the selected namespace too.
                         broken.remove((target, URIRef("http://schema.org/citation"), None))
+                        broken.remove((target, URIRef("http://purl.org/dc/terms/source"), None))
                         self.assertFalse(validate(broken, shacl_graph=shapes, advanced=True)[0])
 
     def test_the_namespace_comes_from_content_never_from_the_environment(self):

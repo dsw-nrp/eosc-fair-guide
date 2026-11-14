@@ -8,16 +8,17 @@
   const h = (...args) => FG.h(...args);
   /* ---------------------------------------------------------------- shared helpers */
 
-  /** Compact route codes are emitted from the build vocabulary; UI category names remain readable. */
-  FG.catalogueKind = (code) => FG.config.catalogueKinds[code] || code;
-  FG.catalogueCode = (kind) => Object.keys(FG.config.catalogueKinds).find((code) => FG.config.catalogueKinds[code] === kind) || kind;
-  FG.catalogueHref = (kind, item) => FG.href("catalogue") + "/" + [FG.catalogueCode(kind), ...(item ? item.split("/") : [])].map(encodeURIComponent).join("/");
+  /* The catalogue lists a few kinds together: the crosswalks with the life cycles they relate, and the layers, seams
+     and examples with the model. A route names the record's own kind; the group is only where it is listed. */
+  const GROUPS = { crosswalks: "lifecycles", layers: "models", seams: "models", "model-examples": "models" };
+  FG.catalogueGroup = (kind) => GROUPS[kind] || kind;
+  /** A catalogue route: a kind, or a kind and an ID (`resources`, `lifecycles`, `rdmkit/plan`), or an address. */
+  FG.catalogueHref = (kind, item) => FG.href("catalogue") + "/" + [...String(kind).split("/"), ...(item ? item.split("/") : [])].map(encodeURIComponent).join("/");
+  /** A record's catalogue entry, by its address; null for what has none. */
   FG.entryHref = (entity) => {
-    const address = FG.config.api.records[FG.id(entity)];
-    return address ? FG.href("catalogue") + "/" + address.split("/").map(encodeURIComponent).join("/") : null;
+    const address = FG.apiRecord(entity);
+    return address ? FG.catalogueHref(address) : null;
   };
-  FG.termAnchor = (term) => FG.config.api.records[FG.id(term)]?.split("/").slice(1).join("/");
-  FG.repositoryAnchor = (repository) => FG.config.api.records[FG.id(repository)]?.split("/").slice(1).join("/");
 
   /** The catalogue searched for a query within one kind, as the landing's search links to it. */
   FG.catalogueSearchHref = (query, kind) => writeState({ kinds: [kind || "resources"], stations: [], principles: [], q: query, order: "", f: {} });
@@ -25,17 +26,17 @@
 
   /** An identifier as a small chip that leads to its entry in the catalogue. */
   FG.idChip = function (entity) {
-    const address = FG.config.api.records[FG.id(entity)];
+    const address = FG.apiRecord(entity);
     const id = address?.split("/").at(-1) || entity?.identifier || "";
     return h(address ? "a" : "span", { class: "id-chip", href: address ? FG.entryHref(entity) : null,
       title: address ? FG.t("catalogue.openEntry", { id: address }) : null }, id);
   };
 
   /** A source's short name: a cited resource's own name, or a source's short name when it has one. */
-  FG.shortName = (source) => FG.span(String(source["@id"]).startsWith("#resource-") ? source.name : source.alternateName || source.name);
+  FG.shortName = (source) => FG.span(source.resourceType ? source.name : source.alternateName || source.name);
 
   /** A source's short name as plain text, for lists and filters. */
-  FG.shortText = (source) => FG.text(String(source["@id"]).startsWith("#resource-") ? source.name : source.alternateName || source.name);
+  FG.shortText = (source) => FG.text(source.resourceType ? source.name : source.alternateName || source.name);
 
   /** A category's name as the catalogue lists categories: in lower case, unless it starts with an acronym. */
   FG.category = (name) => {
@@ -47,13 +48,13 @@
   FG.sourceLink = (source) => h("a", { class: "source-link", href: FG.entryHref(source) }, FG.shortName(source));
 
   /** What the EOSC CZ Node is, as the About page states it: the node's own state since its date, with the source
-      that states it (D-172). */
+      that states it. */
   FG.nodeNote = function () {
-    const node = FG.get("#eosc-cz-node");
+    const node = FG.get("resources/eosc-cz-node");
     if (!node || !node.nodeStateSince) return null;
-    const sources = FG.refs(node, "isBasedOn");
+    const sources = FG.refs(node, "source");
     const source = sources[1] || sources[0];
-    return h("p", { class: "small" }, FG.t("node." + node.nodeState, { date: FG.formatDate(node.nodeStateSince) }), source ? [" ", FG.sourceLink(source)] : null);
+    return h("p", { class: "small" }, FG.t("node." + FG.termKey(node.nodeState), { date: FG.formatDate(node.nodeStateSince) }), source ? [" ", FG.sourceLink(source)] : null);
   };
 
   /** Warn when a published statement has been superseded. Refresh is an editorial status. */
@@ -70,7 +71,7 @@
       h("div", { class: "content", lang: language },
         source ? [h("p", { class: "small muted", lang: FG.state.lang }, FG.sourceLink(source), source.version && !FG.text(source.name).endsWith(" " + source.version) ? " · " + source.version : null),
           source.creditText ? h("p", { class: "small muted", lang: FG.state.lang }, source.creditText) : null,
-          /* The quoted guidance is under its source's licence, named from the data beside the quote (design D8). */
+          /* The quoted guidance is under its source's licence, named from the data beside the quote. */
           source.license ? h("div", { lang: FG.state.lang }, FG.quoteLicence(source.license)) : null] : null,
         FG.paragraphs(clause.guidance)));
   };
@@ -81,8 +82,8 @@
   /** A compact catalogue entry, reused in principles, path reasons and question sources. */
   FG.clauseEntry = function (clause) {
     const source = FG.get(clause.isPartOf);
-    const status = clause.creativeWorkStatus;
-    const isClause = String(clause["@id"]).startsWith("#clause-");
+    const status = FG.termKey(clause.clauseStatus);
+    const isClause = FG.kind(clause) === "clauses";
     const title = FG.clauseTitle(clause);
     return h(
       "li",
@@ -91,7 +92,7 @@
         "p",
         { class: "entry-head clause-meta" },
         isClause ? FG.idChip(clause) : null,
-        clause.clauseKind ? h("span", { class: "entry-what" }, FG.t("catalogue.clauseKind." + clause.clauseKind)) : null,
+        clause.clauseKind ? h("span", { class: "entry-what" }, FG.t("catalogue.clauseKind." + FG.termKey(clause.clauseKind))) : null,
         FG.clauseStatus(status)
       ),
       title && clause.text ? h("p", { class: "entry-title clause-title" }, h("strong", null, FG.span(title))) : null,
@@ -134,7 +135,7 @@
     };
     const holders = FG.stations()
       .map((station) => [station, FG.refs(station, "itemListElement")])
-      .concat(FG.ofType("Quiz").map((check) => [check, FG.refs(check, "hasPart")]));
+      .concat(FG.ofType("Quiz").map((check) => [check, FG.questionsOf(check)]));
     for (const [holder, items] of holders) {
       for (const item of items) {
         for (const clause of FG.refs(item, "citation")) {
@@ -153,29 +154,30 @@
   /* The relations a card may show, in this order, each under one label and icon wherever it appears: what the entry
      is about and for, how it is used, what made it and who runs or provides it, its licence, what it rests on and replaces, and
      where it is used and changed. */
-  const RELATIONS = ["principles", "audience", "fixedBy", "applies", "group", "nrpProfile", "prefilledFrom", "prefills", "covers", "correspondsTo", "declarations", "declaredIn", "tools", "operatedBy", "developedBy", "providedBy", "operates", "nationalNodeOf", "memberOf", "fips", "license", "basedOn", "replacedBy", "replaces", "consulted", "changed", "mentions", "inGuide", "identifiers"];
+  const RELATIONS = ["principles", "audience", "fixedBy", "applies", "group", "nrpProfile", "prefilledFrom", "prefills", "covers", "correspondsTo", "declarations", "declaredIn", "tools", "operatedBy", "developedBy", "providedBy", "operates", "qualifiedRelation", "nationalNodeOf", "memberOf", "fips", "license", "basedOn", "replacedBy", "replaces", "consulted", "changed", "mentions", "inGuide", "identifiers"];
   /* The record fields each row draws, unless a card names its own: the catalogue's completeness test reads them from
-     the row's `data-field` (design D8). */
+     the row's `data-field`. */
   const ROW_FIELDS = {
-    principles: "about",
+    principles: "about inDimension",
     audience: "audience",
     fixedBy: "fixedBy",
     applies: "appliesTo allowsNotApplicable",
     group: "block",
     nrpProfile: "providedByNrpFor",
-    prefilledFrom: "additionalProperty prefillLevel championEvidenceOnly",
+    prefilledFrom: "prefillMapping",
     covers: "hasPart",
     declarations: "hasPart",
     tools: "instrument",
     operatedBy: "publisher operatedBy operatorSource operatedBySource",
     developedBy: "attributedTo developerSource",
     providedBy: "provider",
-    operates: "operates",
+    operates: "",
+    qualifiedRelation: "qualifiedRelation",
     nationalNodeOf: "nationalNodeOf",
-    memberOf: "memberOf",
+    memberOf: "memberOf czechMembershipSince",
     fips: "subjectOf",
     license: "license",
-    basedOn: "isBasedOn",
+    basedOn: "isBasedOn source",
     replacedBy: "supersededBy",
     consulted: "object",
     changed: "result",
@@ -189,7 +191,7 @@
   /** A part of a card that draws record fields, marked with their names for the completeness test. */
   const field = (names, node) => (node ? h("span", { "data-field": names }, node) : null);
 
-  /* ---------------------------------------------------------------- shared conventions (design D8) */
+  /* ---------------------------------------------------------------- shared conventions */
 
   /** A licence named from the data: an SPDX record by its identifier, a Creative Commons or GNU licence by its code
       and version from its address, and any other licence by its address. */
@@ -220,7 +222,7 @@
   FG.quoteLicence = (value, names) =>
     value ? h("p", { class: "small muted quote-licence", "data-field": names || null }, FG.t("catalogue.quoteLicence") + ": ", FG.list(value).map((item, index) => [index ? ", " : null, FG.licenceLink(item)])) : null;
 
-  /* Relations read from their other end, worked out once for the knowledge base as loaded (design D8): the changes
+  /* Relations read from their other end, worked out once for the knowledge base as loaded: the changes
      that produced or altered each record, the tests and criteria that pre-fill each question, the FIP declarations that
      name each enabling resource, the requirements each one replaces, and the station or page of every part of the
      Guide that has no catalogue entry of its own. */
@@ -229,25 +231,25 @@
     if (reverseCache && reverseCache.revision === FG.dataRevision && reverseCache.graph === FG.graph && reverseCache.size === FG.graph.length) return reverseCache;
     const add = (map, key, value) => map.set(key, (map.get(key) || []).concat(value));
     const changes = new Map();
-    for (const action of FG.graph.filter((entity) => String(entity["@id"]).startsWith("#action-")).sort((a, b) => String(b.endTime || "").localeCompare(String(a.endTime || "")))) {
+    for (const action of FG.graph.filter((entity) => FG.kind(entity) === "actions").sort((a, b) => String(b.endTime || "").localeCompare(String(a.endTime || "")))) {
       for (const id of FG.refIds(action, "result")) add(changes, id, action);
     }
     /* The Guide's own tests and the external evaluators' criteria, read from the question's end. */
     const prefilledBy = new Map();
-    for (const test of FG.graph.filter((entity) => String(entity["@id"]).startsWith("#test-") && entity.isImplementationOf)) {
+    for (const test of FG.graph.filter((entity) => FG.isRecord(entity, "tests") && FG.isRecord(entity.isImplementationOf, "questions"))) {
       add(prefilledBy, FG.id(test.isImplementationOf), { entity: test });
     }
-    for (const criterion of FG.graph.filter((entity) => String(entity["@id"]).startsWith("#criterion-") && entity.hasPart)) {
+    for (const criterion of FG.graph.filter((entity) => FG.isCriterion(entity) && entity.hasPart)) {
       for (const mapping of FG.refs(criterion, "hasPart")) {
         if (!FG.get(mapping.about)) continue;
-        add(prefilledBy, FG.id(mapping.about), { entity: criterion, coverage: mapping.mappingCoverage });
+        add(prefilledBy, FG.id(mapping.about), { entity: criterion, coverage: FG.termKey(mapping.mappingCoverage) });
       }
     }
     const declaredIn = new Map();
     for (const fip of FG.refs(FG.get("#fips"), "hasPart")) for (const declaration of FG.refs(fip, "hasPart")) for (const id of FG.refIds(declaration, "mentions")) add(declaredIn, id, { fip, declaration });
     /* An enabling resource the Guide also lists as a resource or repository has that entry, not one of its own. */
     const standsFor = new Map();
-    for (const entity of FG.graph.filter((item) => FG.config.api.records[item["@id"]] && FG.refIds(item, "sameAs").length)) {
+    for (const entity of FG.graph.filter((item) => FG.apiRecord(item) && FG.refIds(item, "sameAs").length)) {
       const record = FG.dashboardRecord(entity);
       if (record && record.fer && !standsFor.has(record.fer["@id"])) standsFor.set(record.fer["@id"], entity);
     }
@@ -262,15 +264,15 @@
       }
     };
     for (const station of FG.stations()) placeAll({ view: "path", arg: station.identifier, entity: station }, FG.refs(station, "itemListElement").concat(FG.refs(station, "hasPart")));
-    for (const entity of FG.graph.filter((item) => FG.id(item.isPartOf) && !places.has(item["@id"]))) {
-      let parent = FG.get(FG.id(entity.isPartOf));
+    for (const entity of FG.graph.filter((item) => FG.wholeOf(item) && !places.has(item["@id"]))) {
+      let parent = FG.get(FG.wholeOf(entity));
       for (let depth = 0; parent && depth < 4; depth += 1) {
         const id = String(parent["@id"]);
-        if (id.startsWith("#station-")) {
+        if (FG.isRecord(id, "stations")) {
           places.set(entity["@id"], { view: "path", arg: parent.identifier, entity: parent });
           break;
         }
-        if (id.startsWith("#page-") && !FG.id(parent.isPartOf)) {
+        if (FG.isRecord(id, "pages")) {
           places.set(entity["@id"], { view: "page", arg: parent.identifier, entity: parent });
           break;
         }
@@ -278,7 +280,7 @@
           places.set(entity["@id"], places.get(id));
           break;
         }
-        parent = FG.get(FG.id(parent.isPartOf));
+        parent = FG.get(FG.wholeOf(parent));
       }
     }
     reverseCache = { revision: FG.dataRevision, graph: FG.graph, size: FG.graph.length, changes, prefilledBy, declaredIn, standsFor, replaces, places };
@@ -292,11 +294,11 @@
     const standing = FG.reverseRelations().standsFor.get(entity["@id"]);
     if (!FG.entryHref(entity) && standing) return FG.recordLink(standing);
     const href = FG.entryHref(entity);
-    const isRequirement = String(entity["@id"]).startsWith("#clause-") || String(entity["@id"]).startsWith("#item-");
+    const isRequirement = FG.isRecord(entity, "clauses") || FG.isRecord(entity, "questions");
     const label = isRequirement || !entity.name ? entity.identifier || FG.text(entity.name) || String(entity["@id"]) : FG.nameText(entity);
+    if (FG.isRecord(entity, "pages") && entity.identifier && entity.headline) return h("a", { href: FG.href("page", entity.identifier) }, FG.span(entity.headline));
     if (href) return h("a", { href }, label);
     if (entity["@id"] === "./") return h("a", { href: FG.href("page", "about") }, FG.text(entity.name));
-    if (String(entity["@id"]).startsWith("#page-") && entity.identifier && entity.headline && !FG.id(entity.isPartOf)) return h("a", { href: FG.href("page", entity.identifier) }, FG.span(entity.headline));
     const place = FG.reverseRelations().places.get(entity["@id"]);
     if (place) return h("span", null, entity.identifier || FG.text(entity.name), " · ", h("a", { href: FG.href(place.view, place.arg) }, FG.span(place.entity.name || place.entity.headline)));
     return h("span", null, entity.identifier || FG.text(entity.name) || String(entity["@id"]));
@@ -305,16 +307,16 @@
   /** What kind of record something is, for grouping a change's records: its catalogue kind, or the part of the Guide
       it belongs to. */
   FG.recordGroup = function (entity) {
-    const address = FG.config.api.records[FG.id(entity)];
-    if (address) return FG.catalogueKind(address.split("/")[0]);
-    const id = String(entity["@id"]);
-    if (id === "./") return "guide";
-    return ["advice", "callout", "page", "model-context"].find((prefix) => id.startsWith("#" + prefix + "-")) || "other";
+    const address = FG.apiRecord(entity);
+    if (address) return FG.catalogueGroup(FG.kind(address));
+    if (FG.id(entity) === "./") return "guide";
+    if (FG.kind(entity) === "stations" && FG.fragment(entity).startsWith("context-")) return "model-context";
+    return { advice: "advice", callouts: "callout", pages: "page" }[FG.kind(entity)] || "other";
   };
 
   /** A list of records grouped as FG.recordGroup groups them, in the catalogue's order of kinds. */
   FG.recordGroups = function (records) {
-    const order = Object.values(FG.config.catalogueKinds).concat(["advice", "callout", "model-context", "page", "guide", "other"]);
+    const order = FG.list(FG.config.kinds).map(FG.catalogueGroup).concat(["advice", "callout", "model-context", "page", "guide", "other"]);
     const groups = new Map();
     for (const record of records.filter(Boolean)) groups.set(FG.recordGroup(record), (groups.get(FG.recordGroup(record)) || []).concat(record));
     return [...groups.entries()]
@@ -331,7 +333,7 @@
 
   /** An entry's links in its top corner: the changes that produced or altered it, as a count that leads to them in
       the catalogue, and its record as data. A record's changes stay in the catalogue's list of changes, so no entry
-      grows with each one (design D8). */
+      grows with each one. */
   const entryLinks = (entity) => {
     const count = (FG.reverseRelations().changes.get(FG.id(entity)) || []).length;
     const changes = count
@@ -348,8 +350,8 @@
     const shown = new Set(pids.map((pid) => pid.iri));
     const others = FG.refIds(entity, "sameAs")
       .filter((iri) => /^https:\/\//.test(iri) && !shown.has(iri) && !/^https:\/\/(dx\.)?doi\.org\/10\.17616\//i.test(iri))
-      .map((iri) => FG.pidItem(iri.startsWith(FG.DASHBOARD) ? "dashboard" : "address", iri));
-    return pids.map((pid) => FG.pidItem(pid.scheme, pid.iri)).concat(others);
+      .map((iri) => FG.pidItem(iri));
+    return pids.map((pid) => FG.pidItem(pid.iri)).concat(others);
   };
 
   /* A FIP declaration's status by its icon, beside its text. */
@@ -358,19 +360,17 @@
 
   /** The FIP profiles that declare an enabling resource, each with the principles and the status it is declared for. */
   const declaredInRow = (fer) => {
-    const list = (fer && FG.reverseRelations().declaredIn.get(fer["@id"])) || [];
+    /* A declaration names the enabling resource: a record's thing, or a record a curated entry holds. */
+    const declared = FG.reverseRelations().declaredIn;
+    const list = (fer && (declared.get(fer["@id"]) || declared.get(FG.thingOf(fer)))) || [];
     return list.length
       ? FG.relationGroups([{ items: list, render: ({ fip, declaration }) => [
           h("a", { href: FG.entryHref(fip) }, FG.text(fip.alternateName) || FG.text(fip.name)),
           h("span", { class: "muted" }, " · " + FG.principlesOf(declaration).map((principle) => principle.termCode).join(", ") + " "),
-          FG.declarationBadge(declaration.creativeWorkStatus),
+          FG.declarationBadge(FG.termKey(declaration.declarationStatus)),
         ] }])
       : [];
   };
-
-  /** A snapshot an entry's facts come from, by name with the date it was taken. */
-  const snapshotItem = (snapshot) =>
-    h("span", null, snapshot.url ? FG.external(snapshot.url, FG.repositorySource(snapshot["@id"])) : FG.repositorySource(snapshot["@id"]), snapshot.dateCreated ? h("span", { class: "muted" }, " · " + FG.t("catalogue.snapshotOf", { date: FG.formatDate(snapshot.dateCreated) })) : null);
 
   /* Rows that take the card's full width under their label: a table needs more than the row's column. */
   const WIDE_ROWS = ["declarations"];
@@ -401,29 +401,29 @@
     });
   };
   /* The resource types that are tools or services, whose entries carry a service badge. */
-  const SERVICE_TYPES = ["#rtype-service", "#rtype-tool", "#rtype-registry"];
 
   /** A service's badge, when the entity is a tool or a service. */
-  const serviceOf = (entity) => (SERVICE_TYPES.includes(typeOf(entity)) ? entity : null);
+  const serviceOf = (entity) => ((FG.config.favicons?.types || []).some((code) => FG.term("resource-types", code) === typeOf(entity)) ? entity : null);
 
   /** An entry as a card, the same for every kind: its own identifier with what it is and how the guide uses it;
       its title; one quiet line of details; its text; badges for its state only; then its relations, one row each,
       in a fixed order, each drawn one way everywhere. */
   function entryCard(spec) {
-    const address = FG.config.api.records[FG.id(spec.entity)];
-    if (address) spec = { ...spec, kind: FG.catalogueKind(address.split("/")[0]), id: address.split("/").slice(1).join("/") };
+    const address = FG.apiRecord(spec.entity);
+    if (address) spec = { ...spec, kind: FG.catalogueGroup(FG.kind(address)), id: FG.localId(address) };
     const kind = spec.kind || null;
     const what = FG.list(spec.what).filter(Boolean);
     const details = FG.list(spec.details).filter(Boolean);
     const states = [spec.states].flat(Infinity).filter(Boolean);
-    const relations = spec.relations || {};
+    /* Every entry of the catalogue shows its identifiers, its own persistent IRI first. */
+    const relations = Object.assign({ identifiers: FG.kind(spec.entity) ? FG.identifierItems(spec.entity) : null }, spec.relations);
     const rows = spec.compact ? [] : RELATIONS.map((key) => [key, [relations[key]].flat(Infinity).filter(Boolean)]).filter(([, items]) => items.length);
     const rowFields = (key) => (spec.fields && key in spec.fields ? spec.fields[key] : ROW_FIELDS[key]) || null;
     return h(
       "li",
       { class: ["card", "entry-card", kind ? "kind-" + kind : null, spec.compact ? "entry-compact" : null].concat(spec.class || []).filter(Boolean).join(" "), id: "item-" + spec.id, "data-kind": kind, tabindex: "-1" },
       /* The kind shows in the card's top strip and the kind facet, and its icon stands before the title wherever the
-         entry has no favicon of its own (D-185). */
+         entry has no favicon of its own. */
       h("p", { class: "entry-head" }, FG.idChip(spec.entity), what.length ? h("span", { class: "entry-what" }, what.map((item, index) => [index ? " · " : null, item])) : null, spec.compact ? null : entryLinks(spec.entity)),
       spec.title
         ? h("h3", { class: "entry-title", lang: spec.titleLang || null, "data-field": spec.titleFields || "name" }, spec.service ? FG.serviceBadge(spec.service.identifier, spec.service.url, kind || "resources") : kind && icons().kind?.[kind] ? FG.kindBadge(kind) : null, h("span", null, spec.title))
@@ -451,25 +451,22 @@
       under its identifier. */
   const entryLink = (entity) => {
     if (!entity) return null;
-    const id = String(entity["@id"]);
     const name = entity.abbreviation ? FG.abbreviatedName(entity, FG.state.lang) : FG.text(entity.name);
-    if (id.startsWith("#infrastructure-")) return h("a", { href: FG.entryHref(entity) }, name);
-    if (entity["@type"] === "DataCatalog" || id.startsWith("#repository-")) return h("a", { href: FG.entryHref(entity) }, name);
     return h("a", { href: FG.entryHref(entity) }, name);
   };
 
   /** Who operates an entry, as its sources state it: the operator its own page names and the large research
-      infrastructure that operates it, each with the source that says so (D-172, D-174). */
+      infrastructure that operates it, each with the source that says so. */
   const operatorRow = (entity) => [
-    FG.partyName(entity, "publisher") ? h("span", null, FG.partyName(entity, "publisher"), entity.operatorSource ? [" (", FG.external(entity.operatorSource, FG.t("infrastructure.operatorSource")), ")"] : null) : null,
+    FG.partyName(entity, "publisher") ? h("span", null, FG.partyName(entity, "publisher"), entity.operatorSource ? [" (", FG.external(FG.id(entity.operatorSource), FG.t("infrastructure.operatorSource")), ")"] : null) : null,
     FG.get(FG.id(entity.operatedBy))
-      ? h("span", null, entryLink(FG.get(FG.id(entity.operatedBy))), entity.operatedBySource ? [" (", FG.external(entity.operatedBySource, FG.t("infrastructure.operatorSource")), ")"] : null)
+      ? h("span", null, entryLink(FG.get(FG.id(entity.operatedBy))), entity.operatedBySource ? [" (", FG.external(FG.id(entity.operatedBySource), FG.t("infrastructure.operatorSource")), ")"] : null)
       : null,
   ].filter(Boolean);
 
-  /** Who developed an entry, where its sources name its developers rather than an operator (D-174). */
+  /** Who developed an entry, where its sources name its developers rather than an operator. */
   const developerRow = (entity) =>
-    FG.partyName(entity, "attributedTo") ? [h("span", null, FG.partyName(entity, "attributedTo"), entity.developerSource ? [" (", FG.external(entity.developerSource, FG.t("infrastructure.operatorSource")), ")"] : null)] : [];
+    FG.partyName(entity, "attributedTo") ? [h("span", null, FG.partyName(entity, "attributedTo"), entity.developerSource ? [" (", FG.external(FG.id(entity.developerSource), FG.t("infrastructure.operatorSource")), ")"] : null)] : [];
   /** The audiences an entry is for, by icon and name. */
   const audiences = (lensIds) =>
     lensIds
@@ -495,18 +492,18 @@
       field("publisher", publisher ? FG.text(publisher.alternateName || publisher.name) : null),
       field("inLanguage", languages.length ? FG.t("resource.languages", { languages: languages.join(", ") }) : null),
       field("version", entity.version ? FG.t("catalogue.version", { version: entity.version }) : null),
-      field("preparationStatus", entity.preparationStatus === "in-preparation" ? FG.t("model.inPreparation") : null),
+      field("preparationStatus", FG.termKey(entity.preparationStatus) === "in-preparation" ? FG.t("model.inPreparation") : null),
       field("datePublished", date("catalogue.published", entity.datePublished)),
       field("dateModified", date("catalogue.modified", entity.dateModified)),
       field("sdDatePublished", date("catalogue.accessed", entity.sdDatePublished)),
     ];
   }
 
-  /** What an entry rests on: the snapshots its facts come from, and the RDMkit and training records that list it. */
+  /** What an entry rests on: the catalogues that supplied it, and the RDMkit and training records that list it. */
   const basedOnRow = (entity) => [
-    FG.refs(entity, "isBasedOn").filter((source) => String(source["@id"]).startsWith("#snapshot-")).map(snapshotItem),
-    entity.rdmkitRecord ? FG.external(entity.rdmkitRecord, "RDMkit") : null,
-    entity.trainingSearch ? FG.external(entity.trainingSearch, FG.t("catalogue.trainingSearch")) : null,
+    FG.sourceCredits(entity),
+    entity.rdmkitRecord ? FG.external(FG.id(entity.rdmkitRecord), "RDMkit") : null,
+    entity.trainingSearch ? FG.external(FG.id(entity.trainingSearch), FG.t("catalogue.trainingSearch")) : null,
   ];
 
   /** A work's own licences as a row, each named from the data. */
@@ -515,25 +512,36 @@
   const uses = (list) => list.map((use) => FG.t("catalogue.use." + use));
 
   function resourceCard(resource, record, used, holders, compact) {
+    const conflict = record?.fer && FG.id(record.fer.guideType) !== FG.id(resource.resourceType);
     return entryCard({
       kind: "resources",
       compact,
       id: resource.identifier,
       entity: resource,
       service: serviceOf(resource),
-      what: [field("resourceType", FG.termName(FG.id(resource.resourceType)))].concat(uses(used)),
+      /* A registry filed among the resources keeps the functions its source records, as a repository's entry shows them. */
+      what: [field("resourceType", FG.termName(FG.id(resource.resourceType))), field("repositoryFunction", FG.refIds(resource, "repositoryFunction").map(FG.termName).join(" · ") || null)].concat(uses(used)),
       title: FG.external(resource.url, FG.nameNodes(resource)),
       titleFields: "name url",
       byline: resource.creditText || null,
       bylineFields: "creditText",
       details: citationDetails(resource),
       body: resource.description ? h("p", { "data-field": "description mentions" }, FG.linkedSpan(resource, "description")) : null,
-      states: [FG.statusBadge(resource), FG.nodeBadge(resource), record ? FG.verificationBadges(record.fer) : null],
-      fields: { basedOn: "isBasedOn rdmkitRecord trainingSearch" },
+      states: [
+        FG.statusBadge(resource),
+        resource.nodeState ? FG.stateBadge({ icon: "◆", text: FG.termName(resource.nodeState), asOf: resource.statusAsOf, attrs: { "data-node-state": FG.termKey(resource.nodeState) }, field: "nodeState statusAsOf" }) : null,
+        resource.nodeStateSince ? field("nodeStateSince", FG.formatDate(resource.nodeStateSince)) : null,
+        FG.nodeBadge(resource),
+        record && !conflict ? FG.verificationBadges(record.fer) : null,
+      ],
+      notes: conflict && !compact ? FG.dashboardClaims(record) : null,
+      fields: { basedOn: "isBasedOn source rdmkitRecord trainingSearch" },
       relations: {
         principles: record && record.fer ? tiles(FG.principlesOf(record.fer)) : [],
         audience: audiences(FG.refIds(resource, "audience")),
         operatedBy: operatorRow(resource),
+        providedBy: FG.refs(resource, "provider").map((party) => (party.url ? FG.external(party.url, FG.abbreviatedName(party, FG.state.lang)) : h("span", null, FG.abbreviatedName(party, FG.state.lang)))),
+        qualifiedRelation: FG.refs(resource, "qualifiedRelation").map((relation) => FG.get(relation.relation)).filter(Boolean).map(entryLink),
         declaredIn: record ? declaredInRow(record.fer) : [],
         license: licenceRow(resource),
         basedOn: basedOnRow(resource),
@@ -567,13 +575,13 @@
 
   /** The catalogue showing one kind narrowed to some stations, such as the changes to a station. */
   FG.catalogueFilterHref = (kind, stations) => writeState({ kinds: [kind], stations, principles: [], q: "", order: "", f: {} });
-  FG.repositoryFinderHref = () => writeState({ kinds: ["repositories"], stations: [], principles: [], q: "", order: "", f: { rfunction: ["#rfunction-deposit-data"] } });
-  FG.modelFilterHref = (kind, term) => writeState({ kinds: [kind], stations: [], principles: [], layers: term.modelKind === "layer" ? [term["@id"]] : [], seams: term.modelKind === "seam" ? [term["@id"]] : [], q: "", order: "", f: {} });
+  FG.repositoryFinderHref = () => writeState({ kinds: ["repositories"], stations: [], principles: [], q: "", order: "", f: { rfunction: [FG.term("repository-functions", "deposit-data")] } });
+  FG.modelFilterHref = (kind, term) => writeState({ kinds: [kind], stations: [], principles: [], layers: FG.termKey(term.modelKind) === "layer" ? [term["@id"]] : [], seams: FG.termKey(term.modelKind) === "seam" ? [term["@id"]] : [], q: "", order: "", f: {} });
 
   /* A topic named in content (`#resources?type=standard,vocabulary`, `#resources?station=assessment`): the content's
      facet name and the prefix its values take as entities; `station` narrows the shared station dimension. The
      content check accepts the same facets and values. */
-  const TOPIC_FACETS = { resources: { type: ["type", "#rtype-"] }, repositories: { function: ["rfunction", "#rfunction-"] } };
+  const TOPIC_FACETS = { resources: { type: ["type", "resource-types"] }, repositories: { function: ["rfunction", "repository-functions"] } };
 
   /** The catalogue state for a kind narrowed to a topic, for the reader's lens. */
   FG.catalogueTopic = function (kind, query) {
@@ -584,7 +592,7 @@
       const list = values.split(",").filter(Boolean);
       const facet = (TOPIC_FACETS[kind] || {})[name];
       if (name === "station") stations = list;
-      else if (facet) f[facet[0]] = list.map((value) => facet[1] + value);
+      else if (facet) f[facet[0]] = list.map((value) => FG.term(facet[1], value));
     }
     f.lens = [FG.state.lens];
     return stateArg({ kinds: [kind], stations, principles: [], q: "", order: "", f });
@@ -608,5 +616,5 @@
 
 
   /* What the catalogue view builds on, for assets/js/catalogue-view.js. */
-  FG.catalogueParts = { audiences, basedOnRow, citationDetails, citations, code, declaredInRow, developerRow, entryCard, entryLink, field, icons, inGuide, licenceRow, operatorRow, resourceCard, serviceOf, slug, snapshotItem, sourceLink, stationsOf, tiles, typeOf, uses, writeState };
+  FG.catalogueParts = { audiences, basedOnRow, citationDetails, citations, code, declaredInRow, developerRow, entryCard, entryLink, field, icons, inGuide, licenceRow, operatorRow, resourceCard, serviceOf, slug, sourceLink, stationsOf, tiles, typeOf, uses, writeState };
 })();

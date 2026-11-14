@@ -1,0 +1,24 @@
+# Questions that copy a clause they cite only among their sources take that clause as their requirement and drop
+# their copy (design.md, decision 10). The 51 questions that copy their requirement clause drop their copy without an
+# entry here; migrate.py finds them by comparing texts, once reference markup and final punctuation are ignored.
+
+[[requirement]]
+question = "gate.01"
+clause = "NRP.M1"
+
+# gate.08's references to the NMA and CCMM entries move into the clause, as maturity.14's do below.
+[[requirement]]
+question = "gate.08"
+clause = "NRP.M8"
+clauseText = { cs = "Metadata se sklízejí do [[resources/nma|NMA]] podle [[resources/ccmm|CCMM]].", en = "Metadata are harvested into [[resources/nma|NMA]] according to [[resources/ccmm|CCMM]]." }
+
+[[requirement]]
+question = "gate.10"
+clause = "NRP.M10"
+
+# maturity.14 copies the clause in English and words it otherwise in Czech; it takes the clause's own wording. Its
+# references to the ORCID and ROR entries move into the clause, whose words stay as they are.
+[[requirement]]
+question = "maturity.14"
+clause = "A.I3.R2"
+clauseText = { cs = "Metadata uvádějí [[resources/orcid|ORCID]] a [[resources/ror|ROR]].", en = "Metadata include [[resources/orcid|ORCID]] and [[resources/ror|ROR]]." }

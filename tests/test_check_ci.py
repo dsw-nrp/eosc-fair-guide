@@ -530,7 +530,7 @@ class AdoptTests(unittest.TestCase):
         self.assertEqual(check_ci.adoption_problems(manifest, execution, self.report), [])
         for change in (
             {"index.html": "3"},
-            {"api/stations.json": "added"},
+            {"api/v1/stations.json": "added"},
         ):
             with self.subTest(change=change):
                 changed = {**execution, "build_inputs": {**execution["build_inputs"], **change}}

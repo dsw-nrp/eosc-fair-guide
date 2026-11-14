@@ -7,6 +7,53 @@ import { browserEnvironment, root, mapLimit, workerCount, checkDefaults } from "
 import { slotIsAbandoned } from "../scripts/browser_slots.mjs";
 import { runInNewContext } from "node:vm";
 
+for (const missing of ["neutral", "translation", "language"]) {
+  test("local data retry recovers missing " + missing + " registration without repeating accepted data", async () => {
+    const window = {}, requests = [], removed = [];
+    const paths = { neutral: "fixture.js", translation: "fixture-cs.js", language: "en.js" };
+    let corrected = false;
+    const document = { createElement: () => ({ remove() { removed.push(this.src); } }), head: { append(script) {
+      requests.push(script.src);
+      queueMicrotask(() => {
+        if (script.src !== paths[missing] || corrected) {
+          const data = window.FairGuideData;
+          if (script.src === paths.neutral) data.parts = { fixture: { entities: [{ "@id": "fixture", name: "neutral" }] } };
+          if (script.src === paths.translation) data.partLanguages = { fixture: { cs: { values: { entities: [{ name: "translated" }] } } } };
+          if (script.src === paths.language) data.languages = { en: { ui: { ui: { greeting: "translated" } } } };
+        }
+        script.onload();
+      });
+    } } };
+    runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, document, URL });
+    const FG = window.FairGuide;
+    window.FairGuideData = { kb: { "@graph": [] }, ui: { ui: {}, config: { links: {}, languages: { en: paths.language },
+      parts: { fixture: paths.neutral }, partLanguages: { fixture: { cs: paths.translation } } } } };
+    FG.load();
+    let invalidations = 0; const invalidate = FG.invalidateData;
+    FG.invalidateData = () => { invalidations += 1; invalidate(); };
+    const load = () => missing === "language" ? FG.loadLanguage("en") : FG.loadPart("fixture", "cs");
+    await assert.rejects(load(), /missing/);
+    assert.equal(FG.graph.length, missing === "translation" ? 1 : 0);
+    corrected = true;
+    await Promise.all([load(), load()]);
+    assert.equal(requests.filter((path) => path === paths[missing]).length, 2, "Retry fetches the corrected file");
+    assert.deepEqual(removed, [paths[missing]], "only the unregistered script element is discarded");
+    if (missing === "language") {
+      assert.equal(FG.ui.greeting, "translated");
+      assert.equal(invalidations, 1);
+    } else {
+      assert.equal(FG.graph.length, 1, "the accepted neutral part is never duplicated");
+      assert.equal(FG.get("fixture").name, "translated");
+      assert.equal(invalidations, 2, "one neutral merge and one translation merge");
+      assert.equal(requests.filter((path) => path === paths[missing === "neutral" ? "translation" : "neutral"]).length, 1);
+    }
+    const count = requests.length, revision = FG.dataRevision;
+    await load();
+    assert.equal(requests.length, count, "valid cached data is reused");
+    assert.equal(FG.dataRevision, revision, "valid reuse does not apply or invalidate data again");
+  });
+}
+
 test("source lookup indexes a real graph once and invalidates misses, ambiguity and reloads", () => {
   const window = {};
   runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });
@@ -38,14 +85,44 @@ test("source lookup indexes a real graph once and invalidates misses, ambiguity 
   const duplicate = { ...entity, "@id": "#fixture-two" };
   FG.graph.push(duplicate); FG.byId.set(duplicate["@id"], duplicate); FG.invalidateData();
   assert.equal(FG.sourceEntity("fixture", "new"), null);
-  assert.equal(FG.sourceEntity("fixture", "new", "#fixture-one"), entity);
+  assert.equal(FG.sourceEntity("fixture", "new", (candidate) => candidate["@id"] === "#fixture-one"), entity);
   alternate.value = "changed"; FG.invalidateData();
   assert.equal(FG.sourceEntity("fixture", "new"), null);
-  assert.equal(FG.sourceEntity("fixture", "changed", "#fixture-one"), entity);
+  assert.equal(FG.sourceEntity("fixture", "changed", (candidate) => candidate["@id"] === "#fixture-one"), entity);
   window.FairGuideData.kb = { "@graph": [] }; FG.load();
   assert.equal(FG.sourceEntity("fixture", "changed"), null);
   const fixture = JSON.parse(readFileSync(resolve(root, "tests/fixtures/normalization.json"), "utf8"));
   for (const [input, expected] of fixture.addresses) assert.equal(FG.bareUrl(input), expected);
+});
+
+test("check questions share one ordered index per data revision", () => {
+  const window = {};
+  runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });
+  const FG = window.FairGuide;
+  window.FairGuideData = { kb: JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8")), ui: { ui: {}, config: { links: {} } } };
+  FG.load();
+  const checks = FG.ofType("Quiz");
+  const expected = new Map(checks.map((check) => [check["@id"], FG.graph.filter((entity) => entity.hasBenchmark && FG.id(entity.hasBenchmark) === check["@id"]).sort(FG.byPosition)]));
+  const filter = FG.graph.filter, iterator = FG.graph[Symbol.iterator];
+  let scans = 0;
+  FG.graph.filter = function (...args) { scans += 1; return filter.apply(this, args); };
+  FG.graph[Symbol.iterator] = function (...args) { scans += 1; return iterator.apply(this, args); };
+  try {
+    const idsOf = (items) => Array.from(items, (item) => item["@id"]);
+    for (const check of checks) assert.deepEqual(idsOf(FG.questionsOf(check)), idsOf(expected.get(check["@id"])));
+    assert.equal(scans, 1, "all checks share one graph derivation");
+    for (const check of checks) for (let repeat = 0; repeat < 5; repeat++) assert.deepEqual(idsOf(FG.questionsOf(check)), idsOf(expected.get(check["@id"])));
+    assert.equal(scans, 1, "unchanged data does not rescan");
+    FG.invalidateData();
+    FG.questionsOf(checks[0]);
+    assert.equal(scans, 2, "a data revision rebuilds once on demand");
+    const added = { "@id": "questions/index-fixture", hasBenchmark: checks[0]["@id"], position: -1 };
+    FG.graph.push(added);
+    FG.byId.set(added["@id"], added);
+    FG.invalidateData();
+    assert.equal(FG.questionsOf(checks[0])[0], added, "a new question appears in position order");
+    assert.equal(scans, 3, "new graph membership rebuilds once");
+  } finally { FG.graph.filter = filter; FG.graph[Symbol.iterator] = iterator; }
 });
 
 test("JSON connectors bound every body and preserve request options, cancellation and retry", async () => {
@@ -141,22 +218,35 @@ test("bad budgets fail rather than silently running an empty suite", () => {
 test("separate Node processes share the same browser-case limit", async () => {
   for (const budget of [1, 2]) {
     const directory = mkdtempSync(resolve(root, ".cache/runtime-slots-"));
+    const gate = resolve(directory, "overlap");
     const source = `import {acquireSlot} from './scripts/browser_slots.mjs';
+      import {existsSync} from 'node:fs';
       const release=await acquireSlot();
+      console.log('acquired');
+      const deadline=Date.now()+10000;
+      while(!existsSync(${JSON.stringify(gate)}) && Date.now()<deadline) await new Promise(done=>setTimeout(done,20));
       const start=performance.timeOrigin+performance.now();
-      await new Promise(done=>setTimeout(done,60));
+      await new Promise(done=>setTimeout(done,20));
       const end=performance.timeOrigin+performance.now();
       release(); console.log(JSON.stringify({start,end}));`;
+    let overlap = false;
     const intervals = await Promise.all(Array.from({length: 3}, () => new Promise((done, reject) => {
       const child = spawn(process.execPath, ["--input-type=module", "-e", source], {
         cwd: root, env: {...process.env, CHECK_BROWSER_SLOT_DIR: directory, CHECK_BROWSER_WORKERS: String(budget)},
       });
-      let output = "", errors = "";
-      child.stdout.on("data", (data) => { output += data; });
+      let output = "", errors = "", acquired = 0;
+      child.stdout.on("data", (data) => {
+        output += data;
+        // Wait for the whole configured budget before measuring; Windows process startup can be serialized.
+        if (!overlap && output.includes("acquired") && ++acquired >= budget) {
+          overlap = true;
+          writeFileSync(resolve(directory, "overlap"), "go");
+        }
+      });
       child.stderr.on("data", (data) => { errors += data; });
       child.on("error", reject);
       child.on("close", (code) => {
-        if (code) reject(new Error(errors)); else done(JSON.parse(output));
+        if (code) reject(new Error(errors)); else done(JSON.parse(output.trim().split(/\r?\n/).at(-1)));
       });
     })));
     const events = intervals.flatMap(({start,end}) => [[start,1],[end,-1]]).sort((a,b) => a[0]-b[0] || a[1]-b[1]);

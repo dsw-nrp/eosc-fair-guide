@@ -16,9 +16,11 @@ function serve(request, response) {
   const address = new URL(request.url, "http://localhost");
   if (address.pathname === "/host") {
     const target = address.searchParams.get("guideRoot") || guideOrigin + "/";
+    // The frame's own start, such as a record's entry route `#/id/<address>`.
+    const start = address.searchParams.get("frameView") || "#/cs/DS/path/start";
     response.setHeader("Content-Type", "text/html");
     response.end(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Local embed test</title></head><body style="margin:0"><h1>Host</h1>
-      <iframe id="guide" title="FAIR Guide" src="${target}#/cs/DS/path/start" style="width:100%;height:800px;border:0"></iframe>
+      <iframe id="guide" title="FAIR Guide" src="${target}${start.replace(/"/g, "%22")}" style="width:100%;height:800px;border:0"></iframe>
       <script src="${guideOrigin}/assets/js/embed.js" data-guide-frame="guide" defer></script></body></html>`);
     return;
   }
@@ -122,6 +124,12 @@ try {
     await page.waitForTimeout(50);
     assert.equal(hostView(), current, "invalid state has no effect");
   }
+  // A host that starts its frame at a record's entry route receives the full route, with language and lens, in the
+  // form the protocol accepts; the entry route itself is never published.
+  await page.goto(hostOrigin + "/host?frameView=" + encodeURIComponent("#/id/resources/dmp-eosc"));
+  await page.waitForFunction(() => /^#\/(cs|en)\/(V|DS|SR|K)\/catalogue\/resources\/dmp-eosc$/.test(new URL(location.href).searchParams.get("fair-guide-view") || ""));
+  assert.equal(await frame().evaluate(() => location.hash), hostView(), "the frame shows the full route it published");
+  await page.frameLocator("#guide").locator('.catalogue-results [id="item-dmp-eosc"]').waitFor();
   // An unconfigured parent origin cannot handshake or read any state, despite loading the host snippet.
   await page.goto(foreign.origin + "/host?fair-guide-view=" + encodeURIComponent(initial));
   await page.frameLocator("#guide").locator('#main details[data-key="L1"]').waitFor();
@@ -158,7 +166,7 @@ try {
           assert(payload["@id"].startsWith(target + "#"), "the exported list's address retains its actual page");
           assert(payload.itemListElement.length > 0);
           assert(payload.itemListElement.every((entry) => entry["@id"].startsWith(origin + prefix + "api/")));
-          assert.equal(payload["@context"], origin + prefix + "api/context.jsonld");
+          assert.equal(payload["@context"], origin + prefix + "api/v1/context.jsonld");
           // API consumption happens outside the Guide: its CSP deliberately does not permit page fetches here.
           const records = await Promise.all([payload["@context"], payload.itemListElement[0]["@id"]].map(async (url) => {
             const response = await fetch(url); return { ok: response.ok, data: await response.json() };
@@ -172,12 +180,14 @@ try {
           await embedded.locator("#export-format-jsonld").check();
           const [result] = await Promise.all([view.waitForEvent("download"), embedded.locator("#export-download").click()]);
           const crate = JSON.parse(readFileSync(await result.path(), "utf8"));
-          const test = crate["@graph"].find((entry) => entry["ftr:outputFromTest"]);
-          assert(test, "the result export includes a test reference");
-          assert(test["ftr:outputFromTest"]["@id"].startsWith(origin + prefix + "api/"), "test references use the current channel");
-          const response = await fetch(test["ftr:outputFromTest"]["@id"]);
+          const measurement = crate["@graph"].find((entry) => entry["dqv:isMeasurementOf"]);
+          assert(measurement, "the result export includes a reader's quality measurement");
+          const questionIri = await embedded.evaluate(() => window.FairGuide.iri("questions/fip.01"));
+          assert.equal(measurement["dqv:isMeasurementOf"]["@id"], questionIri, "the question's persistent IRI is preserved");
+          const response = await fetch(origin + prefix + "api/v1/questions/fip.01.json");
           const record = await response.json();
-          assert(response.ok && [].concat(record["@type"]).includes("Test"));
+          assert(response.ok && record["@type"].includes("ftr:Metric"), "the built v1 document is a metric");
+          assert(record.sameAs.includes(questionIri), "the metric record names the same persistent question IRI");
         }
       }
     }

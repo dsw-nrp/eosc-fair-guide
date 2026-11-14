@@ -1,8 +1,10 @@
-// Source/criterion boundaries: no browser or remote service is needed for these pure mappings.
+// Source/criterion boundaries use pure mappings. Saved-result files load and export offline in the page itself.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { runInNewContext } from "node:vm";
+import { pathToFileURL } from "node:url";
+import { chromium } from "./browser.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const FG = { config: { discovery: { schemaVocabulary: "https://schema.org/", codeMetaVocabulary: "https://codemeta.github.io/terms/",
@@ -108,3 +110,42 @@ assert(!get(sw([file("codemeta.json", "software-metadata", JSON.stringify({ "@co
 assert(!get(sw([]), "software.18"), "repository inspection does not execute examples");
 assert(!get(sw([]), "software.19"), "a source repository is not archival preservation");
 console.log("check_assess: conservative object/software mappings and adversarial context fixtures pass");
+
+// Saved-result compatibility and the revision-4 DQV writer run through the real browser module, without a live evaluator.
+{
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  try {
+    await page.goto(pathToFileURL(resolve(root, "_site/index.html")).href + "#/en/K/selfcheck");
+    await page.waitForFunction(() => window.FairGuide.selfcheck?.readPortable && window.FairGuide.selfcheck?.ftrCrate);
+    let loaded;
+    for (const revision of [1, 2, 3]) {
+      const fixture = JSON.parse(readFileSync(resolve(root, `tests/fixtures/results/revision-${revision}.jsonld`), "utf8"));
+      loaded = await page.evaluate((crate) => {
+        const state = JSON.parse(crate["@graph"].find((entity) => entity.guideState).guideState);
+        return window.FairGuide.selfcheck.readPortable(state);
+      }, fixture);
+      assert.equal(loaded.error, undefined, `revision ${revision} loads`);
+      assert.equal(loaded.check.identifier, "fip");
+      assert.equal(loaded.state.items["fip.01"].value, "yes", `revision ${revision} preserves the reader's answer`);
+      const support = JSON.parse(readFileSync(resolve(root, "_site/api/tests/fip.01.json"), "utf8"));
+      assert(!support["@type"].includes("Test"), "the old document is not presented as a FTR test");
+      assert.equal(support.about, "../v1/questions/fip.01.json", "the old support document resolves to the question");
+    }
+    loaded.state.verdicts = [{ test: "fc_metadata_protocol", value: "pass", target: "https://example.org/dataset/1" }];
+    const crate = await page.evaluate(({ check, state }) => window.FairGuide.selfcheck.ftrCrate(check, state), loaded);
+    const holder = crate["@graph"].find((entity) => entity.guideState);
+    assert.equal(JSON.parse(holder.guideState).v, 4, "the saved format is revision 4");
+    const measurement = crate["@graph"].find((entity) => entity["@type"].includes("dqv:QualityMeasurement"));
+    assert.equal(measurement["dqv:isMeasurementOf"]["@id"], await page.evaluate(() => window.FairGuide.iri("questions/fip.01")));
+    assert.equal(measurement["dqv:computedOn"]["@id"], "https://example.org/dataset/1");
+    assert.equal(measurement["ftr:outputFromTest"], undefined, "a reader's answer does not name a fabricated test");
+    const verdict = crate["@graph"].find((entity) => entity["ftr:outputFromTest"]);
+    assert.equal(verdict["ftr:outputFromTest"]["@id"], await page.evaluate(() => window.FairGuide.iri("tests/fair-champion/fc_metadata_protocol")));
+    const originalTest = crate["@graph"].find((entity) => verdict["ftr:outputFromTest"]["@id"] === entity["@id"]);
+    assert(originalTest["@type"].includes("ftr:Test"), "the automated evidence names its own actual test");
+  } finally {
+    await browser.close();
+  }
+  console.log("check_assess: saved results 1–3 load and revision 4 preserves question and test IRIs");
+}

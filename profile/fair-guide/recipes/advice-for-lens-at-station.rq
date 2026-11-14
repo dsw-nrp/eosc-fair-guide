@@ -1,0 +1,15 @@
+# cs: Vybere položky rady pro správce dat na zastávce Plánování a vypíše jejich úrovně.
+# en: Selects data-steward advice at the Planning station and lists its disclosure levels.
+PREFIX schema: <http://schema.org/>
+PREFIX guide: <https://w3id.org/eosc-cz/fair-guide/terms#>
+
+SELECT ?advice ?level
+WHERE {
+  VALUES ?station { <https://w3id.org/eosc-cz/fair-guide/id/stations/plan> }
+  VALUES ?lens { <https://w3id.org/eosc-cz/fair-guide/id/vocabularies/lenses/DS> }
+  ?advice a guide:AdviceItem ;
+    schema:isPartOf ?station ;
+    schema:audience ?lens ;
+    guide:disclosureLevel ?level .
+}
+ORDER BY ?advice

@@ -11,9 +11,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_api  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_crate  # noqa: E402
 import build_site  # noqa: E402
 import check_content  # noqa: E402
+from addresses import iri  # noqa: E402
 
 
 class LocalTestRecords(unittest.TestCase):
@@ -32,21 +35,15 @@ class LocalTestRecords(unittest.TestCase):
         crate_parts = {part["@id"] for part in self.entities["./"]["hasPart"]}
         for test in tests:
             with self.subTest(test=test["id"]):
-                entity = self.entities["#test-" + test["id"]]
-                question_id = "#item-" + test["question"]
+                entity = self.entities[iri("tests/guide/" + test["id"])]
+                question_id = iri("questions/") + test["question"]
                 self.assertIn(question_id, self.entities)
                 self.assertFalse(self.entities[question_id].get("assessmentContext"))
                 self.assertEqual(entity["isImplementationOf"], {"@id": question_id})
                 self.assertEqual({value["@language"] for value in entity["description"]}, {"cs", "en"})
                 self.assertEqual({value["@language"] for value in entity["name"]}, {"cs", "en"})
                 self.assertIn(test["id"], test["entryPoint"])
-                entry = next(
-                    self.entities[part["@id"]]
-                    for part in build_crate.as_list(entity["additionalProperty"])
-                    if self.entities[part["@id"]].get("propertyID") == "entryPoint"
-                )
-                self.assertEqual(entry["propertyID"], "entryPoint")
-                self.assertEqual(entry["value"], test["entryPoint"])
+                self.assertEqual(entity["entryPoint"], test["entryPoint"])
                 for part in entity["hasPart"]:
                     path = part["@id"]
                     self.assertTrue((ROOT / path).is_file(), path)
@@ -57,27 +54,31 @@ class LocalTestRecords(unittest.TestCase):
                 self.assertIn(doc["isPartOf"]["@id"], crate_parts)
                 self.assertTrue((ROOT / doc["isPartOf"]["@id"]).is_file())
 
-    def test_api_describes_automatic_and_manual_implementations_separately(self) -> None:
+    def test_api_names_a_questions_local_tests_as_its_implementations(self) -> None:
+        local = {}
+        for test in self.content["live"]["test"]:
+            local.setdefault(test["question"], []).append(f"../tests/guide/{test['id']}.json")
         for test in self.content["live"]["test"]:
             with self.subTest(test=test["id"]):
-                record = json.loads(self.files[f"api/test/guide/{test['id']}.json"])
-                self.assertEqual(record["isImplementationOf"], f"../../q/{test['question']}.json")
+                record = json.loads(self.files[f"api/v1/tests/guide/{test['id']}.json"])
+                self.assertEqual(record["isImplementationOf"], f"../../questions/{test['question']}.json")
                 self.assertTrue(record["description"]["cs"])
                 self.assertTrue(record["description"]["en"])
-                metric = json.loads(self.files[f"api/q/{test['question']}.json"])
+                metric = json.loads(self.files[f"api/v1/questions/{test['question']}.json"])
+                implementations = local[test["question"]]
                 self.assertEqual(
-                    metric["hasImplementation"],
-                    [f"../tests/{test['question']}.json", f"../test/guide/{test['id']}.json"],
+                    metric["hasImplementation"], implementations if len(implementations) > 1 else implementations[0]
                 )
-        # Manual question tests, curated Champion tests, local tests and external evaluators' criteria.
+        # Curated Champion tests, local tests and external evaluators' criteria; a person answering a question is no
+        # test.
         criteria = sum(len(provider["metric"]) for provider in self.content["live"].get("provider", []))
         self.assertEqual(criteria, 29)
-        self.assertEqual(json.loads(self.files["api/tests.json"])["numberOfItems"], 214 + 13 + 42 + criteria)
+        self.assertEqual(json.loads(self.files["api/v1/tests.json"])["numberOfItems"], 13 + 42 + criteria)
 
     def test_external_tests_link_documentation_and_execution_separately(self) -> None:
         for test in self.content["live"]["champion"]["test"]:
-            record = self.entities["#test-" + test["id"]]
-            links = {entry["@id"] for entry in record["subjectOf"]}
+            record = self.entities[iri("tests/fair-champion/" + test["id"])]
+            links = set(build_crate.as_list(record["citation"]))
             self.assertIn(
                 test.get("record")
                 or self.content["live"]["champion"]["testRecord"].format(
@@ -98,12 +99,13 @@ class LocalTestRecords(unittest.TestCase):
                 codes = question.get("principles", [])
                 self.assertTrue(codes, "current local tests have applicable existing principle links")
                 self.assertTrue(set(codes) <= known)
-                entity = self.entities["#test-" + test["id"]]
-                self.assertEqual(entity.get("about"), self.entities["#item-" + test["question"]].get("about"))
-                record = json.loads(self.files[f"api/test/guide/{test['id']}.json"])
+                entity = self.entities[iri("tests/guide/" + test["id"])]
+                question_entity = self.entities[iri("questions/") + test["question"]]
+                self.assertEqual(entity.get("about"), question_entity.get("inDimension"))
+                record = json.loads(self.files[f"api/v1/tests/guide/{test['id']}.json"])
                 self.assertEqual(
                     build_crate.as_list(record["about"]),
-                    [f"../../pr/{code}.json" for code in codes],
+                    [f"../../principles/{code}.json" for code in codes],
                 )
         self.assertEqual(questions["software.14"]["principles"], ["R1"])
         self.assertEqual(questions["software.20"].get("principles", []), [])
@@ -127,7 +129,7 @@ class LocalTestRecords(unittest.TestCase):
         content = copy.deepcopy(self.content)
         test = content["live"]["test"][0]
         identifier = test["id"]
-        content["identifiers"]["issued"]["tests"].remove(identifier)
+        content["identifiers"]["issued"]["tests"].remove(f"guide/{identifier}")
         test["script"] = "assets/js/tests/../../outside.js"
         test["entryPoint"] = 'FairGuide.selfcheck.localTests["another-test"]'
         test["question"] = "fdo.09"
@@ -140,6 +142,11 @@ class LocalTestRecords(unittest.TestCase):
     def test_individual_documentation_is_generated_from_the_registry_in_both_languages(self) -> None:
         template = (ROOT / build_site.LOCAL_TEST_DOC).read_text(encoding="utf-8")
         self.assertTrue(all(not match.group("body").strip() for match in build_crate.BLOCK.finditer(template)))
+        for identifier in ("&lt;identifikátor&gt;", "&lt;identifier&gt;"):
+            self.assertIn(f"api/v1/tests/guide/{identifier}.json", template)
+        self.assertIn('href="../../../api/v1/tests.json"', template)
+        self.assertNotIn("api/tests/&lt;", template)
+        self.assertNotIn('href="../../../api/tests.json"', template)
         document = build_site.render_test_docs(template, self.content)
         for test in self.content["live"]["test"]:
             self.assertEqual(test["documentation"], f"assets/js/tests/index.html#{test['id']}")
@@ -148,8 +155,10 @@ class LocalTestRecords(unittest.TestCase):
                 self.assertIn(f'<h3 id="{anchor}"><code>{test["id"]}</code>', document)
                 self.assertIn(html.escape(test["label"][language]), document)
                 self.assertIn(html.escape(test["description"][language]), document)
-                self.assertIn(f'href="../../../index.html#/{language}/K/catalogue/q/{test["question"]}"', document)
-                self.assertIn(f'href="../../../api/test/guide/{test["id"]}.json"', document)
+                self.assertIn(
+                    f'href="../../../index.html#/{language}/K/catalogue/questions/{test["question"]}"', document
+                )
+                self.assertIn(f'href="../../../api/v1/tests/guide/{test["id"]}.json"', document)
         changed = copy.deepcopy(self.content)
         changed["live"]["test"][0]["description"]["cs"] = '<img src="unsafe">Updated description from TOML'
         regenerated = build_site.render_test_docs(template, changed)

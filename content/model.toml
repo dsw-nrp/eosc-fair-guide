@@ -14,46 +14,46 @@ feedback = { cs = "Plánování přináší požadavky na služby. Podpora před
 [model.workedExample]
 name = { cs = "Jak Průvodce předává požadavek do kontroly", en = "How the Guide carries a requirement into a check" }
 description = { cs = "Publikovaný požadavek na identifikátor vede k otázce a k pojmenovanému testu. Test dokládá rozlišení PID; dlouhodobou dostupnost neověřuje. Záznam revize vysvětluje, jak vznikla jeho implementace a popis rozsahu. U konkrétního výsledku kontroly zůstávají také posuzovaný objekt, pozorování a datum.", en = "A published identifier requirement leads to a question and a named test. The test establishes PID resolution; it does not verify long-term availability. A revision record explains how its implementation and scope description were produced. A specific assessment result also retains the assessed object, observations and date." }
-steps = ["A.F1.R1", "dataset.01", "test:guide-dataset-01", "action:2026-10-16-initial-state"]
+steps = ["clauses/A.F1.R1", "questions/dataset.01", "tests/guide/guide-dataset-01", "actions/2026-10-16-initial-state"]
 
 [[layer]]
-guideRoute = "model/layer"
+guideRoute = "layers"
 id = "policy"
 name = { cs = "Principy, politika a řízení", en = "Principles, policy and governance" }
 description = { cs = "Určují cíle, odpovědnosti a podmínky pro správu dat: financování, přístup, licence, uchování a uznání výsledků.", en = "Set goals, responsibilities and conditions for data management: funding, access, licensing, preservation and recognition of outputs." }
 
 [[layer]]
-guideRoute = "model/layer"
+guideRoute = "layers"
 id = "community"
 name = { cs = "Rozhodování a implementace v komunitě", en = "Community decision and implementation" }
 description = { cs = "Komunita vybírá standardy a služby a vymezuje oborový popis dat. Společné jádro, oborové profily a popis jednotlivých metod propojuje podle potřeby mapováním.", en = "The community selects standards and services and defines disciplinary data descriptions. A common core, domain profiles and method descriptions can be connected through mappings." }
 
 [[layer]]
-guideRoute = "model/layer"
+guideRoute = "layers"
 id = "infrastructure"
 name = { cs = "Infrastruktura", en = "Infrastructure" }
 description = { cs = "Poskytuje repozitáře, identifikátory, vyhledávání a rozhraní. Sdílené služby se přizpůsobují oborovým potřebám; přenos mezi dvěma službami vyžaduje použitelnou návaznost.", en = "Provides repositories, identifiers, discovery and interfaces. Shared services accommodate domain needs; a transfer between two services requires a usable seam." }
 
 [[layer]]
-guideRoute = "model/layer"
+guideRoute = "layers"
 id = "planning"
 name = { cs = "Plánování výzkumu", en = "Research planning" }
 description = { cs = "Promítá pravidla a komunitní volby do konkrétního projektu. Plán správy dat zachycuje očekávaná data, postupy a služby i potřeby, které dosud nejsou pokryty.", en = "Applies policies and community choices to a specific project. A data management plan captures expected data, practices and services, including needs that are not yet met." }
 
 [[layer]]
-guideRoute = "model/layer"
+guideRoute = "layers"
 id = "support"
 name = { cs = "Provozní podpora", en = "Operational support" }
 description = { cs = "Pomáhá při každodenní práci a řešení problémů. Zkušenosti výzkumníků, kurátorů a správců vrací do metodik, služeb a komunitních rozhodnutí.", en = "Helps with day-to-day work and problem solving. Returns experience from researchers, curators and administrators to guidance, services and community decisions." }
 
 [[layer]]
-guideRoute = "model/layer"
+guideRoute = "layers"
 id = "evaluation"
 name = { cs = "Hodnocení", en = "Evaluation" }
 description = { cs = "Posuzuje data, záznamy, služby nebo organizace podle konkrétních kritérií. Výsledek dává podklad pro nápravu; různé druhy hodnocení zodpovídají různé otázky.", en = "Assesses data, records, services or organisations against specific criteria. Findings support remediation; different kinds of evaluation answer different questions." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "repository-nma"
 layers = ["infrastructure"]
 source = "layers-seams-manuscript"
@@ -66,7 +66,7 @@ carrier = { cs = "CCMM-XML, OAI-PMH a mapování, například XSLT", en = "CCMM-
 maintainers = { cs = "Repozitář spravuje mapování; NMA spravuje sklizeň.", en = "The repository maintains mappings; NMA maintains harvesting." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "nma-research-register"
 layers = ["infrastructure", "evaluation"]
 source = "layers-seams-manuscript"
@@ -79,7 +79,7 @@ carrier = { cs = "URL záznamu NMA a postup pro vykazování do RIV", en = "NMA 
 maintainers = { cs = "NMA zajišťuje adresu záznamu; instituce zajišťuje správné vykázání.", en = "NMA provides the record URL; the institution handles reporting." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "institution-nma"
 layers = ["policy", "infrastructure"]
 source = "layers-seams-manuscript"
@@ -92,7 +92,7 @@ carrier = { cs = "Programová pravidla, institucionální postup a záznam NMA",
 maintainers = { cs = "Instituce organizuje přípravu a vykázání výstupu.", en = "The institution organises preparation and reporting of the output." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "repository-authentication"
 layers = ["infrastructure"]
 source = "layers-seams-manuscript"
@@ -105,7 +105,7 @@ carrier = { cs = "Federovaná identita a přístupová pravidla; v národním pr
 maintainers = { cs = "Správce repozitáře a poskytovatel infrastruktury pro ověření identity.", en = "Repository administrator and authentication infrastructure provider." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "repository-pid-registry"
 layers = ["infrastructure"]
 source = "layers-seams-manuscript"
@@ -118,7 +118,7 @@ carrier = { cs = "Spravované PID a jejich metadata; například DOI, ORCID a RO
 maintainers = { cs = "Repozitář či instituce spravuje záznamy; registry zajišťují jejich infrastrukturu.", en = "The repository or institution maintains records; registries provide their infrastructure." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "community-repository"
 layers = ["community", "infrastructure"]
 source = "layers-seams-manuscript"
@@ -131,7 +131,7 @@ carrier = { cs = "Metadatové profily, schémata a mapování do společného j�
 maintainers = { cs = "Komunita rozvíjí oborový význam; repozitář udržuje jeho implementaci.", en = "The community develops domain meaning; the repository maintains its implementation." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "working-groups-services"
 layers = ["community", "infrastructure"]
 source = "layers-seams-manuscript"
@@ -144,7 +144,7 @@ carrier = { cs = "Koordinace pracovních skupin a roadmapy služeb", en = "Worki
 maintainers = { cs = "Pracovní skupiny a poskytovatelé služeb průběžně slaďují potřeby a rozvoj.", en = "Working groups and service providers continually align needs and development." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 
 id = "repository-catalogue-planning"
 layers = ["infrastructure", "planning"]
@@ -158,7 +158,7 @@ carrier = { cs = "Záznam repozitáře v katalogu; v národním prostředí NKR"
 maintainers = { cs = "Repozitář aktualizuje svůj popis; katalog a plánovací nástroj zajišťují jeho přenos.", en = "The repository updates its description; the catalogue and planning tool provide its transfer." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "community-planning"
 layers = ["community", "planning"]
 source = "layers-seams-manuscript"
@@ -171,7 +171,7 @@ carrier = { cs = "FIP, metadatové profily a plán správy dat", en = "FIP, meta
 maintainers = { cs = "Komunita udržuje svůj výběr; projekt jej promítá do plánu.", en = "The community maintains its selections; the project applies them in its plan." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "plan-repository"
 layers = ["planning", "infrastructure"]
 source = "layers-seams-manuscript"
@@ -184,7 +184,7 @@ carrier = { cs = "Plán správy dat, podmínky repozitáře a případně strojo
 maintainers = { cs = "Výzkumný tým připravuje plán; repozitář vymezuje a ověřuje podmínky přijetí.", en = "The research team prepares the plan; the repository defines and checks deposit conditions." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "repository-support"
 layers = ["infrastructure", "support"]
 source = "layers-seams-manuscript"
@@ -197,7 +197,7 @@ carrier = { cs = "Postup podpory a předání diagnostických podkladů", en = "
 maintainers = { cs = "Správce repozitáře a příslušný poskytovatel infrastruktury.", en = "Repository administrator and the relevant infrastructure provider." }
 
 [[seam]]
-guideRoute = "model/seam"
+guideRoute = "seams"
 id = "assessment-remediation"
 layers = ["evaluation", "support", "infrastructure"]
 source = "layers-seams-manuscript"
@@ -210,7 +210,7 @@ carrier = { cs = "Výsledek kontroly a dohodnutý postup pro nápravu", en = "As
 maintainers = { cs = "Nápravu provádí aktér, který může změnit dotčený údaj, službu nebo pravidlo.", en = "Remediation is performed by the actor able to change the affected information, service or policy." }
 
 [[example]]
-guideRoute = "model/ex"
+guideRoute = "model-examples"
 id = "nkr-catalogue"
 seam = "repository-catalogue-planning"
 status = "pilot"
@@ -221,7 +221,7 @@ description = { cs = "NKR je pilotní katalog pro popis repozitářů.", en = "N
 scope = { cs = "Katalogová část návaznosti v mapování rukopisu", en = "Catalogue part of the seam in the manuscript mapping" }
 
 [[example]]
-guideRoute = "model/ex"
+guideRoute = "model-examples"
 id = "nkr-planning"
 seam = "repository-catalogue-planning"
 status = "planned"
@@ -232,7 +232,7 @@ description = { cs = "Propojení popisů repozitářů s plánovacím nástrojem
 scope = { cs = "Přenos z katalogu do plánovacího nástroje v mapování rukopisu", en = "Transfer from catalogue to planning tool in the manuscript mapping" }
 
 [[example]]
-guideRoute = "model/ex"
+guideRoute = "model-examples"
 id = "assessment-feedback"
 seam = "assessment-remediation"
 status = "prospective"
@@ -243,308 +243,308 @@ description = { cs = "Mapování popisuje jednotlivá předání zjištění, al
 scope = { cs = "Dokumenty a zkušenosti zahrnuté do mapování rukopisu", en = "Documents and experience included in the manuscript mapping" }
 
 [[association]]
-target = "ccmm"
+target = "resources/ccmm"
 seams = ["repository-nma"]
 
 [[association]]
-target = "oai-pmh"
+target = "resources/oai-pmh"
 seams = ["repository-nma"]
 
 [[association]]
-target = "nma-export-docs"
+target = "resources/nma-export-docs"
 seams = ["repository-nma"]
 
 [[association]]
-target = "nrp-docs-nma-access"
+target = "resources/nrp-docs-nma-access"
 seams = ["repository-nma"]
 
 [[association]]
-target = "gate.08"
+target = "questions/gate.08"
 seams = ["repository-nma"]
 
 [[association]]
-target = "maturity.05"
+target = "questions/maturity.05"
 seams = ["repository-nma"]
 
 [[association]]
-target = "NRP.M8"
+target = "clauses/NRP.M8"
 seams = ["repository-nma"]
 
 [[association]]
-target = "NMA-EXPORT-DOCS.01"
+target = "clauses/NMA-EXPORT-DOCS.01"
 seams = ["repository-nma"]
 
 [[association]]
-target = "A.F4.R1"
+target = "clauses/A.F4.R1"
 seams = ["repository-nma"]
 
 [[association]]
-target = "A.A1.R1"
+target = "clauses/A.A1.R1"
 seams = ["repository-nma"]
 
 [[association]]
-target = "nma"
+target = "resources/nma"
 seams = ["repository-nma", "institution-nma"]
 
 [[association]]
-target = "dataset.05"
+target = "questions/dataset.05"
 seams = ["repository-nma", "institution-nma"]
 
 [[association]]
-target = "dataset.23"
+target = "questions/dataset.23"
 seams = ["repository-nma", "institution-nma"]
 
 [[association]]
-target = "institution.26"
+target = "questions/institution.26"
 seams = ["repository-nma", "institution-nma"]
 
 [[association]]
-target = "metadata.08"
+target = "advice/metadata.08"
 seams = ["repository-nma", "institution-nma"]
 
 [[association]]
-target = "nma-riv-docs"
+target = "resources/nma-riv-docs"
 seams = ["nma-research-register"]
 
 [[association]]
-target = "NMA-RIV-DOCS.01"
+target = "clauses/NMA-RIV-DOCS.01"
 seams = ["nma-research-register"]
 
 [[association]]
-target = "policy-manual"
+target = "resources/policy-manual"
 layers = ["policy", "planning", "support"]
 
 [[association]]
-target = "institution.23"
+target = "questions/institution.23"
 layers = ["policy", "planning", "support"]
 
 [[association]]
-target = "pid-centre"
+target = "resources/pid-centre"
 seams = ["repository-pid-registry"]
 
 [[association]]
-target = "orcid"
+target = "resources/orcid"
 seams = ["repository-pid-registry"]
 
 [[association]]
-target = "ror"
+target = "resources/ror"
 seams = ["repository-pid-registry"]
 
 [[association]]
-target = "datacite"
+target = "resources/datacite"
 seams = ["repository-pid-registry"]
 
 [[association]]
-target = "dataset.01"
+target = "questions/dataset.01"
 seams = ["repository-pid-registry"]
 
 [[association]]
-target = "fip.01"
+target = "questions/fip.01"
 seams = ["repository-pid-registry"]
 
 [[association]]
-target = "A.F1.R1"
+target = "clauses/A.F1.R1"
 seams = ["repository-pid-registry"]
 
 [[association]]
-target = "test:guide-dataset-01"
+target = "tests/guide/guide-dataset-01"
 seams = ["repository-pid-registry"]
 
 [[association]]
-target = "test:guide-fdo-01"
+target = "tests/guide/guide-fdo-01"
 seams = ["repository-pid-registry"]
 
 [[association]]
-target = "maturity.10"
+target = "questions/maturity.10"
 seams = ["repository-authentication"]
 
 [[association]]
-target = "A.A1.2.R1"
+target = "clauses/A.A1.2.R1"
 seams = ["repository-authentication"]
 
 [[association]]
-target = "A.A1.2.R2"
+target = "clauses/A.A1.2.R2"
 seams = ["repository-authentication"]
 
 [[association]]
-target = "A.F2.F1"
+target = "clauses/A.F2.F1"
 seams = ["community-repository"]
 
 [[association]]
-target = "A.R1.F1"
+target = "clauses/A.R1.F1"
 seams = ["community-repository"]
 
 [[association]]
-target = "A.F2.R2"
+target = "clauses/A.F2.R2"
 seams = ["community-repository"]
 
 [[association]]
-target = "A.R1.R2"
+target = "clauses/A.R1.R2"
 seams = ["community-repository"]
 
 [[association]]
-target = "A.R1.3.F1"
+target = "clauses/A.R1.3.F1"
 seams = ["community-repository"]
 
 [[association]]
-target = "A.R1.3.R2"
+target = "clauses/A.R1.3.R2"
 seams = ["community-repository"]
 
 [[association]]
-target = "NRP.M12"
+target = "clauses/NRP.M12"
 seams = ["community-repository"]
 
 [[association]]
-target = "gate.12"
+target = "questions/gate.12"
 seams = ["community-repository"]
 
 [[association]]
-target = "maturity.08"
+target = "questions/maturity.08"
 seams = ["community-repository"]
 
 [[association]]
-target = "maturity.09"
+target = "questions/maturity.09"
 seams = ["community-repository"]
 
 [[association]]
-target = "maturity.13"
+target = "questions/maturity.13"
 seams = ["community-repository"]
 
 [[association]]
-target = "fip.02"
+target = "questions/fip.02"
 seams = ["community-repository"]
 
 [[association]]
-target = "metadata.17"
+target = "advice/metadata.17"
 seams = ["community-repository"]
 
 [[association]]
-target = "metadata.18"
+target = "advice/metadata.18"
 seams = ["community-repository"]
 
 [[association]]
-target = "metadata.23"
+target = "advice/metadata.23"
 seams = ["community-repository"]
 
 [[association]]
-target = "metadata.28"
+target = "advice/metadata.28"
 seams = ["community-repository"]
 
 [[association]]
-target = "metadata.29"
+target = "advice/metadata.29"
 seams = ["community-repository"]
 
 [[association]]
-target = "metadata.30"
+target = "advice/metadata.30"
 seams = ["community-repository"]
 
 [[association]]
-target = "metadata.31"
+target = "advice/metadata.31"
 seams = ["community-repository"]
 
 [[association]]
-target = "metadata.33"
+target = "advice/metadata.33"
 seams = ["community-repository"]
 
 [[association]]
-target = "collect.18"
+target = "advice/collect.18"
 seams = ["community-repository"]
 
 [[association]]
-target = "collect.19"
+target = "advice/collect.19"
 seams = ["community-repository"]
 
 [[association]]
-target = "process.09"
+target = "advice/process.09"
 seams = ["community-repository"]
 
 [[association]]
-target = "eosc-working-groups"
+target = "resources/eosc-working-groups"
 seams = ["working-groups-services"]
 
 [[association]]
-target = "EOSC-WORKING-GROUPS.01"
+target = "clauses/EOSC-WORKING-GROUPS.01"
 seams = ["working-groups-services"]
 
 [[association]]
-target = "nkr"
+target = "resources/nkr"
 seams = ["repository-catalogue-planning"]
 
 [[association]]
-target = "nkr-schema"
+target = "resources/nkr-schema"
 seams = ["repository-catalogue-planning"]
 
 [[association]]
-target = "dsw-nrp"
+target = "resources/dsw-nrp"
 seams = ["plan-repository", "community-planning"]
 
 [[association]]
-target = "DSW-NRP.01"
+target = "clauses/DSW-NRP.01"
 seams = ["plan-repository", "community-planning"]
 
 [[association]]
-target = "dataset.15"
+target = "questions/dataset.15"
 layers = ["planning"]
 
 [[association]]
-target = "dataset.16"
+target = "questions/dataset.16"
 layers = ["planning", "infrastructure"]
 seams = ["repository-pid-registry"]
 
 [[association]]
-target = "fip-dashboard"
+target = "resources/fip-dashboard"
 seams = ["community-planning"]
 
 [[association]]
-target = "fip-ontology"
+target = "resources/fip-ontology"
 seams = ["community-planning"]
 
 [[association]]
-target = "fip-wizard-templates"
+target = "resources/fip-wizard-templates"
 seams = ["community-planning"]
 
 [[association]]
-target = "A.K4.1"
+target = "clauses/A.K4.1"
 seams = ["community-planning"]
 
 [[association]]
-target = "A.K4.3"
+target = "clauses/A.K4.3"
 seams = ["community-planning"]
 
 [[association]]
-target = "plan.22"
+target = "advice/plan.22"
 seams = ["community-planning"]
 
 [[association]]
-target = "plan.24"
+target = "advice/plan.24"
 seams = ["community-planning"]
 
 [[association]]
-target = "fair-champion"
+target = "resources/fair-champion"
 seams = ["assessment-remediation"]
 
 [[association]]
-target = "assessment.23"
+target = "advice/assessment.23"
 seams = ["assessment-remediation"]
 
 [[association]]
-target = "assessment.25"
+target = "advice/assessment.25"
 seams = ["assessment-remediation"]
 
 [[association]]
-target = "test:guide-maturity-12"
+target = "tests/guide/guide-maturity-12"
 layers = ["infrastructure"]
 
 [[association]]
-target = "test:guide-software-03"
+target = "tests/guide/guide-software-03"
 layers = ["infrastructure"]
 
 [[association]]
-target = "datacite-schema"
+target = "resources/datacite-schema"
 layers = ["community", "infrastructure"]
 
 [[association]]
-target = "metadata.36"
+target = "advice/metadata.36"
 layers = ["community"]
 
 [[context]]

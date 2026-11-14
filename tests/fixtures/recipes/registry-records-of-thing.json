@@ -1,0 +1,8 @@
+{
+  "columns": ["record", "source"],
+  "rows": [
+    ["https://w3id.org/eosc-cz/fair-guide/id/repositories/zenodo#fairsharing", "https://dsw-nrp.github.io/eosc-fair-guide/#snapshot-fairsharing"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/repositories/zenodo#fip-dashboard", "https://dsw-nrp.github.io/eosc-fair-guide/#snapshot-fip-dashboard"],
+    ["https://w3id.org/eosc-cz/fair-guide/id/repositories/zenodo#knav", "https://dsw-nrp.github.io/eosc-fair-guide/#snapshot-knav-data-management-tools-catalogue"]
+  ]
+}

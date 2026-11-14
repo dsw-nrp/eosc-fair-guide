@@ -567,7 +567,7 @@ button:hover,
 }
 
 /* A step's row: its link and the reader's own read control beside it. The control is a sibling of the link, never
-   inside it, so a button is not nested in a link (D-190). */
+   inside it, so a button is not nested in a link. */
 .rail .rail-step,
 .journey-steps .journey-step {
   display: grid;
@@ -965,7 +965,7 @@ button:hover,
   flex-shrink: 0;
 }
 
-/* The reader's read mark on a step: a small control beside the step that the reader sets and clears (D-190). */
+/* The reader's read mark on a step: a small control beside the step that the reader sets and clears. */
 .read-toggle {
   flex: none;
   display: inline-grid;
@@ -1413,10 +1413,6 @@ button.id-chip {
   /* Inline question references keep the chip's size rather than the action button's 44px minimum. */
   min-height: 1.5rem;
   cursor: pointer;
-}
-
-.pid-scheme {
-  font-weight: 700;
 }
 
 /* A station or a check named by a catalogue entry, with its icon as in the path menu. */
@@ -3639,12 +3635,12 @@ section.datacite-read p {
 .kind-repositories { --kind: var(--kind-repositories); }
 .kind-clauses { --kind: var(--kind-clauses); }
 .kind-questions { --kind: var(--kind-questions); }
-.kind-terms { --kind: var(--kind-terms); }
+.kind-glossary { --kind: var(--kind-glossary); }
 .kind-fips { --kind: var(--kind-fips); }
 .kind-tests { --kind: var(--kind-tests); }
-.kind-lifecycle { --kind: var(--kind-lifecycle); }
+.kind-lifecycles { --kind: var(--kind-lifecycles); }
 .kind-infrastructures { --kind: var(--kind-infrastructures); }
-.kind-model { --kind: var(--kind-model); }
+.kind-models { --kind: var(--kind-models); }
 .kind-actions { --kind: var(--kind-actions); }
 
 .entry-card[data-kind] {
@@ -3832,8 +3828,13 @@ section.datacite-read p {
   min-width: 0;
 }
 
+/* Each catalogue an entry comes from, with its snapshot's date, on a line of its own. */
+.relations dd > .source-credit {
+  flex: 1 1 100%;
+}
+
 /* A relation's groups, one under another across the row; a long one folds behind its count, and a table inside it
-   scrolls within the row (design D8). */
+   scrolls within the row. */
 .relations dd > .relation-group {
   flex: 1 1 100%;
   min-width: 0;
@@ -4034,6 +4035,13 @@ section.datacite-read p {
 .endpoint-description {
   display: block;
   font-weight: 400;
+}
+
+.endpoint-patterns {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
 }
 
 .data-table caption {
@@ -5514,5 +5522,13 @@ section.datacite-read p {
   main a[href^="http"]::after {
     content: " (" attr(href) ")";
     font-size: var(--size-small);
+    overflow-wrap: anywhere;
+  }
+
+  /* Identifier chips and complete citations already show their addresses in full. */
+  main a.pid-chip[href^="http"]::after,
+  main .analysis-citation a[href^="http"]::after,
+  main .guide-citation a[href^="http"]::after {
+    content: none;
   }
 }

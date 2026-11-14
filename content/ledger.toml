@@ -136,7 +136,7 @@ locator = "kap. 3, F1, Požadavky CTS, s. 19"
 principles = ["F1"]
 actor = "other"
 kind = "statement"
-text = { cs = "CoreTrustSeal [[clause:CTS.R12|R12]]: datové sady jsou citovatelné prostřednictvím PID.", en = "CoreTrustSeal [[clause:CTS.R12|R12]]: datasets are citable through PIDs." }
+text = { cs = "CoreTrustSeal [[clauses/CTS.R12|R12]]: datové sady jsou citovatelné prostřednictvím PID.", en = "CoreTrustSeal [[clauses/CTS.R12|R12]]: datasets are citable through PIDs." }
 guidance = "CoreTrustSeal R12 vyžaduje, aby repozitáře umožnily uživatelům vyhledávat datové sady a odkazovat na ně trvalým způsobem prostřednictvím správného citování. To znamená, že každá uložená datová sada musí mít PID, který je indexovatelný a dlouhodobě dostupný. Oba požadavky (FAIR F1 a CoreTrustSeal R12) se shodují v klíčovém aspektu: nutnosti trvalého a globálně unikátního identifikátoru pro metadata a data."
 guidanceLanguage = "cs"
 
@@ -230,7 +230,7 @@ locator = "kap. 3, F2, Doporučení CDIF / Požadavky CTS"
 principles = ["F2"]
 actor = "other"
 kind = "statement"
-text = { cs = "CoreTrustSeal [[clause:CTS.R08|R8]], [[clause:CTS.R10|R11]], [[clause:CTS.R12|R13]] a [[clause:CTS.R13|R14]] se týkají kvality metadat.", en = "CoreTrustSeal [[clause:CTS.R08|R8]], [[clause:CTS.R10|R11]], [[clause:CTS.R12|R13]] and [[clause:CTS.R13|R14]] concern metadata quality." }
+text = { cs = "CoreTrustSeal [[clauses/CTS.R08|R8]], [[clauses/CTS.R10|R11]], [[clauses/CTS.R12|R13]] a [[clauses/CTS.R13|R14]] se týkají kvality metadat.", en = "CoreTrustSeal [[clauses/CTS.R08|R8]], [[clauses/CTS.R10|R11]], [[clauses/CTS.R12|R13]] and [[clauses/CTS.R13|R14]] concern metadata quality." }
 guidance = "Kvality metadat se přímo či nepřímo týkají požadavky CoreTrustSeal R8, R11, R13 a R14. FAIR F2 a CoreTrustSeal jsou v přímém souladu v tom, že vyžadují bohatá, kvalitní a indexovaná metadata. Metadata musí být dostatečně detailní, aby umožnila správné vyhledávání, citování a opětovné použití dat. Metadata musí být standardizovaná, bohatá a strukturovaná tak, aby byla kompatibilní se standardy používanými danou oborovou komunitou (souvislost s R1.3, dále rovněž souvisí s licenčními metadaty, R1.1)"
 guidanceLanguage = "cs"
 
@@ -241,7 +241,7 @@ locator = "kap. 3, F2, Doporučení CDIF / Požadavky CTS"
 principles = ["F2"]
 actor = "other"
 kind = "statement"
-text = { cs = "CDIF: [[clause:CDIF.Core|Discovery]] (Schema.org) a [[clause:CDIF.ConceptScheme|řízené slovníky]] (SKOS, OWL).", en = "CDIF: [[clause:CDIF.Core|Discovery]] (Schema.org) and [[clause:CDIF.ConceptScheme|controlled vocabularies]] (SKOS, OWL)." }
+text = { cs = "CDIF: [[clauses/CDIF.Core|Discovery]] (Schema.org) a [[clauses/CDIF.ConceptScheme|řízené slovníky]] (SKOS, OWL).", en = "CDIF: [[clauses/CDIF.Core|Discovery]] (Schema.org) and [[clauses/CDIF.ConceptScheme|controlled vocabularies]] (SKOS, OWL)." }
 status = "refresh"
 note = { cs = "CDIF 1.1 pojmenovává profily Core, Discovery, Concept Scheme, Codelist, Data Description, Data Structure a Manifest.", en = "CDIF 1.1 names the profiles Core, Discovery, Concept Scheme, Codelist, Data Description, Data Structure and Manifest." }
 noteSources = ["CDIF.01"]
@@ -425,7 +425,7 @@ locator = "kap. 3, F4, Doporučení CDIF / Požadavky CTS"
 principles = ["F4"]
 actor = "other"
 kind = "statement"
-text = { cs = "CoreTrustSeal [[clause:CTS.R08|R8]] a [[clause:CTS.R12|R13]] se týkají uložených metadat a dohledatelnosti.", en = "CoreTrustSeal [[clause:CTS.R08|R8]] and [[clause:CTS.R12|R13]] concern deposited metadata and discoverability." }
+text = { cs = "CoreTrustSeal [[clauses/CTS.R08|R8]] a [[clauses/CTS.R12|R13]] se týkají uložených metadat a dohledatelnosti.", en = "CoreTrustSeal [[clauses/CTS.R08|R8]] and [[clauses/CTS.R12|R13]] concern deposited metadata and discoverability." }
 guidance = "Tento princip úzce souvisí s požadavky CoreTrustSeal R8 (Uložená metadata) a R13 (Možnost vyhledávání a citování). CoreTrustSeal R8 požaduje, aby metadata byla strojově čitelná a indexovaná v odpovídajících metadatových systémech. Požadavek R13 zdůrazňuje, že metadata musí být registrována ve vyhledávačích a uživatelé musí mít možnost citovat data prostřednictvím perzistentních identifikátorů."
 guidanceLanguage = "cs"
 
@@ -494,7 +494,7 @@ locator = "kap. 3, A1, Doporučení CDIF / Požadavky CTS"
 principles = ["A1"]
 actor = "other"
 kind = "statement"
-text = { cs = "CoreTrustSeal [[clause:CTS.R15|R15]] se týká technické infrastruktury.", en = "CoreTrustSeal [[clause:CTS.R15|R15]] concerns technical infrastructure." }
+text = { cs = "CoreTrustSeal [[clauses/CTS.R15|R15]] se týká technické infrastruktury.", en = "CoreTrustSeal [[clauses/CTS.R15|R15]] concerns technical infrastructure." }
 guidance = "repozitáře Tento princip úzce souvisí s požadavkem CoreTrustSeal R15 (Technická inPožadavky na frastruktura). R15 požaduje, aby repozitáře disponovaly odpovídající technickou infrastrukturou, která zajistí spolehlivou správu a přístup k datům."
 guidanceLanguage = "cs"
 
@@ -668,7 +668,7 @@ locator = "kap. 3, A2, Doporučení CDIF / Požadavky CTS"
 principles = ["A2"]
 actor = "other"
 kind = "statement"
-text = { cs = "CoreTrustSeal [[clause:CTS.R08|R8]] a [[clause:CTS.R09|R10]]; tombstone stránky podle praxe DataCite.", en = "CoreTrustSeal [[clause:CTS.R08|R8]] and [[clause:CTS.R09|R10]]; tombstone pages follow DataCite practice." }
+text = { cs = "CoreTrustSeal [[clauses/CTS.R08|R8]] a [[clauses/CTS.R09|R10]]; tombstone stránky podle praxe DataCite.", en = "CoreTrustSeal [[clauses/CTS.R08|R8]] and [[clauses/CTS.R09|R10]]; tombstone pages follow DataCite practice." }
 guidance = "Doporučení Tato zásada vyžaduje, aby metadata zůstala přístupná i v případě, že samotná data již nejsou k dispozici. Důvody pro ztrátu dat mohou zahrnovat vypršení časového limitu pro jejich uchování, změnu podmínek přístupu nebo smazání dat Požadavky na žádost uživatele. Přesto je důležité, aby metadata byla nadále veřejně dostupná jako trvalý záznam o existenci datové sady, její provenienci a vlastnostech. Jednou z doporučených praktik (viz doporučení DataCite) je použití tzv. tombstone pages (náhrobků), které uchovávají základní informace\n\nodstraněné datové sadě včetně důvodu její nedostupnosti.\n\nCDIF všeobecně doporučuje ukládání metadat na landing pages nebo do samostatných souborů. Díky tomu metadata zůstávají dostupná i v případě, že původní data byla odstraněna nebo přesunuta, což pomáhá zajistit dlouhodobou dohledatelnost vědeckých výstupů.\n\nTento princip úzce souvisí s požadavky CoreTrustSeal R8 (Uložená metadata) a zejména R10 (Plán uchování dat). Požadavek CoreTrustSeal R10 vyžaduje, aby repozitáře měly jasnou strategii pro dlouhodobou správu metadat i dat."
 guidanceLanguage = "cs"
 
@@ -756,7 +756,7 @@ locator = "kap. 3, I1, Doporučení CDIF / Požadavky CTS"
 principles = ["I1"]
 actor = "other"
 kind = "statement"
-text = { cs = "CDIF: [[clause:CDIF.ConceptScheme|řízené slovníky]] a [[clause:CDIF.Universals|univerzální veličiny]] (čas, geografie, jednotky); CoreTrustSeal [[clause:CTS.R13|R14]] a [[clause:CTS.R15|R15]].", en = "CDIF: [[clause:CDIF.ConceptScheme|controlled vocabularies]] and [[clause:CDIF.Universals|universals]] (time, geography, units); CoreTrustSeal [[clause:CTS.R13|R14]] and [[clause:CTS.R15|R15]]." }
+text = { cs = "CDIF: [[clauses/CDIF.ConceptScheme|řízené slovníky]] a [[clauses/CDIF.Universals|univerzální veličiny]] (čas, geografie, jednotky); CoreTrustSeal [[clauses/CTS.R13|R14]] a [[clauses/CTS.R15|R15]].", en = "CDIF: [[clauses/CDIF.ConceptScheme|controlled vocabularies]] and [[clauses/CDIF.Universals|universals]] (time, geography, units); CoreTrustSeal [[clauses/CTS.R13|R14]] and [[clauses/CTS.R15|R15]]." }
 status = "refresh"
 note = { cs = "CDIF 1.1 to pokrývá profily Concept Scheme a Codelist a doporučeními k univerzálním veličinám.", en = "CDIF 1.1 covers this with the Concept Scheme and Codelist profiles and with guidance on universals." }
 noteSources = ["CDIF.01"]
@@ -883,7 +883,7 @@ locator = "kap. 3, I3, Požadavky na repozitáře"
 principles = ["I3"]
 actor = "repository"
 kind = "requirement"
-text = { cs = "Metadata uvádějí ORCID a ROR.", en = "Metadata include ORCID and ROR." }
+text = { cs = "Metadata uvádějí [[resources/orcid|ORCID]] a [[resources/ror|ROR]].", en = "Metadata include [[resources/orcid|ORCID]] and [[resources/ror|ROR]]." }
 guidance = "Podpora autoritních identifikátorů: Metadata musí umožňovat propojení na ORCID, ROR."
 guidanceLanguage = "cs"
 
@@ -949,7 +949,7 @@ locator = "kap. 3, I3, Doporučení CDIF / Požadavky CTS"
 principles = ["I3"]
 actor = "other"
 kind = "statement"
-text = { cs = "Příklady vztahů DataCite (isDerivedFrom, isCitedBy, hasPart…); DDI-CDI; CoreTrustSeal [[clause:CTS.R10|R11]] a [[clause:CTS.R13|R14]].", en = "Examples of DataCite relations (isDerivedFrom, isCitedBy, hasPart…); DDI-CDI; CoreTrustSeal [[clause:CTS.R10|R11]] and [[clause:CTS.R13|R14]]." }
+text = { cs = "Příklady vztahů DataCite (isDerivedFrom, isCitedBy, hasPart…); DDI-CDI; CoreTrustSeal [[clauses/CTS.R10|R11]] a [[clauses/CTS.R13|R14]].", en = "Examples of DataCite relations (isDerivedFrom, isCitedBy, hasPart…); DDI-CDI; CoreTrustSeal [[clauses/CTS.R10|R11]] and [[clauses/CTS.R13|R14]]." }
 status = "refresh"
 note = { cs = "V CDIF 1.1 odpovídají profily Data Description a Data Structure.", en = "In CDIF 1.1, the Data Description and Data Structure profiles correspond." }
 noteSources = ["CDIF.01"]
@@ -1040,7 +1040,7 @@ locator = "kap. 3, R1, Doporučení CDIF / Požadavky CTS"
 principles = ["R1"]
 actor = "other"
 kind = "statement"
-text = { cs = "CoreTrustSeal [[clause:CTS.R08|R8]], [[clause:CTS.R10|R11]] a [[clause:CTS.R13|R14]].", en = "CoreTrustSeal [[clause:CTS.R08|R8]], [[clause:CTS.R10|R11]] and [[clause:CTS.R13|R14]]." }
+text = { cs = "CoreTrustSeal [[clauses/CTS.R08|R8]], [[clauses/CTS.R10|R11]] a [[clauses/CTS.R13|R14]].", en = "CoreTrustSeal [[clauses/CTS.R08|R8]], [[clauses/CTS.R10|R11]] and [[clauses/CTS.R13|R14]]." }
 guidance = "Tento princip úzce souvisí s požadavky CoreTrustSeal R8 (Uložená metadata), Požadavky na R11 (Zajištění kvality dat) a R14 (Podpora opětovného použití dat). R8 vyžaduje, aby metadata byla dostatečně podrobná, aby umožnila dlouhodobé uchování a správnou interpretaci dat. R11 požaduje, aby repozitáře měly jasně definované procesy pro validaci kvality metadat, čímž se zajistí jejich konzistence a správnost."
 guidanceLanguage = "cs"
 
@@ -1125,7 +1125,7 @@ locator = "kap. 3, R1.1, Doporučení CDIF / Požadavky CTS"
 principles = ["R1.1"]
 actor = "other"
 kind = "statement"
-text = { cs = "CoreTrustSeal [[clause:CTS.R02|R2]]; CDIF [[clause:CDIF.Access|Data Access]] (ODRL).", en = "CoreTrustSeal [[clause:CTS.R02|R2]]; CDIF [[clause:CDIF.Access|Data Access]] (ODRL)." }
+text = { cs = "CoreTrustSeal [[clauses/CTS.R02|R2]]; CDIF [[clauses/CDIF.Access|Data Access]] (ODRL).", en = "CoreTrustSeal [[clauses/CTS.R02|R2]]; CDIF [[clauses/CDIF.Access|Data Access]] (ODRL)." }
 status = "refresh"
 note = { cs = "CDIF 1.1 obsahuje doporučení k ODRL.", en = "CDIF 1.1 includes guidance on ODRL." }
 noteSources = ["CDIF.01"]
@@ -1233,7 +1233,7 @@ locator = "kap. 3, R1.2, Doporučení CDIF / Požadavky CTS"
 principles = ["R1.2"]
 actor = "other"
 kind = "statement"
-text = { cs = "CoreTrustSeal [[clause:CTS.R07|R7]] a [[clause:CTS.R13|R14]]; CDIF [[clause:CDIF.DataStructure|Data Integration]] (DDI-CDI).", en = "CoreTrustSeal [[clause:CTS.R07|R7]] and [[clause:CTS.R13|R14]]; CDIF [[clause:CDIF.DataStructure|Data Integration]] (DDI-CDI)." }
+text = { cs = "CoreTrustSeal [[clauses/CTS.R07|R7]] a [[clauses/CTS.R13|R14]]; CDIF [[clauses/CDIF.DataStructure|Data Integration]] (DDI-CDI).", en = "CoreTrustSeal [[clauses/CTS.R07|R7]] and [[clauses/CTS.R13|R14]]; CDIF [[clauses/CDIF.DataStructure|Data Integration]] (DDI-CDI)." }
 status = "refresh"
 note = { cs = "Viz CDIF 1.1.", en = "See CDIF 1.1." }
 noteSources = ["CDIF.01"]
@@ -1349,7 +1349,7 @@ locator = "kap. 3, R1.3, Popis, s. 43"
 principles = ["R1.3"]
 actor = "nrp"
 kind = "fulfilment"
-text = { cs = "Příklady oborových standardů: Darwin Core, MIAME, DDI-C, HDF5, CIDOC CRM; CoreTrustSeal [[clause:CTS.R13|R14]].", en = "Examples of domain standards: Darwin Core, MIAME, DDI-C, HDF5, CIDOC CRM; CoreTrustSeal [[clause:CTS.R13|R14]]." }
+text = { cs = "Příklady oborových standardů: Darwin Core, MIAME, DDI-C, HDF5, CIDOC CRM; CoreTrustSeal [[clauses/CTS.R13|R14]].", en = "Examples of domain standards: Darwin Core, MIAME, DDI-C, HDF5, CIDOC CRM; CoreTrustSeal [[clauses/CTS.R13|R14]]." }
 guidance = "Tento princip zdůrazňuje nutnost dodržování komunitně uznávaných standardů pro metadata a datové formáty. Cílem je zajistit, aby data byla konzistentní, srozumitelná a snadno interoperabilní v rámci konkrétní vědní oblasti. Použití komunitních standardů umožňuje lepší sdílení a znovuvyužití dat jak v národním, tak mezinárodním kontextu. Vědecké komunity si často vyvíjejí vlastní standardy pro metadata a formáty dat, které odpovídají specifickým potřebám jejich oborů. Například:\n\n- Biologie: Darwin Core pro biologická data.\n- Biomedicína: MIAME (Minimum Information About a Microarray Experiment)\n- Sociální vědy: DDI-C (Data Documentation Initiative - Codebook)\n- Fyzika: HDF5 (Hierarchical Data Format)\n- Humanitní vědy: CIDOC-CRM (CIDOC Conceptual Reference Model)"
 guidanceLanguage = "cs"
 
@@ -1733,7 +1733,7 @@ locator = "Version 3.4, section 4.1"
 principles = ["F4"]
 actor = "repository"
 kind = "requirement"
-text = { cs = "Metadata se sklízejí do NMA podle CCMM.", en = "Metadata are harvested into NMA according to CCMM." }
+text = { cs = "Metadata se sklízejí do [[resources/nma|NMA]] podle [[resources/ccmm|CCMM]].", en = "Metadata are harvested into [[resources/nma|NMA]] according to [[resources/ccmm|CCMM]]." }
 guidance = "Technical setup of metadata harvesting into the NMD, in accordance with the Czech Core Metadata Model."
 guidanceLanguage = "en"
 

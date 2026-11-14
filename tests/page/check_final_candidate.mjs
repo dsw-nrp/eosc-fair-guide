@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
 import { installGuards } from "./guards.mjs";
+import { addressOf, isRecord } from "./addresses.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const { chromium, runCases } = await import("./browser.mjs");
@@ -55,10 +56,10 @@ try {
           Object.keys(window.FairGuide.state.answers[id].items || {}).length)), false, "showing capability never answers questions");
       }
 
-      await page.goto(file + `#/${lang}/V/catalogue/term`);
+      await page.goto(file + `#/${lang}/V/catalogue/glossary`);
       await page.waitForSelector(".letter-index");
       assert.equal(await page.locator(".catalogue-group .entry-card").count(),
-        graph.filter((entity) => entity.catalogueAddress?.startsWith("term/")).length, "every glossary term is present immediately");
+        graph.filter((entity) => isRecord(entity, "glossary")).length, "every glossary term is present immediately");
       assert.equal(await page.locator(".catalogue-more").count(), 0, "the catalogue needs no Show more click");
       assert.equal(await page.locator(".term-definition[open]").count(), 0);
       await page.locator(".letter-index button").last().click();
@@ -72,12 +73,12 @@ try {
       assert.deepEqual((await audit(page)).violations, []);
       await page.screenshot({ path: resolve(screenshots, `${lang}-terms-${width}.png`) });
 
-      await page.goto(file + `#/${lang}/V/catalogue/res/tool/github`);
-      await page.waitForSelector("[id='item-tool/github']");
+      await page.goto(file + `#/${lang}/V/catalogue/resources/github`);
+      await page.waitForSelector("[id='item-github']");
       assert.equal(await page.locator(".entry-card").count(), 1);
       const chip = page.locator(".entry-head .id-chip");
       assert.equal(await chip.innerText(), "github");
-      assert((await chip.getAttribute("title")).includes("res/tool/github"));
+      assert((await chip.getAttribute("title")).includes("resources/github"));
       assert((await page.title()).toLowerCase().includes("github"));
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
       assert.deepEqual((await audit(page)).violations, []);
@@ -104,7 +105,8 @@ try {
   assert(results.every((item) => item.status === "passed"), results.filter((item) => item.status === "failed").map((item) => item.problems).flat().join("\n"));
   assert.equal(coverage.length, matrix.length);
   assert(!existsSync(resolve(root, "_site/api/resources/knav.github.json")), "no unreleased compatibility API document");
-  assert(graph.every((entry) => !entry.catalogueAddress || entry.catalogueAddress.split("/").at(-1).length <= 32));
+  /* A minted ID is bounded; a vocabulary term keeps its vocabulary's own code. */
+  assert(graph.every((entry) => { const address = addressOf(entry["@id"]); return !address || address.includes("#") || address.startsWith("vocabularies/") || address.split("/").at(-1).length <= 32; }));
   console.log("check_final_candidate: compact identity, coverage, mobile menus, complete catalogues, originals and the complete closed/expanded station accessibility matrix pass");
 } finally {
   await browser.close();

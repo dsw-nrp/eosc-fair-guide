@@ -122,7 +122,35 @@ def safe_name(name: str) -> bool:
     )
 
 
-def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]:
+def health_path(files: dict[str, bytes]) -> str:
+    """The one health document layout recognized in this release archive, current or documented predecessor."""
+    candidates = [name for name in (package_site.HEALTH, "api/health.json") if name in files]
+    if len(candidates) != 1:
+        raise AssemblyError(
+            "release archive must contain exactly one recognized health result: "
+            f"{package_site.HEALTH} or api/health.json"
+        )
+    return candidates[0]
+
+
+def release_statuses(crate: dict, health_name: str) -> tuple[object, object]:
+    """Read release status only from the schema generation selected by the artifact's health layout."""
+    current = health_name == package_site.HEALTH
+    selected, retired = ("releaseStatus", "creativeWorkStatus") if current else ("creativeWorkStatus", "releaseStatus")
+    nodes = {entity["@id"]: entity for entity in crate["@graph"]}
+    statuses = []
+    for key in ("./", "#guide-software"):
+        node = nodes.get(key, {})
+        if selected not in node or retired in node:
+            raise AssemblyError(f"release archive status layout does not match {health_name}")
+        statuses.append(build_crate.status_code(node[selected]) if current else node[selected])
+    return tuple(statuses)
+
+
+def production_release(
+    directory: Path, tag: str, commit: str
+) -> tuple[dict[str, bytes], tuple[object, object], dict[str, str]]:
+    """Validate the archive once and return its files, selected statuses and verified publication identity."""
     if not TAG.fullmatch(tag) or not SHA.fullmatch(commit):
         raise AssemblyError("production requires a release tag and full commit SHA")
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
@@ -155,16 +183,26 @@ def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]
             if stream is None:
                 raise AssemblyError("release archive member is unreadable")
             files[member.name] = stream.read()
-    if "index.html" not in files or package_site.HEALTH not in files:
-        raise AssemblyError("release archive lacks the Guide or health result")
-    health = json.loads(files[package_site.HEALTH])
+    health_name = health_path(files)
+    if "index.html" not in files:
+        raise AssemblyError("release archive lacks the Guide")
+    if health_name == package_site.HEALTH and "404.html" not in files:
+        raise AssemblyError("release archive lacks the bilingual 404 page required by the current layout")
+    health = json.loads(files[health_name])
     if health.get("run", {}).get("status") != "passed" or health.get("revision") != commit:
         raise AssemblyError("release archive health does not name the checked commit")
+    crate = json.loads(files[build_crate.CRATE_FILE])
+    statuses = release_statuses(crate, health_name)
     try:
-        verify_declaration(files, manifest)
+        identity = verify_declaration(files, manifest, crate)
     except ValueError as error:
         raise AssemblyError(str(error)) from error
-    return files
+    return files, statuses, identity
+
+
+def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]:
+    """Return the validated files for assembly, whose caller does not consume the selected statuses."""
+    return production_release(directory, tag, commit)[0]
 
 
 def validate_files(files: dict[str, bytes]) -> None:
@@ -198,10 +236,11 @@ def assemble(
         raise AssemblyError("staging health does not name the checked commit")
     if production is None and (production_tag or production_commit):
         raise AssemblyError("production tag/commit require a release artifact")
-    files = production_files(production, production_tag or "", production_commit or "") if production else {}
+    files, _, active = (
+        production_release(production, production_tag or "", production_commit or "") if production else ({}, (), {})
+    )
     if production:
         preview = built_for(stage)
-        active = site_identity(files)
         manifest = json.loads((production / "manifest.json").read_text("utf-8"))
         # A stamped release names the root it was built for; an older archive's recorded address may be a predicted
         # host, so only stamped releases are compared.
@@ -210,7 +249,7 @@ def assemble(
                 "production and preview were built for different publication roots; rerun the deployment so that "
                 "both are built for the current one"
             )
-        # The namespace is a reviewed setting that changes before the release that carries it (decision 28).
+        # The namespace is a reviewed setting that changes before the release that carries it.
         if (active["vocabulary_base"], active["profile"]) != (preview["vocabulary_base"], preview["profile"]):
             notices.append(
                 f"The preview names the Guide vocabulary `{preview['vocabulary_base']}` and profile "
@@ -259,6 +298,8 @@ def assemble(
         path = output / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
+    if production and package_site.HEALTH in files and not (output / "404.html").is_file():
+        raise AssemblyError("assembled output lacks 404.html despite a complete current-layout release archive")
     return notices
 
 

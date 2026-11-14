@@ -27,6 +27,7 @@ from pathlib import Path
 
 import build_identity
 import check_changelog
+from build_crate import API_FILES, status_code
 from handoff import handoff
 from register_ids import render
 from release_version import release_input, version
@@ -223,13 +224,13 @@ def check(root: Path, site: Path | None = None, requested: str | None = None) ->
         errors.extend(build_errors)
         if built:
             try:
-                health = json.loads((site / "api/health.json").read_text(encoding="utf-8"))
+                health = json.loads((site / API_FILES["health"]).read_text(encoding="utf-8"))
                 if health.get("build") != built:
-                    errors.append(f"{site}/api/health.json: build identity differs from the page")
+                    errors.append(f"{site}/{API_FILES['health']}: build identity differs from the page")
             except (OSError, ValueError) as error:
-                errors.append(f"{site}/api/health.json: required health identity is unreadable ({error})")
+                errors.append(f"{site}/{API_FILES['health']}: required health identity is unreadable ({error})")
         for identifier in ("./", "#guide-software") if built else ():
-            status = nodes.get(identifier, {}).get("creativeWorkStatus")
+            status = status_code(nodes.get(identifier, {}).get("releaseStatus"))
             if status != built.get("status"):
                 errors.append(
                     f"{site}/ro-crate-metadata.json {identifier}: status is {status!r}; "

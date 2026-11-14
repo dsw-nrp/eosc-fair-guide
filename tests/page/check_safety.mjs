@@ -37,7 +37,7 @@ const addresses = await page.evaluate(() => {
     unsafe: unsafe.map((value) => ({ value, followed: followed(value), safe: FG.safeHref(value),
       link: FG.h("a", { href: value }).hasAttribute("href"), image: FG.h("img", { src: value }).hasAttribute("src") })),
     kept: ["https://example.org/a?b=1#c", " https://example.org/a ", "#/en/V/path/start", "assets/img/eosc-cz-logo.svg",
-      "mailto:info@eosc.cz", "../api/meta.json", "http://doi.org/10.1234/x"].map((value) => [value, FG.safeHref(value)]),
+      "mailto:info@eosc.cz", "../api/v1/index.json", "http://doi.org/10.1234/x"].map((value) => [value, FG.safeHref(value)]),
   };
 });
 for (const entry of addresses.unsafe) {
@@ -51,7 +51,7 @@ assert.deepEqual(addresses.kept, [
   ["#/en/V/path/start", "#/en/V/path/start"],
   ["assets/img/eosc-cz-logo.svg", "assets/img/eosc-cz-logo.svg"],
   ["mailto:info@eosc.cz", "mailto:info@eosc.cz"],
-  ["../api/meta.json", "../api/meta.json"],
+  ["../api/v1/index.json", "../api/v1/index.json"],
   ["http://doi.org/10.1234/x", "https://doi.org/10.1234/x"],
 ]);
 
@@ -145,34 +145,68 @@ await page.waitForSelector(".catalogue-results");
 const reused = await page.evaluate(async () => {
   const FG = window.FairGuide;
   await Promise.all(Object.keys(FG.config.parts).map((name) => FG.loadPart(name, "en")));
-  const route = FG.parseHash(location.hash), original = FG.ofType;
-  let scans = 0;
+  const route = FG.parseHash(location.hash), original = FG.ofType, originalHasRef = FG.hasRef;
+  const originalFilter = FG.graph.filter, originalFind = FG.graph.find;
+  let scans = 0, relationScans = 0, correspondenceScans = 0, crosswalkFinds = 0;
   FG.ofType = (type) => { if (type === "Quiz") scans++; return original(type); };
+  FG.hasRef = (entity, property, id) => { if (property === "operatedBy") relationScans++; return originalHasRef(entity, property, id); };
+  FG.graph.filter = function (predicate, ...args) {
+    if (String(predicate).includes('FG.hasRef(item, "isPartOf", whole)')) correspondenceScans++;
+    return originalFilter.call(this, predicate, ...args);
+  };
+  FG.graph.find = function (predicate, ...args) {
+    if (String(predicate).includes('FG.isRecord(entity, "crosswalks")')) crosswalkFinds++;
+    return originalFind.call(this, predicate, ...args);
+  };
   try {
     FG.invalidateData();
     const start = performance.now(), first = FG.views.catalogue(route);
-    const firstCard = first.querySelector(".catalogue-results li"), firstScans = scans;
-    const firstMs = performance.now() - start;
+    const firstCard = first.querySelector(".catalogue-results li"), firstScans = scans, firstRelations = relationScans;
+    const firstMs = performance.now() - start, firstCrosswalk = crosswalkFinds;
     const again = performance.now(), second = FG.views.catalogue(route);
-    const secondMs = performance.now() - again, repeatedScans = scans - firstScans;
+    const secondMs = performance.now() - again, secondCrosswalk = crosswalkFinds - firstCrosswalk,
+      repeatedScans = scans - firstScans, repeatedRelations = relationScans - firstRelations;
     const secondCard = second.querySelector(".catalogue-results li");
     FG.invalidateData(); FG.views.catalogue(route);
-    return { firstScans, repeatedScans, changedScans: scans - firstScans, fresh: Boolean(firstCard && secondCard && firstCard !== secondCard), firstMs, secondMs };
-  } finally { FG.ofType = original; }
+    return { firstScans, repeatedScans, changedScans: scans - firstScans, firstRelations, repeatedRelations,
+      changedRelations: relationScans - firstRelations, correspondenceScans, firstCrosswalk, secondCrosswalk,
+      changedCrosswalk: crosswalkFinds - firstCrosswalk - secondCrosswalk,
+      fresh: Boolean(firstCard && secondCard && firstCard !== secondCard), firstMs, secondMs };
+  } finally { FG.ofType = original; FG.hasRef = originalHasRef; FG.graph.filter = originalFilter; FG.graph.find = originalFind; }
 });
 assert(reused.firstScans > 0 && reused.changedScans > 0, "initial and invalidated catalogue derive their questions");
-assert.equal(reused.repeatedScans, 0, "unchanged filters do not rebuild catalogue entries");
+assert.equal(reused.repeatedScans, 0, "unchanged filters do not rebuild catalogue entries: " + JSON.stringify(reused));
 assert(reused.fresh, "cached descriptors must not reuse live card nodes");
+assert.equal(reused.correspondenceScans, 0, "lifecycle correspondences share one reverse stage index");
+assert(reused.firstCrosswalk <= 1, "one crosswalk is found on the initial data revision");
+assert.equal(reused.secondCrosswalk, 0, "an unchanged revision does not find the crosswalk again");
+assert(reused.changedCrosswalk <= 1, "an invalidated revision finds the crosswalk once");
+assert.equal(reused.firstRelations, 0, "infrastructure cards share one reverse operatedBy index");
+assert.equal(reused.repeatedRelations, 0, "unchanged filters do not rescan operatedBy relations");
+assert.equal(reused.changedRelations, 0, "invalidation rebuilds the relation index once, not once per card");
 console.log("catalogue reuse measurement: " + JSON.stringify(reused));
-const searches = await page.evaluate(() => {
+await page.goto(base + "#/en/V/catalogue/infrastructures/csda-ess-cz");
+await page.waitForSelector("#main .entry-card");
+assert(await page.locator('#main .entry-card a[href$="/catalogue/repositories/csda"]').count(), "indexed infrastructure cards retain their operated-entry links");
+  const searches = await page.evaluate(async () => {
   const FG = window.FairGuide, original = FG.search.find;
   let calls = 0;
   FG.search.find = (...args) => { calls++; return original(...args); };
   try {
     const form = FG.search.form();
     form.querySelector("input").value = "metadata";
+    const results = form.querySelector("#search-results");
+    const complete = new Promise((resolve) => {
+      const observer = new MutationObserver(() => {
+        if (!results.childElementCount) return;
+        observer.disconnect();
+        resolve();
+      });
+      observer.observe(results, { childList: true });
+    });
     form.dispatchEvent(new Event("submit", { cancelable: true }));
-    return { calls, rendered: Boolean(form.querySelector("#search-results").childElementCount) };
+    await complete;
+    return { calls, rendered: Boolean(results.childElementCount) };
   } finally { FG.search.find = original; }
 });
 assert.equal(searches.calls, 1, "result rendering and the announced count share one search");

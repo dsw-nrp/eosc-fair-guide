@@ -709,13 +709,17 @@ are in `.agents/guide/rules/fair-guide-surfaces.md` and `docs/agent-tooling.md`.
 Every normalized catalogue record has one Guide-owned primary `id`. Imported source IDs belong in typed
 `alternateIds = [{ scheme = "knav", value = "github" }]`, using the actual source issuer and value. Never put an
 obsolete own ID there. Do not add `guideId`, old-route aliases or another full-address mapping. Source joins use
-explicit alternates; titles, external IDs/IRIs, URLs and classifications cannot silently change the local ID.
+explicit alternates; titles, external IDs/IRIs, URLs and classifications cannot silently change the local ID. A
+record's address is its kind and ID (`resources/github`, `stations/licence`, `lifecycles/rdmkit/plan`) and its IRI
+is that address under the Guide's namespace; the crate, the API, the routes and references all use it.
 
 - Texts and data live in `content/*.toml`. Each authored entry has a locally owned identifier: a station
   `repository`, an advice item `repository.03`, a check `dataset`, a question `dataset.04`, a clause `A.F1.R2`,
-  a local test `guide-dataset-01`, an evaluator criterion `provider:f-uji.FsF-F1-02MD`. Identifiers become
+  a local test `guide-dataset-01`, an evaluator criterion `FsF-F1-02MD` (`tests/f-uji/FsF-F1-02MD`). Identifiers become
   issued at the first official release; before that they may change in place. Issued IDs are never renamed or
-  reused; `scripts/register_ids.py` registers new ones and a retired one stays under `[retired]`.
+  reused; `scripts/register_ids.py` registers new ones under the kind of their record, as the address without the
+  kind (`vocabularies` holds `lenses/V`, `callouts` holds `sensitive-data#steward`), and a retired one stays under
+  `[retired]`.
 - Search by identifier or by a phrase from the page. Never edit what the build makes: everything in `_site/`
   (the crate, the data scripts, the API, the health report) and the generated blocks of `index.html`, which stay
   empty in the repository.
@@ -735,19 +739,27 @@ For an **advice item**:
    action; practical steps belong in L1 and their basis in L2. L2 also shows the cited clauses; L3 is generated
    from sources and paradata.
 2. Write both `cs` and `en` text. Czech is the primary language; English says the same, not more. Where the
-   text names a resource, source or glossary term, mark it as `[[id|phrase]]` (`term:<id>` for a term), in both
-   languages with the words each sentence uses; the content checks reject unknown IDs and uneven languages.
+   text names a record, mark it by its address as `[[<kind>/<id>|phrase]]` (`[[glossary/open-licence|…]]`,
+   `[[resources/nma|…]]`), in both languages with the words each sentence uses; a part takes its fragment
+   (`[[pages/machines#tasks|…]]`) and a kind word alone names its list (`[[infrastructures|…]]`). A field that can
+   name several kinds (`objects`, a model association's `target`) names records by address too. The content
+   checks reject unknown records and uneven languages.
 3. Cite at least one ledger clause in `sources`. If the fact has no clause yet, add one to the ledger first
    (section 3).
 
-For a **question** (`[[item]]` in `content/checks/<check>.toml`): set `tier`, `principles`, the `statement` in
-both languages, `sources`, `fixAt`, `owner`, the `modes` or `profiles` it applies to, and `prefill` where a live
+For a **question** (`[[item]]` in `content/checks/<check>.toml`): name the ledger clause it asks about in
+`requirement`, which supplies its text, so the text is written once. Write a `statement` in both languages only where
+the question differs from that clause: it names another actor, covers part of the clause or must be reworded to be
+answerable. A reworded copy is still a copy; the content check refuses only an identical one. Set `tier`,
+`principles`, `sources`, `fixAt`, `owner`, the `modes` or `profiles` it applies to, and `prefill` where a live
 source can answer it, with `prefillLevel` or `championEvidenceOnly` where that source covers only part of it.
 Never add a score.
 
 For a **resource**: set type, `status` (operational, pilot, in development, planned, prospective) with `asOf`,
 lenses, stations, and `sameAs` for its published FER nanopublication or FAIRsharing DOI where one exists. Links
-use HTTPS.
+use HTTPS. A publisher, operator, developer or host named by name is the one thing the Guide describes under that
+name; where two things share it, name the agent by its address. A FIP Dashboard organisation record joins a thing
+only through a reviewed handle (`fipDashboard`, or `fipDashboardOrganization` on a resource) or its ROR.
 
 ## 3. Sources and the ledger
 
@@ -776,8 +788,8 @@ use HTTPS.
   working material, find the published source it relies on and cite that.
 - Clause IDs are stable. Do not renumber; retire a clause by marking it superseded.
 
-For **model associations**, reference the shared layer and seam IDs in `content/model.toml` for each reviewed
-target. Associate what a question or test actually addresses; do not infer links from all its citations. Generic
+For **model associations**, name each reviewed target by its address (`questions/gate.08`) and reference the
+shared layer and seam IDs in `content/model.toml`. Associate what a question or test actually addresses; do not infer links from all its citations. Generic
 layer and seam definitions carry no implementation status. A separate example names its precise scope, evidence
 and observation date. Context explanations address an existing station and lens and belong in **Proč**.
 
@@ -844,8 +856,10 @@ state consolidates unreleased preparation actions without changing source attrib
 
 - `agent`: the person responsible, from `[[person]]` in `content/guide.toml`;
 - `instruments`: the tools used, naming the AI model as an instrument when one was used (never as an author);
-- `objects`: the ledger clauses and sources consulted;
-- `results`: the IDs of the items created or changed (a trailing `*` matches a prefix, such as `provider:*`);
+- `objects`: the ledger clauses and sources consulted, by address (`clauses/A.F1.R1`, `resources/re3data`);
+- `results`: the addresses of the items created or changed (`advice/plan.05`, `guide` for the Guide's metadata; a
+  trailing `*` matches the records with that prefix, such as `tests/f-uji/*`, and parts only where the pattern
+  names one; `*` alone is a change of the Guide as a whole, which names the Guide and no record);
 - `endTime`: when the change was finished, with its offset.
 
 Every compared kind needs paradata: Guide metadata, clauses, advice, questions, resources, tests, evaluator

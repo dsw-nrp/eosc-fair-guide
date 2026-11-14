@@ -41,6 +41,9 @@ každá změna zdroje prochází kontrolou v pull requestu.
 
 Sestavená stránka funguje offline, z místního souboru, v iframe i na statickém hostingu. Internet potřebují jen
 živé kontroly spuštěné uživatelem. Zdrojem obsahu je TOML; sestavení vytvoří crate, stránku a statické API ve `_site/`.
+Index `_site/api/v1/index.json` odkazuje samostatný seznam pro každý druh, `api/v1/<druh>.json` a záznam
+`api/v1/<druh>/<id>.json`, případně `<druh>/<obor>/<id>.json`. Statická data lze číst přes JSON-LD, OpenAPI
+nebo graf `knowledge-graph.nt`; ověření zdraví je v `_site/api/v1/health.json`.
 Produkce vychází z ověřených vydání; `/next/` je ověřený náhled výchozí větve.
 
 ## Licence

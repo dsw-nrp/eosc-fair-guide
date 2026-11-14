@@ -11,7 +11,7 @@ id = "one.01"
 lens = "*"
 level = "L0"
 text = { cs = "Udělejte první krok.", en = "Take the first step." }
-action = { label = { cs = "Začít", en = "Start" }, href = "#check-gate" }
+action = { label = { cs = "Začít", en = "Start" }, href = "checks/gate" }
 sources = ["A.F1.R1"]
 
 [[advice]]

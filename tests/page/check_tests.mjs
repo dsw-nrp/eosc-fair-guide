@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
 import { installGuards } from "./guards.mjs";
+import { addressOf, iri, localId, siteNamespace } from "./addresses.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const site = resolve(root, process.env.FAIR_GUIDE_SITE || "_site");
@@ -16,13 +17,17 @@ const screenshots = resolve(root, ".cache/screenshots/tests");
 mkdirSync(screenshots, { recursive: true });
 const base = pathToFileURL(resolve(site, "index.html")).href;
 const graph = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"))["@graph"];
-const definitions = graph.filter((entry) => String(entry["@id"]).startsWith("#test-"));
+const namespace = siteNamespace(site);
+const testAddress = (entry) => addressOf(entry["@id"], namespace) || "";
+/* FAIR Champion's tests and the Guide's own, apart from the external evaluators' criteria. */
+const definitions = graph.filter((entry) => /^tests\/(fair-champion|guide)\/[^#]+$/.test(testAddress(entry)));
 const localDefinitions = definitions.filter((entry) => entry.identifier.startsWith("guide-"));
 /* External evaluators' native criteria share the tests listing under their providers' own identifiers. */
-const criteria = graph.filter((entry) => String(entry["@id"]).startsWith("#criterion-") && entry.identifier && !entry.mappingCoverage);
-const questions = graph.filter((entry) => entry["@type"] === "Question");
+const criteria = graph.filter((entry) => /^tests\/[^/]+\/[^#]+$/.test(testAddress(entry)) && !definitions.includes(entry) && entry.identifier);
+const questions = graph.filter((entry) => [].concat(entry["@type"]).includes("Question"));
+/* What a test or criterion is about, and the principles a question measures as its FTR dimensions. */
 function principlesOf(entity) {
-  const about = Array.isArray(entity.about) ? entity.about : [entity.about];
+  const about = [].concat(entity.about || [], entity.inDimension || []);
   return [...new Set(about.map((reference) => graph.find((entry) => entry["@id"] === reference?.["@id"])?.termCode).filter(Boolean))];
 }
 const {state, problems: errors, external: requests} = installGuards(page, {
@@ -55,9 +60,9 @@ async function checkFacets(lang) {
       assert.equal(await page.locator('[data-facet$="-fair"]').count(), 0, "FAIR mapping uses the shared principle facet");
     }
   }
-  await visit(`#/${lang}/K/catalogue/q/software.20`);
+  await visit(`#/${lang}/K/catalogue/questions/software.20`);
   assert.equal(await page.locator('[id="item-software.20"] .principle-tile').count(), 0, "a badge review is not forced into a FAIR principle");
-  await visit(`#/${lang}/K/catalogue/q/cdif.04`);
+  await visit(`#/${lang}/K/catalogue/questions/cdif.04`);
   for (const code of ["A1.2", "R1.1"]) assert.equal(await page.locator(`[id="item-cdif.04"] .principle-tile[href$="/explorer/${code}"]`).count(), 1, "question records show their existing principle tags");
   await visit(`#/${lang}/K/catalogue/k!tests~p!R1`);
   const main = await page.$("#main");
@@ -67,7 +72,7 @@ async function checkFacets(lang) {
   assert(page.url().includes("p!R1"));
   await visit(`#/${lang}/K/catalogue/k!tests`);
   const modes = await page.evaluate(() => Object.fromEntries(window.FairGuide.config.providers.list.map((provider) => [provider.id, provider.mode])));
-  const criterionMode = (entry) => modes[Object.keys(modes).find((id) => entry["@id"] === "#criterion-" + id + "-" + entry.identifier)];
+  const criterionMode = (entry) => modes[testAddress(entry).split("/")[1]];
   assert.equal(await page.locator('[for="facet-tests-execution-browser"] .facet-count').textContent(), String(localDefinitions.length));
   assert.equal(await page.locator('[for="facet-tests-execution-service"] .facet-count').textContent(), String(definitions.length - localDefinitions.length + criteria.filter((entry) => criterionMode(entry) === "service").length));
   assert.equal(await page.locator('[for="facet-tests-execution-import"] .facet-count').textContent(), String(criteria.filter((entry) => criterionMode(entry) === "import").length), "imported evaluator criteria have their own execution facet");
@@ -78,7 +83,7 @@ async function checkFacets(lang) {
   }), "test facets stay inside the test section below Kind");
   await choose("#facet-tests-execution-browser");
   await choose("#facet-tests-check-software");
-  const software = localDefinitions.filter((entry) => entry.isImplementationOf["@id"].startsWith("#item-software."));
+  const software = localDefinitions.filter((entry) => entry.isImplementationOf["@id"].startsWith(iri("questions/software.", namespace)));
   assert.equal(await page.locator(".entry-card").count(), software.length);
   assert(page.url().includes("f.execution!browser") && page.url().includes("f.check!software"), "facet selections are in the shareable URL");
   const saved = page.url();
@@ -89,7 +94,7 @@ async function checkFacets(lang) {
   assert.equal(await restored.locator(".entry-card").count(), software.length);
   await restored.close();
   await visit(`#/${lang}/K/catalogue/k!tests~f.execution!service~f.thealth!degraded`);
-  const degraded = definitions.filter((entry) => !entry.identifier.startsWith("guide-") && entry.healthStatus === "degraded");
+  const degraded = definitions.filter((entry) => !entry.identifier.startsWith("guide-") && String(entry.healthStatus?.["@id"] || "").endsWith("/health-statuses/degraded"));
   assert.equal(await page.locator(".entry-card").count(), degraded.length);
   assert.equal(await page.locator('.entry-card[id^="item-guide-"]').count(), 0, "recorded service status never includes local tests");
   await visit(`#/${lang}/K/catalogue/k!tests~o!name`);
@@ -97,8 +102,8 @@ async function checkFacets(lang) {
   await page.locator("#catalogue-order").selectOption("check");
   await page.waitForFunction((node) => !node.isConnected, previous);
   const headings = await page.locator(".catalogue-group > h2").allTextContents();
-  for (const id of new Set(localDefinitions.map((entry) => entry.isImplementationOf["@id"].slice(6).split(".")[0]))) {
-    const check = graph.find((entry) => entry["@id"] === "#check-" + id);
+  for (const id of new Set(localDefinitions.map((entry) => localId(addressOf(entry.isImplementationOf["@id"], namespace)).split(".")[0]))) {
+    const check = graph.find((entry) => entry["@id"] === iri("checks/" + id, namespace));
     assert(headings.some((heading) => heading.includes(check.name.find((entry) => entry["@language"] === lang)["@value"])), "check ordering groups tests by the check they support");
   }
 }
@@ -111,8 +116,8 @@ try {
     assert.equal(definitions.length, 55);
     for (const test of definitions) {
       const automatic = test.identifier.startsWith("guide-");
-      const anchor = test.catalogueAddress.split("/").slice(1).join("/");
-      await visit(`#/${lang}/K/catalogue/${test.catalogueAddress}`);
+      const anchor = localId(testAddress(test));
+      await visit(`#/${lang}/K/catalogue/${testAddress(test)}`);
       await page.waitForSelector("[id='item-" + anchor + "']");
       const entry = page.locator("[id='item-" + anchor + "']");
       assert.equal(await entry.locator(".entry-title").textContent(), test.name.find((value) => value["@language"] === lang)["@value"]);
@@ -123,12 +128,12 @@ try {
       assert.equal(await entry.locator("code").count(), automatic ? 1 : 0, "local entry names its invoked function");
       assert(await entry.locator("a").filter({ hasText: lang === "cs" ? "Popis testu" : "Test documentation" }).count() > 0, "documentation is linked independently of execution");
       if (automatic) assert.equal(await entry.locator(`a[href="assets/js/tests/index.html#${test.identifier}${lang === "en" ? "-en" : ""}"]`).count(), 1, "documentation leads to this test's heading in the selected language");
-      if (automatic) assert(await entry.locator("a[href*='/q/']").count() > 0, "local test identifies the question it can prefill");
+      if (automatic) assert(await entry.locator("a[href*='/questions/']").count() > 0, "local test identifies the question it can prefill");
       for (const code of principlesOf(test)) assert.equal(await entry.locator(`.relations .principle-tile[href$="/explorer/${code}"]`).count(), 1, "test records show their existing FAIR tags");
     }
     for (const width of [1280, 390]) {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto(base + `#/${lang}/K/catalogue/test/guide/guide-software-14`);
+      await page.goto(base + `#/${lang}/K/catalogue/tests/guide/guide-software-14`);
       await page.waitForSelector('[id="item-guide/guide-software-14"]');
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
       state.axeRunning = true;
@@ -149,8 +154,8 @@ try {
     assert.equal(await section.locator("h3 > code").textContent(), test.identifier, "each test ID appears in its own documentation heading");
     assert((await section.locator("h3").textContent()).includes(test.name.find((value) => value["@language"] === lang)["@value"]));
     assert((await section.textContent()).includes(test.description.find((value) => value["@language"] === lang)["@value"]));
-    assert.equal(await section.locator(`a[href="../../../index.html#/${lang}/K/catalogue/${graph.find((entry) => entry["@id"] === test.isImplementationOf["@id"]).catalogueAddress}"]`).count(), 1);
-    assert.equal(await section.locator(`a[href="../../../api/${test.catalogueAddress}.json"]`).count(), 1);
+    assert.equal(await section.locator(`a[href="../../../index.html#/${lang}/K/catalogue/${addressOf(test.isImplementationOf["@id"], namespace)}"]`).count(), 1);
+    assert.equal(await section.locator(`a[href="../../../api/v1/${testAddress(test)}.json"]`).count(), 1);
   }
   for (const [lang, id] of [["cs", "guide-cdif-04"], ["en", "guide-software-14"]]) for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });

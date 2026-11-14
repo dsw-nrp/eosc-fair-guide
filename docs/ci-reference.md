@@ -76,6 +76,14 @@ needs `npm ci` and the tools from `requirements-dev.txt`.
   `scripts/unit_shards.json`, gives each shard a private report directory and fails unless every discovered test runs
   exactly once; `--shards N` overrides the count and `--shuffle SEED` reorders classes and tests to expose hidden
   shared state.
+- **Knowledge graph and API.** The standard-library N-Triples writer and pinned offline RO-Crate context have an
+  rdflib isomorphism test; no network is used. All six SPARQL recipes run against the generated graph and rename
+  their first relation in a graph copy as a regression. `npm run check:api` matches every API file to exactly one
+  v1 OpenAPI template and checks typed schemas and links, including the NKR planned/in-development repository
+  exception. There are no generated per-record operations or retired role-named collections.
+- **Health and saved results.** API v1 health is at `_site/api/v1/health.json` and belongs to the `operations` tag;
+  image and deployment checks use the same endpoint. The assessment suite loads result fixtures of revisions 1 to 3
+  and writes DQV revision 4 with persistent question and test IRIs; a reader's answer is not an FTR test.
 - **Evidence.** `.cache/health/details/` and `logs/` keep timings, complete output, case coverage and failure
   artifacts; `execution.json` records the actual profile, budgets, machine and built-input hashes. The health report
   marks selected browser subsets as partial. Default traces keep actions, and a failed case adds a PNG and an HTML
