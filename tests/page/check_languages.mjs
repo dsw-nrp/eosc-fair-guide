@@ -61,6 +61,71 @@ async function failedTextSearch({ holdInspection = false } = {}) {
 }
 
 try {
+  // A cold landing action cannot interpret a delayed or unavailable registry as an absent record.
+  for (const lang of ["cs", "en"]) for (const unavailable of [false, true]) {
+    const context = await browser.newContext({ viewport: { width: unavailable ? 390 : 1280, height: 850 } });
+    const page = await context.newPage(), observed = watched(page);
+    let release, announce, fail = unavailable;
+    const gate = new Promise((done) => { release = done; });
+    const asked = new Promise((done) => { announce = done; });
+    await context.route("https://prefill-loading.test/**", async (route) => {
+      const pathname = new URL(route.request().url()).pathname;
+      if (pathname === "/assets/data/kb-questions.js") {
+        announce(); await gate;
+        if (fail) return route.abort("failed");
+      }
+      await route.fulfill({ body: readFileSync(resolve(site, "." + pathname)),
+        contentType: pathname.endsWith(".js") ? "text/javascript" : pathname.endsWith(".css") ? "text/css" : pathname.endsWith(".svg") ? "image/svg+xml" : "text/html" });
+    });
+    await page.goto(`https://prefill-loading.test/index.html#/${lang}/SR/path/start`);
+    await rendered(page, lang, "#search-input");
+    await page.evaluate(() => {
+      const FG = window.FairGuide, translate = FG.t;
+      window.missingRegistryReads = 0;
+      FG.t = (key, ...args) => { if (key === "selfcheck.prefill.re3dataMissing") window.missingRegistryReads += 1; return translate(key, ...args); };
+      FG.state.answers.maturity = { items: { "maturity.01": { value: "no", origin: "user" } } };
+      FG.saveState();
+    });
+    let id = Object.keys(questionPart.config.re3data)[0];
+    assert(id, "the corpus supplies a known re3data record");
+    await page.fill("#search-input", id);
+    await page.locator("form.search").evaluate((form) => form.requestSubmit());
+    await page.locator("#search-results button.result-primary").click();
+    await asked;
+    await page.waitForFunction(() => location.hash.includes("/check/maturity") && window.FairGuide.state.answers.maturity.re3data);
+    await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+    assert.equal(await page.evaluate(() => window.missingRegistryReads), 0, "pending data cannot report a missing record");
+    assert.equal(await page.evaluate(() => window.FairGuide.config.re3data), undefined);
+    assert.equal(await page.evaluate(() => window.FairGuide.state.answers.maturity.items["maturity.01"].value), "no");
+    if (unavailable) {
+      release();
+      await page.locator(".data-load-error").waitFor();
+      assert.equal(await page.evaluate(() => window.missingRegistryReads), 0, "unavailable data cannot report a missing record");
+      assert.equal(await page.evaluate(() => window.FairGuide.state.answers.maturity.re3data), id);
+      await page.screenshot({ path: resolve(root, `.cache/screenshots/languages/prefill-unavailable-${lang}.png`) });
+      fail = false;
+      await page.locator(".data-load-error button").click();
+      await rendered(page, lang, ".check-parts");
+    } else {
+      id = Object.keys(questionPart.config.re3data)[1];
+      assert(id, "a second target exercises a superseded pending pre-fill");
+      await page.evaluate((id) => window.FairGuide.selfcheck.startWithRe3data(id), id);
+      release();
+      await page.waitForFunction((id) => window.FairGuide.state.answers.maturity.target?.endsWith(id), id);
+      assert(await page.evaluate(() => Object.values(window.FairGuide.state.answers.maturity.items).some((row) => row.prefill)), "the selected snapshot supplies pre-fill evidence after loading");
+    }
+    assert.equal(await page.evaluate(() => window.FairGuide.state.answers.maturity.re3data), id);
+    assert.equal(await page.evaluate(() => window.FairGuide.state.answers.maturity.items["maturity.01"].value), "no");
+    assert.equal(await page.evaluate(() => window.missingRegistryReads), 0);
+    assert.equal(await page.locator(".data-load-error").count(), 0);
+    await page.evaluate((lang) => { location.hash = `#/${lang}/SR/check/maturity/evidence`; }, lang);
+    await rendered(page, lang, "#prefill-re3data");
+    assert.equal(await page.locator("#prefill-re3data").inputValue(), id, "the recovered evidence control retains the chosen target");
+    await page.screenshot({ path: resolve(root, `.cache/screenshots/languages/prefill-recovered-${lang}-${unavailable}.png`) });
+    assert.deepEqual(observed.errors, []);
+    await context.close();
+  }
+
   const base = iri("", siteNamespace(site));
   const keywordProbe = crate["@graph"].filter((row) => row["@id"].startsWith(base + "repositories/") && !row["@id"].includes("#"))
     .flatMap((row) => [].concat(row.keywords || []).flatMap((value) => String(value["@value"] || value).match(/[\p{L}]{7,}/gu) || [])
@@ -88,20 +153,22 @@ try {
         if (!localStorage.getItem("eosc-fair-guide")) localStorage.setItem("eosc-fair-guide", JSON.stringify({ lang, lens: "K" }));
       }, lang);
       await page.goto(file + `#/${lang}/K/path/start`);
-      await rendered(page, lang, "#search-input");
-      assert.equal(await page.evaluate(() => window.FairGuide.config.nkr), undefined);
-      assert.equal(await page.evaluate(() => window.FairGuide.config.re3data), undefined);
-      await page.evaluate(() => {
+      let view = page;
+      if (embedded) {
+        await page.setContent(`<iframe title="Guide" src="${file}#/${lang}/K/path/start"></iframe>`);
+        view = page.frames().find((frame) => frame !== page.mainFrame());
+      }
+      await rendered(view, lang, "#search-input");
+      assert.equal(await view.evaluate(() => window.FairGuide.config.nkr), undefined);
+      assert.equal(await view.evaluate(() => window.FairGuide.config.re3data), undefined);
+      // Each document owns its saved answers; a file iframe need not share its parent's storage area.
+      await view.evaluate(() => {
         const FG = window.FairGuide;
         FG.state.answers.gate = { profile: "independent", items: { "gate.13": { value: "no", origin: "user" } } };
         FG.saveState();
       });
       const route = file + `#/${lang}/K/check/gate/evidence`;
-      let view = page;
-      if (embedded) {
-        await page.setContent(`<iframe title="Guide" src="${route}"></iframe>`);
-        view = page.frames().find((frame) => frame !== page.mainFrame());
-      } else await page.goto(route);
+      await view.goto(route);
       await rendered(view, lang, ".check-evidence");
       assert.deepEqual(await view.evaluate(() => window.FairGuide.config.nkr), expectedNkr);
       assert(await view.evaluate(() => Object.keys(window.FairGuide.config.re3data).length > 0));
