@@ -12,6 +12,16 @@
   /* The catalogue's lists, named by the kind of their records; a few kinds are listed together (FG.catalogueGroup). */
   const KINDS = ["resources", "repositories", "infrastructures", "clauses", "questions", "glossary", "fips", "tests", "lifecycles", "models", "actions"];
 
+  /* Conflicting classifications keep native wording and scoped verification together as attributed source claims. */
+  FG.dashboardClaims = ({ fer, url }) => h("details", { class: "source-claims" },
+    h("summary", null, FG.sourceName("#snapshot-fip-dashboard")),
+    h("p", null, FG.external(url, FG.sourceName("#snapshot-fip-dashboard")), " · ",
+      field("catalogueType", FG.t("catalogue.fairDataType", { type: FG.termName(fer.catalogueType) }))),
+    fer.description ? h("p", { "data-field": "description" }, FG.span(fer.description)) : null,
+    h("div", { class: "badges" }, FG.verificationBadges(fer)),
+    FG.refs(fer, "review").filter((review) => review.reviewBody).map((review) =>
+      h("p", { "data-field": "review" }, FG.span(review.reviewBody))));
+
   /* What each kind's entry shows of its record, and what it leaves out with the reason. The catalogue's
      completeness test fails when a record carries a field its kind neither shows nor excludes, and when a shown field
      with a value draws nothing; a card marks what it draws with `data-field`. */
