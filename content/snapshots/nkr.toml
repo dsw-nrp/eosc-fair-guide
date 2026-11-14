@@ -8,9 +8,9 @@ retrieved = 2026-11-08
 fields = ["repositoryName", "additionalNames", "mainUrl", "type", "status", "keywordCz", "keywordEn", "mainContact", "metadataSchema", "workingGroup"]
 
 [[record]]
-id = "archaeo-vault"
+id = "archaeovault"
 alternateIds = [{ "scheme" = "nkr", "value" = "20.500.14818/9lloktrg" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 url = "https://repo.cz/objects/20.500.14818/9lloktrg"
 repositoryName = "ArchaeoVault"
 additionalNames = [{ "additionalName" = "ArchaeoVault", "lang" = "English" }]
@@ -25,7 +25,7 @@ mainContactPresent = true
 [[record]]
 id = "herbarium"
 alternateIds = [{ "scheme" = "nkr", "value" = "20.500.14818/jgu5fyqf" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 url = "https://repo.cz/objects/20.500.14818/jgu5fyqf"
 repositoryName = "Repozitář herbářových sbírek"
 additionalNames = [{ "additionalName" = "Herbarium Collections Repository", "lang" = "English" }]
@@ -38,9 +38,9 @@ workingGroup = ["ENVI - Environmental Sciences"]
 mainContactPresent = true
 
 [[record]]
-id = "mbdb-data"
+id = "mbdb"
 alternateIds = [{ "scheme" = "nkr", "value" = "20.500.14818/m4riedm6" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 url = "https://repo.cz/objects/20.500.14818/m4riedm6"
 repositoryName = "Molecular Biophysics Database - MBDB"
 additionalNames = [{ "additionalName" = "Molecular Biophysics Database - MBDB", "lang" = "English" }]
@@ -53,9 +53,9 @@ workingGroup = ["B/H/F - Bio/Health/Food"]
 mainContactPresent = true
 
 [[record]]
-id = "datarepo-2"
+id = "datarepo"
 alternateIds = [{ "scheme" = "nkr", "value" = "20.500.14818/sr3o5j0c" }]
-guideRoute = "repo/gen"
+guideRoute = "repositories"
 url = "https://repo.cz/objects/20.500.14818/sr3o5j0c"
 repositoryName = "Datový catch-all repozitář"
 additionalNames = [{ "additionalName" = "Data Catch-all Repository", "lang" = "English" }]
@@ -67,9 +67,9 @@ keywordEn = ["catch-all", "general", "long-tail"]
 mainContactPresent = true
 
 [[record]]
-id = "czbird"
+id = "czech-bioimaging"
 alternateIds = [{ "scheme" = "nkr", "value" = "20.500.14818/srhtp4ek" }]
-guideRoute = "repo/dom"
+guideRoute = "repositories"
 url = "https://repo.cz/objects/20.500.14818/srhtp4ek"
 repositoryName = "CzBIRD"
 additionalNames = [{ "additionalName" = "CzBIRD", "lang" = "English" }]
