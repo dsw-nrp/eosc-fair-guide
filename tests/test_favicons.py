@@ -6,17 +6,23 @@ from __future__ import annotations
 
 import hashlib
 import shutil
+import socket
+import stat
 import struct
 import sys
 import tempfile
+import tomllib
 import unittest
+import urllib.error
 import zlib
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_crate  # noqa: E402
+import check_content  # noqa: E402
 import vendor_favicons as vf  # noqa: E402
 
 
@@ -32,14 +38,48 @@ def png(size: int = vf.SIZE) -> bytes:
 
 
 class HostTests(unittest.TestCase):
+    def test_favicon_policy_rejects_non_boolean_values(self):
+        content = build_crate.load_content()
+        for value in ("true", 1, [], {}):
+            content["guide"]["resourceType"][0]["favicon"] = value
+            report = check_content.Report()
+            check_content.check_type_crosswalk(report, content)
+            self.assertTrue(any("favicon must be a boolean" in error for error in report.errors))
+
     def test_a_platform_stands_only_for_its_home_page(self) -> None:
         self.assertEqual(vf.stands_for("https://www.example.org/tool"), "example.org")
         self.assertEqual(vf.stands_for("https://github.com/"), "github.com")
         self.assertIsNone(vf.stands_for("https://github.com/someone/tool"))
+        self.assertIsNone(vf.stands_for("https://repo.cz/objects/20.500/example"))
+        self.assertEqual(vf.stands_for("https://repo.cz/"), "repo.cz")
         self.assertIsNone(vf.stands_for("http://example.org/"), "an address that is not HTTPS has no favicon")
 
 
 class CandidateTests(unittest.TestCase):
+    def test_network_fetch_refuses_a_loopback_target_before_requesting_it(self):
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.geturl.return_value = "https://127.0.0.1/icon.png"
+        response.read.return_value = png()
+        with (
+            mock.patch.object(vf.urllib.request, "urlopen", return_value=response) as opened,
+            self.assertRaises(ValueError),
+        ):
+            vf.network_fetch("https://127.0.0.1/icon.png", 1024)
+        opened.assert_not_called()
+
+    def test_manifest_strings_round_trip_without_toml_injection(self):
+        item = vf.Found(
+            'quoted"host',
+            "https://example.org/icon",
+            png(),
+            "png",
+            key='infrastructure-quoted"key',
+            file='quoted"file.png',
+        )
+        row = tomllib.loads(vf.manifest_text([(item, png())], "2026-11-14", []))["favicon"][0]
+        self.assertEqual((row["host"], row["key"], row["file"]), (item.host, item.key, item.file))
+
     def test_icons_are_tried_best_first_and_favicon_ico_last(self) -> None:
         html = """<head><link rel="apple-touch-icon" href="/touch.png">
         <link rel="icon" sizes="16x16" href="/16.png"><link rel="icon" sizes="64x64" href="/64.png">
@@ -80,13 +120,13 @@ class VendorTests(unittest.TestCase):
         content = self.root / "content"
         content.mkdir()
         (content / "guide.toml").write_text(
-            '[guide]\n\n[[resourceType]]\nid = "tool"\nfipDashboard = ["tool"]\n', encoding="utf-8"
+            '[guide]\n\n[[resourceType]]\nid = "tool"\nfavicon = true\nfipDashboard = ["tool"]\n', encoding="utf-8"
         )
         (content / "resources.toml").write_text(
-            '[[resource]]\nid = "a"\ntype = "tool"\nurl = "https://a.example.org/app"\n\n'
-            '[[resource]]\nid = "b"\ntype = "tool"\nurl = "https://b.example.org/"\n\n'
-            '[[resource]]\nid = "c"\ntype = "standard"\nurl = "https://c.example.org/"\n\n'
-            '[[resource]]\nid = "d"\ntype = "tool"\nurl = "https://github.com/someone/d"\n',
+            '[[resource]]\nid = "alpha"\ntype = "tool"\nurl = "https://a.example.org/app"\n\n'
+            '[[resource]]\nid = "bravo"\ntype = "tool"\nurl = "https://b.example.org/"\n\n'
+            '[[resource]]\nid = "charlie"\ntype = "standard"\nurl = "https://c.example.org/"\n\n'
+            '[[resource]]\nid = "delta"\ntype = "tool"\nurl = "https://github.com/someone/d"\n',
             encoding="utf-8",
         )
         self.responses = {
@@ -105,6 +145,213 @@ class VendorTests(unittest.TestCase):
             raise OSError(url)
         return url, self.responses[url][: limit + 1]
 
+    @staticmethod
+    def normalise_all(originals: Path, output: Path) -> list[str]:
+        for path in originals.iterdir():
+            (output / (path.stem + ".png")).write_bytes(png())
+        return []
+
+    def saved_files(self) -> dict[str, bytes]:
+        return {path.name: path.read_bytes() for path in (self.root / vf.TARGET).iterdir()}
+
+    def test_offline_acquisition_needs_no_dns_or_socket(self):
+        folder = self.root / "responses"
+        folder.mkdir()
+        for url, data in self.responses.items():
+            (folder / vf.response_name(url)).write_bytes(data)
+        with (
+            mock.patch.object(socket, "getaddrinfo", side_effect=AssertionError("offline DNS")),
+            mock.patch.object(socket, "socket", side_effect=AssertionError("offline socket")),
+        ):
+            vf.vendor(self.root, vf.file_fetch(folder), "2026-11-14", self.normalise_all)
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_non_public_destination_failure_retains_the_verified_icon(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        with (
+            mock.patch.object(
+                socket,
+                "getaddrinfo",
+                return_value=[(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("10.0.0.1", 443))],
+            ),
+            mock.patch.object(socket, "socket", side_effect=AssertionError("private connection")),
+        ):
+            vf.vendor(self.root, vf.network_fetch, "2026-11-14", self.normalise_all)
+        manifest = vf._toml(self.root / vf.MANIFEST)
+        self.assertEqual({row["outcome"] for row in manifest["observation"]}, {"failed"})
+        self.assertEqual({row["reason"] for row in manifest["observation"]}, {"destination-refused"})
+        self.assertEqual(str(manifest["favicon"][0]["retrieved"]), "2026-10-13")
+        self.assertEqual(self.saved_files()["a.example.org.png"], before["a.example.org.png"])
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_check_requires_a_manifest_but_accepts_an_explicit_empty_set(self):
+        self.assertTrue(vf.check(self.root), "a missing directory is not a verified empty set")
+        folder = self.root / vf.TARGET
+        folder.mkdir(parents=True)
+        self.assertTrue(vf.check(self.root), "a missing manifest is an integrity error")
+        (folder / "sources.toml").write_text("", encoding="utf-8")
+        self.assertTrue(vf.check(self.root), "an uninitialised manifest does not describe a set")
+        (folder / "sources.toml").write_text(vf.manifest_text([], "2026-11-14", []), encoding="utf-8")
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_existing_uninitialised_directory_is_not_bootstrapped_over(self):
+        (self.root / vf.TARGET).mkdir(parents=True)
+        fetch = mock.Mock(side_effect=AssertionError("fetch before integrity check"))
+        with self.assertRaisesRegex(ValueError, "existing favicon"):
+            vf.vendor(self.root, fetch, "2026-11-14", self.normalise_all)
+        fetch.assert_not_called()
+
+    def test_invalid_working_identities_are_refused_before_any_image_write(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        for host, key in (
+            ("../escape", None),
+            ("..\\..\\escape", None),
+            ("a.example.org", "../escape"),
+            ("C:\\escape", None),
+            ("/absolute", None),
+        ):
+            with self.subTest(host=host, key=key):
+                item = vf.Found(host, "https://a.example.org/icon.png", png(), "png", key=key)
+                attempt = vf.Acquisition(host, [item])
+                with (
+                    mock.patch.object(vf, "service_urls", return_value={host: item.source}),
+                    mock.patch.object(vf, "acquire", return_value=attempt),
+                    mock.patch.object(
+                        Path, "write_bytes", side_effect=AssertionError("image write before validation")
+                    ) as write,
+                    self.assertRaisesRegex(ValueError, "working identity"),
+                ):
+                    vf.vendor(self.root, self.fetch, "2026-11-14", self.normalise_all)
+                write.assert_not_called()
+                self.assertEqual(self.saved_files(), before)
+
+    def test_safe_working_identity_accepts_punycode_and_repeated_hyphens(self):
+        folder = self.root / "work"
+        folder.mkdir()
+        for host in ("xn--bcher-kva.example", "two--hyphens.example"):
+            item = vf.Found(host, "https://" + host + "/icon.png", png(), "png")
+            self.assertEqual(vf.working_path(folder, item, 0, "png").parent, folder)
+
+    def test_recovery_reaps_only_owned_abandoned_stage_directories(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        assets = self.root / "assets"
+        stages = [assets / ".favicons-stage-abandoned", assets / ".favicons-stage-other"]
+        for stage in stages:
+            shutil.copytree(self.root / vf.TARGET, stage)
+        unrelated = assets / "other-assets"
+        unrelated.mkdir()
+        (unrelated / "keep.txt").write_bytes(b"unrelated")
+        marker = assets / ".favicons-stage-note"
+        marker.write_bytes(b"a file, not a generated directory")
+        for interrupted_swap in (False, True):
+            with self.subTest(interrupted_swap=interrupted_swap):
+                if interrupted_swap:
+                    (self.root / vf.TARGET).replace(assets / ".favicons-backup")
+                    for stage in stages:
+                        stage.mkdir(exist_ok=True)
+                vf.recover_publication(self.root)
+                self.assertTrue(all(not stage.exists() for stage in stages))
+                self.assertEqual(self.saved_files(), before)
+                self.assertEqual((unrelated / "keep.txt").read_bytes(), b"unrelated")
+                self.assertEqual(marker.read_bytes(), b"a file, not a generated directory")
+
+    def test_vendoring_does_not_require_python_312_path_methods(self):
+        with mock.patch.object(Path, "is_junction", side_effect=AssertionError("Python 3.12-only API"), create=True):
+            vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_ownership_guard_rejects_symlink_and_windows_reparse_metadata(self):
+        assets = self.root / "assets"
+        assets.mkdir()
+        stage = assets / ".favicons-stage-unsafe"
+        stage.mkdir()
+        lstat = Path.lstat
+        for unsafe in (assets, stage):
+            for mode, attributes in ((stat.S_IFLNK, 0), (stat.S_IFDIR, 0x400)):
+                with self.subTest(unsafe=unsafe.name, mode=mode, attributes=attributes):
+
+                    def inspect(path, unsafe=unsafe, mode=mode, attributes=attributes):
+                        if path == unsafe:
+                            return mock.Mock(st_mode=mode, st_file_attributes=attributes)
+                        return lstat(path)
+
+                    with mock.patch.object(Path, "lstat", inspect), self.assertRaises(ValueError):
+                        vf.recover_publication(self.root)
+                    self.assertTrue(stage.is_dir(), "unsafe cleanup must leave the entry untouched")
+        with self.assertRaises(ValueError):
+            vf.owned_folder(self.root, self.root / ".favicons-stage-outside")
+
+    def test_cleanup_inspection_failure_keeps_the_stage(self):
+        stage = self.root / "assets/.favicons-stage-unreadable"
+        stage.mkdir(parents=True)
+        (stage / "keep.txt").write_bytes(b"do not remove without inspection")
+        lstat = Path.lstat
+
+        def inspect(path):
+            if path == stage:
+                raise PermissionError("inspection refused")
+            return lstat(path)
+
+        with mock.patch.object(Path, "lstat", inspect), self.assertRaises(PermissionError):
+            vf.recover_publication(self.root)
+        self.assertEqual((stage / "keep.txt").read_bytes(), b"do not remove without inspection")
+
+    def test_interruption_while_writing_manifest_preserves_verified_set(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        write = Path.write_text
+
+        def interrupt(path, *args, **kwargs):
+            if path.name == "sources.toml":
+                raise KeyboardInterrupt("publication interrupted")
+            return write(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "write_text", interrupt), self.assertRaises(KeyboardInterrupt):
+            vf.vendor(self.root, self.fetch, "2026-11-14", self.normalise_all)
+        self.assertEqual(self.saved_files(), before)
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_restart_recovers_backup_before_integrity_guard_and_retains_old_dates(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        (self.root / vf.TARGET).replace(self.root / "assets/.favicons-backup")
+        self.responses.clear()
+        vf.vendor(self.root, self.fetch, "2026-11-14", self.normalise_all)
+        after = self.saved_files()
+        self.assertEqual(after["a.example.org.png"], before["a.example.org.png"])
+        row = tomllib.loads(after["sources.toml"].decode())["favicon"][0]
+        self.assertEqual(str(row["retrieved"]), "2026-10-13")
+        self.assertEqual(vf.check(self.root), [])
+        self.assertFalse((self.root / "assets/.favicons-backup").exists())
+
+    def test_interruption_between_directory_renames_rolls_back(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        replace = Path.replace
+
+        def interrupt(path, destination):
+            if path.name.startswith(".favicons-stage-"):
+                raise KeyboardInterrupt("install interrupted")
+            return replace(path, destination)
+
+        with mock.patch.object(Path, "replace", interrupt), self.assertRaises(KeyboardInterrupt):
+            vf.vendor(self.root, self.fetch, "2026-11-14", self.normalise_all)
+        self.assertEqual(self.saved_files(), before)
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_invalid_staged_manifest_never_replaces_verified_set(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        with (
+            mock.patch.object(vf, "manifest_text", return_value="[[favicon]]\nfile = 'missing.png'\n"),
+            self.assertRaises(ValueError),
+        ):
+            vf.vendor(self.root, self.fetch, "2026-11-14", self.normalise_all)
+        self.assertEqual(self.saved_files(), before)
+
     def test_only_tools_and_services_are_asked_and_a_platform_tool_is_not(self) -> None:
         self.assertEqual(
             vf.service_urls(self.root),
@@ -113,11 +360,93 @@ class VendorTests(unittest.TestCase):
 
     def test_a_corrected_record_address_is_asked_for_its_favicon(self) -> None:
         (self.root / "content" / "repositories.toml").write_text(
+            '[[repository]]\nid = "reviewed"\nname = "Reviewed repository"\nre3data = "r3d100013576"\nurl = "https://old.example.org/"\n'
             '[[record]]\nre3data = "r3d100013576"\nurl = "https://d.example.org/"\n'
             'evidence = ["https://d.example.org/"]\n',
             encoding="utf-8",
         )
         self.assertEqual(vf.service_urls(self.root)["d.example.org"], "https://d.example.org/")
+        self.assertNotIn("old.example.org", vf.service_urls(self.root))
+
+    def test_shared_policy_includes_standard_guide_document_and_nkr_only_sites(self):
+        hosts = vf.service_urls(ROOT)
+        self.assertIn("coretrustseal.org", hosts)
+        guide = self.root / "content/guide.toml"
+        guide.write_text(
+            guide.read_text(encoding="utf-8") + '\n[[resourceType]]\nid="standard"\nfavicon=true\n', encoding="utf-8"
+        )
+        self.assertIn("c.example.org", vf.service_urls(self.root))
+        for kind in ("guide", "document"):
+            guide.write_text(
+                guide.read_text(encoding="utf-8") + f'\n[[resourceType]]\nid="{kind}"\nfavicon=true\n', encoding="utf-8"
+            )
+            path = self.root / "content/resources.toml"
+            path.write_text(
+                path.read_text(encoding="utf-8")
+                + f'\n[[resource]]\nid="{kind}-example"\ntype="{kind}"\nurl="https://{kind}.example.org/"\n',
+                encoding="utf-8",
+            )
+            self.assertIn(kind + ".example.org", vf.service_urls(self.root))
+
+    def test_collection_matches_the_full_published_catalogue_sites(self):
+        content = build_crate.load_content()
+        crate = build_crate.build_crate(content)
+        base = content["guide"]["guide"]["recordBase"]
+        expected = set()
+        eligible = set(build_crate.favicon_types(content["guide"]))
+        for row in crate["@graph"]:
+            address = row["@id"].removeprefix(base)
+            if "#" in address or not address.startswith(("resources/", "repositories/")):
+                continue
+            kind = row.get("resourceType", row.get("guideType", {})).get("@id", "").rsplit("/", 1)[-1]
+            if (address.startswith("repositories/") or kind in eligible) and (
+                host := vf.stands_for(row.get("url", ""))
+            ):
+                expected.add(host)
+        self.assertEqual(set(vf.service_urls(ROOT)), expected)
+
+    def test_a_cited_standard_with_a_doi_uses_its_own_site(self):
+        guide = self.root / "content/guide.toml"
+        guide.write_text(
+            guide.read_text(encoding="utf-8")
+            + '\n[[resourceType]]\nid="standard"\nfavicon=true\ncitation=["standard"]\n',
+            encoding="utf-8",
+        )
+        (self.root / "content/sources.toml").write_text(
+            '[[source]]\nid="cited-standard"\ntype="standard"\ndoi="10.1234/standard"\n'
+            'title="A cited standard"\nurl="https://cited.example.org/"\n',
+            encoding="utf-8",
+        )
+        self.assertIn("cited.example.org", vf.service_urls(self.root))
+
+    def test_nkr_site_overrides_and_empty_site_fallback_use_reconciled_things(self):
+        content = self.root / "content"
+        (content / "repositories.toml").write_text(
+            '[[repository]]\nid="local"\nname="Local"\nurl="https://old.example.org/"\nnkr="handle/1"\n',
+            encoding="utf-8",
+        )
+        snapshots = content / "snapshots"
+        snapshots.mkdir()
+        target = snapshots / "nkr.toml"
+        template = (
+            '[snapshot]\nsource="NKR"\nretrieved=2026-11-14\n[[record]]\nid="local"\n'
+            'alternateIds=[{scheme="nkr",value="handle/1"}]\nguideRoute="repositories"\n'
+            'repositoryName="Local"\nstatus="intended"\nmainUrl="{site}"\n'
+        )
+        target.write_text(template.replace("{site}", "https://new.example.org/"), encoding="utf-8")
+        with target.open("a", encoding="utf-8") as stream:
+            stream.write(
+                template.split("[[record]]", 1)[1]
+                .replace('id="local"', 'id="herbarium"')
+                .replace('value="handle/1"', 'value="handle/2"')
+                .replace("{site}", "https://herbarium.biodiversity.cz/")
+                .join(["\n[[record]]", ""])
+            )
+        self.assertIn("new.example.org", vf.service_urls(self.root))
+        self.assertIn("herbarium.biodiversity.cz", vf.service_urls(self.root))
+        self.assertNotIn("old.example.org", vf.service_urls(self.root))
+        target.write_text(template.replace("{site}", ""), encoding="utf-8")
+        self.assertIn("old.example.org", vf.service_urls(self.root))
 
     def test_the_first_icon_that_shows_is_kept_normalised_and_the_originals_are_not(self) -> None:
         seen: list[str] = []
@@ -150,7 +479,9 @@ class VendorTests(unittest.TestCase):
             encoding="utf-8",
         )
         config = build_crate.page_config(build_crate.load_content(fixture / "content"))["config"]["favicons"]
-        self.assertEqual(config, {"hosts": ["a.example.org", "github.com"], "homeOnly": ["github.com"], "marks": {}})
+        self.assertEqual(
+            config, {"hosts": ["a.example.org", "github.com"], "homeOnly": ["github.com"], "marks": {}, "types": []}
+        )
 
     def test_infrastructure_refresh_keeps_service_dates_and_shares_own_marks(self) -> None:
         vf.vendor(
@@ -178,11 +509,14 @@ class VendorTests(unittest.TestCase):
                 (output / (path.stem + ".png")).write_bytes(png())
             return []
 
+        before_observations = vf._toml(self.root / vf.MANIFEST)["observation"]
         count, missing = vf.vendor(self.root, fetch, "2026-10-14", normalise, infrastructures_only=True)
         self.assertEqual((count, missing), (3, ["infrastructure-institution", "infrastructure-unavailable"]))
         self.assertEqual(asked, ["https://b.example.org/own.png"] * 2)
         self.assertEqual(vf.check(self.root), [])
         records = vf._toml(self.root / vf.MANIFEST)["favicon"]
+        after_observations = vf._toml(self.root / vf.MANIFEST)["observation"]
+        self.assertEqual(before_observations, [row for row in after_observations if not row.get("key")])
         self.assertEqual(str(records[0]["retrieved"]), "2026-10-13")
         self.assertEqual({r["file"] for r in records}, {"a.example.org.png"}, "identical marks reuse the service file")
         fixture = self.root / "fixture"
@@ -221,6 +555,8 @@ class VendorTests(unittest.TestCase):
         self.assertEqual((count, missing), (1, ["b.example.org"]))
         records = vf._toml(self.root / vf.MANIFEST)["favicon"]
         self.assertEqual(str(records[0]["retrieved"]), "2026-10-13", "an unrefreshed favicon keeps its date")
+        observations = vf._toml(self.root / vf.MANIFEST)["observation"]
+        self.assertTrue(all(row["outcome"] == "failed" and str(row["checked"]) == "2026-10-14" for row in observations))
         self.assertEqual(vf.check(self.root), [])
         # --prune is the explicit way to drop a favicon that was not obtained again.
         count, _ = vf.vendor(self.root, unreachable, "2026-10-14", lambda originals, output: [], prune=True)
@@ -242,6 +578,67 @@ class VendorTests(unittest.TestCase):
         self.assertTrue(any(f"not a {vf.SIZE}-pixel PNG" in problem for problem in problems), problems)
         self.assertTrue(any("stray.png: not recorded" in problem for problem in problems), problems)
         self.assertEqual(hashlib.sha256(png()).hexdigest() != hashlib.sha256(png(32)).hexdigest(), True)
+
+    def test_observations_distinguish_missing_failed_unrenderable_and_acquired(self):
+        for mode, outcome, reason in (
+            ("missing", "unavailable", "no-usable-image"),
+            ("timeout", "failed", "timeout"),
+            ("rate-limit", "failed", "rate-limited"),
+            ("invalid", "unavailable", "no-usable-image"),
+            ("unrenderable", "unavailable", "not-renderable"),
+            ("acquired", "available", "acquired"),
+        ):
+
+            def fetch(url, limit, mode=mode):
+                if mode == "timeout":
+                    raise TimeoutError("timed out")
+                if mode in ("missing", "rate-limit"):
+                    raise urllib.error.HTTPError(url, 404 if mode == "missing" else 429, "fixture", {}, None)
+                return url, b"<html>no icon</html>" if mode == "invalid" else png()
+
+            def normalise(originals, output, mode=mode):
+                if mode == "acquired":
+                    for path in originals.iterdir():
+                        (output / (path.stem + ".png")).write_bytes(png())
+                return []
+
+            with self.subTest(mode=mode):
+                vf.vendor(self.root, fetch, "2026-11-14", normalise)
+                observations = vf._toml(self.root / vf.MANIFEST).get("observation", [])
+                self.assertTrue(observations, "no acquisition observations recorded")
+                self.assertEqual({(row["outcome"], row["reason"]) for row in observations}, {(outcome, reason)})
+                self.assertEqual(vf.check(self.root), [])
+
+    def test_observation_validation_and_unattempted_coverage_are_offline(self):
+        path = self.root / vf.MANIFEST
+        path.parent.mkdir(parents=True)
+        for fields in (
+            'checked=2026-11-14\noutcome="invented"\nreason="acquired"',
+            'checked="2026-02-30"\noutcome="failed"\nreason="timeout"',
+            'checked=2026-11-14\noutcome="failed"\nreason="arbitrary text"',
+            'checked=2026-11-14\noutcome="available"\nreason="acquired"',
+        ):
+            path.write_text('[[observation]]\nhost="a.example.org"\n' + fields + "\n", encoding="utf-8")
+            self.assertTrue(vf.check(self.root), fields)
+        path.write_text(
+            '[[observation]]\nhost="a.example.org"\nchecked=2026-11-14\noutcome="failed"\nreason="timeout"\n' * 2,
+            encoding="utf-8",
+        )
+        self.assertTrue(any("duplicate" in problem for problem in vf.check(self.root)))
+        path.write_text("", encoding="utf-8")
+        self.assertEqual(vf.coverage(self.root)["unattempted"], ["a.example.org", "b.example.org"])
+
+    def test_pruning_an_out_of_scope_icon_does_not_leave_a_false_available_observation(self):
+        vf.vendor(
+            self.root,
+            self.fetch,
+            "2026-10-13",
+            lambda originals, output: (output / "a.example.org~1.png").write_bytes(png()) and [],
+        )
+        (self.root / "content/resources.toml").write_text("", encoding="utf-8")
+        vf.vendor(self.root, self.fetch, "2026-10-14", lambda originals, output: [], prune=True)
+        self.assertEqual(vf.check(self.root), [])
+        self.assertFalse(vf._toml(self.root / vf.MANIFEST).get("favicon"))
 
 
 if __name__ == "__main__":

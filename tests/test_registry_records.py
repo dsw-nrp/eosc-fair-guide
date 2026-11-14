@@ -2,6 +2,7 @@
 describes, with `foaf:primaryTopic` naming it, the registry's own values kept on the record and the winning values on
 the thing; a thing only a registry knows is founded by its record."""
 
+import copy
 import sys
 import unittest
 from pathlib import Path
@@ -12,7 +13,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 import build_crate as kb  # noqa: E402
 from addresses import iri  # noqa: E402
 from rdflib import RDF, URIRef  # noqa: E402
-from test_nkr_integration import reference_content  # noqa: E402
+from test_nkr_integration import content_without_nkr, fixture_snapshot, reference_content  # noqa: E402
 from vocabularies import crate_graph  # noqa: E402
 
 
@@ -32,7 +33,7 @@ def names(entity: dict) -> set[str]:
 class RegistryRecordTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.content = kb.load_content()
+        cls.content = content_without_nkr()
         cls.crate = kb.build_crate(cls.content)
         cls.entities = {entity["@id"]: entity for entity in cls.crate["@graph"]}
         cls.records = kb.records_by_thing(cls.entities)
@@ -52,6 +53,29 @@ class RegistryRecordTests(unittest.TestCase):
         self.assertEqual(described, [zenodo])
         # A record is about its thing, not the same as it.
         self.assertNotIn(kb.ref(zenodo), kb.as_list(self.entities[zenodo + "#knav"].get("sameAs")))
+
+    def test_registry_reclassification_retains_fip_classification_and_identity(self):
+        for dashboard_type in ("repository", "registry"):
+            content = copy.deepcopy(self.content)
+            snapshot = next(row for row in content["snapshots"] if row["snapshot"]["source"] == "FIP Dashboard")
+            if not any(row["id"] == "registry" for row in snapshot["resourceType"]):
+                snapshot["resourceType"].append({"id": "registry", "label": {"cs": "Registry", "en": "Registry"}})
+            for row in snapshot["resource"]:
+                if kb.alternate_id(row, "fip-dashboard") in ("fairsharing", "nma"):
+                    row["type"] = dashboard_type
+            entities = {row["@id"]: row for row in kb.build_crate(content)["@graph"]}
+            for identifier in ("fairsharing", "nma"):
+                thing = iri("resources/" + identifier)
+                with self.subTest(dashboard_type=dashboard_type, thing=thing):
+                    record = records_of(entities, thing)["fip-dashboard"]
+                    self.assertIn(kb.ref(kb.FIP_TERMS + "Registry"), kb.as_list(record["classification"]))
+                    self.assertEqual(record["catalogueType"], kb.ref(iri("vocabularies/fd-types/" + dashboard_type)))
+                    self.assertEqual(set(kb.as_list(record["@type"])), {"CreativeWork", kb.CATALOG_RECORD})
+                    self.assertNotIn("acceptsDeposits", record)
+                    baseline = records_of(self.entities, thing)["fip-dashboard"]
+                    self.assertEqual(record.get("review"), baseline.get("review"))
+                    for review in kb.ids_of(record.get("review")):
+                        self.assertEqual(entities[review], self.entities[review])
 
     def test_one_knav_library_organisation_node(self):
         library = iri("organizations/knav")
@@ -201,6 +225,100 @@ class RegistryRecordTests(unittest.TestCase):
 class NkrRecordTests(unittest.TestCase):
     def build(self, content):
         return {entity["@id"]: entity for entity in kb.build_crate(content)["@graph"]}
+
+    def test_reconciled_imports_keep_cross_kind_words_and_canonical_source_owners(self):
+        content = content_without_nkr()
+        content["snapshots"].append(fixture_snapshot())
+        for identifier, native in (("git", "413"), ("provenance", "464")):
+            if not any(row["id"] == identifier for row in content["glossary"]["term"]):
+                content["glossary"]["term"].append(
+                    {
+                        "id": identifier,
+                        "alternateIds": [{"scheme": "heslar", "value": native}],
+                        "guideRoute": "glossary",
+                        "label": {"cs": identifier, "en": identifier},
+                        "url": "https://heslar.openscience.cz/heslo.php?id=" + native,
+                    }
+                )
+        next(row for row in content["resources"] if row["id"] == "re3data")["knav"] = "re3data"
+        knav = next(
+            row for row in content["snapshots"] if row["snapshot"]["source"] == "KNAV Data Management Tools Catalogue"
+        )
+        if not any(kb.alternate_id(row, "knav") == "re3data" for row in knav["tool"]):
+            knav["tool"].append(
+                {
+                    "id": "re3data",
+                    "alternateIds": [{"scheme": "knav", "value": "re3data"}],
+                    "guideRoute": "resources",
+                    "name": "re3data",
+                    "url": "https://www.re3data.org/",
+                    "description": "Synthetic source description",
+                    "steps": [],
+                }
+            )
+        entities = self.build(content)
+        for identifier in ("git", "provenance"):
+            self.assertIn(iri("glossary/" + identifier), entities)
+        self.assertIn(iri("resources/git"), entities)
+        self.assertIn(iri("pages/provenance"), entities)
+        for thing, scheme, native in (
+            ("resources/re3data", "knav", "re3data"),
+            ("repositories/datarepo", "nkr", "20.500.14818/sr3o5j0c"),
+        ):
+            record = records_of(entities, iri(thing))[scheme]
+            row_kind = "tool" if scheme == "knav" else "record"
+            row = next(
+                row
+                for snapshot in content["snapshots"]
+                for row in snapshot.get(row_kind, [])
+                if row["id"] == thing.split("/")[1]
+            )
+            self.assertEqual(row["guideRoute"], thing.split("/")[0])
+            self.assertEqual(record["primaryTopic"], kb.ref(iri(thing)))
+            self.assertEqual(kb.alternate_id(row, scheme), native)
+            if scheme == "nkr":
+                self.assertEqual(record["identifier"], native)
+        for address in ("glossary/git-2", "glossary/provenance-2", "resources/re3data-2", "repositories/datarepo-2"):
+            self.assertNotIn(iri(address), entities)
+        api = kb.api_records(entities, content)
+        self.assertIn(("git", iri("glossary/git")), api["glossary"])
+        self.assertIn(("git", iri("resources/git")), api["resources"])
+
+    def test_knav_reviewed_source_does_not_select_a_same_named_term(self):
+        graph = kb.Graph()
+        graph.add({"@id": "#term-git"}, "git")
+        graph.add({"@id": "#source-git"}, "git")
+        content = {
+            "sources": [{"id": "git", "knav": "git"}],
+            "resources": [],
+            "repositories": [],
+            "snapshots": [
+                {
+                    "snapshot": {"source": "KNAV Data Management Tools Catalogue"},
+                    "tool": [
+                        {
+                            "id": "git",
+                            "alternateIds": [{"scheme": "knav", "value": "git"}],
+                            "name": "Git",
+                            "description": "Source wording",
+                            "steps": [],
+                        }
+                    ],
+                }
+            ],
+        }
+        kb.build_knav_tools(graph, content)
+        self.assertEqual(graph.entities["#knav-git"]["sameAs"], kb.ref("#source-git"))
+
+    def test_reviewed_knav_source_keeps_its_doi_build_key(self):
+        graph = kb.Graph()
+        graph.add({"@id": "https://doi.org/10.1234/source"}, "source")
+        content = {
+            "sources": [{"id": "source", "doi": "10.1234/source", "knav": "native"}],
+            "resources": [],
+            "repositories": [],
+        }
+        self.assertEqual(kb.knav_record_owners(graph, content), {"native": "https://doi.org/10.1234/source"})
 
     def test_nkr_wins_on_the_thing_and_keeps_its_own_values_on_its_record(self):
         content = reference_content()
