@@ -26,7 +26,7 @@ function watched(page) {
   return { requests, errors };
 }
 function languageFiles(requests, lang) {
-  return requests.filter((url) => new RegExp(`/assets/data/kb(?:-[a-z]+)?-${lang}\\.js$`).test(url));
+  return requests.filter((url) => new RegExp(`/assets/data/kb(?:-[a-z]+)?-${lang}\\.js$`).test(new URL(url).pathname));
 }
 
 async function failedTextSearch({ holdInspection = false } = {}) {
@@ -285,7 +285,7 @@ try {
   await page.locator(".data-load-error button").click();
   await rendered(page, "en", "#search-input");
   assert.equal(await page.locator(".data-load-error").count(), 0);
-  assert.equal(observed.requests.filter((url) => url.endsWith("/assets/data/kb-en.js")).length, 2, "retry actually reloads the failed local file");
+  assert.equal(observed.requests.filter((url) => new URL(url).pathname.endsWith("/assets/data/kb-en.js")).length, 2, "retry actually reloads the failed local file");
   assert.deepEqual(observed.errors, []);
   assert(observed.requests.every((url) => url.startsWith(origin + "/") || url.startsWith("data:")), "static-host browsing requests only its own assets");
   await context.close();
@@ -327,7 +327,7 @@ try {
   releaseAdvice();
   await delayedPage.waitForFunction(() => document.querySelector('#search-results')?.dataset.query === 'deferredadviceprobe' && document.querySelector('#search-results')?.dataset.confirmed === 'true');
   assert(await delayedPage.locator('#search-results a[href*="/path/"]').count(), 'the deferred advice is in the completed index');
-  assert.equal(await delayedPage.evaluate(() => window.partInvalidations), 8, 'overlapping focus and submission merge and invalidate each part/language operation once');
+  assert.equal(await delayedPage.evaluate(() => window.partInvalidations), 4, 'overlapping focus and submission accept each part with its language once');
   assert.equal(await delayedPage.evaluate(() => window.searchEvaluations), 1, "cold focus and confirmation score the settled query once");
   assert.equal(await delayedPage.evaluate(() => window.resultReplacements), 1, "cold confirmation replaces results once");
   const repeated = await delayedPage.evaluate(async () => {
