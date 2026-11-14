@@ -13,6 +13,14 @@ path before the next integrity guard runs; ordinary failed acquisition SHALL ret
 - **THEN** the previous set remains recoverable and the next run restores it before ordinary validation
 - **AND** no partial manifest/image set is accepted as a successful publication
 
+#### Scenario: A hard stop leaves an abandoned stage
+
+- **GIVEN** an abandoned staging directory directly under the owned assets directory
+- **WHEN** the next single-process vendoring run recovers publication
+- **THEN** it removes that generated directory after the ownership and link/reparse checks
+- **AND** it preserves the installed verified set and unrelated files
+- **AND** the ownership guard remains usable on the declared Python 3.11 minimum
+
 ### Requirement: Favicon acquisition has dated outcomes
 
 Favicon collection SHALL record its latest completed attempt per host or reviewed infrastructure key in the

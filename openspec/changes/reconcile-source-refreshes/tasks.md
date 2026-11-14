@@ -133,6 +133,17 @@ tasks and require new acceptance evidence before delivery preparation is complet
 - [ ] 8.7 Read back the published heads and PR descriptions, verify required hosted checks, and record the disposition
   of every review finding and pre-existing observation without implying separate issues were filed.
 
+## 9. Address the second runtime review
+
+- [x] 9.1 Reproduce orphaned staging residue and Python 3.11 incompatibility; add regressions for owned cleanup,
+  retained verified files, unrelated entries and rejected links/reparse points or inspection failures.
+- [x] 9.2 Recover abandoned stages through the ownership guard and preserve that guard on Python 3.11 without
+  raising the declared floor, changing asset/manifest semantics or fetching favicons again.
+- [ ] 9.3 Verify the favicon suite on real Python 3.11 and the current interpreter, run complete integrated local
+  acceptance, propagate forward merges through the existing PR stack, and recheck source fidelity and the byte bound.
+- [ ] 9.4 Record every new finding/observation, read back PR heads and descriptions, verify required hosted checks
+  on the published heads, and refresh the handoff without merges, issue closure, spec sync or archival.
+
 ## Workflow follow-up
 
 - The maintainer authorized preparing the commits and PRs on 2026-11-14. Publish the reviewed stack and verify

@@ -32,6 +32,7 @@ import hashlib
 import json
 import re
 import shutil
+import stat
 import struct
 import subprocess
 import sys
@@ -444,16 +445,25 @@ def carried_entries(root: Path, previous: dict[str, Any], refreshed: set[str]) -
     return kept
 
 
+def is_link_or_reparse(path: Path) -> bool:
+    """Inspect links and Windows reparse points without requiring Python 3.12 Path helpers."""
+    try:
+        metadata = path.lstat()
+    except FileNotFoundError:
+        return False
+    return stat.S_ISLNK(metadata.st_mode) or bool(
+        getattr(metadata, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    )
+
+
 def owned_folder(root: Path, folder: Path) -> None:
     """Refuse filesystem operations outside this run's literal assets directory or through directory links."""
     parent = root.resolve() / "assets"
     if (
         folder.parent.resolve() != parent
         or folder.name in {"", ".", ".."}
-        or parent.is_symlink()
-        or parent.is_junction()
-        or folder.is_symlink()
-        or folder.is_junction()
+        or is_link_or_reparse(parent)
+        or is_link_or_reparse(folder)
     ):
         raise ValueError(f"unsafe favicon directory: {folder}")
 
@@ -463,16 +473,19 @@ def recover_publication(root: Path) -> None:
     target, backup = root / TARGET, root / "assets/.favicons-backup"
     for folder in (target, backup):
         owned_folder(root, folder)
-    if not backup.exists():
-        return
-    # A complete installed set also permits cleanup after an interrupted backup removal.
-    verified = target if target.exists() else backup
-    if not (verified / MANIFEST.name).is_file() or check(root, folder=verified):
-        raise ValueError(f"cannot recover favicon publication: verify {verified}")
-    if target.exists():
-        shutil.rmtree(backup)
-    else:
-        backup.replace(target)
+    if backup.exists():
+        # A complete installed set also permits cleanup after an interrupted backup removal.
+        verified = target if target.exists() else backup
+        if not (verified / MANIFEST.name).is_file() or check(root, folder=verified):
+            raise ValueError(f"cannot recover favicon publication: verify {verified}")
+        if target.exists():
+            shutil.rmtree(backup)
+        else:
+            backup.replace(target)
+    for stage in target.parent.glob(".favicons-stage-*"):
+        owned_folder(root, stage)
+        if stage.is_dir():
+            shutil.rmtree(stage)
 
 
 def publish(root: Path, entries: list[tuple[Found, bytes]], manifest: str) -> None:
