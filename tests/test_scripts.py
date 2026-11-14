@@ -1892,7 +1892,7 @@ class SnapshotRefreshTests(FixtureCase):
                 f"re3data-{repository_id}.xml",
                 '<r3d:re3data xmlns:r3d="http://www.re3data.org/schema/2-2"><r3d:repository>'
                 f"<r3d:repositoryName>Repository {repository_id}</r3d:repositoryName>"
-                "<r3d:repositoryURL>https://repository.example.org/</r3d:repositoryURL></r3d:repository></r3d:re3data>",
+                f"<r3d:repositoryURL>https://{repository_id}.example.org/</r3d:repositoryURL></r3d:repository></r3d:re3data>",
             )
 
     def test_heslar_definitions_keep_their_language_and_licence_without_html(self) -> None:
@@ -1966,8 +1966,7 @@ class SnapshotRefreshTests(FixtureCase):
         outcome = self.refresh("re3data")
         self.assertEqual(outcome.status, "changed", outcome.reason)
         data = tomllib.loads((self.root / "content" / "snapshots" / "re3data.toml").read_text(encoding="utf-8"))
-        self.assertIn("service-2", [row["id"] for row in data["repository"]])
-        self.assertNotIn("service", [row["id"] for row in data["repository"]])
+        self.assertEqual([row["id"] for row in data["repository"]], ["service"])
 
     def test_identity_collision_that_needs_review_is_rejected(self) -> None:
         self.re3data_inputs(1)
@@ -1983,17 +1982,41 @@ class SnapshotRefreshTests(FixtureCase):
         self.assertIn("identity needs review", outcome.reason)
         self.assertEqual(target.read_bytes(), before)
 
+    def test_new_dashboard_record_uses_its_reviewed_canonical_thing_before_allocation(self):
+        path = self.root / "content/resources.toml"
+        with path.open("a", encoding="utf-8") as stream:
+            stream.write('\n[[resource]]\nid="catalogue"\ntype="registry"\nname="Catalogue"\nfipDashboard="native"\n')
+        incoming = '[snapshot]\nsource="FIP Dashboard"\n[[resource]]\nid="native"\nname="Catalogue"\ntype="registry"\n'
+        joins = refresh_snapshots.reviewed_snapshot_joins(self.root, incoming)
+        rows = tomllib.loads(refresh_snapshots.preserve_snapshot(incoming, "", {"resources/catalogue"}, joins=joins))
+        self.assertEqual(rows["resource"][0]["id"], "catalogue")
+
+    def test_unresolved_same_kind_collision_keeps_snapshot_bytes_without_a_counter(self) -> None:
+        self.knav_inputs()
+        self.assertEqual(self.refresh("knav-tools").status, "changed")
+        target = self.root / "content/snapshots/knav-tools.toml"
+        previous = target.read_bytes()
+        data = json.loads((self.inputs / "knav-tools.json").read_text(encoding="utf-8"))
+        data.append(
+            data[0] | {"id_name": "different-dmp", "full_name": "Different DMP", "link": "https://dmp.other.org/"}
+        )
+        self.put("knav-tools.json", data)
+        outcome = self.refresh("knav-tools")
+        self.assertEqual(outcome.status, "rejected", outcome.reason)
+        self.assertIn("resources/dmp", outcome.reason)
+        self.assertEqual(target.read_bytes(), previous)
+
     def test_refresh_reserves_central_and_snapshot_retired_identifiers(self) -> None:
         self.edit("resources.toml", 'id = "service"', 'id = "curated-service"')
         (self.root / "content" / "identifiers.toml").write_text(
-            '[retired]\nresources = ["service"]\n', encoding="utf-8"
+            '[retired]\nrepositories = ["service"]\n', encoding="utf-8"
         )
         retired = self.root / "content" / "snapshots" / "retired.toml"
         retired.parent.mkdir(exist_ok=True)
         retired.write_text('[identity]\nretiredIds = ["service-2"]\n', encoding="utf-8")
         target = self.root / "content" / "snapshots" / "re3data.toml"
         reserved = refresh_snapshots.reserved_identifiers(self.root, target)
-        self.assertTrue({"service", "service-2"} <= reserved)
+        self.assertTrue({"repositories/service", "service-2"} <= reserved)
         self.put("re3data-list.xml", "<list><repository><id>r3d100000099</id></repository></list>")
         self.put(
             "re3data-r3d100000099.xml",
@@ -2002,9 +2025,9 @@ class SnapshotRefreshTests(FixtureCase):
             "<r3d:repositoryURL>https://service.example.org/</r3d:repositoryURL></r3d:repository></r3d:re3data>",
         )
         outcome = self.refresh("re3data")
-        self.assertEqual(outcome.status, "changed", outcome.reason)
-        rows = tomllib.loads(target.read_text(encoding="utf-8"))["repository"]
-        self.assertEqual(rows[0]["id"], "service-3")
+        self.assertEqual(outcome.status, "rejected", outcome.reason)
+        self.assertIn("repositories/service", outcome.reason)
+        self.assertFalse(target.exists())
 
     def test_identical_data_changes_nothing_not_even_the_date(self) -> None:
         self.re3data_inputs(2)
@@ -2702,19 +2725,49 @@ class SiteTests(unittest.TestCase):
         self.assertTrue(any("need published evidence" in error for error in report.errors))
         self.assertTrue(any("unknown repository function" in error for error in report.errors))
         content = build_crate.load_content()
+        joined = next(row for row in content["repository_records"] if row.get("fipDashboard") and row.get("knav"))
+        dashboard = next(
+            row
+            for snapshot in content["snapshots"]
+            for row in snapshot.get("resource", [])
+            if build_crate.alternate_id(row, "fip-dashboard") == joined["fipDashboard"]
+        )
+        tool = next(
+            row
+            for snapshot in content["snapshots"]
+            for row in snapshot.get("tool", [])
+            if build_crate.alternate_id(row, "knav") == joined["knav"]
+        )
+        tool.update(id=dashboard["id"], guideRoute=dashboard["guideRoute"])
         content["repository_records"] = []
         graph = build_crate.Graph()
-        build_crate.build_crate(content, graph)
-        members = {item["@id"] for item in build_crate.as_list(graph.entities["#repositories"]["hasPart"])}
-        # Without the reviewed annotation, the Dashboard's records stay entries of their own.
-        self.assertIn(iri("resources/asep"), members)
-        self.assertIn(iri("resources/clarin-dspace"), members)
+        # Removing reviewed joins cannot invent second things with the same canonical identity.
+        with self.assertRaisesRegex(build_crate.ContentError, "share Guide address.*review their identities"):
+            build_crate.build_crate(content, graph)
 
     def test_duplicate_check_follows_reviewed_cross_registry_links(self) -> None:
         content = build_crate.load_content()
         entries = {item.name: item for item in check_duplicates.entries(content)}
         self.assertIn("fd:asep-arl", entries["re3data:r3d100014032"].keys)
         self.assertIn("fd:clarin-dspace", entries["re3data:r3d100010386"].keys)
+
+    def test_duplicate_exceptions_follow_local_ids_while_source_keys_keep_their_issuer(self):
+        content = build_crate.load_content()
+        row = next(
+            row
+            for snapshot in content["snapshots"]
+            for row in snapshot.get("resource", [])
+            if build_crate.alternate_id(row, "fip-dashboard") == "dsw-tool"
+        )
+        row["id"] = "dsw-platform"
+        accepted = check_duplicates._accepted(build_crate.ROOT)
+        for group in accepted:
+            group["entries"] = [
+                "fip-dashboard:dsw-platform" if value == "fip-dashboard:dsw" else value for value in group["entries"]
+            ]
+        entries = {item.name: item for item in check_duplicates.entries(content)}
+        self.assertIn("fd:dsw-tool", entries["fip-dashboard:dsw-platform"].keys)
+        self.assertEqual(check_duplicates.check(content, accepted).errors, [])
 
     def test_missing_node_package_stops_the_build_before_output(self) -> None:
         out = build_crate.ROOT / ".cache" / "test-missing-prerequisite"
@@ -3513,8 +3566,9 @@ class FixDuplicateCommandTests(FixtureCase):
                 shutil.copyfile(source, extracted / relative)
         resources = extracted / "content" / "resources.toml"
         original = resources.read_text(encoding="utf-8")
-        self.assertIn('re3data = "r3d100014970"\n', original)
-        resources.write_text(original.replace('re3data = "r3d100014970"\n', "", 1), encoding="utf-8")
+        # A tool has no alternate NKR repository join that could repair the planted missing link first.
+        self.assertIn('knav = "argos"\n', original)
+        resources.write_text(original.replace('knav = "argos"\n', "", 1), encoding="utf-8")
         fake = self.FakeGitHub("dsw-nrp/eosc-fair-guide", "token")
         fake.pull_data = self.github_pull()
         with mock.patch.object(fix_duplicates, "GitHub", lambda repo, token: fake):

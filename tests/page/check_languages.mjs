@@ -9,6 +9,9 @@ const root = resolve(import.meta.dirname, "../..");
 const site = resolve(root, process.argv[2] || "_site");
 const file = pathToFileURL(resolve(site, "index.html")).href;
 const crate = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"));
+const questionPart = JSON.parse(readFileSync(resolve(site, "assets/data/kb-questions.js"), "utf8").match(/^window\.FairGuideData\.parts\["questions"\] = (.*);$/m)[1]);
+const expectedNkr = questionPart.config.nkr;
+const initialGraph = JSON.parse(readFileSync(resolve(site, "assets/data/kb.js"), "utf8").match(/^window\.FairGuideData\.kb = (.*);$/m)[1])["@graph"];
 const { chromium } = await import("./browser.mjs");
 const browser = await chromium.launch();
 
@@ -58,6 +61,61 @@ async function failedTextSearch({ holdInspection = false } = {}) {
 }
 
 try {
+  const base = iri("", siteNamespace(site));
+  const keywordProbe = crate["@graph"].filter((row) => row["@id"].startsWith(base + "repositories/") && !row["@id"].includes("#"))
+    .flatMap((row) => [].concat(row.keywords || []).flatMap((value) => String(value["@value"] || value).match(/[\p{L}]{7,}/gu) || [])
+      .filter((word) => !JSON.stringify(initialGraph.find((entry) => entry["@id"] === row["@id"].slice(base.length)) || {}).toLowerCase().includes(word.toLowerCase()))
+      .map((query) => ({ query, address: row["@id"].slice(base.length) })))[0];
+  assert(keywordProbe, "the corpus supplies a primary-repository keyword absent from its initial record");
+  for (const lang of ["cs", "en"]) {
+    const context = await browser.newContext(), page = await context.newPage();
+    await page.goto(file + `#/${lang}/K/path/start`);
+    await rendered(page, lang, "#search-input");
+    assert.equal(await page.evaluate(() => window.FairGuide.partHasLanguage("fips", window.FairGuide.state.lang)), false);
+    await page.fill("#search-input", keywordProbe.query);
+    await page.locator("form.search").evaluate((form) => form.requestSubmit());
+    await page.waitForFunction(() => document.querySelector("#search-results")?.dataset.confirmed === "true");
+    const links = await page.locator("#search-results a").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")));
+    assert(links.some((href) => href.includes("/catalogue/" + keywordProbe.address)), "cold search includes the deferred repository keyword: " + JSON.stringify(keywordProbe));
+    await context.close();
+  }
+
+  // Registry pre-fill is absent at landing, then complete before cold checks render, in files and iframes.
+  for (const lang of ["cs", "en"]) {
+    for (const embedded of [false, true]) {
+      const context = await browser.newContext(), page = await context.newPage(), observed = watched(page);
+      await context.addInitScript((lang) => {
+        if (!localStorage.getItem("eosc-fair-guide")) localStorage.setItem("eosc-fair-guide", JSON.stringify({ lang, lens: "K" }));
+      }, lang);
+      await page.goto(file + `#/${lang}/K/path/start`);
+      await rendered(page, lang, "#search-input");
+      assert.equal(await page.evaluate(() => window.FairGuide.config.nkr), undefined);
+      assert.equal(await page.evaluate(() => window.FairGuide.config.re3data), undefined);
+      await page.evaluate(() => {
+        const FG = window.FairGuide;
+        FG.state.answers.gate = { profile: "independent", items: { "gate.13": { value: "no", origin: "user" } } };
+        FG.saveState();
+      });
+      const route = file + `#/${lang}/K/check/gate/evidence`;
+      let view = page;
+      if (embedded) {
+        await page.setContent(`<iframe title="Guide" src="${route}"></iframe>`);
+        view = page.frames().find((frame) => frame !== page.mainFrame());
+      } else await page.goto(route);
+      await rendered(view, lang, ".check-evidence");
+      assert.deepEqual(await view.evaluate(() => window.FairGuide.config.nkr), expectedNkr);
+      assert(await view.evaluate(() => Object.keys(window.FairGuide.config.re3data).length > 0));
+      assert.equal(await view.evaluate(() => window.FairGuide.state.answers.gate.items["gate.13"].value), "no");
+      if (expectedNkr?.records.length) {
+        assert.equal(await view.locator("#prefill-nkr option").count(), expectedNkr.records.length);
+        assert.equal(await view.locator("#nkr-status").count(), 0, "loading cannot masquerade as an empty source");
+      }
+      assert(observed.requests.every((url) => /^(?:file|data):/.test(url)));
+      assert.deepEqual(observed.errors, []);
+      await context.close();
+    }
+  }
+
   for (const initial of ["cs", "en"]) {
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -559,9 +617,10 @@ try {
   await unrelatedFailure.context.close();
 
   // A script can download successfully but omit its payload. Retry must refetch the corrected local file.
-  for (const missing of ["neutral", "translation", "language"]) {
+  for (const missing of ["neutral", "translation", "language", "questions", "question-translation"]) {
     const context = await browser.newContext(), page = await context.newPage(), observed = watched(page);
-    const target = { neutral: "/assets/data/kb-standards.js", translation: "/assets/data/kb-standards-cs.js", language: "/assets/data/kb-en.js" }[missing];
+    const registry = missing === "questions" || missing === "question-translation";
+    const target = { neutral: "/assets/data/kb-standards.js", translation: "/assets/data/kb-standards-cs.js", language: "/assets/data/kb-en.js", questions: "/assets/data/kb-questions.js", "question-translation": "/assets/data/kb-questions-cs.js" }[missing];
     const requests = [];
     let omit = true;
     await context.route("https://guide-registration.test/**", async (route) => {
@@ -577,6 +636,13 @@ try {
       await page.locator("#answer-software-04-no").check();
       saved = await page.evaluate(() => JSON.stringify(window.FairGuide.state.answers.software));
       await page.getByRole("link", { name: "English", exact: true }).click();
+    } else if (registry) {
+      await rendered(page, "cs", "#search-input");
+      await page.evaluate(() => {
+        const FG = window.FairGuide;
+        FG.state.answers.gate = { profile: "independent", items: { "gate.13": { value: "no", origin: "user" } } };
+        FG.saveState(); location.hash = "#/cs/K/check/gate/evidence";
+      });
     } else {
       await rendered(page, "cs", "#search-input");
       await page.fill("#search-input", "licence");
@@ -585,10 +651,14 @@ try {
     await page.locator(".data-load-error").waitFor();
     const failedRequests = requests.filter((path) => path === target).length;
     assert(failedRequests >= 1);
+    if (registry) {
+      assert.equal(await page.locator("#nkr-status").count(), 0, "an unregistered source cannot report an empty registry");
+      assert.equal(await page.evaluate(() => window.FairGuide.state.answers.gate.items["gate.13"].value), "no");
+    }
     if (missing === "language") {
       assert(await page.locator("#answer-software-04-no").isChecked(), "failed registration preserves the usable view and answers");
     } else {
-      assert.notEqual(await page.locator("#search-results").getAttribute("data-confirmed"), "true", "missing registration cannot confirm incomplete search");
+      if (!registry) assert.notEqual(await page.locator("#search-results").getAttribute("data-confirmed"), "true", "missing registration cannot confirm incomplete search");
     }
     omit = false;
     await page.locator(".data-load-error button").click();
@@ -596,6 +666,10 @@ try {
       await rendered(page, "en", "#answer-software-04-no");
       assert.equal(await page.evaluate(() => JSON.stringify(window.FairGuide.state.answers.software)), saved);
       assert(await page.locator("#answer-software-04-no").isChecked());
+    } else if (registry) {
+      await rendered(page, "cs", ".check-evidence");
+      assert.deepEqual(await page.evaluate(() => window.FairGuide.config.nkr), expectedNkr);
+      assert.equal(await page.evaluate(() => window.FairGuide.state.answers.gate.items["gate.13"].value), "no");
     } else {
       await page.waitForFunction(() => document.querySelector("#search-results")?.dataset.confirmed === "true");
       assert(await page.locator('#search-results a[href$="/path/licence"]').count());

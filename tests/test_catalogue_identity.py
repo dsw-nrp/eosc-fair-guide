@@ -53,6 +53,19 @@ class SnapshotIdentityTests(unittest.TestCase):
         new = '[[tool]]\nid = "external-1"\nname = "Renamed tool"\nurl = "https://example.org/new"\n'
         self.assertEqual(tomllib.loads(preserve_snapshot(new, self.OLD))["tool"][0]["id"], "our-tool")
 
+    def test_existing_precise_source_key_survives_a_curated_join(self):
+        old = (
+            '[[resource]]\nid="cc-by-4-0"\n'
+            'alternateIds=[{scheme="fip-dashboard", value="cc-by-40"}]\n'
+            'guideRoute="resources"\nname="Creative Commons Attribution 4.0"\n'
+        )
+        incoming = '[[resource]]\nid="cc-by-40"\nname="Creative Commons Attribution 4.0"\n'
+        row = tomllib.loads(
+            preserve_snapshot(incoming, old, joins={("fip-dashboard", "cc-by-40"): {"resources/specific-licence"}})
+        )["resource"][0]
+        self.assertEqual(row["id"], "cc-by-4-0")
+        self.assertEqual(row["guideRoute"], "resources")
+
     def test_refresh_retains_reviewed_link_names_without_changing_source_text(self):
         old = self.OLD + 'linkNames = { cs = ["reviewed form"], en = ["Specific tool"] }\n'
         new = '[[tool]]\nid = "external-1"\nname = "Old title"\ndescription = "Exact source wording"\n'
@@ -65,6 +78,19 @@ class SnapshotIdentityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "needs review"):
             preserve_snapshot(new, self.OLD)
 
+    def test_known_source_identity_can_move_to_a_shared_site_without_merging_things(self):
+        old = self.OLD + self.OLD.replace("our-tool", "second").replace("external-1", "external-2").replace(
+            "example.org/tool", "example.org/second"
+        )
+        incoming = '[[tool]]\nid = "external-1"\nurl = "https://example.org/second"\n'
+        row = tomllib.loads(preserve_snapshot(incoming, old))["tool"][0]
+        self.assertEqual(row["id"], "our-tool")
+
+    def test_unknown_source_identity_with_two_address_owners_is_rejected(self):
+        old = self.OLD + self.OLD.replace("our-tool", "second").replace("external-1", "external-2")
+        with self.assertRaisesRegex(ValueError, "ambiguous"):
+            preserve_snapshot('[[tool]]\nid="unknown"\nurl="https://example.org/tool"\n', old)
+
     def test_split_source_cannot_reuse_one_guide_id(self):
         new = (
             '[[tool]]\nid = "a"\nurl = "https://example.org/tool"\n'
@@ -75,8 +101,8 @@ class SnapshotIdentityTests(unittest.TestCase):
 
     def test_new_ids_are_short_and_do_not_reuse_removed_ids(self):
         new = '[[tool]]\nid = "new"\nname = "Our tool"\n'
-        row = tomllib.loads(preserve_snapshot(new, self.OLD))["tool"][0]
-        self.assertEqual(row["id"], "our-tool-2")
+        with self.assertRaisesRegex(ValueError, "our-tool.*review"):
+            preserve_snapshot(new, self.OLD)
         self.assertLessEqual(len(short_id("A very long name " * 20, set())), 32)
 
     def test_new_dashboard_repository_uses_the_repository_family(self):
@@ -91,11 +117,11 @@ class SnapshotIdentityTests(unittest.TestCase):
 
     def test_removed_ids_stay_reserved_across_later_refreshes(self):
         second = preserve_snapshot('[[tool]]\nid = "second"\nname = "Second"\n', self.OLD)
-        self.assertEqual(tomllib.loads(second)["identity"]["retiredIds"], ["our-tool"])
-        third = preserve_snapshot(
-            '[[tool]]\nid = "second"\nname = "Second"\n[[tool]]\nid = "new"\nname = "Our tool"\n', second
-        )
-        self.assertEqual([row["id"] for row in tomllib.loads(third)["tool"]], ["second", "our-tool-2"])
+        self.assertEqual(tomllib.loads(second)["identity"]["retiredIds"], ["resources/our-tool"])
+        with self.assertRaisesRegex(ValueError, "our-tool.*review"):
+            preserve_snapshot(
+                '[[tool]]\nid = "second"\nname = "Second"\n[[tool]]\nid = "new"\nname = "Our tool"\n', second
+            )
 
     def test_incomplete_untyped_duplicate_and_competing_identifiers_are_rejected(self):
         for fields in (
@@ -111,7 +137,31 @@ class SnapshotIdentityTests(unittest.TestCase):
     def test_boundaries_keep_complete_words_when_reserving_a_collision_suffix(self):
         first = short_id("research metadata interoperability", set())
         self.assertEqual(first, "research-metadata")
-        self.assertEqual(short_id("research metadata", {first}), "research-metadata-2")
+        with self.assertRaisesRegex(ValueError, "research-metadata.*review"):
+            short_id("research metadata", {first})
+
+    def test_reservations_use_kind_and_scope_not_bare_words(self):
+        reserved = {"resources/git", "pages/provenance", "tests/f-uji/version-2"}
+        incoming = '[[term]]\nid = "501"\nname = "Git"\n[[term]]\nid = "502"\nname = "Provenance"\n'
+        rows = tomllib.loads(preserve_snapshot(incoming, "", reserved))["term"]
+        self.assertEqual([row["id"] for row in rows], ["git", "provenance"])
+        self.assertEqual(short_id("version-2", set()), "version-2")
+        with self.assertRaisesRegex(ValueError, "glossary/git.*review"):
+            preserve_snapshot(incoming, "", {"glossary/git"})
+
+    def test_legacy_retirement_remains_conservatively_reserved(self):
+        with self.assertRaisesRegex(ValueError, "git.*review"):
+            preserve_snapshot('[[term]]\nid = "501"\nname = "Git"\n', "", {"git"})
+
+    def test_reviewed_join_precedes_allocation_and_rejects_ambiguous_owners(self):
+        incoming = '[[tool]]\nid = "re3data"\nname = "re3data"\n'
+        joins = {("knav", "re3data"): {"resources/re3data"}}
+        row = tomllib.loads(preserve_snapshot(incoming, "", {"resources/re3data"}, joins=joins))["tool"][0]
+        self.assertEqual((row["id"], row["guideRoute"]), ("re3data", "resources"))
+        self.assertEqual(row["alternateIds"], [{"scheme": "knav", "value": "re3data"}])
+        joins[("knav", "re3data")].add("resources/another")
+        with self.assertRaisesRegex(ValueError, "ambiguous.*resources/another.*resources/re3data"):
+            preserve_snapshot(incoming, "", joins=joins)
 
 
 class KindVocabularyTests(unittest.TestCase):

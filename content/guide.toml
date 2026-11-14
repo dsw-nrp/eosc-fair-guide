@@ -632,26 +632,31 @@ description = { cs = "co standard vyžaduje, u podmíněných prvků tam, kde se
 
 [[resourceType]]
 id = "service"
+favicon = true
 name = { cs = "služba", en = "service" }
 fipDashboard = ["identifier-service", "authentication-service"]
 
 [[resourceType]]
 id = "tool"
+favicon = true
 name = { cs = "nástroj", en = "tool" }
 fipDashboard = ["tool"]
 citation = ["software"]
 
 [[resourceType]]
 id = "registry"
+favicon = true
 name = { cs = "repozitář nebo registr", en = "repository or registry" }
-fipDashboard = ["repository"]
+fipDashboard = ["repository", "registry"]
 
 [[resourceType]]
 id = "guide"
+favicon = true
 name = { cs = "příručka", en = "guide" }
 
 [[resourceType]]
 id = "document"
+favicon = true
 name = { cs = "dokument", en = "document" }
 citation = ["document", "webpage", "presentation"]
 
@@ -662,6 +667,7 @@ citation = ["report", "article"]
 
 [[resourceType]]
 id = "standard"
+favicon = true
 name = { cs = "standard", en = "standard" }
 fipDashboard = ["metadata-schema", "access-protocol", "provenance-model"]
 citation = ["standard"]
