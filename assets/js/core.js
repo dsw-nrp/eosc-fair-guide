@@ -19,9 +19,9 @@
     if (!expected || actual !== expected) throw Object.assign(new Error("The Guide's data revision has changed."), { code: "data-revision" });
   }
   FG.load = function () {
-    const crate = window.FairGuideData.kb;
-    const page = window.FairGuideData.ui;
-    requireRevision(window.FairGuideData.revision, page?.config?.revision);
+    const crate = window.FairGuideData?.kb;
+    const page = window.FairGuideData?.ui;
+    requireRevision(window.FairGuideData?.revision, page?.config?.revision);
     FG.graph = crate["@graph"];
     FG.byId = new Map(FG.graph.map((entity) => [entity["@id"], entity]));
     FG.ui = page.ui;

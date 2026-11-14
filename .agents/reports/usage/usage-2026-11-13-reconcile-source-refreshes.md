@@ -83,3 +83,9 @@
   Node runtime tests pass 19/19; adjacent identity/agent/registry tests pass 55/55. No source or favicon refresh
   is repeated. Focused minimum-version verification, committed-stage freshness/fidelity, forward publication and
   exact-head hosted acceptance are recorded as the final delivery step rather than inferred from this local pass.
+  A final fail-first probe covers both initial scripts being absent, when no data namespace exists. Initial loading
+  now treats that case as a revision failure and offers Reload before accepting any graph. The expanded browser
+  matrix verifies corrected Reload, retained saved answers and bilingual reflow, with 26 current recovery captures;
+  the additional absent-pair screen/print states are visually inspected. Complete native acceptance is repeated on
+  this final code and passes 36/36 checks in 215.4 seconds. The small follow-up is prepared as a forward runtime
+  commit and propagated through the same source/reader stack; exact-head hosted acceptance remains required.
