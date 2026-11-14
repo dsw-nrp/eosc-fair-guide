@@ -222,3 +222,19 @@ The proposed cross-version part revision protocol is an advisory follow-up requi
 decision; it is not silently added here. Record the pre-existing network-policy, redirect, preloading and
 agent-derived reservation observations with explicit dispositions. The bounded manifest escaping observation is
 handled with the publication repair. No new GitHub issue is implied by that record.
+
+### Second runtime review: cleanup and Python compatibility
+
+Preserve the declared Python 3.11 minimum. Directory-link inspection uses `lstat` mode and Windows reparse
+attributes available at that floor; unsupported newer `Path` methods must not be required, and an inspection
+error fails closed. This retains the ownership boundary rather than weakening it for older interpreters.
+
+After recovering any backup, the next vendoring run removes abandoned direct-child `.favicons-stage-*`
+directories through that same ownership guard. Reject links/reparse points and paths outside the literal
+assets directory before recursive removal; leave unrelated entries and the installed verified bytes intact.
+Vendoring remains a single maintenance process, as its shared work directory already requires. Never infer a
+complete published asset set from an abandoned stage.
+
+Keep the two newly noted pre-existing observations explicit: empty/missing-set `--check` behavior and input-host
+validation of work filenames are advisory follow-ups. They are not silently incorporated into the two bounded
+repairs, and no separate issue is implied. The deferred-part revision protocol remains separately planned.
