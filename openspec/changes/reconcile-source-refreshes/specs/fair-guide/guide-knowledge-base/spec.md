@@ -84,6 +84,20 @@ SHALL survive refresh; source IDs SHALL retain their issuing schemes and values.
 
 ## ADDED Requirements
 
+### Requirement: Refresh reserves inferred organisation addresses
+
+Source refresh SHALL reserve the existing addresses of organisations inferred from named publishers, operators,
+developers and infrastructure hosts, using the build's shared identity resolution. The identity-only projection
+SHALL not require complete page or assessment content. A colliding unjoined source organisation SHALL be refused
+for review before snapshot replacement, without numeric counters or implicit source joins by name.
+
+#### Scenario: An incoming organisation competes with an inferred agent
+
+- **GIVEN** an existing inferred organisation at `organizations/carpentries`
+- **WHEN** a new unjoined source row would allocate that address
+- **THEN** refresh refuses the collision with a reviewable diagnostic and preserves the prior snapshot
+- **AND** the full and identity-only projections agree on the existing organisation addresses
+
 ### Requirement: Dashboard registry classification survives source reclassification
 
 A FIP Dashboard record classified as `registry` SHALL retain its native catalogue type and the reviewed FIP

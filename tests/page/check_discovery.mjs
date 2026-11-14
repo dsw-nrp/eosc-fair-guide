@@ -21,6 +21,7 @@ function table(section) {
   return result;
 }
 const config = {
+  revision: "fixture-build",
   connectors: sections.filter((section) => section.startsWith("[[connector]]")).map(table),
   discovery: table(sections.find((section) => section.startsWith("[discovery]"))),
   software: table(sections.find((section) => section.startsWith("[software]"))),
@@ -39,10 +40,13 @@ const page = await browser.newPage();
 const external = [];
 let moduleLoads = 0, readerLoads = 0;
 await page.route("**/*", async (route) => {
-  if (route.request().url().endsWith("/assets/js/discovery.js")) {
+  const url = new URL(route.request().url());
+  if (url.pathname.endsWith("/assets/js/discovery.js")) {
+    assert.equal(url.searchParams.get("v"), config.revision);
     moduleLoads += 1;
     await route.fulfill({ contentType: "text/javascript", body: discoveryCode });
-  } else if (route.request().url().endsWith("/assets/js/assess.js")) {
+  } else if (url.pathname.endsWith("/assets/js/assess.js")) {
+    assert.equal(url.searchParams.get("v"), config.revision);
     readerLoads += 1;
     await route.fulfill({ contentType: "text/javascript", body: readersCode });
   } else if (route.request().url().endsWith("/fixture.html")) {
