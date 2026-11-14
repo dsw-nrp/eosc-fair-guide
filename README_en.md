@@ -56,7 +56,7 @@ Code is licensed under MIT and content under CC BY 4.0. Per-file licensing is de
 
 The Guide is implemented by David Novák (Library of the Czech Academy of Sciences and Institute of Archaeology of the Czech Academy of Sciences, Prague; <https://orcid.org/0000-0001-6592-6291>). Its expert basis is the
 analysis by Ilona Trtíková, Petra Bártková, Lada Biedermannová, Jindřich Fejfar, Robert Pergl, David Novák
-and Tomáš Čížek. To cite the Guide, use "How to cite the Guide" in its footer; [CITATION.cff](CITATION.cff)
+and Tomáš Čížek. To cite the Guide, use the complete citation on the About page; [CITATION.cff](CITATION.cff)
 credits the software.
 
 ## Use of artificial intelligence

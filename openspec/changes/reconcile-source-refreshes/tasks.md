@@ -115,6 +115,24 @@ tasks and require new acceptance evidence before delivery preparation is complet
 | 3.1 Complete checks and source fidelity | 6.1 |
 | 3.2 Separate PR preparation and head checks | 6.3 |
 
+## 8. Repair the runtime PR review before completing delivery
+
+- [x] 8.1 Reproduce the cold maturity-action race, unavailable questions-part behavior, favicon publication
+  interruption, and legacy repository-row address mismatch; make the deferred API lookup test non-vacuous.
+- [x] 8.2 Seed saved answers in the document that owns them and gate re3data pre-fill on complete questions data,
+  retaining the identifier and neutral Retry behavior when loading fails. Verify delayed, failed and recovered loads.
+- [x] 8.3 Correct all four citation carriers to About and add the required counter-refusal changelog line and
+  runtime PR label, preserving authors, editor, licences, funding and released changelog sections.
+- [x] 8.4 Stage and validate complete favicon assets and manifest before publication; retain/recover a verified
+  backup across an interrupted replacement. Verify rollback, restart recovery, invalid staging and preserved
+  asset dates; serialize manifest strings consistently.
+- [x] 8.5 Share legacy snapshot route/address inference across allocation, retirement and reservations to match projection;
+  prove no spurious retirement. Verify complete nonempty API lookup assertions and remove the obsolete badge comment.
+- [ ] 8.6 Run focused and complete checks on the repaired runtime, propagate its commit through the four source
+  branches and reader without rewriting their histories, and verify source fidelity, freshness and the 300 KB bound.
+- [ ] 8.7 Read back the published heads and PR descriptions, verify required hosted checks, and record the disposition
+  of every review finding and pre-existing observation without implying separate issues were filed.
+
 ## Workflow follow-up
 
 - The maintainer authorized preparing the commits and PRs on 2026-11-14. Publish the reviewed stack and verify

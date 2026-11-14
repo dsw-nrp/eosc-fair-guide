@@ -62,7 +62,7 @@ from pathlib import Path
 from typing import Any
 
 import build_crate as kb
-from catalogue_identity import RECORD_KINDS, ROW_KINDS, bare_url, preserve_snapshot, source_scheme
+from catalogue_identity import RECORD_KINDS, bare_url, preserve_snapshot, snapshot_address, source_scheme
 from check_content import content_addresses
 from nkr_contract import NKR_FIELD_SHAPES, nkr_status
 from registry_identifiers import DATACITE_REPOSITORY, FAIRSHARING_DOI, canonical_fairsharing_doi
@@ -934,8 +934,7 @@ def reserved_identifiers(root: Path, target: Path) -> set[str]:
             for row in data.get(kind, []):
                 if not isinstance(row, dict) or not row.get("id"):
                     continue
-                prefix = row.get("guideRoute") or ROW_KINDS.get(kind, "resources")
-                reserved.add(f"{prefix}/{row['id']}")
+                reserved.add(snapshot_address(kind, row))
         identity = data.get("identity")
         if isinstance(identity, dict):
             reserved.update(value for value in identity.get("retiredIds", []) if isinstance(value, str) and value)

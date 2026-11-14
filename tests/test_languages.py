@@ -45,7 +45,16 @@ class LanguageTests(unittest.TestCase):
             self.assertIn(path, details)
         ui = assignment(self.generated[build_crate.UI_SCRIPT], "window.FairGuideData.ui = ")
         referenced = {link["ref"] for links in ui["config"]["textLinks"].values() for link in links}
-        expected = build_crate.page_config(build_crate.load_content())["config"]["api"]["records"]
+        base = build_crate.record_base_of(crate)
+        expected = {
+            build_crate.record_address(entity_id, base): build_crate.record_address(entity_id, base)
+            for _, entity_id in build_crate.api_records(
+                {row["@id"]: row for row in crate["@graph"]}, build_crate.load_content()
+            )["repositories"]
+        }
+        self.assertTrue(expected, "the published API supplies repository paths")
+        self.assertTrue(set(expected) & referenced, "the corpus supplies authored repository references")
+        self.assertTrue(set(expected) - referenced, "the corpus supplies deferred repository paths")
         for path, target in expected.items():
             if path.startswith("repositories/"):
                 if path in referenced:
