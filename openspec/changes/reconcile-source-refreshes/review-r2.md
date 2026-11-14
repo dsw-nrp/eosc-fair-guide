@@ -19,5 +19,26 @@ It verifies abandoned-directory cleanup both with and without backup recovery, e
 unrelated directories/files, rejected symlink/reparse metadata, inspection failure and older publication faults.
 The interpreter is isolated under the ignored repository cache; PATH, registry and the declared floor are unchanged.
 
-Complete integrated acceptance and published-head verification remain pending for this round. Earlier passing
-heads are historical evidence and do not establish acceptance of the new repair.
+The integrated reader at `3107c3011f9274fea13812d7f4bf8e4c89fb0e0b` passes all 36 local checks in 208.8 seconds.
+All six prepared/published stages pass prerequisite-relative freshness, duplicate and size checks. The reader's
+initial download is 307,001 bytes in Czech and 304,602 bytes in English, below 307,200. Native source facts,
+headers and unique typed identifiers still match the original four PRs exactly. No browser content or asset
+acquisition changed; the existing visual evidence remains applicable.
+
+Required hosted checks pass on all six implementation heads below. PR descriptions and heads are read back
+exactly; original source prose and all published ancestry remain preserved.
+
+## Published implementation-head acceptance
+
+| PR | Head | Required checks |
+| --- | --- | --- |
+| [dsw-nrp/eosc-fair-guide#180](https://github.com/dsw-nrp/eosc-fair-guide/pull/180) | `dcad578976028c56a2af12b1ec4edd029147ddbc` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43629916682) |
+| [dsw-nrp/eosc-fair-guide#178](https://github.com/dsw-nrp/eosc-fair-guide/pull/178) | `8c2f7a2f1649901e3f7b750c672a925c72ebf92e` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43630224349) |
+| [dsw-nrp/eosc-fair-guide#177](https://github.com/dsw-nrp/eosc-fair-guide/pull/177) | `eaa2a70120a5182920499f49dd3d5c31065d717c` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43630223896) |
+| [dsw-nrp/eosc-fair-guide#176](https://github.com/dsw-nrp/eosc-fair-guide/pull/176) | `7148ea52d76602edf99d6e7d05a7b04790235a65` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43630223805) |
+| [dsw-nrp/eosc-fair-guide#168](https://github.com/dsw-nrp/eosc-fair-guide/pull/168) | `b5c77f689f497d0756f97282f8cf70a18a07b68c` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43630222967) |
+| [dsw-nrp/eosc-fair-guide#181](https://github.com/dsw-nrp/eosc-fair-guide/pull/181) | `3107c3011f9274fea13812d7f4bf8e4c89fb0e0b` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43630218000) |
+
+The subsequent reader completion record changes only validation notes and task status; its own required
+hosted checks are verified before handoff. No PR is merged, review thread resolved, issue closed, spec synced
+or change archived by this work. Human review remains required.

@@ -73,3 +73,9 @@
   Missing-set check semantics and input-host work-path validation are recorded as advisory observations in
   review-r2.md; no separate issue is filed and no source or favicon acquisition is repeated. Complete integrated
   local acceptance, forward propagation and hosted verification of this second repair remain pending.
+  Second-round integrated acceptance subsequently passes all 36 checks in 208.8 seconds, and all 28 favicon tests
+  also pass on Python 3.11.15 against the assembled catalogue. Forward merges are published across all six PRs;
+  each stage passes freshness, duplicates and size checks, and exact original-source/typed-identifier fidelity
+  remains intact. The integrated initial payload is 307,001 bytes in Czech and 304,602 bytes in English. Required
+  hosted checks subsequently pass on all six implementation heads; PR descriptions and heads are read back
+  exactly. The reader completion record changes only notes/status and receives its own hosted checks before handoff.

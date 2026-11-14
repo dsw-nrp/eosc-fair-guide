@@ -139,9 +139,9 @@ tasks and require new acceptance evidence before delivery preparation is complet
   retained verified files, unrelated entries and rejected links/reparse points or inspection failures.
 - [x] 9.2 Recover abandoned stages through the ownership guard and preserve that guard on Python 3.11 without
   raising the declared floor, changing asset/manifest semantics or fetching favicons again.
-- [ ] 9.3 Verify the favicon suite on real Python 3.11 and the current interpreter, run complete integrated local
+- [x] 9.3 Verify the favicon suite on real Python 3.11 and the current interpreter, run complete integrated local
   acceptance, propagate forward merges through the existing PR stack, and recheck source fidelity and the byte bound.
-- [ ] 9.4 Record every new finding/observation, read back PR heads and descriptions, verify required hosted checks
+- [x] 9.4 Record every new finding/observation, read back PR heads and descriptions, verify required hosted checks
   on the published heads, and refresh the handoff without merges, issue closure, spec sync or archival.
 
 ## Workflow follow-up
