@@ -2029,6 +2029,17 @@ class SnapshotRefreshTests(FixtureCase):
         self.assertIn("repositories/service", outcome.reason)
         self.assertFalse(target.exists())
 
+    def test_implicit_repository_resource_reserves_only_its_repository_address(self) -> None:
+        snapshot = self.root / "content/snapshots/legacy-fip.toml"
+        snapshot.parent.mkdir(exist_ok=True)
+        snapshot.write_text(
+            '[[resource]]\nid = "legacy-archive"\ntype = "repository"\nurl = "https://legacy.example.org/"\n',
+            encoding="utf-8",
+        )
+        reserved = refresh_snapshots.reserved_identifiers(self.root, snapshot.with_name("knav-tools.toml"))
+        self.assertIn("repositories/legacy-archive", reserved)
+        self.assertNotIn("resources/legacy-archive", reserved)
+
     def test_identical_data_changes_nothing_not_even_the_date(self) -> None:
         self.re3data_inputs(2)
         self.refresh("re3data", "2026-02-01")

@@ -35,6 +35,7 @@ import shutil
 import struct
 import subprocess
 import sys
+import tempfile
 import tomllib
 import urllib.error
 import urllib.parse
@@ -400,14 +401,14 @@ def manifest_text(entries: list[tuple[Found, bytes]], retrieved: str, observatio
         lines += [
             "",
             "[[favicon]]",
-            f'host = "{item.host}"',
-            f'file = "{item.file or item.stem + ".png"}"',
+            f"host = {json.dumps(item.host)}",
+            f"file = {json.dumps(item.file or item.stem + '.png')}",
             f"source = {json.dumps(item.source)}",
             f'sha256 = "{hashlib.sha256(data).hexdigest()}"',
             f"retrieved = {item.retrieved or retrieved}",
         ]
         if item.key:
-            lines.append(f'key = "{item.key}"')
+            lines.append(f"key = {json.dumps(item.key)}")
         if item.host in PLATFORMS:
             lines.append("homeOnly = true")
     for observation in sorted(observations, key=lambda item: item.get("key") or item["host"]):
@@ -443,6 +444,72 @@ def carried_entries(root: Path, previous: dict[str, Any], refreshed: set[str]) -
     return kept
 
 
+def owned_folder(root: Path, folder: Path) -> None:
+    """Refuse filesystem operations outside this run's literal assets directory or through directory links."""
+    parent = root.resolve() / "assets"
+    if (
+        folder.parent.resolve() != parent
+        or folder.name in {"", ".", ".."}
+        or parent.is_symlink()
+        or parent.is_junction()
+        or folder.is_symlink()
+        or folder.is_junction()
+    ):
+        raise ValueError(f"unsafe favicon directory: {folder}")
+
+
+def recover_publication(root: Path) -> None:
+    """Recover a process stop between renames before the usual existing-set integrity guard."""
+    target, backup = root / TARGET, root / "assets/.favicons-backup"
+    for folder in (target, backup):
+        owned_folder(root, folder)
+    if not backup.exists():
+        return
+    # A complete installed set also permits cleanup after an interrupted backup removal.
+    verified = target if target.exists() else backup
+    if not (verified / MANIFEST.name).is_file() or check(root, folder=verified):
+        raise ValueError(f"cannot recover favicon publication: verify {verified}")
+    if target.exists():
+        shutil.rmtree(backup)
+    else:
+        backup.replace(target)
+
+
+def publish(root: Path, entries: list[tuple[Found, bytes]], manifest: str) -> None:
+    """Validate a complete sibling set, then install it while keeping the prior set recoverable."""
+    target, backup = root / TARGET, root / "assets/.favicons-backup"
+    for folder in (target, backup):
+        owned_folder(root, folder)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    stage = Path(tempfile.mkdtemp(prefix=".favicons-stage-", dir=target.parent))
+    owned_folder(root, stage)
+    try:
+        for item, data in entries:
+            if not item.file or not re.fullmatch(r"[a-z0-9.-]+\.png", item.file):
+                raise ValueError(f"invalid local filename: {item.file}")
+            (stage / item.file).write_bytes(data)
+        (stage / MANIFEST.name).write_text(manifest, encoding="utf-8", newline="\n")
+        if problems := check(root, folder=stage):
+            raise ValueError("staged favicons failed verification: " + "; ".join(problems))
+        if backup.exists():
+            raise ValueError("favicon backup must be recovered before publication")
+        if target.exists():
+            target.replace(backup)
+        try:
+            stage.replace(target)
+        except BaseException:
+            if backup.exists() and not target.exists():
+                backup.replace(target)
+            raise
+        if backup.exists():
+            owned_folder(root, backup)
+            shutil.rmtree(backup)
+    finally:
+        if stage.exists():
+            owned_folder(root, stage)
+            shutil.rmtree(stage)
+
+
 def vendor(
     root: Path,
     fetch: Fetch,
@@ -457,6 +524,7 @@ def vendor(
     obtained again, the only deletion a refresh makes. The originals live only in the work folder, which is removed."""
     if date.fromisoformat(retrieved).isoformat() != retrieved or date.fromisoformat(retrieved) > date.today():
         raise ValueError("retrieved must be a real, non-future ISO date")
+    recover_publication(root)
     hosts = {} if infrastructures_only else service_urls(root)
     previous = _toml(root / MANIFEST)
     if problems := check(root):
@@ -511,9 +579,6 @@ def vendor(
         for item, data in entries:
             if item.file:
                 shared.setdefault(hashlib.sha256(data).hexdigest(), item.file)
-        target = root / TARGET
-        shutil.rmtree(target, ignore_errors=True)
-        target.mkdir(parents=True)
         for item, data in entries:
             if item.file is None:
                 digest = hashlib.sha256(data).hexdigest()
@@ -522,21 +587,19 @@ def vendor(
                 else:
                     item.file = item.host + ".png"
                     shared.setdefault(digest, item.file)
-            (target / item.file).write_bytes(data)
-        (root / MANIFEST).write_text(
-            manifest_text(entries, retrieved, list(observations.values())), encoding="utf-8", newline="\n"
-        )
+        publish(root, entries, manifest_text(entries, retrieved, list(observations.values())))
     finally:
         shutil.rmtree(work, ignore_errors=True)
     kept = {item.stem for item, _ in entries}
     return len(entries), [key for key in [*hosts, *mark_keys] if key not in kept]
 
 
-def check(root: Path = ROOT) -> list[str]:
+def check(root: Path = ROOT, *, folder: Path | None = None) -> list[str]:
     """Problems with the vendored favicons: a recorded file missing, changed or not a SIZE-pixel PNG within the size
     limit, a record without its source, or a file not recorded."""
     problems = []
-    manifest = _toml(root / MANIFEST)
+    folder = folder if folder is not None else root / TARGET
+    manifest = _toml(folder / MANIFEST.name)
     records = manifest.get("favicon", [])
     recorded = {item["file"] for item in records}
     identities = set()
@@ -549,7 +612,7 @@ def check(root: Path = ROOT) -> list[str]:
         if not re.fullmatch(r"[a-z0-9.-]+\.png", name) or (not item.get("key") and name != f"{item.get('host')}.png"):
             problems.append(f"{name}: invalid local filename")
             continue
-        path = root / TARGET / name
+        path = folder / name
         if not path.is_file():
             problems.append(f"{name}: recorded but missing")
             continue
@@ -599,7 +662,6 @@ def check(root: Path = ROOT) -> list[str]:
                 problems.append(f"{identity}: available observation has no matching acquisition")
         if set(row) - {"host", "key", "checked", "outcome", "reason"}:
             problems.append(f"{identity}: unknown observation field")
-    folder = root / TARGET
     if folder.is_dir():
         for path in folder.iterdir():
             if path.is_file() and path.name != MANIFEST.name and path.name not in recorded:

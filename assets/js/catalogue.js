@@ -400,9 +400,7 @@
       );
     });
   };
-  /* The resource types that are tools or services, whose entries carry a service badge. */
-
-  /** A service's badge, when the entity is a tool or a service. */
+  /** An own-site badge for a resource kind enabled by the shared favicon policy. */
   const serviceOf = (entity) => ((FG.config.favicons?.types || []).some((code) => FG.term("resource-types", code) === typeOf(entity)) ? entity : null);
 
   /** An entry as a card, the same for every kind: its own identifier with what it is and how the guide uses it;

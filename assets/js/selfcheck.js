@@ -724,8 +724,11 @@
       (st) => {
         st.re3data = r3d;
         st.extended = true;
+        save();
       },
-      (check) => prefillFromRe3data(check, r3d)
+      (check) => FG.loadPart("questions").then(() => {
+        if (stateOf(check).re3data === r3d) prefillFromRe3data(check, r3d);
+      }, () => {}) // The check view owns the neutral loading error and Retry.
     );
     return true;
   };
