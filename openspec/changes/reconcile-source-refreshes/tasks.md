@@ -144,6 +144,27 @@ tasks and require new acceptance evidence before delivery preparation is complet
 - [x] 9.4 Record every new finding/observation, read back PR heads and descriptions, verify required hosted checks
   on the published heads, and refresh the handoff without merges, issue closure, spec sync or archival.
 
+## 10. Consolidate the remaining observations into this change
+
+- [x] 10.1 Reproduce incomplete inferred-organisation reservations with the built catalogue and a synthetic
+  Carpentries import; add full/identity-only parity and minimal-content regressions.
+- [x] 10.2 Share agent identity resolution and reserve inferred organisations before source allocation; preserve
+  current addresses, explicit source joins and reviewable collision refusal without counters.
+- [x] 10.3 Reproduce missing/empty favicon-set false success; require a valid manifest, retain explicitly recorded
+  empty/pruned sets and permit bootstrap only through the acquisition path after recovery.
+- [x] 10.4 Reproduce the Windows work-path escape and validate names/containment before writes for network and
+  offline inputs; prove refusal leaves verified assets and unrelated paths unchanged.
+- [x] 10.5 Implement and test direct public-only HTTPS acquisition, per-hop policy, all-answer DNS validation,
+  pinned connections/peers, TLS verification, proxy exclusion and honest retained-asset failure reasons on Python 3.11.
+- [x] 10.6 Generate deterministic build revisions for initial and deferred data, version script requests and reject
+  absent/mismatched initial or deferred registrations before state/data mutation.
+- [x] 10.7 Make part/translation acceptance transactional and preserve single-flight, accepted-data reuse, Retry,
+  neutral Reload recovery, saved answers and current input; verify both languages, file/HTTP and iframe states.
+- [x] 10.8 Update maintained design/content/maintenance documentation, changelog, dispositions and paradata; keep
+  the 300 KB limit through existing-part deferral if necessary and run complete native checks and visual review.
+- [ ] 10.9 Prepare focused commits, propagate through the existing PR stack with preserved ancestry and source facts,
+  read back descriptions/heads and verify required hosted checks on every actual head before final handoff.
+
 ## Workflow follow-up
 
 - The maintainer authorized preparing the commits and PRs on 2026-11-14. Publish the reviewed stack and verify

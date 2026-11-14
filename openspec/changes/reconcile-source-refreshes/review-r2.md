@@ -9,9 +9,9 @@ generated staging state under the existing recovery contract; no dependency or s
 | --- | --- |
 | N1 abandoned stages after a hard stop | Fix in the runtime PR: guarded cleanup during recovery, retaining verified assets and unrelated entries. |
 | N2 Python 3.12-only `Path.is_junction` | Fix in the runtime PR: use Python 3.11-compatible link/reparse metadata and verify on a real 3.11 interpreter. |
-| Existing missing/empty-set `--check` success | Advisory follow-up: absence/bootstrap validation semantics need a separate explicit decision. No issue has been filed. |
-| Existing unvalidated host in work filename | Advisory follow-up with input/fetch policy; this round does not claim to repair it. No issue has been filed. |
-| Prior deferred-part revision gate | Retains its separate planning disposition; no protocol is added here. |
+| Existing missing/empty-set `--check` success | Initially advisory; the maintainer now approves explicit integrity/bootstrap semantics in section 10 of this change. No issue has been filed. |
+| Existing unvalidated host in work filename | Promoted into validated, contained work paths in section 10; this earlier round did not repair it. No issue has been filed. |
+| Prior deferred-part revision gate | Promoted by the maintainer into section 10 with compatible data loading and recovery. |
 
 Both failures were reproduced before the fix: stale stages remained after recovery and real Python 3.11.15
 raised `AttributeError` at `Path.is_junction`. The 28-test favicon suite now passes on Python 3.11.15 and 3.14.7.
@@ -42,3 +42,20 @@ exactly; original source prose and all published ancestry remain preserved.
 The subsequent reader completion record changes only validation notes and task status; its own required
 hosted checks are verified before handoff. No PR is merged, review thread resolved, issue closed, spec synced
 or change archived by this work. Human review remains required.
+
+## Consolidated remaining observations
+
+The maintainer explicitly promotes all remaining observations into section 10 of this change. They are now
+implemented: complete inferred-organisation reservations; explicit favicon-set integrity/bootstrap semantics;
+validated, contained working paths; HTTPS-only redirects and pinned public destinations; and matching revisions
+for initial/deferred browser data with transactional acceptance and neutral Retry/Reload recovery. Search-focus
+preloading remains an intentional behavior. No separate issue is implied or filed.
+
+Fail-first tests reproduce the reservation collision, invalid empty-set success, Windows path escape, stale
+registration acceptance and partial graph mutation. Controlled network fixtures cover DNS answer sets, numeric
+connections, peers, TLS, proxy exclusion and redirects without contacting a private service. The browser matrix
+covers both languages, desktop/320 px, HTTP/file/iframe, saved answers, input retention and initial-pair Reload.
+The visual pass repairs hidden recovery messages and verifies spacing, touch targets and print; twenty captures
+are retained locally. Complete integrated local acceptance passes all 36 checks in 252.3 seconds. Publication and
+required checks on the new exact heads remain the final task; the historical head table above is retained as
+evidence of the preceding review round.

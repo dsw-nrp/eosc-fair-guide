@@ -423,8 +423,8 @@ class GeneratorTests(FixtureCase):
         generated = build_crate.outputs(self.root)
         page = generated[build_crate.PAGE_FILE]
         self.assertNotIn('"@graph"', page)
-        self.assertIn(f'<script src="{build_crate.KB_SCRIPT}" defer></script>', page)
-        self.assertIn(f'<script src="{build_crate.UI_SCRIPT}" defer></script>', page)
+        for path in (build_crate.KB_SCRIPT, build_crate.UI_SCRIPT):
+            self.assertRegex(page, rf'<script src="{re.escape(path)}\?v=[0-9a-f]{{24}}" defer></script>')
         summary = json.loads(page.split('<script type="application/ld+json">')[1].split("</script>")[0])
         self.assertEqual(summary["@type"], "Dataset")
         self.assertTrue(summary["distribution"]["contentUrl"].endswith(build_crate.CRATE_FILE))

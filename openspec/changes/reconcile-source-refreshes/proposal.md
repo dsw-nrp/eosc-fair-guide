@@ -27,6 +27,11 @@ the semantic repairs, source observations and reader-visible result before imple
   their catalogue-record URLs. Preserve existing icons during failed refreshes and retain shared-platform exclusions.
 - Validate the complete combined result and prepare separately reviewable updates for the original PRs; remote
   publication, human acceptance, merging and issue closure remain separate actions.
+- Include the remaining observations explicitly authorized by the maintainer: reserve inferred organisation
+  addresses, require an explicit valid favicon set, constrain temporary filenames, enforce public-only HTTPS
+  destinations and redirects, and reject incompatible initial/deferred data revisions with recoverable loading.
+  Retain intentional search-focus preloading. Keep source facts, Python 3.11, local-file/iframe operation and the
+  300 KB limit; defer assessment-only configuration through existing parts if needed to pay for revision checks.
 
 ## Capabilities
 
@@ -40,8 +45,8 @@ None.
   preserved classification of registry records.
 - `fair-guide/guide-experience`: complete deferred registry data, citations on About and consistent own-site icons
   for eligible resources, including standards, guides and documents.
-- `fair-guide/guide-delivery`: dated, validated favicon acquisition observations with safe preservation of existing
-  vendored assets when a source is unavailable.
+- `fair-guide/guide-delivery`: dated favicon observations, explicit asset-set integrity, owned working files and
+  public-only, address-pinned HTTPS acquisition with safe preservation of verified assets.
 
 ## Impact
 

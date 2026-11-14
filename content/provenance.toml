@@ -1917,12 +1917,12 @@ endTime = 2026-11-13T22:11:49+01:00
 id = "2026-11-14-catalogue-repair"
 type = "update"
 name = "Reconcile source identities and presentation"
-description = "Prepared kind-scoped source identity allocation, preserved registry classification, moved citations to About, and extended favicon acquisition evidence. Deferred detailed registry configuration and metadata through existing local parts."
+description = "Prepared kind-scoped source identity allocation, preserved registry classification, moved citations to About, and extended favicon acquisition evidence. Reserved inferred organisations through the shared resolver, verified complete contained favicon sets and public HTTPS destinations, and added bilingual stale-data recovery with transactional revision checks. Deferred registry and assessment configuration through existing local parts."
 agent = "david-novak"
 instruments = ["openai-codex", "openai-gpt-6-runtime"]
 objects = ["resources/fip-dashboard"]
 results = ["guide"]
-endTime = 2026-11-14T11:24:27+00:00
+endTime = 2026-11-14T20:53:51+00:00
 
 [[action]]
 id = "2026-11-13-fip-refresh"

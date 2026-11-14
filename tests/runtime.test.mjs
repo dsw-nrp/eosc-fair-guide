@@ -7,35 +7,41 @@ import { browserEnvironment, root, mapLimit, workerCount, checkDefaults } from "
 import { slotIsAbandoned } from "../scripts/browser_slots.mjs";
 import { runInNewContext } from "node:vm";
 
-for (const missing of ["neutral", "translation", "language"]) {
-  test("local data retry recovers missing " + missing + " registration without repeating accepted data", async () => {
-    const window = {}, requests = [], removed = [];
+for (const problem of ["missing", "stale"]) for (const missing of ["neutral", "translation", "language"]) {
+  test("local data retry recovers " + problem + " " + missing + " registration without repeating accepted data", async () => {
+    const window = {}, requests = [], versions = [], removed = [];
     const paths = { neutral: "fixture.js", translation: "fixture-cs.js", language: "en.js" };
     let corrected = false;
-    const document = { createElement: () => ({ remove() { removed.push(this.src); } }), head: { append(script) {
-      requests.push(script.src);
+    const document = { createElement: () => ({ remove() { removed.push(this.src.split("?")[0]); } }), head: { append(script) {
+      const path = script.src.split("?")[0];
+      requests.push(path);
+      versions.push(new URL(script.src, "https://fixture.test/").searchParams.get("v"));
       queueMicrotask(() => {
-        if (script.src !== paths[missing] || corrected) {
+        if (path !== paths[missing] || corrected || problem === "stale") {
           const data = window.FairGuideData;
-          if (script.src === paths.neutral) data.parts = { fixture: { entities: [{ "@id": "fixture", name: "neutral" }] } };
-          if (script.src === paths.translation) data.partLanguages = { fixture: { cs: { values: { entities: [{ name: "translated" }] } } } };
-          if (script.src === paths.language) data.languages = { en: { ui: { ui: { greeting: "translated" } } } };
+          const revision = path === paths[missing] && !corrected && problem === "stale" ? "older-build" : "fixture-build";
+          if (path === paths.neutral) data.parts = { fixture: { revision, entities: [{ "@id": "fixture", name: "neutral" }] } };
+          if (path === paths.translation) data.partLanguages = { fixture: { cs: { revision, values: { entities: [{ name: "translated" }] } } } };
+          if (path === paths.language) data.languages = { en: { revision, ui: { ui: { greeting: "translated" } } } };
         }
         script.onload();
       });
     } } };
     runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, document, URL });
     const FG = window.FairGuide;
-    window.FairGuideData = { kb: { "@graph": [] }, ui: { ui: {}, config: { links: {}, languages: { en: paths.language },
+    window.FairGuideData = { revision: "fixture-build", kb: { "@graph": [] }, ui: { ui: {}, config: { revision: "fixture-build", links: {}, languages: { en: paths.language },
       parts: { fixture: paths.neutral }, partLanguages: { fixture: { cs: paths.translation } } } } };
     FG.load();
     let invalidations = 0; const invalidate = FG.invalidateData;
     FG.invalidateData = () => { invalidations += 1; invalidate(); };
     const load = () => missing === "language" ? FG.loadLanguage("en") : FG.loadPart("fixture", "cs");
-    await assert.rejects(load(), /missing/);
-    assert.equal(FG.graph.length, missing === "translation" ? 1 : 0);
+    await assert.rejects(load(), problem === "missing" ? /missing/ : /revision/);
+    assert.equal(FG.graph.length, 0, "an incomplete or stale contribution never reaches the graph");
+    assert.equal(FG.partsLoaded.size, 0);
+    assert.equal(invalidations, 0);
     corrected = true;
     await Promise.all([load(), load()]);
+    assert(versions.every((version) => version === "fixture-build"), "every script request carries its build revision");
     assert.equal(requests.filter((path) => path === paths[missing]).length, 2, "Retry fetches the corrected file");
     assert.deepEqual(removed, [paths[missing]], "only the unregistered script element is discarded");
     if (missing === "language") {
@@ -44,7 +50,7 @@ for (const missing of ["neutral", "translation", "language"]) {
     } else {
       assert.equal(FG.graph.length, 1, "the accepted neutral part is never duplicated");
       assert.equal(FG.get("fixture").name, "translated");
-      assert.equal(invalidations, 2, "one neutral merge and one translation merge");
+      assert.equal(invalidations, 1, "neutral data and its selected translation are accepted together");
       assert.equal(requests.filter((path) => path === paths[missing === "neutral" ? "translation" : "neutral"]).length, 1);
     }
     const count = requests.length, revision = FG.dataRevision;
@@ -54,12 +60,21 @@ for (const missing of ["neutral", "translation", "language"]) {
   });
 }
 
+test("initial KB and UI must have the same nonempty build revision before graph acceptance", () => {
+  for (const [kb, ui] of [[undefined, undefined], ["one", "two"], [undefined, "two"]]) {
+    const window = { FairGuideData: { revision: kb, kb: { "@graph": [] }, ui: { ui: {}, config: { revision: ui, links: {} } } } };
+    runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });
+    assert.throws(() => window.FairGuide.load(), /revision/);
+    assert.equal(window.FairGuide.graph, undefined);
+  }
+});
+
 test("source lookup indexes a real graph once and invalidates misses, ambiguity and reloads", () => {
   const window = {};
   runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });
   const FG = window.FairGuide;
   const crate = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"));
-  window.FairGuideData = { kb: crate, ui: { ui: {}, config: { links: {} } } };
+  window.FairGuideData = { revision: "fixture-build", kb: crate, ui: { ui: {}, config: { revision: "fixture-build", links: {} } } };
   FG.load();
   const all = crate["@graph"].filter((entity) => FG.sourceIdentifier(entity, "f-uji"));
   assert(all.length > 10, "real evaluator criteria exercise the workload");
@@ -99,7 +114,7 @@ test("check questions share one ordered index per data revision", () => {
   const window = {};
   runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });
   const FG = window.FairGuide;
-  window.FairGuideData = { kb: JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8")), ui: { ui: {}, config: { links: {} } } };
+  window.FairGuideData = { revision: "fixture-build", kb: JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8")), ui: { ui: {}, config: { revision: "fixture-build", links: {} } } };
   FG.load();
   const checks = FG.ofType("Quiz");
   const expected = new Map(checks.map((check) => [check["@id"], FG.graph.filter((entity) => entity.hasBenchmark && FG.id(entity.hasBenchmark) === check["@id"]).sort(FG.byPosition)]));

@@ -715,10 +715,10 @@ sections.push(["page", async () => {
     await gotoView(fresh, pageUrl);
     await rendered(fresh);
     const startLanguage = await fresh.evaluate(() => window.FairGuide.state.lang);
-    const atStart = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src")));
+    const atStart = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src").split("?")[0]));
     await navigationRendered(fresh, () => fresh.evaluate((lang) => { window.location.hash = `#/${lang}/V/page/about`; }, startLanguage));
     await fresh.waitForSelector('[id="why"]');
-    const forPage = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src")));
+    const forPage = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src").split("?")[0]));
     if (atStart.join() !== `assets/data/kb-${startLanguage}.js` ||
         forPage.slice().sort().join() !== [`assets/data/kb-${startLanguage}.js`, "assets/data/kb-pages.js", `assets/data/kb-pages-${startLanguage}.js`, "assets/data/kb-model.js", `assets/data/kb-model-${startLanguage}.js`].sort().join()) {
       fail(`parts: the start loads ${atStart.join(", ")}; a page loads ${forPage.join(", ")}`);
@@ -2370,7 +2370,7 @@ sections.push(["knav catalogue", async () => {
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   const cards = page.locator(".catalogue-results .entry-card");
   // The catalogue's view code is not part of the first download; it loads when the catalogue first opens.
-  const viewCode = () => page.locator('script[src$="assets/js/catalogue-view.js"]').count();
+  const viewCode = () => page.locator('script[src*="assets/js/catalogue-view.js?v="]').count();
   if (await viewCode()) fail("knav catalogue: the catalogue view's code loads before the catalogue opens");
   /* Each tool is one entry: among the resources, or among the repositories and registries when one stands for it. */
   const listed = [];

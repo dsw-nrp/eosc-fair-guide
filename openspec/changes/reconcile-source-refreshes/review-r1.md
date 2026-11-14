@@ -28,14 +28,14 @@ reviewed alongside the delayed/failed/Retry fixtures.
 | M3 interrupted favicon publication | Stage/validate before replacement and preserve a recoverable verified backup; test interruption and restart. |
 | M4 empty expected API lookup map | Compare against the complete published API projection and require nonempty coverage. |
 | M5 missing counter-refusal release note | Add the required Unreleased line and runtime `breaking-change` label under the existing policy. |
-| L1 mixed-version deferred parts | Advisory, track separately: a revision protocol changes the delivery contract and needs its own planning decision. No issue has been filed. |
+| L1 mixed-version deferred parts | Initially advisory; the maintainer now approves a revision protocol inside this change, tracked in section 10 of the tasks and design. No issue has been filed. |
 | L2 inconsistent implicit repository address | Fix in the runtime PR with shared route/address inference and a legacy-row regression. |
 | L3 obsolete badge comment | Remove/rewrite the comment to match the shared favicon policy. |
-| Existing arbitrary HTTPS host fetches | Advisory, track separately: network-target policy is broader security work; no network exploit was established in this review and no issue has been filed. |
-| Existing cleartext intermediate redirects | Advisory, track separately with the fetch-policy decision; no issue has been filed. |
+| Existing arbitrary HTTPS host fetches | Promoted by the maintainer into the active public-destination policy; no network exploit was established by this review and no issue has been filed. |
+| Existing cleartext intermediate redirects | Promoted into per-hop HTTPS enforcement in this change; no issue has been filed. |
 | Existing unescaped positive manifest strings | Fix in the runtime PR alongside publication: consistent TOML-safe scalar serialization preserves the existing format. |
 | Existing search-focus preloading | Keep advisory: current intentional deferral-to-intent behavior; no change or separate issue is proposed here. |
-| Existing agent-derived organisation reservations | Advisory, track separately: the address helper repair does not claim to cover inferred agent identities; no issue has been filed. |
+| Existing agent-derived organisation reservations | Promoted into complete shared identity reservations in section 10; the earlier address helper did not cover inferred agents. No issue has been filed. |
 
 ## Published implementation-head acceptance
 
