@@ -41,5 +41,16 @@
   source histories, adds the runtime prerequisite and narrow repairs, and prepares a dependent reader draft;
   the merge order remains runtime, source refreshes, reader integration. A duplicate historical provenance result
   present in the prior candidate was removed in the working copy and is preserved in delivery.
-  Required hosted checks are verified on the published heads; human acceptance, merges, issue closure, spec sync,
-  archive and release remain separate.
+  Published draft PRs are dsw-nrp/eosc-fair-guide#180 and dsw-nrp/eosc-fair-guide#181; the four source branches were
+  updated with atomic fast-forward ref checks. Runtime review 5905431297 exposed a Linux file-iframe test assumption,
+  an early maturity-action pre-fill, destructive favicon publication, a vacuous API map assertion and stale citation
+  carriers. The review repairs seed the owning frame, gate the action on questions data, stage/validate and recover
+  favicon publication, require complete nonempty API coverage, and share implicit repository address inference.
+  Six blocking findings and the two bounded identity/comment cleanups are addressed locally. Focused tests pass
+  62/62; bilingual delayed/failed/Retry browser checks pass, preserving manual answers and rejecting stale targets.
+  Fail-first probes detect the old race, missing API entry, legacy retirement, manifest interruption and failed restart.
+  Phone screenshots of both failure states were inspected. The required changelog line and breaking-change label
+  were added; metadata attribution, licences and funding remain intact. Protocol/network-policy observations retain
+  explicit advisory dispositions in review-r1.md; no separate issue has been filed. Complete runtime acceptance
+  passes all 36 checks in 261.9 seconds. Hosted checks on repaired heads are pending. Human acceptance, merges, issue closure, spec sync, archive and release
+  remain separate.

@@ -110,6 +110,18 @@ class SnapshotIdentityTests(unittest.TestCase):
         row = tomllib.loads(preserve_snapshot(incoming, ""))["resource"][0]
         self.assertEqual(row["guideRoute"], "repositories")
 
+    def test_legacy_repository_without_route_keeps_its_kind_without_spurious_retirement(self):
+        old = (
+            '[[resource]]\nid="archive"\n'
+            'alternateIds=[{scheme="fip-dashboard",value="external-archive"}]\n'
+            'type="repository"\nname="Archive"\n'
+        )
+        for native_type in ("repository", "registry"):
+            incoming = f'[[resource]]\nid="external-archive"\ntype="{native_type}"\nname="Archive"\n'
+            result = tomllib.loads(preserve_snapshot(incoming, old))
+            self.assertEqual(result["resource"][0]["guideRoute"], "repositories")
+            self.assertNotIn("identity", result)
+
     def test_an_old_local_id_cannot_silently_become_a_source_identifier(self):
         malformed = '[[tool]]\nid = "forgotten-local-slug"\nurl = "https://example.org/tool"\n'
         with self.assertRaisesRegex(ValueError, "missing genuine knav"):

@@ -200,3 +200,25 @@ dependent reader-integration draft, preserving the four existing source PRs. For
 may merge the committed runtime prerequisite before it reaches `main`; their original commits remain ancestors.
 The reader branch assembles those prepared heads and applies the reviewed integration. All PRs target `main`;
 their cumulative diffs narrow as prerequisites merge. The merge order and human/technical gates remain unchanged.
+
+## Runtime review remediation
+
+Address the six blocking findings and bounded identity/comment cleanups from the review of the runtime PR before
+completing delivery. A file iframe owns its storage independently of its parent, so the cold-load fixture seeds
+and verifies state inside that document. A re3data entry action retains its target before navigation, waits for
+the questions data before interpreting a snapshot, and leaves load failures to the existing neutral Retry flow.
+
+Favicon publication prepares and validates a complete sibling staging directory, then replaces the current
+directory with a verified backup available for rollback/restart recovery. Startup recovery precedes the existing
+integrity guard. The manifest schema and acquisition meanings stay unchanged; all string fields use TOML-safe
+serialization. The temporary/backup paths are generated maintenance state, never authored assets.
+
+Use one snapshot route/address helper for legacy rows with no explicit route; a repository-shaped Dashboard row
+uses the repository kind consistently in reservation, allocation and retirement. Test deferred API lookups against
+the complete published API projection and require both referenced and deferred cases to be nonempty. Update the
+citation carriers and the counter-refusal release note/label under existing repository policy.
+
+The proposed cross-version part revision protocol is an advisory follow-up requiring a separate delivery-contract
+decision; it is not silently added here. Record the pre-existing network-policy, redirect, preloading and
+agent-derived reservation observations with explicit dispositions. The bounded manifest escaping observation is
+handled with the publication repair. No new GitHub issue is implied by that record.

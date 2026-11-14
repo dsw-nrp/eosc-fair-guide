@@ -114,6 +114,7 @@ RECORD_KINDS = {"term", "tool", "resource", "repository", "organization", "fip",
 IDENTITY_FIELDS = ("url", "mainUrl", "identifier", "doi", "re3data", "ror")
 # The kind a new snapshot row of each record type is issued under, frozen in its guideRoute.
 ROW_KINDS = {
+    "resource": "resources",
     "term": "glossary",
     "tool": "resources",
     "organization": "organizations",
@@ -121,6 +122,19 @@ ROW_KINDS = {
     "repository": "repositories",
     "record": "repositories",
 }
+
+
+def snapshot_route(kind: str, row: dict[str, Any]) -> str:
+    """The frozen route, or the same first-issue inference for every legacy snapshot consumer."""
+    value = row.get("guideRoute") or (
+        "repositories" if kind == "resource" and row.get("type") == "repository" else ROW_KINDS[kind]
+    )
+    parse_route(value)
+    return value
+
+
+def snapshot_address(kind: str, row: dict[str, Any]) -> str:
+    return f"{snapshot_route(kind, row)}/{row['id']}"
 
 
 def route(kind: str, scope: str | None = None) -> str:
@@ -367,9 +381,7 @@ def preserve_snapshot(
     used = set(reserved or ())
     previous_ids = set()
     for key in RECORD_KINDS:
-        previous_ids.update(
-            f"{row.get('guideRoute') or ROW_KINDS.get(key, 'resources')}/{row['id']}" for row in existing.get(key, [])
-        )
+        previous_ids.update(snapshot_address(key, row) for row in existing.get(key, []))
     used.update(previous_ids)
     used.update(existing.get("identity", {}).get("retiredIds", []))
     previous_ids.update(existing.get("identity", {}).get("retiredIds", []))
@@ -395,14 +407,11 @@ def preserve_snapshot(
             if previous:
                 identifier = previous["id"]
                 fields = {key: previous[key] for key in ("id", "guideRoute", "linkNames") if previous.get(key)}
+                fields["guideRoute"] = snapshot_route(kind, previous)
             elif not joined:
                 if any(record_name(item).casefold() == record_name(row).casefold() for item in old):
                     raise ValueError(f"{kind}:{row.get('id')}: changed identity with the same name needs review")
-                prefix = (
-                    ("repositories" if row.get("type") == "repository" else "resources")
-                    if kind == "resource"
-                    else ROW_KINDS[kind]
-                )
+                prefix = snapshot_route(kind, row)
                 local_used = {
                     value.removeprefix(prefix + "/")
                     for value in used
@@ -423,11 +432,7 @@ def preserve_snapshot(
                 parse_route(fields["guideRoute"])
             else:
                 # The kind is frozen when the row is first issued, so a later reclassification cannot move it.
-                fields["guideRoute"] = (
-                    ("repositories" if row.get("type") == "repository" else "resources")
-                    if kind == "resource"
-                    else ROW_KINDS[kind]
-                )
+                fields["guideRoute"] = snapshot_route(kind, row)
             owned = f"{fields['guideRoute']}/{identifier}"
             if owned in claimed:
                 raise ValueError(f"{kind}:{row.get('id')}: source split would duplicate Guide identity {owned}")
