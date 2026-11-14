@@ -61,7 +61,9 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
-from catalogue_identity import bare_url, preserve_snapshot
+import build_crate as kb
+from catalogue_identity import RECORD_KINDS, ROW_KINDS, bare_url, preserve_snapshot, source_scheme
+from check_content import content_addresses
 from nkr_contract import NKR_FIELD_SHAPES, nkr_status
 from registry_identifiers import DATACITE_REPOSITORY, FAIRSHARING_DOI, canonical_fairsharing_doi
 
@@ -918,38 +920,98 @@ def counts_in(path: Path, keys: list[str]) -> dict[str, int]:
     return {key: len(data.get(key, [])) for key in keys}
 
 
-def _identifiers(value: Any):
-    if isinstance(value, dict):
-        identifier = value.get("id")
-        if isinstance(identifier, str) and identifier:
-            yield identifier
-        for item in value.values():
-            yield from _identifiers(item)
-    elif isinstance(value, list):
-        for item in value:
-            yield from _identifiers(item)
-
-
 def reserved_identifiers(root: Path, target: Path) -> set[str]:
-    """Identifiers owned by authored content outside the snapshot being replaced.
-
-    A new snapshot row must not mint a slug already used by a resource, repository, source, person, organisation,
-    instrument or another snapshot. Retired identifiers stay reserved as well.
-    """
-    reserved: set[str] = set()
+    """Reserve issued addresses, including typed retirements; legacy bare retirements stay conservative."""
+    content = identity_content(root)
+    reserved = set(content_addresses(content).values()) - {"guide"}
+    if target.name == "glossary.toml":
+        reserved = {value for value in reserved if not value.startswith("glossary/")}
     for path in sorted((root / "content").rglob("*.toml")):
         if path.resolve() == target.resolve():
             continue
         data = tomllib.loads(path.read_text(encoding="utf-8"))
-        reserved.update(_identifiers(data))
+        for kind in RECORD_KINDS:
+            for row in data.get(kind, []):
+                if not isinstance(row, dict) or not row.get("id"):
+                    continue
+                prefix = row.get("guideRoute") or ROW_KINDS.get(kind, "resources")
+                reserved.add(f"{prefix}/{row['id']}")
         identity = data.get("identity")
         if isinstance(identity, dict):
             reserved.update(value for value in identity.get("retiredIds", []) if isinstance(value, str) and value)
-        if path.name == "identifiers.toml" and isinstance(data.get("retired"), dict):
-            for values in data["retired"].values():
-                if isinstance(values, list):
-                    reserved.update(value for value in values if isinstance(value, str) and value)
+        if path.name == "identifiers.toml":
+            for section in ("issued", "retired"):
+                for kind, values in data.get(section, {}).items():
+                    if isinstance(values, list):
+                        reserved.update(f"{kind}/{value}" for value in values if isinstance(value, str) and value)
     return reserved
+
+
+def identity_content(root: Path) -> dict[str, Any]:
+    """Read only identity-bearing content, independently of page/check/lifecycle completeness."""
+
+    def read(name: str) -> dict[str, Any]:
+        path = root / "content" / name
+        return tomllib.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+    return {
+        "guide": read("guide.toml"),
+        "resources": read("resources.toml").get("resource", []),
+        "sources": read("sources.toml").get("source", []),
+        "repositories": read("repositories.toml").get("repository", []),
+        "repository_records": read("repositories.toml").get("record", []),
+        "snapshots": [
+            read(str(path.relative_to(root / "content")))
+            for path in sorted((root / "content/snapshots").glob("*.toml"))
+        ],
+        "glossary": read("glossary.toml"),
+        "infrastructures": read("infrastructures.toml"),
+        "pages": read("pages.toml").get("page", []),
+        "ledger": read("ledger.toml").get("clause", []),
+        "stations": [],
+        "checks": [],
+        "callouts": [],
+        "provenance": [],
+        "live": {},
+    }
+
+
+def reviewed_snapshot_joins(root: Path, incoming: str) -> dict[tuple[str, str], set[str]]:
+    """Read reviewed joins from the build's canonical projection and repository key index."""
+    data = tomllib.loads(incoming)
+    if not any(data.get(kind) for kind in ("tool", "record", "resource")):
+        return {}
+    content = identity_content(root)
+    graph, addresses = kb.catalogue_identity_graph(content)
+    joins: dict[tuple[str, str], set[str]] = {}
+    for kind in ("tool", "record", "resource"):
+        scheme = source_scheme(data, kind)
+        for row in data.get(kind, []):
+            targets: set[str] = set()
+            if scheme == "nkr":
+                keys = {"nkr:" + str(row["id"])}
+                if row.get("mainUrl"):
+                    keys.add("url:" + bare_url(row["mainUrl"]))
+                targets.update(target for key in keys for target in graph.repository_keys.get(key, set()))
+            elif scheme == "knav":
+                # Existing source records already resolve all reviewed curated, annotation and infrastructure joins.
+                for record in graph.index.get("knav." + str(row["id"]), []):
+                    targets.update(kb.ids_of(graph.entities[record].get("sameAs")) or [record])
+                for section, prefix in (
+                    ("resources", "#resource-"),
+                    ("sources", "#source-"),
+                    ("repositories", "#repository-"),
+                ):
+                    for entry in content[section]:
+                        if entry.get("knav") == str(row["id"]):
+                            targets.add(kb.source_key(entry) if section == "sources" else prefix + entry["id"])
+            elif scheme == "fip-dashboard":
+                for target, entity in graph.entities.items():
+                    if target in addresses and kb.FIP_DASHBOARD + str(row["id"]) in kb.ids_of(entity.get("sameAs")):
+                        targets.add(target)
+            if targets:
+                joins[(scheme, str(row["id"]))] = {addresses[target] for target in targets}
+    return joins
 
 
 def without_date(value: str) -> str:
@@ -976,12 +1038,14 @@ def commit(snapshot: Snapshot, root: Path) -> Outcome:
             outcome.reason += "; " + snapshot.notes
         return outcome
     try:
+        incoming = snapshot.text()
         new_text = preserve_snapshot(
-            snapshot.text(),
+            incoming,
             target.read_text(encoding="utf-8") if target.exists() else "",
             reserved=reserved_identifiers(root, target),
+            joins=reviewed_snapshot_joins(root, incoming),
         )
-    except ValueError as error:
+    except (ValueError, kb.ContentError) as error:
         raise RejectedError(f"{snapshot.path}: identity needs review: {error}") from error
     if target.exists() and without_date(target.read_text(encoding="utf-8")) == without_date(new_text):
         outcome.status, outcome.reason = "unchanged", "only the retrieval date would change"
