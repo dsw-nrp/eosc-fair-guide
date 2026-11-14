@@ -5522,10 +5522,13 @@ section.datacite-read p {
   main a[href^="http"]::after {
     content: " (" attr(href) ")";
     font-size: var(--size-small);
+    overflow-wrap: anywhere;
   }
 
-  /* An identifier chip already shows its address in full. */
-  main a.pid-chip[href^="http"]::after {
+  /* Identifier chips and complete citations already show their addresses in full. */
+  main a.pid-chip[href^="http"]::after,
+  main .analysis-citation a[href^="http"]::after,
+  main .guide-citation a[href^="http"]::after {
     content: none;
   }
 }

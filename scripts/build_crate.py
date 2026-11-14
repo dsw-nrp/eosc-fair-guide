@@ -639,6 +639,11 @@ def guide_type(crosswalk: dict[str, str], prefix: str, value: str | None) -> dic
     return ref(f"#rtype-{crosswalk[key]}") if key in crosswalk else None
 
 
+def favicon_types(guide: dict[str, Any]) -> list[str]:
+    """The one authored eligibility policy shared by maintenance and badge rendering."""
+    return sorted(item["id"] for item in guide.get("resourceType", []) if item.get("favicon") is True)
+
+
 class ContentError(Exception):
     """A content source cannot be turned into the crate."""
 
@@ -1349,6 +1354,11 @@ def build_principles(graph: Graph, principles: list[dict[str, Any]]) -> None:
         )
 
 
+def source_key(source: dict[str, Any]) -> str:
+    """A cited source's build key before the shared projection publishes its Guide address."""
+    return f"https://doi.org/{source['doi']}" if source.get("doi") else f"#source-{source['id']}"
+
+
 def build_sources(
     graph: Graph,
     sources: list[dict[str, Any]],
@@ -1361,7 +1371,7 @@ def build_sources(
     """Sources the guide cites but does not recommend as resources; returns their entity IDs."""
     source_ids = []
     for source in sources:
-        entity_id = f"https://doi.org/{source['doi']}" if source.get("doi") else f"#source-{source['id']}"
+        entity_id = source_key(source)
         source_ids.append(entity_id)
         graph.add(
             {
@@ -2072,12 +2082,12 @@ def build_repositories(
     for based_on, repositories in sources:
         merge_source(based_on, repositories)
 
-    # FIP-only entries already exist in the graph. Index them as separate components
-    # before NKR looks up addresses, preserving other sources' reviewed joins.
+    # FIP-only entries already exist in the graph. Index them before NKR looks up addresses.
+    # Every curated FIP join owns its reviewed classification, including software a native row calls a repository.
     existing = list(merged.values()) + [
         graph.entities[f"#resource-{resource['id']}"]
         for resource in resources
-        if resource.get("repository") or resource.get("type") == "registry"
+        if resource.get("fipDashboard") or resource.get("repository") or resource.get("type") == "registry"
     ]
     linked = {
         item["@id"].removeprefix(FIP_DASHBOARD)
@@ -2236,18 +2246,14 @@ def build_repositories(
 KNAV_REGISTRY = "knav-tools"  # the life-cycle model of the KNAV catalogue's steps (content/lifecycle/)
 
 
-def build_knav_tools(graph: Graph, content: dict[str, Any]) -> None:
-    """The tools of the KNAV Data Management Tools Catalogue snapshot, each with its life-cycle steps, discipline
-    groups and the catalogue's licence. A tool that a curated entry (`knav`) or a record annotation names is that
-    entry: its record says so in `sameAs` and the catalogue lists the entry once."""
-    snapshot = next((item for item in content["snapshots"] if item.get("tool")), None)
-    if snapshot is None:
-        return
-    info = snapshot["snapshot"]
+def knav_record_owners(graph: Graph, content: dict[str, Any]) -> dict[str, str]:
+    """Reviewed KNAV source handles and their canonical things, independent of record presentation."""
     standing: dict[str, str] = {}
-    for entry in content["resources"] + content["repositories"] + content["sources"]:
-        if entry.get("knav") and graph.index.get(entry["id"]):
-            standing[entry["knav"]] = graph.index[entry["id"]][0]
+    for section, prefix in (("resources", "#resource-"), ("repositories", "#repository-"), ("sources", "#source-")):
+        for entry in content[section]:
+            key = source_key(entry) if section == "sources" else prefix + entry["id"]
+            if entry.get("knav") and key in graph.entities:
+                standing[entry["knav"]] = key
     for item in (content.get("infrastructures") or {}).get("infrastructure", []):
         if item.get("knav"):
             standing[item["knav"]] = f"#infrastructure-{item['id']}"
@@ -2256,9 +2262,10 @@ def build_knav_tools(graph: Graph, content: dict[str, Any]) -> None:
                 standing[entry["knav"]] = f"#european-ri-{slug(entry['name'])}"
     # A FIP Dashboard record a curated entry links is listed as that entry, so a tool joined to it is too.
     curated_records = {
-        entry["fipDashboard"]: graph.index[entry["id"]][0]
-        for entry in content["resources"] + content["repositories"]
-        if entry.get("fipDashboard") and graph.index.get(entry["id"])
+        entry["fipDashboard"]: prefix + entry["id"]
+        for section, prefix in (("resources", "#resource-"), ("repositories", "#repository-"))
+        for entry in content[section]
+        if entry.get("fipDashboard") and prefix + entry["id"] in graph.entities
     }
     for record in content.get("repository_records", []):
         if record.get("knav"):
@@ -2271,6 +2278,18 @@ def build_knav_tools(graph: Graph, content: dict[str, Any]) -> None:
                     or graph.index.get(f"fip-dashboard.{dashboard}", [f"#fer-{dashboard}"])[0]
                 )
             standing[record["knav"]] = target
+    return standing
+
+
+def build_knav_tools(graph: Graph, content: dict[str, Any]) -> None:
+    """The tools of the KNAV Data Management Tools Catalogue snapshot, each with its life-cycle steps, discipline
+    groups and the catalogue's licence. A tool that a curated entry (`knav`) or a record annotation names is that
+    entry: its record says so in `sameAs` and the catalogue lists the entry once."""
+    snapshot = next((item for item in content["snapshots"] if item.get("tool")), None)
+    if snapshot is None:
+        return
+    info = snapshot["snapshot"]
+    standing = knav_record_owners(graph, content)
     for tool in snapshot["tool"]:
         graph.add(
             {
@@ -2293,11 +2312,80 @@ def build_knav_tools(graph: Graph, content: dict[str, Any]) -> None:
         )
 
 
+def catalogue_identity_graph(content: dict[str, Any]) -> tuple[Graph, dict[str, str]]:
+    """Project catalogue identities and winning sites through the same repository/record builders.
+
+    Refresh and favicon maintenance need these facts independently of page prose and assessment configuration.
+    The input is an identity-only content copy; source passages are never changed here.
+    """
+    for section in ("resources", "repositories", "sources"):
+        for row in content[section]:
+            row.setdefault("name", row["id"])
+            if section == "resources":
+                row.setdefault("type", "service")
+    graph = Graph()
+    # Reuse the actual repository reconciliation, without requiring page text, checks or lifecycle metadata.
+    for section, prefix in (("resources", "#resource-"), ("sources", "#source-")):
+        for entry in content[section]:
+            graph.add(
+                {
+                    "@id": source_key(entry) if section == "sources" else prefix + entry["id"],
+                    "@type": "CreativeWork",
+                    "identifier": entry["id"],
+                    "name": text(entry.get("name") or entry.get("title")),
+                    "url": entry.get("url"),
+                    "resourceType": ref("#rtype-" + entry.get("type", "document")),
+                    "sameAs": refs([FIP_DASHBOARD + entry["fipDashboard"]]) if entry.get("fipDashboard") else None,
+                },
+                entry["id"],
+            )
+    for snapshot in content["snapshots"]:
+        for row in snapshot.get("resource", []):
+            graph.add(
+                {
+                    "@id": "#fer-" + row["id"],
+                    "@type": "CreativeWork",
+                    "identifier": row["id"],
+                    "name": text(row.get("name")),
+                    "url": row.get("url"),
+                    "sameAs": ref(FIP_DASHBOARD + alternate_id(row, "fip-dashboard")),
+                }
+            )
+    graph.add({"@id": "#sources", "hasPart": refs([source_key(row) for row in content["sources"]])})
+    build_repositories(
+        graph, content["repositories"], content["snapshots"], content["resources"], content["repository_records"]
+    )
+    for item in content["infrastructures"].get("infrastructure", []):
+        graph.add({"@id": "#infrastructure-" + item["id"], "identifier": item["id"]})
+    owners = knav_record_owners(graph, content)
+    for snapshot in content["snapshots"]:
+        for tool in snapshot.get("tool", []):
+            native = alternate_id(tool, "knav")
+            graph.add(
+                {
+                    "@id": "#knav-" + tool["id"],
+                    "identifier": tool["id"],
+                    "name": tool.get("name"),
+                    "url": tool.get("url"),
+                    "sameAs": ref(owners[native]) if native in owners else None,
+                },
+                "knav." + str(native),
+            )
+    addresses = catalogue_addresses(graph.entities, content)
+    for item in content["infrastructures"].get("infrastructure", []):
+        addresses["#infrastructure-" + item["id"]] = "infrastructures/" + item["id"]
+        for entry in item.get("nodeOf", []) + item.get("eric", []):
+            identifier = slug(entry["name"])
+            addresses["#european-ri-" + identifier] = "infrastructures/" + identifier
+    return graph, addresses
+
+
 DASHBOARD_FIP_CLASS = {
     "identifier-service": "Identifier-service",
     "metadata-schema": "Metadata-schema",
     "vocabulary": "Structured-vocabulary",
     "repository": "Registry",
+    "registry": "Registry",
     "access-protocol": "Communication-protocol",
     "authentication-service": "Authentication-and-authorization-service",
     "license": "Data-usage-license",
@@ -4019,9 +4107,11 @@ def catalogue_records(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
             ("organization", "#fd-org-"),
             ("fip", "#fip-"),
         ):
-            result.update((prefix + str(row["id"]), row) for row in snapshot.get(key, []))
+            for row in snapshot.get(key, []):
+                result.setdefault(prefix + str(row["id"]), row)
         if snapshot.get("snapshot", {}).get("source") == "NKR":
-            result.update(("#repository-" + str(row["id"]), row) for row in snapshot.get("record", []))
+            for row in snapshot.get("record", []):
+                result.setdefault("#repository-" + str(row["id"]), row)
     return result
 
 
@@ -4728,6 +4818,7 @@ def page_config(
                 "profilePage": f"profile/{guide.get('profileVersion', '')}/index.html",
             },
             "favicons": {
+                "types": favicon_types(content["guide"]),
                 "hosts": sorted(entry["host"] for entry in content.get("favicons", []) if not entry.get("key")),
                 "homeOnly": sorted(entry["host"] for entry in content.get("favicons", []) if entry.get("homeOnly")),
                 "marks": {entry["key"]: entry["file"] for entry in content.get("favicons", []) if entry.get("key")},
@@ -4915,6 +5006,9 @@ def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[st
         elif kind(entity) == "glossary" and fragment(entity).startswith("id-"):
             # Imported glossary IDs are detail metadata; catalogue/search load them with the definitions.
             parts["standards"]["entities"].append(entity)
+        elif kind(entity) == "repositories" and fragment(entity).startswith("id-"):
+            # Registry identifier detail loads with the repository records and complete search.
+            parts["fips"]["entities"].append(entity)
         # The FIP Dashboard snapshot (the profiles and the resource records they declare) and the KNAV catalogue's.
         elif kind(entity) == "questions" or (
             kind(entity) == "tests" and scope(entity) not in ("guide", CHAMPION_SCOPE)
@@ -4965,6 +5059,10 @@ def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[st
     # with their own deferred entities, so concurrent part loading cannot drop a patch for a missing target.
     for index, original in enumerate(core):
         entity = original
+        if kind(entity) == "repositories" and not fragment(entity) and "keywords" in entity:
+            parts["fips"]["properties"].setdefault(entity["@id"], {})["keywords"] = entity["keywords"]
+            entity = {key: value for key, value in entity.items() if key != "keywords"}
+            core[index] = entity
         level = guide_address(entity.get("disclosureLevel", {}).get("@id", ""), base)
         if level in ("vocabularies/levels/L1", "vocabularies/levels/L2", "vocabularies/levels/L3"):
             detail = {key: value for key, value in entity.items() if key in ("text", "description")}
@@ -5224,19 +5322,23 @@ def outputs(
     # Synchronous references need their target address before the infrastructure graph arrives. Keep only those
     # addresses initially visible; the remaining infrastructure records still load with fips or the machines page.
     referenced = {link["ref"] for found in text_links.values() for link in found}
-    infrastructure_records = {
+    registry_records = {
         address: path
         for address, path in records.items()
-        if address.startswith("infrastructures/") and address not in referenced
+        if address.startswith(("infrastructures/", "repositories/")) and address not in referenced
     }
-    records = {address: path for address, path in records.items() if address not in infrastructure_records}
+    records = {address: path for address, path in records.items() if address not in registry_records}
     ui = page_config(content | {"ui": initial_ui}, text_links, records, links)
     ui["config"]["parts"] = dict(PART_SCRIPTS)
     ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
     ui["config"]["partLanguages"] = dict(PART_LANGUAGE_SCRIPTS)
-    parts["fips"]["config"] = {"api": {"records": infrastructure_records}}
-    parts["api"]["config"] = {"api": {"records": infrastructure_records}}
+    parts["fips"]["config"] = {"api": {"records": registry_records}}
+    parts["api"]["config"] = {"api": {"records": registry_records}}
     parts["pages"]["config"] = {"signposts": ui["config"].pop("signposts")}
+    parts["questions"]["config"] = {
+        key: value for key in ("nkr", "re3data") if (value := ui["config"].pop(key, None)) is not None
+    }
+    parts["questions"]["config"]["api"] = {"records": registry_records}
     api_metadata = ui["config"]["api"]
     parts["api"]["config"]["api"]["recipes"] = api_metadata.pop("recipes")
     # Helper labels belong with the pages that use them, not the initial download.

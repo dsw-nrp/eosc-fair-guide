@@ -1323,6 +1323,8 @@ actions = [
   "release-1.0.0-alpha.5",
   "2026-11-02-nkr-integration",
   "2026-11-06-identity-migration",
+  "2026-11-13-fip-refresh",
+  "2026-11-14-catalogue-repair",
 ]
 models = [
   "layers-seams",
