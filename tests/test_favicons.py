@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import hashlib
 import shutil
+import stat
 import struct
 import sys
 import tempfile
@@ -139,6 +140,71 @@ class VendorTests(unittest.TestCase):
 
     def saved_files(self) -> dict[str, bytes]:
         return {path.name: path.read_bytes() for path in (self.root / vf.TARGET).iterdir()}
+
+    def test_recovery_reaps_only_owned_abandoned_stage_directories(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        assets = self.root / "assets"
+        stages = [assets / ".favicons-stage-abandoned", assets / ".favicons-stage-other"]
+        for stage in stages:
+            shutil.copytree(self.root / vf.TARGET, stage)
+        unrelated = assets / "other-assets"
+        unrelated.mkdir()
+        (unrelated / "keep.txt").write_bytes(b"unrelated")
+        marker = assets / ".favicons-stage-note"
+        marker.write_bytes(b"a file, not a generated directory")
+        for interrupted_swap in (False, True):
+            with self.subTest(interrupted_swap=interrupted_swap):
+                if interrupted_swap:
+                    (self.root / vf.TARGET).replace(assets / ".favicons-backup")
+                    for stage in stages:
+                        stage.mkdir(exist_ok=True)
+                vf.recover_publication(self.root)
+                self.assertTrue(all(not stage.exists() for stage in stages))
+                self.assertEqual(self.saved_files(), before)
+                self.assertEqual((unrelated / "keep.txt").read_bytes(), b"unrelated")
+                self.assertEqual(marker.read_bytes(), b"a file, not a generated directory")
+
+    def test_vendoring_does_not_require_python_312_path_methods(self):
+        with mock.patch.object(Path, "is_junction", side_effect=AssertionError("Python 3.12-only API"), create=True):
+            vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_ownership_guard_rejects_symlink_and_windows_reparse_metadata(self):
+        assets = self.root / "assets"
+        assets.mkdir()
+        stage = assets / ".favicons-stage-unsafe"
+        stage.mkdir()
+        lstat = Path.lstat
+        for unsafe in (assets, stage):
+            for mode, attributes in ((stat.S_IFLNK, 0), (stat.S_IFDIR, 0x400)):
+                with self.subTest(unsafe=unsafe.name, mode=mode, attributes=attributes):
+
+                    def inspect(path, unsafe=unsafe, mode=mode, attributes=attributes):
+                        if path == unsafe:
+                            return mock.Mock(st_mode=mode, st_file_attributes=attributes)
+                        return lstat(path)
+
+                    with mock.patch.object(Path, "lstat", inspect), self.assertRaises(ValueError):
+                        vf.recover_publication(self.root)
+                    self.assertTrue(stage.is_dir(), "unsafe cleanup must leave the entry untouched")
+        with self.assertRaises(ValueError):
+            vf.owned_folder(self.root, self.root / ".favicons-stage-outside")
+
+    def test_cleanup_inspection_failure_keeps_the_stage(self):
+        stage = self.root / "assets/.favicons-stage-unreadable"
+        stage.mkdir(parents=True)
+        (stage / "keep.txt").write_bytes(b"do not remove without inspection")
+        lstat = Path.lstat
+
+        def inspect(path):
+            if path == stage:
+                raise PermissionError("inspection refused")
+            return lstat(path)
+
+        with mock.patch.object(Path, "lstat", inspect), self.assertRaises(PermissionError):
+            vf.recover_publication(self.root)
+        self.assertEqual((stage / "keep.txt").read_bytes(), b"do not remove without inspection")
 
     def test_interruption_while_writing_manifest_preserves_verified_set(self):
         vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
