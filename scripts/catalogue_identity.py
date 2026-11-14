@@ -114,6 +114,7 @@ RECORD_KINDS = {"term", "tool", "resource", "repository", "organization", "fip",
 IDENTITY_FIELDS = ("url", "mainUrl", "identifier", "doi", "re3data", "ror")
 # The kind a new snapshot row of each record type is issued under, frozen in its guideRoute.
 ROW_KINDS = {
+    "resource": "resources",
     "term": "glossary",
     "tool": "resources",
     "organization": "organizations",
@@ -121,6 +122,19 @@ ROW_KINDS = {
     "repository": "repositories",
     "record": "repositories",
 }
+
+
+def snapshot_route(kind: str, row: dict[str, Any]) -> str:
+    """The frozen route, or the same first-issue inference for every legacy snapshot consumer."""
+    value = row.get("guideRoute") or (
+        "repositories" if kind == "resource" and row.get("type") == "repository" else ROW_KINDS[kind]
+    )
+    parse_route(value)
+    return value
+
+
+def snapshot_address(kind: str, row: dict[str, Any]) -> str:
+    return f"{snapshot_route(kind, row)}/{row['id']}"
 
 
 def route(kind: str, scope: str | None = None) -> str:
@@ -181,18 +195,10 @@ def short_id(value: str, used: set[str]) -> str:
             break
         selected.append(word)
     seed = "-".join(selected) or "entry"
-    result, serial = seed, 2
-    while result in used:
-        suffix = f"-{serial}"
-        root = seed
-        while len(root + suffix) > MAX_ID:
-            if "-" not in root:
-                raise ValueError("Guide slug collision needs a shorter reviewed abbreviation")
-            root = root.rsplit("-", 1)[0]
-        result = root + suffix
-        serial += 1
-    used.add(result)
-    return result
+    if seed in used:
+        raise ValueError(f"{seed}: identity collision needs review and a descriptive identifier")
+    used.add(seed)
+    return seed
 
 
 def record_name(row: dict[str, Any]) -> str:
@@ -356,7 +362,13 @@ def address_hint(entry: str, known: set[str]) -> str:
     return "; references name a record by its address, [[<kind>/<id>|...]]"
 
 
-def preserve_snapshot(new_text: str, old_text: str, reserved: set[str] | None = None) -> str:
+def preserve_snapshot(
+    new_text: str,
+    old_text: str,
+    reserved: set[str] | None = None,
+    *,
+    joins: dict[tuple[str, str], set[str]] | None = None,
+) -> str:
     """Carry local IDs and frozen kinds across source refresh, refusing conflicting or ambiguous identity joins.
 
     A changed source ID may join through an exact authoritative URL/identifier. A name alone never merges rows.
@@ -367,10 +379,12 @@ def preserve_snapshot(new_text: str, old_text: str, reserved: set[str] | None = 
         for row in existing.get(kind, []):
             validate_identity(row, source_scheme(existing, kind))
     used = set(reserved or ())
+    previous_ids = set()
     for key in RECORD_KINDS:
-        used.update(str(row["id"]) for row in existing.get(key, []))
+        previous_ids.update(snapshot_address(key, row) for row in existing.get(key, []))
+    used.update(previous_ids)
     used.update(existing.get("identity", {}).get("retiredIds", []))
-    previous_ids = used - set(reserved or ())
+    previous_ids.update(existing.get("identity", {}).get("retiredIds", []))
     additions: dict[tuple[str, str], dict[str, Any]] = {}
     retained: set[str] = set()
     for kind in RECORD_KINDS:
@@ -378,7 +392,13 @@ def preserve_snapshot(new_text: str, old_text: str, reserved: set[str] | None = 
         scheme = source_scheme(incoming, kind)
         claimed: set[str] = set()
         for row in incoming.get(kind, []):
+            owners = (joins or {}).get((scheme, str(row.get("id"))), set())
+            if len(owners) > 1:
+                raise ValueError(f"{kind}:{row.get('id')}: ambiguous identity: {', '.join(sorted(owners))}")
+            joined = next(iter(owners), None)
             exact = [item for item in old if alternate_id(item, scheme) == str(row.get("id"))]
+            # A known source ID disambiguates distinct services on an already reviewed shared portal.
+            # Addresses are fallback keys for a changed/unknown source ID, not reasons to rename a known row.
             matches = exact or [item for item in old if identity_values(item) & identity_values(row)]
             owners = {item["id"] for item in matches}
             if len(owners) > 1:
@@ -386,16 +406,25 @@ def preserve_snapshot(new_text: str, old_text: str, reserved: set[str] | None = 
             previous = next(iter(matches), None)
             if previous:
                 identifier = previous["id"]
-                if identifier in claimed:
-                    raise ValueError(
-                        f"{kind}:{row.get('id')}: source split would duplicate Guide identity {identifier}"
-                    )
                 fields = {key: previous[key] for key in ("id", "guideRoute", "linkNames") if previous.get(key)}
-            else:
+                fields["guideRoute"] = snapshot_route(kind, previous)
+            elif not joined:
                 if any(record_name(item).casefold() == record_name(row).casefold() for item in old):
                     raise ValueError(f"{kind}:{row.get('id')}: changed identity with the same name needs review")
-                identifier = short_id(identity_seed(row), used)
+                prefix = snapshot_route(kind, row)
+                local_used = {
+                    value.removeprefix(prefix + "/")
+                    for value in used
+                    if value.startswith(prefix + "/") or "/" not in value
+                }
+                try:
+                    identifier = short_id(identity_seed(row), local_used)
+                except ValueError as error:
+                    raise ValueError(f"{prefix}/{error}") from error
                 fields = {"id": identifier}
+            if joined and not previous:
+                joined_kind, joined_scope, identifier = split_address(joined)
+                fields = {"id": identifier, "guideRoute": route(joined_kind, joined_scope)}
             fields["alternateIds"] = [
                 item for item in (previous or {}).get("alternateIds", []) if item.get("scheme") != scheme
             ] + [{"scheme": scheme, "value": str(row["id"])}]
@@ -403,13 +432,13 @@ def preserve_snapshot(new_text: str, old_text: str, reserved: set[str] | None = 
                 parse_route(fields["guideRoute"])
             else:
                 # The kind is frozen when the row is first issued, so a later reclassification cannot move it.
-                fields["guideRoute"] = (
-                    ("repositories" if row.get("type") == "repository" else "resources")
-                    if kind == "resource"
-                    else ROW_KINDS[kind]
-                )
-            claimed.add(identifier)
-            retained.add(identifier)
+                fields["guideRoute"] = snapshot_route(kind, row)
+            owned = f"{fields['guideRoute']}/{identifier}"
+            if owned in claimed:
+                raise ValueError(f"{kind}:{row.get('id')}: source split would duplicate Guide identity {owned}")
+            claimed.add(owned)
+            retained.add(owned)
+            used.add(owned)
             additions[(kind, str(row.get("id")))] = fields
     blocks = re.split(r"(?m)(?=^\[\[[A-Za-z][A-Za-z0-9_-]*\]\]\s*$)", new_text)
     for index, original_block in enumerate(blocks):

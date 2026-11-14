@@ -32,18 +32,25 @@ import hashlib
 import json
 import re
 import shutil
+import stat
 import struct
 import subprocess
 import sys
+import tempfile
 import tomllib
+import urllib.error
 import urllib.parse
 import urllib.request
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
+
+import build_crate as kb
+import public_https
+from refresh_snapshots import identity_content
 
 ROOT = Path(__file__).resolve().parent.parent
 TARGET = Path("assets") / "favicons"
@@ -60,8 +67,6 @@ TRIES = 3
 TIMEOUT = 15
 USER_AGENT = "eosc-fair-guide-favicons/1.0 (+https://github.com/dsw-nrp/eosc-fair-guide)"
 ACCEPT = "text/html,image/*;q=0.9,*/*;q=0.8"
-# Resource types whose entries are tools or services and carry a badge; the FIP Dashboard types map to them.
-SERVICE_TYPES = {"service", "tool", "registry"}
 # Hosts that serve many tools or records: their favicon stands only for an entry at the host's own home page.
 PLATFORMS = {
     "github.com",
@@ -78,6 +83,7 @@ PLATFORMS = {
     "zenodo.org",
     # A repository whose home page is not served over HTTPS is linked by its re3data record.
     "re3data.org",
+    "repo.cz",
     "figshare.com",
     "osf.io",
     "sites.google.com",
@@ -121,38 +127,35 @@ def _toml(path: Path) -> dict[str, Any]:
     return tomllib.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
 
 
-def service_urls(root: Path = ROOT) -> dict[str, str]:
+def service_urls(root: Path = ROOT, excluded: list[str] | None = None) -> dict[str, str]:
     """Every tool or service address the guide shows with a badge, by the host whose favicon stands for it; the first
     address of a host is the page asked when its home page cannot be read."""
-    content = root / "content"
-    guide = _toml(content / "guide.toml")
-    dashboard_types = {
-        value
-        for item in guide.get("resourceType", [])
-        if item.get("id") in SERVICE_TYPES
-        for value in item.get("fipDashboard", [])
-    }
-    urls = [
-        str(resource.get("url", ""))
-        for resource in _toml(content / "resources.toml").get("resource", [])
-        if resource.get("type") in SERVICE_TYPES or resource.get("repository")
-    ]
-    urls += [str(item.get("url", "")) for item in _toml(content / "repositories.toml").get("repository", [])]
-    # A record annotation may correct a repository's own address from its site; the guide shows that one, so ask it.
-    urls += [str(item.get("url", "")) for item in _toml(content / "repositories.toml").get("record", [])]
-    snapshots = content / "snapshots"
-    urls += [str(item.get("url", "")) for item in _toml(snapshots / "re3data.toml").get("repository", [])]
-    urls += [str(item.get("url", "")) for item in _toml(snapshots / "knav-tools.toml").get("tool", [])]
-    urls += [
-        str(record.get("url", ""))
-        for record in _toml(snapshots / "fip-dashboard.toml").get("resource", [])
-        if record.get("type") in dashboard_types
-    ]
+    content = identity_content(root)
+    eligible = set(kb.favicon_types(content["guide"]))
+    graph, addresses = kb.catalogue_identity_graph(content)
+    rows = kb.catalogue_records(content)
+    sources = {kb.source_key(row): row for row in content["sources"]}
+    rows.update(sources)
+    crosswalk = kb.type_crosswalk(content["guide"])
     hosts: dict[str, str] = {}
-    for url in urls:
-        host = stands_for(url)
-        if host:
-            hosts.setdefault(host, url)
+    for key, address in addresses.items():
+        if address.split("/")[0] not in ("resources", "repositories"):
+            continue
+        row, entity = rows.get(key, {}), graph.entities[key]
+        if key.startswith("#knav-"):
+            kind = "tool"
+        elif key.startswith("#fer-"):
+            kind = crosswalk.get("fd:" + row.get("type", ""))
+        elif key in sources:
+            kind = crosswalk.get("form:" + row.get("type", ""))
+        else:
+            kind = row.get("type")
+        if address.startswith("repositories/") or kind in eligible or row.get("type") == "repository":
+            url = str(entity.get(kb.PRECEDENCE, {}).get("url") or entity.get("url") or "")
+            if host := stands_for(url):
+                hosts.setdefault(host, url)
+            elif url and excluded is not None:
+                excluded.append(url)
     return dict(sorted(hosts.items()))
 
 
@@ -227,12 +230,7 @@ def image_kind(data: bytes) -> str | None:
 def network_fetch(url: str, limit: int) -> tuple[str, bytes]:
     """The final address and the first `limit` + 1 bytes of a response, so a caller can tell a larger body; raises on
     an error status or a redirect away from HTTPS."""
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": ACCEPT})
-    with urllib.request.urlopen(request, timeout=TIMEOUT) as response:  # noqa: S310 - HTTPS addresses only
-        final = response.geturl()
-        if not final.startswith("https://"):
-            raise ValueError("redirected away from HTTPS")
-        return final, response.read(limit + 1)
+    return public_https.fetch(url, limit, timeout=TIMEOUT, headers={"User-Agent": USER_AGENT, "Accept": ACCEPT})
 
 
 def response_name(url: str) -> str:
@@ -266,67 +264,113 @@ class Found:
         return self.key or self.host
 
 
-def infrastructure_marks(root: Path, fetch: Fetch) -> tuple[dict[str, list[Found]], list[str]]:
+@dataclass
+class Acquisition:
+    host: str
+    found: list[Found] = field(default_factory=list)
+    failure: str | None = None
+    attempted: bool = True
+
+
+REASONS = {
+    "available": {"acquired"},
+    "unavailable": {"no-usable-image", "not-renderable"},
+    "failed": {
+        "timeout",
+        "rate-limited",
+        "service-error",
+        "network-error",
+        "redirect-refused",
+        "destination-refused",
+        "response-too-large",
+    },
+}
+
+
+def failure_reason(error: Exception) -> str | None:
+    """A definitive missing response is negative evidence; transport and service errors are retryable."""
+    if isinstance(error, public_https.DestinationRefusedError):
+        return "destination-refused"
+    if isinstance(error, urllib.error.HTTPError):
+        code = error.code
+        error.close()
+        return None if code in (404, 410) else "rate-limited" if code == 429 else "service-error"
+    if isinstance(error, TimeoutError) or isinstance(getattr(error, "reason", None), TimeoutError):
+        return "timeout"
+    return "redirect-refused" if isinstance(error, ValueError) else "network-error"
+
+
+def infrastructure_marks(root: Path, fetch: Fetch) -> tuple[dict[str, Acquisition], list[str]]:
     """Reviewed official sites, using an explicit own logo where the site's favicon is generic or absent."""
     items = _toml(root / "content" / "infrastructures.toml").get("infrastructure", [])
 
-    def find(item: dict[str, Any]) -> tuple[str, list[Found]]:
+    def find(item: dict[str, Any]) -> tuple[str, Acquisition]:
         if not re.fullmatch(r"[a-z0-9-]+", item["id"]):
             raise ValueError("an infrastructure ID must be a lowercase slug")
         key = "infrastructure-" + item["id"]
         url = item.get("website", "")
         host = host_of(url)
         if not host:
-            return key, []
+            return key, Acquisition("", attempted=False)
         if item.get("logo") is False:
             # A reviewed site has no distinct usable infrastructure mark; do not substitute its institution's icon.
-            return key, []
+            return key, Acquisition(host, attempted=False)
         if item.get("logo"):
             if not str(item["logo"]).startswith("https://"):
                 raise ValueError(f"{key}: logo must use HTTPS")
             try:
-                _, data = fetch(item["logo"], MAX_SOURCE_BYTES)
+                final, data = fetch(item["logo"], MAX_SOURCE_BYTES)
+                if not final.startswith("https://"):
+                    raise ValueError("redirected away from HTTPS")
                 kind = image_kind(data) if len(data) <= MAX_SOURCE_BYTES else None
-                found = [Found(host, item["logo"], data, kind)] if kind else []
-            except (OSError, ValueError):
-                found = []
+                attempt = Acquisition(host, [Found(host, item["logo"], data, kind)] if kind else [])
+            except (OSError, ValueError) as error:
+                attempt = Acquisition(host, failure=failure_reason(error))
         else:
-            found = favicons(host, url, fetch)
-        for mark in found:
+            attempt = acquire(host, url, fetch)
+        for mark in attempt.found:
             mark.key = key
-        return key, found
+        return key, attempt
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         found = dict(pool.map(find, items))
     return found, list(found)
 
 
-def favicons(host: str, url: str, fetch: Fetch) -> list[Found]:
+def acquire(host: str, url: str, fetch: Fetch) -> Acquisition:
     """A host's favicons, best first and at most TRIES of them: from its home page's icon links, or the entry's own
     page when the home page cannot be read."""
-    found: list[Found] = []
+    attempt = Acquisition(host)
+    found = attempt.found
     for page in dict.fromkeys([f"https://{host}/", url]):
         try:
             final, body = fetch(page, MAX_PAGE_BYTES)
-        except (OSError, ValueError):
+        except (OSError, ValueError) as error:
+            attempt.failure = failure_reason(error) or attempt.failure
             continue
         if host_of(final) != host:
             # A home page that sends the reader to another site does not speak for this one.
+            attempt.failure = "redirect-refused"
             continue
+        if len(body) > MAX_PAGE_BYTES:
+            attempt.failure = "response-too-large"
         # The icon links are in the head; a long page is read only that far.
         for source in candidates(final, body[:MAX_PAGE_BYTES].decode("utf-8", errors="replace")):
             try:
-                _, data = fetch(source, MAX_SOURCE_BYTES)
-            except (OSError, ValueError):
+                final_source, data = fetch(source, MAX_SOURCE_BYTES)
+                if not final_source.startswith("https://"):
+                    raise ValueError("redirected away from HTTPS")
+            except (OSError, ValueError) as error:
+                attempt.failure = failure_reason(error) or attempt.failure
                 continue
             kind = image_kind(data) if len(data) <= MAX_SOURCE_BYTES else None
             if kind and all(item.data != data for item in found):
                 found.append(Found(host, source, data, kind))
             if len(found) == TRIES:
-                return found
+                return attempt
         if found:
-            return found
-    return found
+            return attempt
+    return attempt
 
 
 def node_normalise(originals: Path, output: Path) -> list[str]:
@@ -345,12 +389,12 @@ def node_normalise(originals: Path, output: Path) -> list[str]:
 
 def png_size(data: bytes) -> tuple[int, int] | None:
     """A PNG's width and height from its header, or none for anything else."""
-    if not data.startswith(SIGNATURES[0][0]) or data[12:16] != b"IHDR":
+    if len(data) < 24 or not data.startswith(SIGNATURES[0][0]) or data[12:16] != b"IHDR":
         return None
     return struct.unpack(">II", data[16:24])
 
 
-def manifest_text(entries: list[tuple[Found, bytes]], retrieved: str) -> str:
+def manifest_text(entries: list[tuple[Found, bytes]], retrieved: str, observations: list[dict[str, Any]]) -> str:
     lines = [
         "# The favicons in this folder, as scripts/vendor_favicons.py took and normalised them: the host each",
         f"# stands for, the file (a {SIZE}-pixel PNG), the address the icon was taken from and the file's SHA-256.",
@@ -364,16 +408,22 @@ def manifest_text(entries: list[tuple[Found, bytes]], retrieved: str) -> str:
         lines += [
             "",
             "[[favicon]]",
-            f'host = "{item.host}"',
-            f'file = "{item.file or item.stem + ".png"}"',
+            f"host = {json.dumps(item.host)}",
+            f"file = {json.dumps(item.file or item.stem + '.png')}",
             f"source = {json.dumps(item.source)}",
             f'sha256 = "{hashlib.sha256(data).hexdigest()}"',
             f"retrieved = {item.retrieved or retrieved}",
         ]
         if item.key:
-            lines.append(f'key = "{item.key}"')
+            lines.append(f"key = {json.dumps(item.key)}")
         if item.host in PLATFORMS:
             lines.append("homeOnly = true")
+    for observation in sorted(observations, key=lambda item: item.get("key") or item["host"]):
+        lines += ["", "[[observation]]"]
+        lines += [
+            f"{key} = {value}" if key == "checked" else f"{key} = {json.dumps(value)}"
+            for key, value in observation.items()
+        ]
     return "\n".join(lines) + "\n"
 
 
@@ -401,6 +451,100 @@ def carried_entries(root: Path, previous: dict[str, Any], refreshed: set[str]) -
     return kept
 
 
+def is_link_or_reparse(path: Path) -> bool:
+    """Inspect links and Windows reparse points without requiring Python 3.12 Path helpers."""
+    try:
+        metadata = path.lstat()
+    except FileNotFoundError:
+        return False
+    return stat.S_ISLNK(metadata.st_mode) or bool(
+        getattr(metadata, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    )
+
+
+def owned_folder(root: Path, folder: Path) -> None:
+    """Refuse filesystem operations outside this run's literal assets directory or through directory links."""
+    parent = root.resolve() / "assets"
+    if (
+        folder.parent.resolve() != parent
+        or folder.name in {"", ".", ".."}
+        or is_link_or_reparse(parent)
+        or is_link_or_reparse(folder)
+    ):
+        raise ValueError(f"unsafe favicon directory: {folder}")
+
+
+def working_path(folder: Path, item: Found, index: int, extension: str) -> Path:
+    """An image filename derived only from a validated identity inside its owned work folder."""
+    names = (item.host, item.stem)
+    if any(
+        not isinstance(name, str) or not re.fullmatch(r"[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?", name) or ".." in name
+        for name in names
+    ):
+        raise ValueError("invalid favicon working identity")
+    if extension not in {"png", "ico", "svg", "gif", "jpeg", "jpg", "webp"}:
+        raise ValueError("invalid favicon working identity image format")
+    path = folder / f"{item.stem}~{index}.{extension}"
+    if path.resolve().parent != folder.resolve() or is_link_or_reparse(path):
+        raise ValueError("favicon working identity escapes its directory")
+    return path
+
+
+def recover_publication(root: Path) -> None:
+    """Recover a process stop between renames before the usual existing-set integrity guard."""
+    target, backup = root / TARGET, root / "assets/.favicons-backup"
+    for folder in (target, backup):
+        owned_folder(root, folder)
+    if backup.exists():
+        # A complete installed set also permits cleanup after an interrupted backup removal.
+        verified = target if target.exists() else backup
+        if not (verified / MANIFEST.name).is_file() or check(root, folder=verified):
+            raise ValueError(f"cannot recover favicon publication: verify {verified}")
+        if target.exists():
+            shutil.rmtree(backup)
+        else:
+            backup.replace(target)
+    for stage in target.parent.glob(".favicons-stage-*"):
+        owned_folder(root, stage)
+        if stage.is_dir():
+            shutil.rmtree(stage)
+
+
+def publish(root: Path, entries: list[tuple[Found, bytes]], manifest: str) -> None:
+    """Validate a complete sibling set, then install it while keeping the prior set recoverable."""
+    target, backup = root / TARGET, root / "assets/.favicons-backup"
+    for folder in (target, backup):
+        owned_folder(root, folder)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    stage = Path(tempfile.mkdtemp(prefix=".favicons-stage-", dir=target.parent))
+    owned_folder(root, stage)
+    try:
+        for item, data in entries:
+            if not item.file or not re.fullmatch(r"[a-z0-9.-]+\.png", item.file):
+                raise ValueError(f"invalid local filename: {item.file}")
+            (stage / item.file).write_bytes(data)
+        (stage / MANIFEST.name).write_text(manifest, encoding="utf-8", newline="\n")
+        if problems := check(root, folder=stage):
+            raise ValueError("staged favicons failed verification: " + "; ".join(problems))
+        if backup.exists():
+            raise ValueError("favicon backup must be recovered before publication")
+        if target.exists():
+            target.replace(backup)
+        try:
+            stage.replace(target)
+        except BaseException:
+            if backup.exists() and not target.exists():
+                backup.replace(target)
+            raise
+        if backup.exists():
+            owned_folder(root, backup)
+            shutil.rmtree(backup)
+    finally:
+        if stage.exists():
+            owned_folder(root, stage)
+            shutil.rmtree(stage)
+
+
 def vendor(
     root: Path,
     fetch: Fetch,
@@ -413,44 +557,74 @@ def vendor(
     """Ask every host for its favicon and write what is obtained; a recorded favicon the run does not obtain again is
     kept as it was, so a refresh that cannot reach a site drops nothing. `prune` removes the recorded favicons not
     obtained again, the only deletion a refresh makes. The originals live only in the work folder, which is removed."""
+    if date.fromisoformat(retrieved).isoformat() != retrieved or date.fromisoformat(retrieved) > date.today():
+        raise ValueError("retrieved must be a real, non-future ISO date")
+    recover_publication(root)
     hosts = {} if infrastructures_only else service_urls(root)
     previous = _toml(root / MANIFEST)
-    if infrastructures_only and (problems := check(root)):
-        raise ValueError("existing favicon files must pass --check before a partial refresh: " + "; ".join(problems))
+    # Acquisition alone may create the first set; the read-only checker always requires a recorded one.
+    if (root / TARGET).exists() and (problems := check(root)):
+        raise ValueError("existing favicon files must pass --check before refresh: " + "; ".join(problems))
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
-        found = dict(zip(hosts, pool.map(lambda item: favicons(item[0], item[1], fetch), hosts.items()), strict=True))
+        attempts = dict(zip(hosts, pool.map(lambda item: acquire(item[0], item[1], fetch), hosts.items()), strict=True))
     marks, mark_keys = infrastructure_marks(root, fetch)
-    found.update(marks)
+    attempts.update(marks)
+    found = {key: attempt.found for key, attempt in attempts.items()}
     work = root / WORK
+    if (
+        work.parent.resolve() != root.resolve() / WORK.parent
+        or is_link_or_reparse(work.parent)
+        or is_link_or_reparse(work)
+    ):
+        raise ValueError("unsafe favicon working directory")
     shutil.rmtree(work, ignore_errors=True)
     originals, normalised = work / "originals", work / "normalised"
     originals.mkdir(parents=True)
     normalised.mkdir()
     try:
-        for items in found.values():
-            for index, item in enumerate(items):
-                (originals / f"{item.stem}~{index}.{item.kind}").write_bytes(item.data)
+        prepared = [
+            (working_path(originals, item, index, item.kind), item.data)
+            for items in found.values()
+            for index, item in enumerate(items)
+        ]
+        for path, data in prepared:
+            path.write_bytes(data)
         normalise(originals, normalised)
         entries: list[tuple[Found, bytes]] = []
         for _host, items in sorted(found.items()):
             for index, item in enumerate(items):
-                path = normalised / f"{item.stem}~{index}.png"
+                path = working_path(normalised, item, index, "png")
                 data = path.read_bytes() if path.is_file() else b""
                 if png_size(data) == (SIZE, SIZE) and len(data) <= MAX_FILE_BYTES:
                     entries.append((item, data))
                     break
         refreshed = {item.key or item.host for item, _ in entries}
+        observations = {row.get("key") or row["host"]: row for row in previous.get("observation", [])}
+        for identity, attempt in attempts.items():
+            if not attempt.attempted:
+                continue
+            outcome = "available" if identity in refreshed else "failed" if attempt.failure else "unavailable"
+            reason = (
+                "acquired"
+                if outcome == "available"
+                else attempt.failure or ("not-renderable" if attempt.found else "no-usable-image")
+            )
+            observations[identity] = {"host": attempt.host, "checked": retrieved, "outcome": outcome, "reason": reason}
+            if identity != attempt.host:
+                observations[identity]["key"] = identity
         if not prune:
             entries += carried_entries(root, previous, refreshed)
+        else:
+            # A deliberately pruned positive acquisition no longer claims an available local asset.
+            observations = {
+                key: row for key, row in observations.items() if row["outcome"] != "available" or key in refreshed
+            }
         entries.sort(key=lambda pair: pair[0].key or pair[0].host)
         # A carried favicon keeps its own file, so a mark that shares one still does; a new one takes the first name.
         shared: dict[str, str] = {}
         for item, data in entries:
             if item.file:
                 shared.setdefault(hashlib.sha256(data).hexdigest(), item.file)
-        target = root / TARGET
-        shutil.rmtree(target, ignore_errors=True)
-        target.mkdir(parents=True)
         for item, data in entries:
             if item.file is None:
                 digest = hashlib.sha256(data).hexdigest()
@@ -459,19 +633,36 @@ def vendor(
                 else:
                     item.file = item.host + ".png"
                     shared.setdefault(digest, item.file)
-            (target / item.file).write_bytes(data)
-        (root / MANIFEST).write_text(manifest_text(entries, retrieved), encoding="utf-8", newline="\n")
+        publish(root, entries, manifest_text(entries, retrieved, list(observations.values())))
     finally:
         shutil.rmtree(work, ignore_errors=True)
     kept = {item.stem for item, _ in entries}
     return len(entries), [key for key in [*hosts, *mark_keys] if key not in kept]
 
 
-def check(root: Path = ROOT) -> list[str]:
+def check(root: Path = ROOT, *, folder: Path | None = None) -> list[str]:
     """Problems with the vendored favicons: a recorded file missing, changed or not a SIZE-pixel PNG within the size
     limit, a record without its source, or a file not recorded."""
     problems = []
-    records = _toml(root / MANIFEST).get("favicon", [])
+    folder = folder if folder is not None else root / TARGET
+    if not folder.is_dir():
+        return ["favicon asset directory is missing"]
+    if not (folder / MANIFEST.name).is_file():
+        return ["favicon manifest is missing"]
+    try:
+        manifest = _toml(folder / MANIFEST.name)
+    except (OSError, tomllib.TOMLDecodeError) as error:
+        return [f"favicon manifest is unreadable: {error}"]
+    metadata = manifest.get("favicons", {})
+    if (
+        not isinstance(metadata, dict)
+        or type(metadata.get("size")) is not int
+        or metadata.get("size") != SIZE
+        or type(metadata.get("retrieved")) is not date
+        or metadata["retrieved"] > date.today()
+    ):
+        problems.append("favicon set metadata must record its size and valid retrieval date")
+    records = manifest.get("favicon", [])
     recorded = {item["file"] for item in records}
     identities = set()
     for item in records:
@@ -483,7 +674,7 @@ def check(root: Path = ROOT) -> list[str]:
         if not re.fullmatch(r"[a-z0-9.-]+\.png", name) or (not item.get("key") and name != f"{item.get('host')}.png"):
             problems.append(f"{name}: invalid local filename")
             continue
-        path = root / TARGET / name
+        path = folder / name
         if not path.is_file():
             problems.append(f"{name}: recorded but missing")
             continue
@@ -494,12 +685,77 @@ def check(root: Path = ROOT) -> list[str]:
             problems.append(f"{name}: not a {SIZE}-pixel PNG within {MAX_FILE_BYTES // 1024} KB")
         if not str(item.get("source", "")).startswith("https://") or not re.fullmatch(r"[a-z0-9.-]+\.png", name):
             problems.append(f"{name}: its source or host is not recorded")
-    folder = root / TARGET
+        if type(item.get("retrieved")) is not date or item["retrieved"] > date.today():
+            problems.append(f"{identity}: invalid asset retrieval date")
+        if item.get("host") in PLATFORMS and item.get("homeOnly") is not True:
+            problems.append(f"{identity}: guarded platform requires homeOnly")
+    observed = set()
+    for row in manifest.get("observation", []):
+        if not isinstance(row, dict):
+            problems.append("observation: expected a table")
+            continue
+        host, key = row.get("host"), row.get("key")
+        identity = key or host
+        if not isinstance(identity, str):
+            problems.append(f"{identity!r}: invalid observation identity")
+            continue
+        if identity in observed:
+            problems.append(f"{identity}: duplicate observation identity")
+        observed.add(identity)
+        if (
+            not isinstance(host, str)
+            or not re.fullmatch(r"[a-z0-9]+(?:[.-][a-z0-9]+)*", host)
+            or (key is not None and (not isinstance(key, str) or not re.fullmatch(r"infrastructure-[a-z0-9-]+", key)))
+        ):
+            problems.append(f"{identity}: invalid observation identity")
+        if type(row.get("checked")) is not date or row["checked"] > date.today():
+            problems.append(f"{identity}: invalid checked date")
+        outcome = row.get("outcome")
+        if (
+            not isinstance(outcome, str)
+            or outcome not in REASONS
+            or not isinstance(row.get("reason"), str)
+            or row["reason"] not in REASONS.get(outcome, set())
+        ):
+            problems.append(f"{identity}: invalid outcome/reason")
+        if outcome == "available":
+            asset = next((item for item in records if (item.get("key") or item.get("host")) == identity), None)
+            if not asset or asset.get("host") != host or asset.get("retrieved") != row.get("checked"):
+                problems.append(f"{identity}: available observation has no matching acquisition")
+        if set(row) - {"host", "key", "checked", "outcome", "reason"}:
+            problems.append(f"{identity}: unknown observation field")
     if folder.is_dir():
         for path in folder.iterdir():
             if path.is_file() and path.name != MANIFEST.name and path.name not in recorded:
                 problems.append(f"{path.name}: not recorded in {MANIFEST.as_posix()}")
     return problems
+
+
+def coverage(root: Path = ROOT) -> dict[str, list[str]]:
+    """Asset availability and latest attempts are separate axes; retained icons can have failed new attempts."""
+    excluded: list[str] = []
+    hosts = service_urls(root, excluded)
+    active = set(hosts)
+    for item in _toml(root / "content/infrastructures.toml").get("infrastructure", []):
+        key = "infrastructure-" + item["id"]
+        if item.get("logo") is False or not host_of(item.get("website", "")):
+            excluded.append(key)
+        else:
+            active.add(key)
+    manifest = _toml(root / MANIFEST)
+    assets = {item.get("key") or item["host"] for item in manifest.get("favicon", [])}
+    observations = {item.get("key") or item["host"]: item for item in manifest.get("observation", [])}
+    attempted = active & set(observations)
+    return {
+        "eligible": sorted(active),
+        "availableAssets": sorted(active & assets),
+        "attempted": sorted(attempted),
+        "acquired": sorted(key for key in attempted if observations[key]["outcome"] == "available"),
+        "unavailable": sorted(key for key in attempted if observations[key]["outcome"] == "unavailable"),
+        "failed": sorted(key for key in attempted if observations[key]["outcome"] == "failed"),
+        "unattempted": sorted(active - attempted),
+        "excluded": sorted(set(excluded)),
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -526,12 +782,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"vendor_favicons: {problem}", file=sys.stderr)
         count = len(_toml(ROOT / MANIFEST).get("favicon", []))
         print(f"vendor_favicons: {count} favicons recorded, {len(problems)} problem(s)")
+        print("coverage: " + ", ".join(f"{key}={len(values)}" for key, values in coverage(ROOT).items()))
         return 1 if problems else 0
     fetch = file_fetch(args.input) if args.input else network_fetch
     count, missing = vendor(ROOT, fetch, args.date, infrastructures_only=args.infrastructures, prune=args.prune)
     print(f"vendor_favicons: {count} favicons, {len(missing)} hosts keep their monogram")
     for host in missing:
         print(f"  monogram: {host}")
+    for category, identities in coverage(ROOT).items():
+        print(f"{category} ({len(identities)}): " + ", ".join(identities))
     return 0
 
 

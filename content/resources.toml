@@ -385,6 +385,7 @@ dateAccessed = 2026-10-08
 [[resource]]
 guideRoute = "resources"
 id = "re3data"
+knav = "re3data"
 rdmkit = { id = "re3data", tess = "re3data" }
 functions = ["find-repositories"]
 name = "re3data.org"

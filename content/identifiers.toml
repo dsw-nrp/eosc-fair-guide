@@ -1299,6 +1299,7 @@ repositories = [
   "genasis",
 ]
 actions = [
+  "2026-11-13-knav-refresh",
   "2026-10-16-initial-state",
   "release-1.0.0-alpha.1",
   "release-1.0.0-alpha.2",
@@ -1323,6 +1324,8 @@ actions = [
   "release-1.0.0-alpha.5",
   "2026-11-02-nkr-integration",
   "2026-11-06-identity-migration",
+  "2026-11-13-fip-refresh",
+  "2026-11-14-catalogue-repair",
 ]
 models = [
   "layers-seams",

@@ -1902,3 +1902,35 @@ instruments = ["release-automation"]
 objects = []
 results = ["guide"]
 endTime = 2026-11-01T16:24:01+00:00
+
+[[action]]
+id = "2026-11-14-catalogue-repair"
+type = "update"
+name = "Reconcile source identities and presentation"
+description = "Prepared kind-scoped source identity allocation, preserved registry classification, moved citations to About, and extended favicon acquisition evidence. Reserved inferred organisations through the shared resolver, verified complete contained favicon sets and public HTTPS destinations, and added bilingual stale-data recovery with transactional revision checks. Deferred registry and assessment configuration through existing local parts."
+agent = "david-novak"
+instruments = ["openai-codex", "openai-gpt-6-runtime"]
+objects = ["resources/fip-dashboard"]
+results = ["guide"]
+endTime = 2026-11-14T20:53:51+00:00
+
+[[action]]
+id = "2026-11-13-fip-refresh"
+type = "update"
+name = "Reconcile the FIP Dashboard snapshot refresh"
+description = "Reviewed the FIP Dashboard 0.2.0 snapshot's separate registry and repository classifications and mapped both to the Guide's existing repository-or-registry resource type. Preserved the source classifications, demonstration disclaimer and previously issued record addresses."
+agent = "david-novak"
+instruments = ["openai-codex", "openai-gpt-6-runtime"]
+objects = []
+results = ["guide"]
+endTime = 2026-11-13T22:11:49+01:00
+
+[[action]]
+id = "2026-11-13-knav-refresh"
+type = "update"
+name = "Reconcile the KNAV snapshot refresh"
+description = "Regenerated the refreshed snapshot's Guide identity metadata through the current normalizer and linked the newly imported KNAV re3data entry to the existing curated resource after reviewing their common address. Preserved the source passages and retrieval date."
+agent = "david-novak"
+instruments = ["duplicate-fix", "openai-codex", "openai-gpt-6-runtime"]
+results = ["resources/re3data"]
+endTime = 2026-11-13T22:11:49+01:00

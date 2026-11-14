@@ -400,11 +400,8 @@
       );
     });
   };
-  /* The resource types that are tools or services, whose entries carry a service badge. */
-  const SERVICE_TYPES = ["service", "tool", "registry"].map((code) => FG.term("resource-types", code));
-
-  /** A service's badge, when the entity is a tool or a service. */
-  const serviceOf = (entity) => (SERVICE_TYPES.includes(typeOf(entity)) ? entity : null);
+  /** An own-site badge for a resource kind enabled by the shared favicon policy. */
+  const serviceOf = (entity) => ((FG.config.favicons?.types || []).some((code) => FG.term("resource-types", code) === typeOf(entity)) ? entity : null);
 
   /** An entry as a card, the same for every kind: its own identifier with what it is and how the guide uses it;
       its title; one quiet line of details; its text; badges for its state only; then its relations, one row each,
@@ -513,6 +510,7 @@
   const uses = (list) => list.map((use) => FG.t("catalogue.use." + use));
 
   function resourceCard(resource, record, used, holders, compact) {
+    const conflict = record?.fer && FG.id(record.fer.guideType) !== FG.id(resource.resourceType);
     return entryCard({
       kind: "resources",
       compact,
@@ -532,8 +530,9 @@
         resource.nodeState ? FG.stateBadge({ icon: "◆", text: FG.termName(resource.nodeState), asOf: resource.statusAsOf, attrs: { "data-node-state": FG.termKey(resource.nodeState) }, field: "nodeState statusAsOf" }) : null,
         resource.nodeStateSince ? field("nodeStateSince", FG.formatDate(resource.nodeStateSince)) : null,
         FG.nodeBadge(resource),
-        record ? FG.verificationBadges(record.fer) : null,
+        record && !conflict ? FG.verificationBadges(record.fer) : null,
       ],
+      notes: conflict && !compact ? FG.dashboardClaims(record) : null,
       fields: { basedOn: "isBasedOn source rdmkitRecord trainingSearch" },
       relations: {
         principles: record && record.fer ? tiles(FG.principlesOf(record.fer)) : [],
