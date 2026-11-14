@@ -1904,6 +1904,16 @@ results = ["guide"]
 endTime = 2026-11-01T16:24:01+00:00
 
 [[action]]
+id = "2026-11-13-knav-refresh"
+type = "update"
+name = "Reconcile the KNAV snapshot refresh"
+description = "Regenerated the refreshed snapshot's Guide identity metadata through the current normalizer and linked the newly imported KNAV re3data entry to the existing curated resource after reviewing their common address. Preserved the source passages and retrieval date."
+agent = "david-novak"
+instruments = ["duplicate-fix", "openai-codex", "openai-gpt-6-runtime"]
+results = ["resources/re3data"]
+endTime = 2026-11-13T22:11:49+01:00
+
+[[action]]
 id = "2026-11-14-catalogue-repair"
 type = "update"
 name = "Reconcile source identities and presentation"
@@ -1926,11 +1936,12 @@ results = ["guide"]
 endTime = 2026-11-13T22:11:49+01:00
 
 [[action]]
-id = "2026-11-13-knav-refresh"
+id = "2026-11-14-identity-review"
 type = "update"
-name = "Reconcile the KNAV snapshot refresh"
-description = "Regenerated the refreshed snapshot's Guide identity metadata through the current normalizer and linked the newly imported KNAV re3data entry to the existing curated resource after reviewing their common address. Preserved the source passages and retrieval date."
+name = "Review catalogue identities and terms"
+description = "Corrected licence-family, software-deployment and provider-mechanism identity joins after maintainer review, preserving precise source keys and native claims. Added contextual bilingual references for eight imported glossary terms and kept instance-scoped verification in attributed source detail. Recorded the reader integration separately from the runtime prerequisite so its content changes retain fresh provenance after that prerequisite and the source refreshes merge."
 agent = "david-novak"
-instruments = ["duplicate-fix", "openai-codex", "openai-gpt-6-runtime"]
-results = ["resources/re3data"]
-endTime = 2026-11-13T22:11:49+01:00
+instruments = ["openai-codex", "openai-gpt-6-runtime"]
+objects = ["resources/fip-dashboard", "clauses/A.K4.1", "clauses/NKR-SCHEMA.01", "clauses/RDMKIT.publication.01", "clauses/POLICY-MANUAL.02"]
+results = ["guide", "resources/creative-commons", "resources/clarin-dspace", "resources/dmp-eosc", "resources/datacite", "resources/avcr-fair-wizard", "pages/about", "pages/ai", "pages/provenance", "checks/fip", "advice/plan.17", "advice/plan.21", "advice/plan.22", "advice/plan.32", "advice/publication.21", "advice/publication.30"]
+endTime = 2026-11-14T12:20:22+00:00

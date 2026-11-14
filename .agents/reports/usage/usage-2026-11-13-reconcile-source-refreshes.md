@@ -43,3 +43,6 @@
   present in the prior candidate was removed in the working copy and is preserved in delivery.
   Required hosted checks are verified on the published heads; human acceptance, merges, issue closure, spec sync,
   archive and release remain separate.
+  Preparing the actual commit stack reproduced a provenance failure against the reader's immediate prerequisite:
+  the combined candidate had reused the runtime action without a later completion. The separate reader PR now
+  records its content changes in `2026-11-14-identity-review`; each prepared stage is checked against its own base.

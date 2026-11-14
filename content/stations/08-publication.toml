@@ -182,7 +182,7 @@ sources = ["FDO.FDOR-GR2", "FDO.FDO-FDOR5"]
 id = "publication.21"
 lens = "K"
 level = "L0"
-text = { cs = "FIP určuje preferované typy PID v oboru, pravidla jejich správy a protokoly přístupu k datům.", en = "The FIP sets the preferred PID types in the domain, the rules for managing them, and the protocols for accessing the data." }
+text = { cs = "[[glossary/fair-implementation-profile|FIP]] určuje preferované typy PID v oboru, pravidla jejich správy a protokoly přístupu k datům.", en = "The [[glossary/fair-implementation-profile|FIP]] sets the preferred PID types in the domain, the rules for managing them, and the protocols for accessing the data." }
 action = { label = { cs = "Identifikátory ve FIP Dashboardu", en = "Identifiers in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources?principles=F1" }
 sources = ["A.F1.F1", "A.F1.F2", "A.A1.F1", "FIP-DASHBOARD.01"]
 
@@ -231,5 +231,5 @@ sources = ["A.R1.2.N3", "EC-GENAI-GUIDELINES.01"]
 id = "publication.30"
 lens = "V"
 level = "L1"
-text = { cs = "Před uložením si v pokynech repozitáře přečtěte, jaké formáty souborů přijímá a jak se data nahrávají, a myslete i na ty, kdo budou data stahovat: například tisíce drobných souborů se snáz přenesou zabalené do jednoho archivu (.zip, .tar.gz), jehož obsah popíše README. Po nahrání porovnejte kontrolní součty souborů (SHA-256 nebo MD5) s těmi, které jste spočítali před nahráním.", en = "Before deposit, read in your repository's instructions which file formats it accepts and how data are uploaded, and think also of those who will download the data: thousands of small files, for example, are easier to transfer packed into one archive (.zip, .tar.gz) whose contents the README describes. After upload, compare the file checksums (SHA-256 or MD5) with those calculated before upload." }
+text = { cs = "Před uložením si v pokynech repozitáře přečtěte, jaké [[glossary/preferred-formats|formáty souborů přijímá a doporučuje]] a jak se data nahrávají, a myslete i na ty, kdo budou data stahovat: například tisíce drobných souborů se snáz přenesou zabalené do jednoho archivu (.zip, .tar.gz), jehož obsah popíše README. Po nahrání porovnejte kontrolní součty souborů (SHA-256 nebo MD5) s těmi, které jste spočítali před nahráním.", en = "Before deposit, read in your repository's instructions which [[glossary/preferred-formats|file formats it accepts and recommends]] and how data are uploaded, and think also of those who will download the data: thousands of small files, for example, are easier to transfer packed into one archive (.zip, .tar.gz) whose contents the README describes. After upload, compare the file checksums (SHA-256 or MD5) with those calculated before upload." }
 sources = ["RDMKIT.publication.01", "RDMKIT.transfer.01", "CDSC-README.01", "CDIF.REC5"]

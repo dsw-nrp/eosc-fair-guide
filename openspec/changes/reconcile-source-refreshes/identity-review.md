@@ -86,3 +86,7 @@ references nor the semantic content joins that depend on a prepared source. Orig
 separate. A final integration patch applies after the four refreshed sources and carries the reviewed joins,
 glossary references and their paradata. Each projected stage must pass independently; the final combined tree
 must reproduce the reviewed working files exactly.
+
+The reader PR records its content work in `2026-11-14-identity-review`, separate from the runtime action
+`2026-11-14-catalogue-repair`. Freshness is checked against the assembled source-cohort parent as well as the
+original main branch, so the content remains covered after the prerequisite PRs merge.

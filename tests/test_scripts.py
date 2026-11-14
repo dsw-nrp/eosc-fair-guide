@@ -2684,7 +2684,8 @@ class SiteTests(unittest.TestCase):
         self.assertNotIn(iri("repositories/lindat-clariah-cz#fip-dashboard"), members)
         self.assertNotIn(iri("repositories/zenodo#fip-dashboard"), members)
         self.assertEqual(graph.index["fip-dashboard.asep-arl"], graph.index["re3data.r3d100014032"])
-        self.assertEqual(graph.index["fip-dashboard.clarin-dspace"], graph.index["re3data.r3d100010386"])
+        self.assertNotIn(iri("resources/clarin-dspace"), members)
+        self.assertNotEqual(graph.index["fer:clarin-dspace"], graph.index["re3data.r3d100010386"])
         nma = graph.entities[iri("resources/nma")]
         self.assertEqual(nma["serviceStatus"], {"@id": iri("vocabularies/statuses/operational")})
         self.assertEqual(nma["repositoryFunction"], {"@id": iri("vocabularies/repository-functions/find-metadata")})
@@ -2749,7 +2750,8 @@ class SiteTests(unittest.TestCase):
         content = build_crate.load_content()
         entries = {item.name: item for item in check_duplicates.entries(content)}
         self.assertIn("fd:asep-arl", entries["re3data:r3d100014032"].keys)
-        self.assertIn("fd:clarin-dspace", entries["re3data:r3d100010386"].keys)
+        self.assertNotIn("fd:clarin-dspace", entries["re3data:r3d100010386"].keys)
+        self.assertIn("fd:clarin-dspace", entries["resource:clarin-dspace"].keys)
 
     def test_duplicate_exceptions_follow_local_ids_while_source_keys_keep_their_issuer(self):
         content = build_crate.load_content()

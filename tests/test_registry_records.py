@@ -31,6 +31,43 @@ def names(entity: dict) -> set[str]:
 
 
 class RegistryRecordTests(unittest.TestCase):
+    def test_specific_licence_is_separate_from_overview_and_publisher(self):
+        licence, overview, publisher = map(
+            iri, ("resources/cc-by-4-0", "resources/creative-commons", "organizations/cc")
+        )
+        self.assertEqual(self.entities[licence]["url"], "https://creativecommons.org/licenses/by/4.0/")
+        self.assertEqual(set(records_of(self.entities, licence)), {"fip-dashboard"})
+        self.assertNotIn("fip-dashboard", records_of(self.entities, overview))
+        self.assertEqual(set(records_of(self.entities, publisher)), {"fip-dashboard-organization"})
+        record = records_of(self.entities, licence)["fip-dashboard"]
+        self.assertIn(publisher, kb.ids_of(record["provider"]))
+
+    def test_repository_software_is_separate_from_its_deployed_repository(self):
+        software, repository = map(iri, ("resources/clarin-dspace", "repositories/lindat-clariah-cz"))
+        self.assertEqual(self.entities[software]["resourceType"], kb.ref(iri("vocabularies/resource-types/tool")))
+        self.assertNotIn("fip-dashboard", records_of(self.entities, repository))
+        record = records_of(self.entities, software)["fip-dashboard"]
+        self.assertIn("instance", record["description"][1]["@value"].lower())
+        self.assertTrue(record.get("review"))
+        self.assertNotIn("review", self.entities[software])
+        self.assertNotIn("acceptsDeposits", self.entities[software])
+        self.assertNotIn(software, kb.ids_of(self.entities["#repositories"]["hasPart"]))
+
+    def test_generic_dsw_platform_is_separate_from_hosted_instances(self):
+        platform, national, elixir = map(
+            iri, ("resources/dsw", "resources/dmp-eosc", "resources/data-stewardship-wizard")
+        )
+        self.assertEqual(self.entities[platform]["url"], "https://ds-wizard.org/")
+        self.assertNotIn("fip-dashboard", records_of(self.entities, national))
+        self.assertNotEqual(self.entities[platform]["url"], self.entities[elixir]["url"])
+        self.assertEqual(set(records_of(self.entities, platform)), {"fip-dashboard"})
+
+    def test_datacite_provider_is_separate_from_doi_registration_mechanism(self):
+        agency, mechanism = map(iri, ("resources/datacite", "resources/doi"))
+        self.assertNotIn("fip-dashboard", records_of(self.entities, agency))
+        record = records_of(self.entities, mechanism)["fip-dashboard"]
+        self.assertIn(agency, kb.ids_of(record["provider"]))
+
     @classmethod
     def setUpClass(cls):
         cls.content = content_without_nkr()

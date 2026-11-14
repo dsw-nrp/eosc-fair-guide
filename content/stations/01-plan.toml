@@ -141,7 +141,7 @@ steps = [
   { cs = "podporované licence a typy trvalých identifikátorů;", en = "supported licences and types of persistent identifiers;" },
   { cs = "typy a maximální velikost datových sad;", en = "types and maximum size of datasets;" },
   { cs = "podporu citlivých dat;", en = "support for sensitive data;" },
-  { cs = "odkazy na politiky repozitáře.", en = "links to the repository's policies." },
+  { cs = "odkazy na [[glossary/repository-policy|politiky repozitáře]].", en = "links to the [[glossary/repository-policy|repository's policies]]." },
 ]
 sources = ["A.K2.3.2c", "NKR-SCHEMA.01"]
 
@@ -170,7 +170,7 @@ sources = ["OS-LINKAGES.01", "NKR-SCHEMA.01"]
 id = "plan.21"
 lens = "K"
 level = "L0"
-text = { cs = "Zapište do FIP doporučené standardy, slovníky a repozitáře, aby je výzkumníci mohli využít při přípravě DMP. Profil komunity udržujte ve [[resources/fip-dashboard|FIP Dashboardu]].", en = "Record recommended standards, vocabularies and repositories in the FIP so researchers can use them when preparing a DMP. Maintain the community's profile in the [[resources/fip-dashboard|FIP Dashboard]]." }
+text = { cs = "Zapište do [[glossary/fair-implementation-profile|FIP]] doporučené standardy, slovníky a repozitáře, aby je výzkumníci mohli využít při přípravě DMP. Profil komunity udržujte ve [[resources/fip-dashboard|FIP Dashboardu]].", en = "Record recommended standards, vocabularies and repositories in the [[glossary/fair-implementation-profile|FIP]] so researchers can use them when preparing a DMP. Maintain the community's profile in the [[resources/fip-dashboard|FIP Dashboard]]." }
 action = [{ label = { cs = "Profily ve FIP Dashboardu", en = "Profiles in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/profiles" }, { label = { cs = "Zkontrolovat úplnost FIP", en = "Check a FIP's completeness" }, href = "checks/fip" }]
 sources = ["A.K4.1", "A.K4.3", "FIP-DASHBOARD.01"]
 
@@ -178,7 +178,7 @@ sources = ["A.K4.1", "A.K4.3", "FIP-DASHBOARD.01"]
 id = "plan.22"
 lens = "K"
 level = "L1"
-text = { cs = "Zapište oborová rozhodnutí do FIP jako výběr zdrojů umožňujících FAIR (FER).", en = "Record your domain's decisions in a FIP as a choice of FAIR-enabling resources (FERs)." }
+text = { cs = "Zapište oborová rozhodnutí do [[glossary/fair-implementation-profile|FIP]] jako výběr [[glossary/fair-enabling-resource|zdrojů umožňujících FAIR (FER)]].", en = "Record your domain's decisions in a [[glossary/fair-implementation-profile|FIP]] as a choice of [[glossary/fair-enabling-resource|FAIR-enabling resources (FERs)]]." }
 sources = ["A.K4.1"]
 
 [[advice]]
@@ -240,5 +240,5 @@ sources = ["RDMKIT.collect.02", "ETHICAL-SEVEN.01"]
 id = "plan.32"
 lens = "V"
 level = "L1"
-text = { cs = "Rozmyslete výběr dat k dlouhodobému uchování: uchovávejte neopakovatelná primární měření a pozorování, [[glossary/underlying-data|podkladová data]] k publikovaným výsledkům a skripty potřebné k jejich ověření; objemné mezivýsledky, které lze ze vstupů a skriptu spolehlivě znovu spočítat, v repozitáři archivovat netřeba, pokud to institucionální nebo grantová politika nevyžaduje.", en = "Plan which data to preserve long-term: keep irreplaceable primary measurements and observations, [[glossary/underlying-data|underlying data]] behind published findings, and the scripts needed to verify them; bulky intermediate files that can be reliably recomputed from the inputs and script need not be archived in a repository unless your institution's or funder's policy requires it." }
+text = { cs = "Rozmyslete [[glossary/appraisal|výběr dat k dlouhodobému uchování]]: uchovávejte neopakovatelná primární měření a pozorování, [[glossary/underlying-data|podkladová data]] k publikovaným výsledkům a skripty potřebné k jejich ověření; objemné mezivýsledky, které lze ze vstupů a skriptu spolehlivě znovu spočítat, v repozitáři archivovat netřeba, pokud to institucionální nebo grantová politika nevyžaduje.", en = "Plan [[glossary/appraisal|which data to preserve long-term]]: keep irreplaceable primary measurements and observations, [[glossary/underlying-data|underlying data]] behind published findings, and the scripts needed to verify them; bulky intermediate files that can be reliably recomputed from the inputs and script need not be archived in a repository unless your institution's or funder's policy requires it." }
 sources = ["POLICY-MANUAL.02", "POLICY-MANUAL.04", "LAW-328-2025.83"]
