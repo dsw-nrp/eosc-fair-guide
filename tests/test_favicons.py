@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import hashlib
 import shutil
+import socket
 import stat
 import struct
 import sys
@@ -55,6 +56,18 @@ class HostTests(unittest.TestCase):
 
 
 class CandidateTests(unittest.TestCase):
+    def test_network_fetch_refuses_a_loopback_target_before_requesting_it(self):
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.geturl.return_value = "https://127.0.0.1/icon.png"
+        response.read.return_value = png()
+        with (
+            mock.patch.object(vf.urllib.request, "urlopen", return_value=response) as opened,
+            self.assertRaises(ValueError),
+        ):
+            vf.network_fetch("https://127.0.0.1/icon.png", 1024)
+        opened.assert_not_called()
+
     def test_manifest_strings_round_trip_without_toml_injection(self):
         item = vf.Found(
             'quoted"host',
@@ -140,6 +153,86 @@ class VendorTests(unittest.TestCase):
 
     def saved_files(self) -> dict[str, bytes]:
         return {path.name: path.read_bytes() for path in (self.root / vf.TARGET).iterdir()}
+
+    def test_offline_acquisition_needs_no_dns_or_socket(self):
+        folder = self.root / "responses"
+        folder.mkdir()
+        for url, data in self.responses.items():
+            (folder / vf.response_name(url)).write_bytes(data)
+        with (
+            mock.patch.object(socket, "getaddrinfo", side_effect=AssertionError("offline DNS")),
+            mock.patch.object(socket, "socket", side_effect=AssertionError("offline socket")),
+        ):
+            vf.vendor(self.root, vf.file_fetch(folder), "2026-11-14", self.normalise_all)
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_non_public_destination_failure_retains_the_verified_icon(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        with (
+            mock.patch.object(
+                socket,
+                "getaddrinfo",
+                return_value=[(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("10.0.0.1", 443))],
+            ),
+            mock.patch.object(socket, "socket", side_effect=AssertionError("private connection")),
+        ):
+            vf.vendor(self.root, vf.network_fetch, "2026-11-14", self.normalise_all)
+        manifest = vf._toml(self.root / vf.MANIFEST)
+        self.assertEqual({row["outcome"] for row in manifest["observation"]}, {"failed"})
+        self.assertEqual({row["reason"] for row in manifest["observation"]}, {"destination-refused"})
+        self.assertEqual(str(manifest["favicon"][0]["retrieved"]), "2026-10-13")
+        self.assertEqual(self.saved_files()["a.example.org.png"], before["a.example.org.png"])
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_check_requires_a_manifest_but_accepts_an_explicit_empty_set(self):
+        self.assertTrue(vf.check(self.root), "a missing directory is not a verified empty set")
+        folder = self.root / vf.TARGET
+        folder.mkdir(parents=True)
+        self.assertTrue(vf.check(self.root), "a missing manifest is an integrity error")
+        (folder / "sources.toml").write_text("", encoding="utf-8")
+        self.assertTrue(vf.check(self.root), "an uninitialised manifest does not describe a set")
+        (folder / "sources.toml").write_text(vf.manifest_text([], "2026-11-14", []), encoding="utf-8")
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_existing_uninitialised_directory_is_not_bootstrapped_over(self):
+        (self.root / vf.TARGET).mkdir(parents=True)
+        fetch = mock.Mock(side_effect=AssertionError("fetch before integrity check"))
+        with self.assertRaisesRegex(ValueError, "existing favicon"):
+            vf.vendor(self.root, fetch, "2026-11-14", self.normalise_all)
+        fetch.assert_not_called()
+
+    def test_invalid_working_identities_are_refused_before_any_image_write(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        for host, key in (
+            ("../escape", None),
+            ("..\\..\\escape", None),
+            ("a.example.org", "../escape"),
+            ("C:\\escape", None),
+            ("/absolute", None),
+        ):
+            with self.subTest(host=host, key=key):
+                item = vf.Found(host, "https://a.example.org/icon.png", png(), "png", key=key)
+                attempt = vf.Acquisition(host, [item])
+                with (
+                    mock.patch.object(vf, "service_urls", return_value={host: item.source}),
+                    mock.patch.object(vf, "acquire", return_value=attempt),
+                    mock.patch.object(
+                        Path, "write_bytes", side_effect=AssertionError("image write before validation")
+                    ) as write,
+                    self.assertRaisesRegex(ValueError, "working identity"),
+                ):
+                    vf.vendor(self.root, self.fetch, "2026-11-14", self.normalise_all)
+                write.assert_not_called()
+                self.assertEqual(self.saved_files(), before)
+
+    def test_safe_working_identity_accepts_punycode_and_repeated_hyphens(self):
+        folder = self.root / "work"
+        folder.mkdir()
+        for host in ("xn--bcher-kva.example", "two--hyphens.example"):
+            item = vf.Found(host, "https://" + host + "/icon.png", png(), "png")
+            self.assertEqual(vf.working_path(folder, item, 0, "png").parent, folder)
 
     def test_recovery_reaps_only_owned_abandoned_stage_directories(self):
         vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)

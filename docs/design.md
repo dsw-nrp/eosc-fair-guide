@@ -51,14 +51,17 @@ entity identities.
 tags and selected-language data against the 300 KB budget. Neutral structure and one language load first.
 Requirements, FIP records, page texts, detailed advice, provenance and language patches load when needed;
 glossary source identifiers load with their definitions while primary IDs remain available for navigation.
-NKR and re3data pre-fill configuration loads with `questions`; repository identifier detail and unreferenced API
+NKR/re3data pre-fill and assessment-provider configuration load with `questions`; repository identifier detail and unreferenced API
 lookup entries load with the registry/check/API parts that use them, while authored-reference targets remain initial.
 Primary repository keywords load as property
 patches with `fips`. Repository catalogue/check routes wait for both parts, and cold text search waits for `fips`.
 Together they reconstruct the complete crate. Language changes preserve answers and view state.
 Missing language files leave the usable view in place with retry. Originals, published titles and
-vocabulary labels retain their languages. A downloaded script is accepted only after its expected data registers;
-otherwise Retry fetches a corrected copy while retaining accepted data. Compact aliases support local cross-language search.
+vocabulary labels retain their languages. Initial KB/UI and deferred data carry one deterministic revision derived
+from their content and consumer code. Script requests name that revision; registration is checked before merging.
+Each neutral part and its selected translation are accepted together. Missing or stale files leave the previous
+view, input and saved answers intact; Retry reuses accepted data and refetches rejected files. A changed revision
+also offers Reload page, retaining saved answers. Compact aliases support local cross-language search.
 L1-L3 advice text uses property patches; station views and the AI advice page wait for it. Text search waits
 for requirements, questions, detailed advice and FIP records in the selected language before publishing a complete
 index. A failed load offers retry without confirming partial results; navigation moves retry to the current form,

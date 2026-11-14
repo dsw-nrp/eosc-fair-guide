@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -28,6 +30,56 @@ def merge_patch(target, patch):
 
 
 class LanguageTests(unittest.TestCase):
+    def test_all_data_and_initial_scripts_share_a_deterministic_build_revision(self):
+        def revision(generated):
+            return assignment(generated[build_crate.UI_SCRIPT], "window.FairGuideData.ui = ")["config"]["revision"]
+
+        expected = revision(self.generated)
+        self.assertRegex(expected, r"^[0-9a-f]{24}$")
+        self.assertEqual(
+            expected, assignment(self.generated[build_crate.KB_SCRIPT], "window.FairGuideData.revision = ")
+        )
+        content = build_crate.load_content()
+        self.assertEqual(expected, revision(build_crate.outputs(content=content)))
+        content["ui"]["app"]["title"]["en"] += " updated"
+        self.assertNotEqual(
+            expected, revision(build_crate.outputs(content=content)), "a translation changes the revision"
+        )
+        read_bytes = Path.read_bytes
+        with mock.patch.object(
+            Path, "read_bytes", lambda path: read_bytes(path) + (b"\n// updated" if path.name == "core.js" else b"")
+        ):
+            self.assertNotEqual(expected, revision(build_crate.outputs()), "consumer code changes the revision")
+        for name, path in build_crate.PART_SCRIPTS.items():
+            self.assertEqual(
+                expected, assignment(self.generated[path], f'window.FairGuideData.parts["{name}"] = ')["revision"]
+            )
+            for lang, translated in build_crate.PART_LANGUAGE_SCRIPTS[name].items():
+                self.assertEqual(
+                    expected,
+                    assignment(
+                        self.generated[translated], f'window.FairGuideData.partLanguages["{name}"]["{lang}"] = '
+                    )["revision"],
+                )
+        for lang, path in build_crate.LANGUAGE_SCRIPTS.items():
+            self.assertEqual(
+                expected, assignment(self.generated[path], f'window.FairGuideData.languages["{lang}"] = ')["revision"]
+            )
+        scripts = re.findall(r'<script[^>]+src="([^"]+)"', self.generated[build_crate.PAGE_FILE])
+        self.assertTrue(scripts)
+        self.assertTrue(all(path.endswith("?v=" + expected) for path in scripts), scripts)
+        self.assertNotIn("revision", json.loads(self.generated[build_crate.CRATE_FILE]))
+
+    def test_assessment_configuration_loads_with_questions(self):
+        initial = assignment(self.generated[build_crate.UI_SCRIPT], "window.FairGuideData.ui = ")
+        questions = assignment(
+            self.generated[build_crate.PART_SCRIPTS["questions"]], 'window.FairGuideData.parts["questions"] = '
+        )
+        expected = build_crate.page_config(build_crate.load_content())["config"]
+        for key in ("champion", "providers"):
+            self.assertNotIn(key, initial["config"])
+            self.assertEqual(questions["config"][key], expected[key])
+
     def test_repository_identifier_detail_and_unreferenced_api_paths_are_deferred(self):
         core = assignment(self.generated[build_crate.KB_SCRIPT], "window.FairGuideData.kb = ")
         initial = {row["@id"] for row in core["@graph"]}

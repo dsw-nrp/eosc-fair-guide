@@ -49,6 +49,7 @@ from pathlib import Path
 from typing import Any
 
 import build_crate as kb
+import public_https
 from refresh_snapshots import identity_content
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -229,12 +230,7 @@ def image_kind(data: bytes) -> str | None:
 def network_fetch(url: str, limit: int) -> tuple[str, bytes]:
     """The final address and the first `limit` + 1 bytes of a response, so a caller can tell a larger body; raises on
     an error status or a redirect away from HTTPS."""
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": ACCEPT})
-    with urllib.request.urlopen(request, timeout=TIMEOUT) as response:  # noqa: S310 - HTTPS addresses only
-        final = response.geturl()
-        if not final.startswith("https://"):
-            raise ValueError("redirected away from HTTPS")
-        return final, response.read(limit + 1)
+    return public_https.fetch(url, limit, timeout=TIMEOUT, headers={"User-Agent": USER_AGENT, "Accept": ACCEPT})
 
 
 def response_name(url: str) -> str:
@@ -279,12 +275,22 @@ class Acquisition:
 REASONS = {
     "available": {"acquired"},
     "unavailable": {"no-usable-image", "not-renderable"},
-    "failed": {"timeout", "rate-limited", "service-error", "network-error", "redirect-refused", "response-too-large"},
+    "failed": {
+        "timeout",
+        "rate-limited",
+        "service-error",
+        "network-error",
+        "redirect-refused",
+        "destination-refused",
+        "response-too-large",
+    },
 }
 
 
 def failure_reason(error: Exception) -> str | None:
     """A definitive missing response is negative evidence; transport and service errors are retryable."""
+    if isinstance(error, public_https.DestinationRefusedError):
+        return "destination-refused"
     if isinstance(error, urllib.error.HTTPError):
         code = error.code
         error.close()
@@ -468,6 +474,22 @@ def owned_folder(root: Path, folder: Path) -> None:
         raise ValueError(f"unsafe favicon directory: {folder}")
 
 
+def working_path(folder: Path, item: Found, index: int, extension: str) -> Path:
+    """An image filename derived only from a validated identity inside its owned work folder."""
+    names = (item.host, item.stem)
+    if any(
+        not isinstance(name, str) or not re.fullmatch(r"[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?", name) or ".." in name
+        for name in names
+    ):
+        raise ValueError("invalid favicon working identity")
+    if extension not in {"png", "ico", "svg", "gif", "jpeg", "jpg", "webp"}:
+        raise ValueError("invalid favicon working identity image format")
+    path = folder / f"{item.stem}~{index}.{extension}"
+    if path.resolve().parent != folder.resolve() or is_link_or_reparse(path):
+        raise ValueError("favicon working identity escapes its directory")
+    return path
+
+
 def recover_publication(root: Path) -> None:
     """Recover a process stop between renames before the usual existing-set integrity guard."""
     target, backup = root / TARGET, root / "assets/.favicons-backup"
@@ -540,7 +562,8 @@ def vendor(
     recover_publication(root)
     hosts = {} if infrastructures_only else service_urls(root)
     previous = _toml(root / MANIFEST)
-    if problems := check(root):
+    # Acquisition alone may create the first set; the read-only checker always requires a recorded one.
+    if (root / TARGET).exists() and (problems := check(root)):
         raise ValueError("existing favicon files must pass --check before refresh: " + "; ".join(problems))
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         attempts = dict(zip(hosts, pool.map(lambda item: acquire(item[0], item[1], fetch), hosts.items()), strict=True))
@@ -548,19 +571,29 @@ def vendor(
     attempts.update(marks)
     found = {key: attempt.found for key, attempt in attempts.items()}
     work = root / WORK
+    if (
+        work.parent.resolve() != root.resolve() / WORK.parent
+        or is_link_or_reparse(work.parent)
+        or is_link_or_reparse(work)
+    ):
+        raise ValueError("unsafe favicon working directory")
     shutil.rmtree(work, ignore_errors=True)
     originals, normalised = work / "originals", work / "normalised"
     originals.mkdir(parents=True)
     normalised.mkdir()
     try:
-        for items in found.values():
-            for index, item in enumerate(items):
-                (originals / f"{item.stem}~{index}.{item.kind}").write_bytes(item.data)
+        prepared = [
+            (working_path(originals, item, index, item.kind), item.data)
+            for items in found.values()
+            for index, item in enumerate(items)
+        ]
+        for path, data in prepared:
+            path.write_bytes(data)
         normalise(originals, normalised)
         entries: list[tuple[Found, bytes]] = []
         for _host, items in sorted(found.items()):
             for index, item in enumerate(items):
-                path = normalised / f"{item.stem}~{index}.png"
+                path = working_path(normalised, item, index, "png")
                 data = path.read_bytes() if path.is_file() else b""
                 if png_size(data) == (SIZE, SIZE) and len(data) <= MAX_FILE_BYTES:
                     entries.append((item, data))
@@ -612,7 +645,23 @@ def check(root: Path = ROOT, *, folder: Path | None = None) -> list[str]:
     limit, a record without its source, or a file not recorded."""
     problems = []
     folder = folder if folder is not None else root / TARGET
-    manifest = _toml(folder / MANIFEST.name)
+    if not folder.is_dir():
+        return ["favicon asset directory is missing"]
+    if not (folder / MANIFEST.name).is_file():
+        return ["favicon manifest is missing"]
+    try:
+        manifest = _toml(folder / MANIFEST.name)
+    except (OSError, tomllib.TOMLDecodeError) as error:
+        return [f"favicon manifest is unreadable: {error}"]
+    metadata = manifest.get("favicons", {})
+    if (
+        not isinstance(metadata, dict)
+        or type(metadata.get("size")) is not int
+        or metadata.get("size") != SIZE
+        or type(metadata.get("retrieved")) is not date
+        or metadata["retrieved"] > date.today()
+    ):
+        problems.append("favicon set metadata must record its size and valid retrieval date")
     records = manifest.get("favicon", [])
     recorded = {item["file"] for item in records}
     identities = set()
