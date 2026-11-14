@@ -1,5 +1,18 @@
 ## ADDED Requirements
 
+### Requirement: Favicon publication preserves a recoverable verified set
+
+The vendor SHALL stage and validate the complete manifest and images before replacing the active set. Failed
+publication SHALL preserve or restore the previous verified set. An interrupted replacement SHALL have a recovery
+path before the next integrity guard runs; ordinary failed acquisition SHALL retain prior verified assets.
+
+#### Scenario: Publication stops between directory replacements
+
+- **GIVEN** a verified current favicon set and a complete staged replacement
+- **WHEN** publication is interrupted after preserving the old set but before installing the new one
+- **THEN** the previous set remains recoverable and the next run restores it before ordinary validation
+- **AND** no partial manifest/image set is accepted as a successful publication
+
 ### Requirement: Favicon acquisition has dated outcomes
 
 Favicon collection SHALL record its latest completed attempt per host or reviewed infrastructure key in the
