@@ -1,5 +1,18 @@
 ## ADDED Requirements
 
+### Requirement: Entry actions wait for their deferred evidence
+
+A maturity entry action SHALL retain its re3data target and wait for required questions data before interpreting
+the snapshot. Failed loading SHALL use the existing neutral Retry flow and SHALL NOT claim that a record is absent.
+Embedded-state checks SHALL exercise the embedded document's own state without requiring shared parent storage.
+
+#### Scenario: A maturity action starts while questions data is delayed
+
+- **GIVEN** a known re3data identifier selected from a cold landing search
+- **WHEN** the required questions data is delayed or fails to load
+- **THEN** the identifier and authored answers remain available and no missing-record conclusion is recorded
+- **AND** successful loading permits pre-fill while failed loading offers the existing Retry behavior
+
 ### Requirement: Explain terms where they help the reader
 
 The Guide SHALL link newly imported glossary terms from suitable existing bilingual guidance when a definition

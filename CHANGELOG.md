@@ -7,6 +7,9 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+- Breaking: source refreshes now refuse unresolved identity collisions within one kind and scope instead of
+  allocating numbered identifiers; review the identity match or supply a reviewed descriptive identifier before retrying.
+
 - Breaking: repository API records may omit `url` while planned or in development when they link an NKR record.
 - Breaking: every record is addressed `<kind>/<id>` in plain kind words (`resources/github`, `stations/licence`),
   or `<kind>/<scope>/<id>` where scope belongs to its identity, instead of the code addresses

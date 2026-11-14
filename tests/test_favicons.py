@@ -9,10 +9,12 @@ import shutil
 import struct
 import sys
 import tempfile
+import tomllib
 import unittest
 import urllib.error
 import zlib
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -52,6 +54,18 @@ class HostTests(unittest.TestCase):
 
 
 class CandidateTests(unittest.TestCase):
+    def test_manifest_strings_round_trip_without_toml_injection(self):
+        item = vf.Found(
+            'quoted"host',
+            "https://example.org/icon",
+            png(),
+            "png",
+            key='infrastructure-quoted"key',
+            file='quoted"file.png',
+        )
+        row = tomllib.loads(vf.manifest_text([(item, png())], "2026-11-14", []))["favicon"][0]
+        self.assertEqual((row["host"], row["key"], row["file"]), (item.host, item.key, item.file))
+
     def test_icons_are_tried_best_first_and_favicon_ico_last(self) -> None:
         html = """<head><link rel="apple-touch-icon" href="/touch.png">
         <link rel="icon" sizes="16x16" href="/16.png"><link rel="icon" sizes="64x64" href="/64.png">
@@ -116,6 +130,68 @@ class VendorTests(unittest.TestCase):
         if url not in self.responses:
             raise OSError(url)
         return url, self.responses[url][: limit + 1]
+
+    @staticmethod
+    def normalise_all(originals: Path, output: Path) -> list[str]:
+        for path in originals.iterdir():
+            (output / (path.stem + ".png")).write_bytes(png())
+        return []
+
+    def saved_files(self) -> dict[str, bytes]:
+        return {path.name: path.read_bytes() for path in (self.root / vf.TARGET).iterdir()}
+
+    def test_interruption_while_writing_manifest_preserves_verified_set(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        write = Path.write_text
+
+        def interrupt(path, *args, **kwargs):
+            if path.name == "sources.toml":
+                raise KeyboardInterrupt("publication interrupted")
+            return write(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "write_text", interrupt), self.assertRaises(KeyboardInterrupt):
+            vf.vendor(self.root, self.fetch, "2026-11-14", self.normalise_all)
+        self.assertEqual(self.saved_files(), before)
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_restart_recovers_backup_before_integrity_guard_and_retains_old_dates(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        (self.root / vf.TARGET).replace(self.root / "assets/.favicons-backup")
+        self.responses.clear()
+        vf.vendor(self.root, self.fetch, "2026-11-14", self.normalise_all)
+        after = self.saved_files()
+        self.assertEqual(after["a.example.org.png"], before["a.example.org.png"])
+        row = tomllib.loads(after["sources.toml"].decode())["favicon"][0]
+        self.assertEqual(str(row["retrieved"]), "2026-10-13")
+        self.assertEqual(vf.check(self.root), [])
+        self.assertFalse((self.root / "assets/.favicons-backup").exists())
+
+    def test_interruption_between_directory_renames_rolls_back(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        replace = Path.replace
+
+        def interrupt(path, destination):
+            if path.name.startswith(".favicons-stage-"):
+                raise KeyboardInterrupt("install interrupted")
+            return replace(path, destination)
+
+        with mock.patch.object(Path, "replace", interrupt), self.assertRaises(KeyboardInterrupt):
+            vf.vendor(self.root, self.fetch, "2026-11-14", self.normalise_all)
+        self.assertEqual(self.saved_files(), before)
+        self.assertEqual(vf.check(self.root), [])
+
+    def test_invalid_staged_manifest_never_replaces_verified_set(self):
+        vf.vendor(self.root, self.fetch, "2026-10-13", self.normalise_all)
+        before = self.saved_files()
+        with (
+            mock.patch.object(vf, "manifest_text", return_value="[[favicon]]\nfile = 'missing.png'\n"),
+            self.assertRaises(ValueError),
+        ):
+            vf.vendor(self.root, self.fetch, "2026-11-14", self.normalise_all)
+        self.assertEqual(self.saved_files(), before)
 
     def test_only_tools_and_services_are_asked_and_a_platform_tool_is_not(self) -> None:
         self.assertEqual(
