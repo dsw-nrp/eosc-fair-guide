@@ -128,9 +128,9 @@ tasks and require new acceptance evidence before delivery preparation is complet
   asset dates; serialize manifest strings consistently.
 - [x] 8.5 Share legacy snapshot route/address inference across allocation, retirement and reservations to match projection;
   prove no spurious retirement. Verify complete nonempty API lookup assertions and remove the obsolete badge comment.
-- [ ] 8.6 Run focused and complete checks on the repaired runtime, propagate its commit through the four source
+- [x] 8.6 Run focused and complete checks on the repaired runtime, propagate its commit through the four source
   branches and reader without rewriting their histories, and verify source fidelity, freshness and the 300 KB bound.
-- [ ] 8.7 Read back the published heads and PR descriptions, verify required hosted checks, and record the disposition
+- [x] 8.7 Read back the published heads and PR descriptions, verify required hosted checks, and record the disposition
   of every review finding and pre-existing observation without implying separate issues were filed.
 
 ## Workflow follow-up

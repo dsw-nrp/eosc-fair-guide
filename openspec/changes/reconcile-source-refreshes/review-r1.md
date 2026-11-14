@@ -10,7 +10,15 @@ pre-fill race, a planted missing deferred API entry, the implicit-route retireme
 publication/restart. The browser suite covers delayed, failed and retried data, preserved manual answers, a
 superseded pending target, and owning-document iframe state. Both phone failure screenshots were inspected.
 The runtime `breaking-change` label was applied and read back. Complete runtime acceptance passes all 36 checks
-in 261.9 seconds. Hosted verification remains pending on the repaired heads.
+in 261.9 seconds. Required hosted checks subsequently passed on all six published implementation heads, as recorded below.
+
+The combined reader at `649ca663e10b685d5e360d82de80e7055b52cdce` passes all 36 local checks in 230.9 seconds.
+The runtime repair and forward merges are published on all six PRs; their original histories remain ancestors.
+Each committed stage passes prerequisite-relative freshness, duplicates and the 300 KB bound. The combined
+initial download is 307,003 bytes in Czech and 304,604 bytes in English, below 307,200. All four source datasets
+retain exact native facts, source headers and unique genuine typed identifiers against their original PR heads.
+Eight additional bilingual desktop/320 px screen/print viewports verify the retained re3data target and were
+reviewed alongside the delayed/failed/Retry fixtures.
 
 | Finding | Disposition |
 | --- | --- |
@@ -28,3 +36,18 @@ in 261.9 seconds. Hosted verification remains pending on the repaired heads.
 | Existing unescaped positive manifest strings | Fix in the runtime PR alongside publication: consistent TOML-safe scalar serialization preserves the existing format. |
 | Existing search-focus preloading | Keep advisory: current intentional deferral-to-intent behavior; no change or separate issue is proposed here. |
 | Existing agent-derived organisation reservations | Advisory, track separately: the address helper repair does not claim to cover inferred agent identities; no issue has been filed. |
+
+## Published implementation-head acceptance
+
+| PR | Head | Required checks |
+| --- | --- | --- |
+| [dsw-nrp/eosc-fair-guide#180](https://github.com/dsw-nrp/eosc-fair-guide/pull/180) | `a958a80474a2560714e851317fd48d6032f29d76` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43615576712) |
+| [dsw-nrp/eosc-fair-guide#178](https://github.com/dsw-nrp/eosc-fair-guide/pull/178) | `71db5da1fc23d4b4beb8c207dd6014f8a35e57d3` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43616140005) |
+| [dsw-nrp/eosc-fair-guide#177](https://github.com/dsw-nrp/eosc-fair-guide/pull/177) | `6c7973b516e0999419018c65ec58252ee16a4e05` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43616139921) |
+| [dsw-nrp/eosc-fair-guide#176](https://github.com/dsw-nrp/eosc-fair-guide/pull/176) | `f86cd32759d10304d5a8d2eb5321759cd277eb1f` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43616139853) |
+| [dsw-nrp/eosc-fair-guide#168](https://github.com/dsw-nrp/eosc-fair-guide/pull/168) | `ad8918dfe7e154c2c4f0b716cdf762caf10358ea` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43616139771) |
+| [dsw-nrp/eosc-fair-guide#181](https://github.com/dsw-nrp/eosc-fair-guide/pull/181) | `649ca663e10b685d5e360d82de80e7055b52cdce` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43616130603) |
+
+PR descriptions and heads were read back exactly; original source PR prose is preserved. The completion
+record is the only subsequent reader change and receives its own required hosted checks before handoff.
+No PR was merged or review thread resolved by the agent. Human content and technical acceptance remain required.

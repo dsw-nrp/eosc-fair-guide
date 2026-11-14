@@ -52,8 +52,15 @@
   Phone screenshots of both failure states were inspected. The required changelog line and breaking-change label
   were added; metadata attribution, licences and funding remain intact. Protocol/network-policy observations retain
   explicit advisory dispositions in review-r1.md; no separate issue has been filed. Complete runtime acceptance
-  passes all 36 checks in 261.9 seconds. Hosted checks on repaired heads are pending. Human acceptance, merges, issue closure, spec sync, archive and release
+  passes all 36 checks in 261.9 seconds. Hosted checks on all six repaired implementation heads subsequently pass. Human acceptance, merges, issue closure, spec sync, archive and release
   remain separate.
   Preparing the actual commit stack reproduced a provenance failure against the reader's immediate prerequisite:
   the combined candidate had reused the runtime action without a later completion. The separate reader PR now
   records its content changes in `2026-11-14-identity-review`; each prepared stage is checked against its own base.
+  The repaired runtime passes 36/36 local checks in 261.9 seconds and the merged reader passes 36/36 in 230.9 seconds.
+  Runtime and all five dependent heads are published with forward history and atomic expected-head source updates.
+  All six stages pass prerequisite-relative freshness, duplicates and size checks; the combined initial payload is
+  307,003 bytes in Czech and 304,604 bytes in English. Exact native-source and typed-identifier fidelity is rechecked.
+  Eight further bilingual desktop/320 px screen/print captures verify the retained re3data control; these were
+  visually inspected. Required hosted checks pass on all six published implementation heads, and PR descriptions
+  and heads are read back exactly. The subsequent completion record receives its own required hosted checks before handoff.
