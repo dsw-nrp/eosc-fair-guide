@@ -85,7 +85,7 @@
   let discoveryLoad;
   const loadLocalScript = (path) => new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = path;
+    script.src = path + "?v=" + encodeURIComponent(FG.config.revision);
     script.onload = resolve;
     script.onerror = () => reject(new Error("The Guide could not load its discovery connector."));
     document.head.append(script);

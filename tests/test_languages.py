@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -28,6 +30,127 @@ def merge_patch(target, patch):
 
 
 class LanguageTests(unittest.TestCase):
+    def test_all_data_and_initial_scripts_share_a_deterministic_build_revision(self):
+        def revision(generated):
+            return assignment(generated[build_crate.UI_SCRIPT], "window.FairGuideData.ui = ")["config"]["revision"]
+
+        expected = revision(self.generated)
+        self.assertRegex(expected, r"^[0-9a-f]{24}$")
+        self.assertEqual(
+            expected, assignment(self.generated[build_crate.KB_SCRIPT], "window.FairGuideData.revision = ")
+        )
+        content = build_crate.load_content()
+        self.assertEqual(expected, revision(build_crate.outputs(content=content)))
+        content["ui"]["app"]["title"]["en"] += " updated"
+        self.assertNotEqual(
+            expected, revision(build_crate.outputs(content=content)), "a translation changes the revision"
+        )
+        read_bytes = Path.read_bytes
+        with mock.patch.object(
+            Path, "read_bytes", lambda path: read_bytes(path) + (b"\n// updated" if path.name == "core.js" else b"")
+        ):
+            self.assertNotEqual(expected, revision(build_crate.outputs()), "consumer code changes the revision")
+        for name, path in build_crate.PART_SCRIPTS.items():
+            self.assertEqual(
+                expected, assignment(self.generated[path], f'window.FairGuideData.parts["{name}"] = ')["revision"]
+            )
+            for lang, translated in build_crate.PART_LANGUAGE_SCRIPTS[name].items():
+                self.assertEqual(
+                    expected,
+                    assignment(
+                        self.generated[translated], f'window.FairGuideData.partLanguages["{name}"]["{lang}"] = '
+                    )["revision"],
+                )
+        for lang, path in build_crate.LANGUAGE_SCRIPTS.items():
+            self.assertEqual(
+                expected, assignment(self.generated[path], f'window.FairGuideData.languages["{lang}"] = ')["revision"]
+            )
+        scripts = re.findall(r'<script[^>]+src="([^"]+)"', self.generated[build_crate.PAGE_FILE])
+        self.assertTrue(scripts)
+        self.assertTrue(all(path.endswith("?v=" + expected) for path in scripts), scripts)
+        self.assertNotIn("revision", json.loads(self.generated[build_crate.CRATE_FILE]))
+
+    def test_assessment_configuration_loads_with_questions(self):
+        initial = assignment(self.generated[build_crate.UI_SCRIPT], "window.FairGuideData.ui = ")
+        questions = assignment(
+            self.generated[build_crate.PART_SCRIPTS["questions"]], 'window.FairGuideData.parts["questions"] = '
+        )
+        expected = build_crate.page_config(build_crate.load_content())["config"]
+        for key in ("champion", "providers"):
+            self.assertNotIn(key, initial["config"])
+            self.assertEqual(questions["config"][key], expected[key])
+
+    def test_repository_identifier_detail_and_unreferenced_api_paths_are_deferred(self):
+        core = assignment(self.generated[build_crate.KB_SCRIPT], "window.FairGuideData.kb = ")
+        initial = {row["@id"] for row in core["@graph"]}
+        fips = assignment(self.generated[build_crate.PART_SCRIPTS["fips"]], 'window.FairGuideData.parts["fips"] = ')
+        details = {row["@id"] for row in fips["entities"]}
+        crate = json.loads(self.generated[build_crate.CRATE_FILE])
+        identifiers = [
+            row["@id"].removeprefix(iri(""))
+            for row in crate["@graph"]
+            if row["@id"].startswith(iri("repositories/")) and "#id-" in row["@id"]
+        ]
+        self.assertTrue(identifiers)
+        for path in identifiers:
+            self.assertFalse(path in initial, path)
+            self.assertIn(path, details)
+        ui = assignment(self.generated[build_crate.UI_SCRIPT], "window.FairGuideData.ui = ")
+        referenced = {link["ref"] for links in ui["config"]["textLinks"].values() for link in links}
+        base = build_crate.record_base_of(crate)
+        expected = {
+            build_crate.record_address(entity_id, base): build_crate.record_address(entity_id, base)
+            for _, entity_id in build_crate.api_records(
+                {row["@id"]: row for row in crate["@graph"]}, build_crate.load_content()
+            )["repositories"]
+        }
+        self.assertTrue(expected, "the published API supplies repository paths")
+        self.assertTrue(set(expected) & referenced, "the corpus supplies authored repository references")
+        self.assertTrue(set(expected) - referenced, "the corpus supplies deferred repository paths")
+        for path, target in expected.items():
+            if path.startswith("repositories/"):
+                if path in referenced:
+                    self.assertEqual(ui["config"]["api"]["records"][path], target)
+                else:
+                    self.assertNotIn(path, ui["config"]["api"]["records"])
+                    for part in ("fips", "questions", "api"):
+                        data = assignment(
+                            self.generated[build_crate.PART_SCRIPTS[part]], f'window.FairGuideData.parts["{part}"] = '
+                        )
+                        self.assertEqual(data["config"]["api"]["records"][path], target)
+
+    def test_nkr_and_repository_keywords_wait_for_their_existing_parts(self):
+        content = build_crate.load_content()
+        for with_nkr in (True, False):
+            source = copy.deepcopy(content)
+            if not with_nkr:
+                source["snapshots"] = [row for row in source["snapshots"] if row["snapshot"]["source"] != "NKR"]
+            generated = self.generated if with_nkr else build_crate.outputs(content=source)
+            ui = assignment(generated[build_crate.UI_SCRIPT], "window.FairGuideData.ui = ")
+            self.assertFalse("nkr" in ui["config"], "NKR detail is in the initial UI config")
+            self.assertFalse("re3data" in ui["config"], "re3data detail is in the initial UI config")
+            part = assignment(
+                generated[build_crate.PART_SCRIPTS["questions"]], 'window.FairGuideData.parts["questions"] = '
+            )
+            for order in (("cs", "en"), ("en", "cs")):
+                restored = copy.deepcopy(part)
+                for lang in order:
+                    patch = assignment(
+                        generated[build_crate.PART_LANGUAGE_SCRIPTS["questions"][lang]],
+                        f'window.FairGuideData.partLanguages["questions"]["{lang}"] = ',
+                    )
+                    merge_patch(restored, patch["values"])
+                self.assertEqual(restored.get("config", {}).get("nkr"), build_crate.nkr_config(source["snapshots"]))
+                self.assertEqual(restored["config"]["re3data"], build_crate.re3data_facts(source))
+        crate = json.loads(self.generated[build_crate.CRATE_FILE])
+        core, parts = build_crate.split_crate(crate)
+        for row in core["@graph"]:
+            if row["@id"].startswith(iri("repositories/")) and "#" not in row["@id"]:
+                original = next(item for item in crate["@graph"] if item["@id"] == row["@id"])
+                self.assertNotIn("keywords", row)
+                if "keywords" in original:
+                    self.assertEqual(parts["fips"]["properties"][row["@id"]]["keywords"], original["keywords"])
+
     def test_mixed_bilingual_keywords_preserve_scalars_order_and_search(self) -> None:
         value = {
             "keywords": [
