@@ -5,11 +5,10 @@
 guideRoute = "resources"
 id = "dmp-eosc"
 name = "DMP.eosc.cz"
-description = { cs = "[[glossary/data-management-planning|Plánování správy dat]] v [[resources/data-stewardship-wizard|Data Stewardship Wizard]] se šablonami poskytovatelů a průvodcem licencemi.", en = "[[glossary/data-management-planning|Data management planning]] in the [[resources/data-stewardship-wizard|Data Stewardship Wizard]], with funder templates and a licence selector." }
+description = { cs = "[[glossary/data-management-planning|Plánování správy dat]] v [[resources/dsw|Data Stewardship Wizard]] se šablonami poskytovatelů a průvodcem licencemi.", en = "[[glossary/data-management-planning|Data management planning]] in the [[resources/dsw|Data Stewardship Wizard]], with funder templates and a licence selector." }
 url = "https://dmp.eosc.cz/"
 type = "service"
 fipClass = ["FAIR-Data-Stewardship-Plan-Template"]
-fipDashboard = "dsw-tool"
 status = "pilot"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
@@ -385,6 +384,7 @@ dateAccessed = 2026-10-08
 [[resource]]
 guideRoute = "resources"
 id = "re3data"
+knav = "re3data"
 rdmkit = { id = "re3data", tess = "re3data" }
 functions = ["find-repositories"]
 name = "re3data.org"
@@ -856,19 +856,15 @@ dateAccessed = 2026-10-08
 [[resource]]
 guideRoute = "resources"
 id = "creative-commons"
-name = "Creative Commons"
-description = { cs = "Standardní veřejné licence, například CC BY 4.0 a CC0.", en = "Standard public licences, such as CC BY 4.0 and CC0." }
+name = { cs = "Licence Creative Commons", en = "Creative Commons licences" }
+description = { cs = "Standardní veřejné licence, například [[resources/cc-by-4-0|CC BY 4.0]], a nástroj CC0.", en = "Standard public licences, such as [[resources/cc-by-4-0|CC BY 4.0]], and the CC0 tool." }
 url = "https://creativecommons.org/licenses/"
-type = "standard"
-fipClass = ["Data-usage-license"]
-fipDashboard = "cc-by-40"
-fipDashboardOrganization = "creative-commons"
+type = "guide"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V"]
 stations = ["licence"]
 languages = ["en"]
-sameAs = ["http://purl.org/np/RArwY4j9hx40cvd_La20zXCutOM-D4whR2lwbG0WoW5Ys#cc-by-4-0"]
 
 [[resource]]
 guideRoute = "resources"
@@ -936,7 +932,6 @@ description = { cs = "Registrační agentura DOI pro výzkumná data.", en = "Th
 url = "https://datacite.org/"
 type = "service"
 fipClass = ["Identifier-service"]
-fipDashboard = "doi-datacite"
 fipDashboardOrganization = "datacite"
 status = "operational"
 asOf = 2026-10-08
@@ -1464,7 +1459,7 @@ guideRoute = "resources"
 id = "avcr-fair-wizard"
 knav = "fw"
 name = { cs = "FAIR Wizard AV ČR", en = "FAIR Wizard of the Czech Academy of Sciences" }
-description = { cs = "Instance [[resources/data-stewardship-wizard|Data Stewardship Wizard]] pro výzkumníky pracovišť Akademie věd ČR: [[glossary/data-management-plan|plán správy dat]] podle dotazníku, spolupráce s kolegy a export pro poskytovatele.", en = "The [[resources/data-stewardship-wizard|Data Stewardship Wizard]] instance for researchers at the institutes of the Czech Academy of Sciences: a [[glossary/data-management-plan|data management plan]] built from a questionnaire, shared with colleagues and exported for funders." }
+description = { cs = "Instance [[resources/dsw|Data Stewardship Wizard]] pro výzkumníky pracovišť Akademie věd ČR: [[glossary/data-management-plan|plán správy dat]] podle dotazníku, spolupráce s kolegy a export pro poskytovatele.", en = "The [[resources/dsw|Data Stewardship Wizard]] instance for researchers at the institutes of the Czech Academy of Sciences: a [[glossary/data-management-plan|data management plan]] built from a questionnaire, shared with colleagues and exported for funders." }
 url = "https://avcr.fair-wizard.com/"
 type = "service"
 status = "operational"
@@ -2705,4 +2700,18 @@ lenses = ["V", "DS", "SR", "K"]
 citation = { type = "webpage", title = "Sustainability of Digital Formats: Planning for Library of Congress Collections", inLanguage = "en", publisher = "Library of Congress", dateModified = "2024-06-18", dateAccessed = "2026-10-30" }
 status = "operational"
 asOf = 2026-10-30
+languages = ["en"]
+
+[[resource]]
+guideRoute = "resources"
+id = "clarin-dspace"
+name = "CLARIN DSpace"
+description = { cs = "Repozitářový software založený na DSpace, používaný také [[repositories/lindat-clariah-cz|repozitářem LINDAT/CLARIAH-CZ]].", en = "Repository software based on DSpace, also used by the [[repositories/lindat-clariah-cz|LINDAT/CLARIAH-CZ Repository]]." }
+url = "https://github.com/ufal/clarin-dspace"
+type = "tool"
+fipDashboard = "clarin-dspace"
+status = "operational"
+asOf = 2026-11-14
+lenses = ["SR"]
+stations = ["repository"]
 languages = ["en"]

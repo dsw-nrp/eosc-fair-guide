@@ -51,10 +51,17 @@ entity identities.
 tags and selected-language data against the 300 KB budget. Neutral structure and one language load first.
 Requirements, FIP records, page texts, detailed advice, provenance and language patches load when needed;
 glossary source identifiers load with their definitions while primary IDs remain available for navigation.
+NKR/re3data pre-fill and assessment-provider configuration load with `questions`; repository identifier detail and unreferenced API
+lookup entries load with the registry/check/API parts that use them, while authored-reference targets remain initial.
+Primary repository keywords load as property
+patches with `fips`. Repository catalogue/check routes wait for both parts, and cold text search waits for `fips`.
 Together they reconstruct the complete crate. Language changes preserve answers and view state.
 Missing language files leave the usable view in place with retry. Originals, published titles and
-vocabulary labels retain their languages. A downloaded script is accepted only after its expected data registers;
-otherwise Retry fetches a corrected copy while retaining accepted data. Compact aliases support local cross-language search.
+vocabulary labels retain their languages. Initial KB/UI and deferred data carry one deterministic revision derived
+from their content and consumer code. Script requests name that revision; registration is checked before merging.
+Each neutral part and its selected translation are accepted together. Missing or stale files leave the previous
+view, input and saved answers intact; Retry reuses accepted data and refetches rejected files. A changed revision
+also offers Reload page, retaining saved answers. Compact aliases support local cross-language search.
 L1-L3 advice text uses property patches; station views and the AI advice page wait for it. Text search waits
 for requirements, questions, detailed advice and FIP records in the selected language before publishing a complete
 index. A failed load offers retry without confirming partial results; navigation moves retry to the current form,
@@ -268,7 +275,8 @@ does not make the generator the author. Reviewed identities, GitHub accounts and
 support credit; declined identifiers stay hidden and bots are not authors. Contributor suggestions do
 not guess identities. Stations show a quiet source/date line; the catalogue shows each change's person, tools
 (an AI model as a tool, never an author), consulted sources and changed items, and About credits the roles. The
-footer cites the Guide with its compiler as editor and credits analysis authors.
+About contains both complete citations: the analysis with its authors and the Guide with its compiler as editor.
+The footer's credits link opens that section, while version/build identity, licence and funding remain in the footer.
 `CITATION.cff` credits software authors, points to the editor citation and keeps the analysis as a reference.
 
 ## Catalogue and infrastructure
@@ -656,9 +664,15 @@ CONTRIBUTING; automated jobs never merge their own proposals.
 shape, completeness, pagination totals, response bounds and removal thresholds before replacing a file;
 interdependent Dashboard collections move together. Invalid responses retain the old snapshot. Date-only
 changes produce no PR. Reports distinguish changed, unchanged, empty, rejected and failed outcomes. Before
-writing, a refresh reserves every primary and retired identifier owned outside the snapshot being replaced;
-a new row whose derived slug is already taken receives a non-colliding suffix, and an identity collision that
-still needs review rejects the replacement instead of writing it.
+writing, a refresh reserves primary and retired identities by kind and scope. A glossary term may share a local
+word with a resource or page (`glossary/git`, `resources/git`, `pages/provenance`). Reviewed source joins resolve
+the existing thing before allocating a new row; an established row retains its precise local key. Projection
+attaches the observation under `<thing>#<scheme>`, without renaming the row after a broader curated entry.
+Joins distinguish licence versions from licence overviews/publishers, software from hosted instances, and
+identifier mechanisms from providers. A reviewed software type takes precedence over a native repository label
+for catalogue membership; the native label, text and scoped verification stay on the source record. An unresolved collision
+within one kind/scope rejects the replacement without allocating a counter. Legacy bare retirements remain
+conservatively reserved; meaningful version digits remain valid. Conflicting identity keys leave the old bytes intact.
 
 `source-refresh.yml` runs weekly, on dispatch, or when the comment-command workflow calls it for an exact
 `/refresh <source>` issue or PR comment from a currently authorized writer; it needs no existing refresh PR.

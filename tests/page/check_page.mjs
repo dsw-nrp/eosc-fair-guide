@@ -30,7 +30,8 @@ const namespace = siteNamespace(site);
 const crateNodes = crateIndex(graph, namespace);
 const publishedUi = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]);
 // The catalogue's records, by address, as the page names them.
-const catalogueRecords = new Set(Object.keys(publishedUi.config.api.records));
+const apiPart = JSON.parse(readFileSync(resolve(site, "assets/data/kb-api.js"), "utf8").match(/^window\.FairGuideData\.parts\["api"\] = (.*);$/m)[1]);
+const catalogueRecords = new Set(Object.keys({ ...publishedUi.config.api.records, ...apiPart.config.api.records }));
 /** A record's address, from its IRI in the crate. */
 const address = (entity) => addressOf(entity["@id"], namespace);
 // The full crate is independent of the browser's deferred loading. Keep explicit address assertions below,
@@ -714,10 +715,10 @@ sections.push(["page", async () => {
     await gotoView(fresh, pageUrl);
     await rendered(fresh);
     const startLanguage = await fresh.evaluate(() => window.FairGuide.state.lang);
-    const atStart = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src")));
+    const atStart = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src").split("?")[0]));
     await navigationRendered(fresh, () => fresh.evaluate((lang) => { window.location.hash = `#/${lang}/V/page/about`; }, startLanguage));
     await fresh.waitForSelector('[id="why"]');
-    const forPage = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src")));
+    const forPage = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src").split("?")[0]));
     if (atStart.join() !== `assets/data/kb-${startLanguage}.js` ||
         forPage.slice().sort().join() !== [`assets/data/kb-${startLanguage}.js`, "assets/data/kb-pages.js", `assets/data/kb-pages-${startLanguage}.js`, "assets/data/kb-model.js", `assets/data/kb-model-${startLanguage}.js`].sort().join()) {
       fail(`parts: the start loads ${atStart.join(", ")}; a page loads ${forPage.join(", ")}`);
@@ -905,7 +906,9 @@ sections.push(["page", async () => {
     if (argos.sources.length !== 2 || argos.sources[0][1] !== "výběr Průvodce" || !credited(argos, "knav-dm-tools-catalogue")) fail("sources: a curated resource with a KNAV record does not credit the Guide's selection and the KNAV catalogue: " + JSON.stringify(argos.sources));
     const bird = await entryOf("#/cs/V/catalogue/repositories/czech-bioimaging", "czech-bioimaging");
     if (!bird.pids.some((href) => href.startsWith("https://repo.cz/objects/"))) fail("sources: an NKR handle is not among the repository's identifiers: " + JSON.stringify(bird.pids));
-    if (bird.sources.some(([href, text]) => href.endsWith(cataloguePath("resources", "nkr")) || text.startsWith("NKR"))) fail("sources: NKR is credited without a record the Guide holds: " + JSON.stringify(bird.sources));
+    const birdHasNkrRecord = crate["@graph"].some((entity) => entity["@id"].endsWith("/repositories/czech-bioimaging#nkr"));
+    const birdNkrSource = credited(bird, "nkr");
+    if (birdHasNkrRecord ? !birdNkrSource || !dated(birdNkrSource) : Boolean(birdNkrSource)) fail("sources: NKR credit does not match the held record and its snapshot date: " + JSON.stringify(bird.sources));
     await entryOf("#/cs/V/catalogue/resources/nkr", "nkr");
     const registry = await view.evaluate(() => ({
       repository: window.FairGuide.repositoryEntries().some((entry) => entry["@id"] === "resources/nkr"),
@@ -1474,13 +1477,13 @@ sections.push(["self-check", async () => {
   if (!(await page.locator('details[data-key="L3"][open]').count())) fail("station: the provenance line does not open the sources and paradata");
   const history = await page.locator('details[data-key="L3"]').textContent();
   if (/Novák|Claude/.test(history) || !/obsah (vytvořen|upraven)/.test(history)) fail("station: the change history names people or tools, or lists no dated change");
-  const basis = await page.locator(".site-footer p", { hasText: "Obsah vychází z" }).textContent();
-  if (!basis.includes("Trtíková, I.") || !basis.includes("Čížek, T.") || !basis.includes("verze 1.2") || !basis.includes("doi.org/10.71495/5dv6-v116")) fail("footer: the analysis is not cited with its authors: " + basis);
-  const guideCitation = await page.locator(".site-footer p", { hasText: "Jak citovat Průvodce" }).textContent();
-  if (!guideCitation.includes("Novák, D. (ed.)") || !guideCitation.includes("[software]")) fail("footer: the guide is not cited as software with its editor: " + guideCitation);
-  if (/Berka/.test(guideCitation)) fail("footer: the guide's citation names a content contributor as an author: " + guideCitation);
   await page.locator(".site-footer a", { hasText: "Kdo se podílel" }).click();
   await page.waitForFunction(() => document.activeElement && document.activeElement.id === "credits");
+  const basis = await page.locator("#credits .analysis-citation").textContent();
+  if (!basis.includes("Trtíková, I.") || !basis.includes("Čížek, T.") || !basis.includes("verze 1.2") || !basis.includes("doi.org/10.71495/5dv6-v116")) fail("footer: the analysis is not cited with its authors: " + basis);
+  const guideCitation = await page.locator("#credits .guide-citation").textContent();
+  if (!guideCitation.includes("Novák, D. (ed.)") || !guideCitation.includes("[software]")) fail("footer: the guide is not cited as software with its editor: " + guideCitation);
+  if (/Berka/.test(guideCitation)) fail("footer: the guide's citation names a content contributor as an author: " + guideCitation);
   const roles = await page.locator(".credits tbody th").allTextContents();
   if (roles.length !== 6 || !roles[0].includes("Autoři obsahového základu") || !roles[1].includes("editor") || !roles[3].includes("Spolupráce na obsahu")) fail("about: the roles table is incomplete: " + roles.join(" | "));
   if (!(await page.locator('.credits a[href="https://orcid.org/0000-0001-6491-2947"]').count())) fail("about: the analysis authors do not link their ORCID iDs");
@@ -2367,7 +2370,7 @@ sections.push(["knav catalogue", async () => {
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   const cards = page.locator(".catalogue-results .entry-card");
   // The catalogue's view code is not part of the first download; it loads when the catalogue first opens.
-  const viewCode = () => page.locator('script[src$="assets/js/catalogue-view.js"]').count();
+  const viewCode = () => page.locator('script[src*="assets/js/catalogue-view.js?v="]').count();
   if (await viewCode()) fail("knav catalogue: the catalogue view's code loads before the catalogue opens");
   /* Each tool is one entry: among the resources, or among the repositories and registries when one stands for it. */
   const listed = [];
@@ -2487,11 +2490,14 @@ sections.push(["visual system", async () => {
   if ((await badge(page.locator(".catalogue-results .entry-card").first()))[0]?.split(" ")[0] !== "fair-checker") fail("visual system: the evaluator's catalogue entry is not badged under the key the self-check uses");
   const standard = graph.find((r) => r.resourceType?.["@id"] === crateNodes.get(termAddress("resource-types", "standard"))["@id"] && r.identifier && catalogueRecords.has(address(r)));
   await visit(`#/cs/K/catalogue/${address(standard)}`);
-  // A standard is no service: it shows its kind's icon before its title, not a service's badge.
+  // Eligible standards use the same own-site badge and kind fallback as other resources.
   {
     const card = page.locator(".catalogue-results .entry-card").first();
-    if ((await card.locator(".entry-title > .service-badge[data-service]").count()) || (await card.locator(".entry-title > .service-placeholder use").getAttribute("href")) !== kindIcons.get("resources")) fail(`visual system: the standard ${standard.identifier} does not show its kind's icon, or carries a service's badge`);
+    if (!(await card.locator(".entry-title > .service-badge").count())) fail(`visual system: the standard ${standard.identifier} has no resource badge`);
   }
+  await visit("#/cs/K/catalogue/resources/coretrustseal");
+  const seal = page.locator(".catalogue-results .entry-title > .service-badge img");
+  if (favicons.has("coretrustseal.org") && (!(await seal.count()) || !(await seal.getAttribute("src")).endsWith("assets/favicons/coretrustseal.org.png"))) fail("visual system: CoreTrustSeal does not show its vendored own-site icon");
   for (const problem of problems) fail(`visual system: ${problem}`);
   await context.close();
 }]);
@@ -3058,6 +3064,56 @@ sections.push(["grouping and typography", async () => {
     if (external.length || problems.length) fail(`grouping/typography: ${external.join(' ')} ${problems.join(' ')}`);
     await context.close();
   }
+}]);
+
+sections.push(["Source identity", async () => {
+  const { context, page } = await openPage();
+  for (const lang of ["cs", "en"]) {
+    await gotoView(page, pageUrl + `#/${lang}/SR/catalogue/resources/clarin-dspace`);
+    const software = page.locator('[id="item-clarin-dspace"]');
+    if (await software.locator(":scope > .badges [data-verification]").count()) fail("source identity: instance verification badges certify CLARIN software: " + lang);
+    const claims = software.locator(".source-claims");
+    if (await claims.count() !== 1) fail("source identity: CLARIN source claims missing: " + lang);
+    else {
+      await claims.locator("summary").click();
+      if (!(await claims.textContent()).includes(lang === "cs" ? "CLARIN typu B" : "B-centre")) fail("source identity: CLARIN scoped source verification note lost: " + lang);
+      if (await claims.locator('[data-verification="verified"]').count() !== 1) fail("source identity: CLARIN source verification lost: " + lang);
+    }
+    for (const id of ["cc-by-4-0", "creative-commons", "dsw", "dmp-eosc", "doi", "datacite"]) {
+      await gotoView(page, pageUrl + `#/${lang}/V/catalogue/resources/${id}`);
+      if (await page.locator(`[id="item-${id}"]`).count() !== 1) fail("source identity: distinct entry missing: " + id + " " + lang);
+      await page.setViewportSize({ width: 320, height: 1000 });
+      for (const media of ["screen", "print"]) {
+        await page.emulateMedia({ media });
+        if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) fail(`source identity: ${id} overflows at 320 px in ${lang} ${media}`);
+      }
+      await page.emulateMedia({ media: "screen" });
+      await page.setViewportSize({ width: 1280, height: 1000 });
+    }
+  }
+  await context.close();
+}]);
+
+sections.push(["Citations", async () => {
+  const { context, page } = await openPage();
+  for (const lang of ["cs", "en"]) {
+    await gotoView(page, pageUrl + `#/${lang}/V/path/start`);
+    const footer = page.locator(".site-footer");
+    if (await footer.locator('a[href="https://doi.org/10.71495/5dv6-v116"]').count()) fail("footer: repeats the analysis citation");
+    if ((await footer.textContent()).includes("[software]")) fail("footer: repeats the software citation");
+    const credits = footer.locator('a[href$="/page/about/credits"]');
+    await credits.focus(); await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.activeElement?.id === "credits");
+    if (await page.locator("#credits .analysis-citation").count() !== 1) fail("about: analysis citation missing or repeated: " + lang);
+    if (await page.locator("#credits .guide-citation").count() !== 1) fail("about: Guide citation missing or repeated: " + lang);
+    if (await page.locator("#credits .credits tbody tr").count() !== 6) fail("about: lost a credit role: " + lang);
+    await page.emulateMedia({ media: "print" });
+    const repeatedUrls = await page.locator("#credits .analysis-citation a, #credits .guide-citation a").evaluateAll((links) =>
+      links.filter((link) => !["none", "normal", '""'].includes(getComputedStyle(link, "::after").content)).length);
+    if (repeatedUrls) fail("about: print repeats the citations' visible URLs: " + lang);
+    await page.emulateMedia({ media: "screen" });
+  }
+  await context.close();
 }]);
 
 sections.push(["NKR integration", async () => {

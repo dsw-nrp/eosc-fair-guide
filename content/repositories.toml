@@ -111,11 +111,10 @@ evidence = ["https://www.re3data.org/repository/r3d100014032", "https://lib.cas.
 
 [[record]]
 re3data = "r3d100010386"
-fipDashboard = "clarin-dspace"
 knav = "lindatclariah"
 name = { cs = "Repozitář LINDAT/CLARIAH-CZ", en = "LINDAT/CLARIAH-CZ Repository" }
 functions = ["deposit-data"]
-evidence = ["https://www.re3data.org/repository/r3d100010386", "https://fip-dashboard.dmp.eosc.cz/resources/clarin-dspace", "https://lindat.mff.cuni.cz/repository/home", "https://lindat.mff.cuni.cz/cs/"]
+evidence = ["https://www.re3data.org/repository/r3d100010386", "https://lindat.mff.cuni.cz/repository/home", "https://lindat.mff.cuni.cz/cs/"]
 
 [[record]]
 re3data = "r3d100010484"
