@@ -61,6 +61,9 @@ for (const problem of ["missing", "stale"]) for (const missing of ["neutral", "t
 }
 
 test("initial KB and UI must have the same nonempty build revision before graph acceptance", () => {
+  const absent = {};
+  runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window: absent, URL });
+  assert.throws(() => absent.FairGuide.load(), (error) => error.code === "data-revision", "an absent namespace offers Reload");
   for (const [kb, ui] of [[undefined, undefined], ["one", "two"], [undefined, "two"]]) {
     const window = { FairGuideData: { revision: kb, kb: { "@graph": [] }, ui: { ui: {}, config: { revision: ui, links: {} } } } };
     runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });
