@@ -55,7 +55,7 @@ v [REUSE.toml](REUSE.toml), plné texty ve složce [LICENSES/](LICENSES/).
 
 Průvodce připravil David Novák (Knihovna AV ČR a Archeologický ústav AV ČR, Praha; <https://orcid.org/0000-0001-6592-6291>). Odborným základem je analýza
 autorů Ilona Trtíková, Petra Bártková, Lada Biedermannová, Jindřich Fejfar, Robert Pergl, David Novák a
-Tomáš Čížek. Průvodce citujte podle odkazu „Jak citovat Průvodce“ v jeho patičce; [CITATION.cff](CITATION.cff)
+Tomáš Čížek. Průvodce citujte podle úplné citace na stránce „O Průvodci“; [CITATION.cff](CITATION.cff)
 uvádí autorství softwaru.
 
 ## Využití umělé inteligence
