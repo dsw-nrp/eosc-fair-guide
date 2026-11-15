@@ -160,3 +160,26 @@
   resolved tree exactly matches the reviewed reader tree, preserving all source facts, runtime repairs, identity
   separations, glossary references and the separate reader provenance action. Full native acceptance and the
   new published-head gate are required before handing back the conflict-free PR; no PR merge is performed here.
+
+  The explicitly requested OpenSpec verification checks the CLI-selected proposal, all three delta specs,
+  design and all 51 tasks against implementation commit 58e54f6. All 17 requirements and 50 scenarios map to
+  implementation and test/probe evidence; no applicable check is skipped and no critical issue, warning or
+  suggestion is found. Fresh verification passes 153 focused Python tests, 21 Node runtime tests, strict
+  OpenSpec validation (7/7), eight original-source fidelity comparisons and four bilingual contextual glossary
+  navigations at 320 px without external requests. The exact-head 36/36 native and green hosted receipts are
+  retained, with representative visual evidence sampled again. Favicon coverage still separates 56 failed
+  attempts from confirmed unavailability. The advisory report is saved as verification.md in this change;
+  implementation is unchanged and no commit, push, PR merge, issue closure, spec sync or archive is performed
+  by this verification.
+
+  The maintainer then explicitly selects archival and approves syncing all three capability deltas. Sync adds
+  15 requirements and modifies two while preserving existing titles, Purpose sections and unrelated requirements;
+  strict main-spec validation passes and an independent comparison finds all 17 deltas already represented.
+  The complete change, including its metadata and verification report, is moved to
+  openspec/changes/archive/2026-11-15-reconcile-source-refreshes with every file hash preserved. Final repository
+  validation is recorded separately from the earlier implementation acceptance. No commit, push, PR merge,
+  issue closure, sibling-change archive or release is performed by this archival step.
+  The final synced/archived working tree passes all 36 native repository checks in 231.3 seconds, including
+  strict OpenSpec validation, documentation, usage, content, API/profile, page and unit checks.
+  The maintainer separately authorizes committing and pushing this verified archival bundle on the existing
+  reader branch, preserving the implementation and leaving the sibling change active.
