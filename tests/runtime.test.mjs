@@ -9,10 +9,10 @@ import { runInNewContext } from "node:vm";
 
 const revisionDocument = (revision = "fixture-build") => ({ documentElement: { dataset: { revision } } });
 
-test("initial data must match the document even when both payloads agree", () => {
-  for (const [expected, payload] of [["current-build", "older-build"], [undefined, "older-build"]]) {
-    const document = revisionDocument(expected), window = { FairGuideData: { revision: payload, kb: { "@graph": [] },
-      ui: { ui: {}, config: { revision: payload, links: {} } } } };
+test("both initial payloads must independently match the document", () => {
+  for (const [expected, kb, ui = kb] of [["current-build", "older-build"], ["current-build", "current-build", "older-build"], [undefined, "older-build"]]) {
+    const document = revisionDocument(expected), window = { FairGuideData: { revision: kb, kb: { "@graph": [] },
+      ui: { ui: {}, config: { revision: ui, links: {} } } } };
     if (expected === undefined) delete document.documentElement.dataset.revision;
     runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, document, URL, URLSearchParams });
     assert.throws(() => window.FairGuide.load(), (error) => error.code === "data-revision");

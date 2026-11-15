@@ -104,3 +104,10 @@
   the additional absent-pair screen/print states are visually inspected. Complete native acceptance is repeated on
   this final code and passes 36/36 checks in 215.4 seconds. The small follow-up is prepared as a forward runtime
   commit and propagated through the same source/reader stack; exact-head hosted acceptance remains required.
+
+  Fourth review 5910050172 confirms all fifteen preceding findings and identifies one test-coverage gap. The
+  document-current / KB-current / UI-stale tuple now isolates the UI-to-document guard. A temporary in-memory
+  mutation removes that guard and the new tuple reports the expected failure; production core.js is unchanged,
+  and all 21 Node runtime tests pass with the real guard. The digest comment is corrected to acknowledge build
+  metadata. This is test/comment maintenance under the existing contract, with no behavior, API, stored-format,
+  dependency or visual change and no new specification delta. Full integrated and hosted verification follow.
