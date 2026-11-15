@@ -127,6 +127,11 @@
   both languages, HTTP/file/iframe and desktop/320 px/print. Forty-two recovery captures are retained and the new
   startup screen/print states are visually inspected. Full integrated acceptance and published-head gates remain
   pending and will be recorded separately from these focused results.
+  Complete integrated native acceptance subsequently passes 36/36 checks in 255.8 seconds, including the new
+  document-bound startup and real query-bearing loader matrix. Strict OpenSpec validation passes 7/7; all original
+  source fields/headers and typed identifiers remain exact, and both languages retain the 300 KB bound. The
+  runtime commit is forward-merged through all four source branches and the reader; publication and exact-head
+  hosted checks remain the final delivery step.
   A final fail-first probe covers both initial scripts being absent, when no data namespace exists. Initial loading
   now treats that case as a revision failure and offers Reload before accepting any graph. The expanded browser
   matrix verifies corrected Reload, retained saved answers and bilingual reflow, with 26 current recovery captures;

@@ -30,3 +30,9 @@ missing expectations stop acceptance; Reload alone restores the Guide with saved
 input retention remain covered in both languages, files/HTTP/iframes, desktop/320 px and print. The current
 matrix produces 42 recovery captures, including visually inspected new startup states. Full integrated and
 hosted acceptance remain pending.
+
+Complete integrated local acceptance subsequently passes all 36 native checks in 255.8 seconds with the four
+prepared source refreshes and reader integration present. Strict OpenSpec validation passes 7/7. Original
+source fields, headers and unique typed identifiers remain exact. Initial Czech/English payloads remain below
+307,200 bytes. The implementation is carried forward through all six local branches; publication and required
+checks on their actual remote heads are the remaining delivery task.
