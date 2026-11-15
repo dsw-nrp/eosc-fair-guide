@@ -1924,3 +1924,13 @@ instruments = ["openai-codex", "openai-gpt-6-runtime"]
 objects = []
 results = ["guide"]
 endTime = 2026-11-13T22:11:49+01:00
+
+[[action]]
+id = "2026-11-13-knav-refresh"
+type = "update"
+name = "Reconcile the KNAV snapshot refresh"
+description = "Regenerated the refreshed snapshot's Guide identity metadata through the current normalizer and linked the newly imported KNAV re3data entry to the existing curated resource after reviewing their common address. Preserved the source passages and retrieval date."
+agent = "david-novak"
+instruments = ["duplicate-fix", "openai-codex", "openai-gpt-6-runtime"]
+results = ["resources/re3data"]
+endTime = 2026-11-13T22:11:49+01:00
