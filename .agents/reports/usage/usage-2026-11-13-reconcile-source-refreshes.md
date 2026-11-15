@@ -150,4 +150,6 @@
   mutation removes that guard and the new tuple reports the expected failure; production core.js is unchanged,
   and all 21 Node runtime tests pass with the real guard. The digest comment is corrected to acknowledge build
   metadata. This is test/comment maintenance under the existing contract, with no behavior, API, stored-format,
-  dependency or visual change and no new specification delta. Full integrated and hosted verification follow.
+  dependency or visual change and no new specification delta. Complete integrated native acceptance passes
+  all 36 checks on the combined reader head; the stored health receipt records every required job as passed.
+  Published-head gates remain required before handoff.

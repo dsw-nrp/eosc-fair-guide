@@ -17,4 +17,5 @@ archive or release is authorized by this work.
 The new case reports `Missing expected exception` when the UI guard is removed from an isolated in-memory copy
 of `core.js`. The production file is left byte-for-byte unchanged. With the guard present, all 21 Node runtime
 tests pass, including rejection before graph/UI/config acceptance. The digest comment now acknowledges build
-metadata. Full integrated verification and exact-head hosted acceptance are recorded in the delivery evidence.
+metadata. Complete integrated native acceptance passes all 36 checks on the combined reader head. Exact-head
+hosted acceptance is required before handoff and is recorded separately in the delivery evidence.
