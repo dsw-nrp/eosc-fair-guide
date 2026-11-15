@@ -144,3 +144,10 @@
   all six stages pass freshness, duplicate and 300 KB checks. The record-only completion commit receives its own
   required hosted check before handoff. No source/favicon fetch, review-thread reply/resolution, issue closure,
   merge, spec sync, archive or release is performed.
+
+  Fourth review 5910050172 confirms all fifteen preceding findings and identifies one test-coverage gap. The
+  document-current / KB-current / UI-stale tuple now isolates the UI-to-document guard. A temporary in-memory
+  mutation removes that guard and the new tuple reports the expected failure; production core.js is unchanged,
+  and all 21 Node runtime tests pass with the real guard. The digest comment is corrected to acknowledge build
+  metadata. This is test/comment maintenance under the existing contract, with no behavior, API, stored-format,
+  dependency or visual change and no new specification delta. Full integrated and hosted verification follow.
