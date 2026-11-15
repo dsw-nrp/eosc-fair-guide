@@ -5417,7 +5417,7 @@ def outputs(
     localized_core, core_languages, core_search = split_languages(core)
     localized_ui, ui_languages, _ = split_languages(ui)
     localized_parts = {name: split_languages(part) for name, part in parts.items()}
-    # A revision covers the data and its consumer code, independently of timestamps or checkout location.
+    # A revision covers this build's generated data and metadata plus all browser consumer code.
     digest = hashlib.sha256(script_json([core, ui, parts, page]).encode("utf-8"))
     browser_scripts = root / "assets/js"
     for path in sorted(browser_scripts.rglob("*.js")):
