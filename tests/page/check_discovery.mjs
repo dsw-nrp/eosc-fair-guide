@@ -32,6 +32,8 @@ config.connectors.push({ id: "fixture-object-a", name: "Reviewed fixture A", ori
   { id: "fixture-object-b", name: "Reviewed fixture B", origin: "https://archive-b.example" });
 config.discovery.connectors = ["fixture-object-a", "fixture-object-b"];
 const code = readFileSync(resolve(root, "assets/js/live.js"), "utf8");
+const coreCode = readFileSync(resolve(root, "assets/js/core.js"), "utf8");
+for (const key of ["assessmentScript", "script"]) config.discovery[key] += "?fixture=a%3Fb";
 const discoveryCode = readFileSync(resolve(root, "assets/js/discovery.js"), "utf8");
 // Discovery reads JSON-LD with the shared field readers, which load before it.
 const readersCode = readFileSync(resolve(root, "assets/js/assess.js"), "utf8");
@@ -43,10 +45,12 @@ await page.route("**/*", async (route) => {
   const url = new URL(route.request().url());
   if (url.pathname.endsWith("/assets/js/discovery.js")) {
     assert.equal(url.searchParams.get("v"), config.revision);
+    assert.equal(url.searchParams.get("fixture"), "a?b");
     moduleLoads += 1;
     await route.fulfill({ contentType: "text/javascript", body: discoveryCode });
   } else if (url.pathname.endsWith("/assets/js/assess.js")) {
     assert.equal(url.searchParams.get("v"), config.revision);
+    assert.equal(url.searchParams.get("fixture"), "a?b");
     readerLoads += 1;
     await route.fulfill({ contentType: "text/javascript", body: readersCode });
   } else if (route.request().url().endsWith("/fixture.html")) {
@@ -61,6 +65,7 @@ try {
       unsafeKey: (name) => ["__proto__", "constructor", "prototype"].includes(name) };
     window.fetch = async () => { throw new Error("unexpected request on load"); };
   }, config);
+  await page.addScriptTag({ content: coreCode });
   await page.addScriptTag({ content: code });
   assert.equal(await page.evaluate(() => window.requests.length), 0, "connector evaluation starts no request");
   assert.equal(moduleLoads + readerLoads, 0, "discovery code stays deferred until a user action");

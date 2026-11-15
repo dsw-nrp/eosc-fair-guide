@@ -15,9 +15,9 @@
     const alert = FG.h("div", { class: "wrap data-load-error", role: "alert" },
       FG.h("p", null, FG.h("span", { lang: "cs" }, changed ? "Průvodce byl aktualizován. Obnovte stránku; uložené odpovědi zůstanou zachovány." : "Průvodce se nepodařilo načíst."), " / ",
         FG.h("span", { lang: "en" }, changed ? "The Guide has been updated. Reload the page; saved answers will be retained." : "The Guide could not be loaded.")),
-      FG.h("button", { type: "button", onclick: () => { if (alert.isConnected) { dismiss(); retry(); } } },
-        FG.h("span", { lang: "cs" }, "Zkusit znovu"), " / ", FG.h("span", { lang: "en" }, "Retry")),
-      changed ? FG.h("button", { type: "button", onclick: () => window.location.reload() },
+      retry ? FG.h("button", { type: "button", onclick: () => { if (alert.isConnected) { dismiss(); retry(); } } },
+        FG.h("span", { lang: "cs" }, "Zkusit znovu"), " / ", FG.h("span", { lang: "en" }, "Retry")) : null,
+      changed || !retry ? FG.h("button", { type: "button", onclick: () => window.location.reload() },
         FG.h("span", { lang: "cs" }, "Obnovit stránku"), " / ", FG.h("span", { lang: "en" }, "Reload page")) : null);
     app.prepend(alert);
     alert.scrollIntoView({ block: "start" });
@@ -195,7 +195,7 @@
       FG.load();
     } catch (error) {
       document.querySelector("#main > p")?.remove();
-      FG.dataLoadError(error, start);
+      FG.dataLoadError(error, null);
       return;
     }
     const saved = FG.storage.read();
