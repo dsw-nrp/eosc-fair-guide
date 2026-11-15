@@ -138,3 +138,9 @@
   the additional absent-pair screen/print states are visually inspected. Complete native acceptance is repeated on
   this final code and passes 36/36 checks in 215.4 seconds. The small follow-up is prepared as a forward runtime
   commit and propagated through the same source/reader stack; exact-head hosted acceptance remains required.
+
+  Third-review publication is subsequently verified on all six exact implementation heads: required hosted checks
+  pass, PR descriptions/heads read back exactly, original source fields and published ancestry remain intact, and
+  all six stages pass freshness, duplicate and 300 KB checks. The record-only completion commit receives its own
+  required hosted check before handoff. No source/favicon fetch, review-thread reply/resolution, issue closure,
+  merge, spec sync, archive or release is performed.
