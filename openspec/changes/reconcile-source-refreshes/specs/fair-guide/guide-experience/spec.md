@@ -3,7 +3,8 @@
 ### Requirement: Browser data belongs to one compatible build revision
 
 The initial KB/UI pair, display-language payloads and deferred neutral/translated parts SHALL carry one build
-revision. The loader SHALL reject missing or incompatible revisions before merging data. A part and its selected
+revision matching the generated document's expectation. The loader SHALL reject missing or incompatible revisions
+before merging data. A part and its selected
 translation SHALL be accepted together and each contribution SHALL be merged at most once. Versioned local requests
 SHALL preserve file, HTTP and iframe operation without external requests on load.
 
@@ -25,6 +26,24 @@ SHALL preserve file, HTTP and iframe operation without external requests on load
 - **WHEN** the Guide starts with an incompatible initial KB/UI pair
 - **THEN** it stops normal rendering and provides a bilingual reload action
 - **AND** reloading retains saved answers
+
+#### Scenario: Both initial data files are equally stale
+
+- **GIVEN** a document from the current build and matching KB/UI data from an older build
+- **WHEN** startup checks the expected revision
+- **THEN** no graph, UI or configuration is accepted
+- **AND** a bilingual Reload action is offered without an ineffective startup Retry
+
+#### Scenario: A nested consumer module changes
+
+- **WHEN** only a nested assessment script under `assets/js/tests/` changes
+- **THEN** the generated revision and versioned requests change
+
+#### Scenario: A script path already contains a query and fragment
+
+- **WHEN** any local script loader versions that path
+- **THEN** it preserves the query values and fragment and sets exactly one current revision parameter
+- **AND** all loaders use the same URL helper while keeping their established load/retry behavior
 
 ### Requirement: Entry actions wait for their deferred evidence
 

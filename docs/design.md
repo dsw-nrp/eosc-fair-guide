@@ -58,10 +58,13 @@ patches with `fips`. Repository catalogue/check routes wait for both parts, and 
 Together they reconstruct the complete crate. Language changes preserve answers and view state.
 Missing language files leave the usable view in place with retry. Originals, published titles and
 vocabulary labels retain their languages. Initial KB/UI and deferred data carry one deterministic revision derived
-from their content and consumer code. Script requests name that revision; registration is checked before merging.
+from their content and every consumer script recursively, including nested assessment modules. The generated
+document declares its expected revision; both initial files must match it, even when they agree with each other.
+All loaders use the shared `FG.scriptUrl` helper to preserve queries/fragments while setting one revision.
 Each neutral part and its selected translation are accepted together. Missing or stale files leave the previous
-view, input and saved answers intact; Retry reuses accepted data and refetches rejected files. A changed revision
-also offers Reload page, retaining saved answers. Compact aliases support local cross-language search.
+view, input and saved answers intact. Deferred Retry reuses accepted data and refetches rejected files; a changed
+revision also offers Reload page. Startup offers only Reload because initial scripts have already executed.
+Reload retains saved answers. Compact aliases support local cross-language search.
 L1-L3 advice text uses property patches; station views and the AI advice page wait for it. Text search waits
 for requirements, questions, detailed advice and FIP records in the selected language before publishing a complete
 index. A failed load offers retry without confirming partial results; navigation moves retry to the current form,

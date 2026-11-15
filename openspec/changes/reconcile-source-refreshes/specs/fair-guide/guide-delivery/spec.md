@@ -47,6 +47,11 @@ Ambient proxies SHALL NOT bypass that boundary. Offline fixtures SHALL require n
 - **WHEN** the redirect destination is inspected
 - **THEN** the downgrade is refused before an HTTP request, even if a later hop could return to HTTPS
 
+#### Scenario: Shared CGNAT space is classified as global by a host interpreter
+
+- **WHEN** acquisition validates `100.64.0.0/10` or a mapped form
+- **THEN** the explicit local policy refuses it before any connection regardless of that classification
+
 ### Requirement: Favicon connections pin validated public addresses
 
 Every resolved address SHALL be public unicast. Connections SHALL use a validated numeric address without another

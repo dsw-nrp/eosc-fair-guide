@@ -300,3 +300,25 @@ Retry after correction and an outdated initial pair on HTTP, file and iframe rou
 states at desktop/320 px and print. Keep the 307,200-byte limit. If revision handling consumes the narrow remaining
 margin, move assessment-only configuration to the existing questions part and verify every consumer; do not trim
 source passages or raise the budget.
+
+### Third runtime review: complete the existing revision and maintenance contracts
+
+Review 5908126039 identifies six bounded repairs within the approved scope. Hash all JavaScript consumers
+recursively, including relative paths as well as bytes, so nested assessment-module changes move the revision
+and duplicate basenames do not erase directory identity. Stamp the expected revision on the generated document
+and compare both initial data scripts against that independent expectation before accepting graph/UI/config.
+Equal old data revisions must not pass merely because they match each other.
+
+Expose one URL-construction helper on `FG` for all four loaders. Preserve query values and fragments while
+setting exactly one current revision parameter; retain each loader's existing caching and retry behavior.
+The isolated discovery fixture must use the real helper rather than a duplicate implementation.
+
+Startup failures offer Reload alone: retrying already-executed initial scripts cannot recover them. Deferred
+registrations keep Retry because that path refetches the rejected script; saved answers and current input remain
+protected. Exercise equal-but-stale initial pairs, absent document/data revisions and nested consumer changes,
+as well as query-bearing paths through the actual loaders, both languages, files/HTTP/iframes and print.
+
+Explicitly refuse `100.64.0.0/10`, including mapped forms, independently of `is_global`. Treat this as local-policy
+hardening: CPython v3.11.0 already excludes that range, so no older-floor bypass is established by the review's
+version claim. Remove the unreachable `jpeg` extension spelling; image detection uses `jpg`. The public-only
+transport remains scoped to favicon acquisition; the other maintenance clients are not promoted into this change.
