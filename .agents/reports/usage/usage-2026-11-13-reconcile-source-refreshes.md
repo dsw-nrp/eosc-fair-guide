@@ -1,6 +1,6 @@
 # Source-refresh reconciliation and catalogue presentation
 
-- **When:** 2026-11-13 to 2026-11-14
+- **When:** 2026-11-13 to 2026-11-15
 - **Agent / runtime:** OpenAI Codex
 - **Model / backend:** GPT-6; exact backend model id not exposed by the runtime.
 - **What:** Implement the approved `reconcile-source-refreshes` change for
@@ -83,6 +83,21 @@
   Node runtime tests pass 19/19; adjacent identity/agent/registry tests pass 55/55. No source or favicon refresh
   is repeated. Focused minimum-version verification, committed-stage freshness/fidelity, forward publication and
   exact-head hosted acceptance are recorded as the final delivery step rather than inferred from this local pass.
+
+  Third review 5908126039 confirms all nine preceding findings and identifies six bounded follow-ups in the
+  existing contract. Fail-first probes reproduce missing nested-consumer revisions, acceptance of equal stale
+  initial pairs, malformed query-bearing module requests and an ineffective startup Retry. The revision now
+  covers recursive relative script paths and bytes, and both initial files match the document's own expectation.
+  Four existing loaders share query/fragment-safe URL construction without changing their individual behavior.
+  Startup offers Reload alone; deferred failures retain Retry. Explicit CGNAT refusal is tested independently
+  of interpreter classification, and the unreachable `jpeg` spelling is removed. CPython v3.11.0 already denies
+  the shared range, so the version-specific bypass claim is not repeated. Other maintenance clients remain outside
+  the approved favicon-only network policy; no new issue is implied or filed.
+  Focused verification passes 66 tests on Python 3.11.15 and all 21 Node runtime tests. The browser matrix exercises
+  all four loaders with real query-bearing paths, stale/absent document and data revisions, retained answers/input,
+  both languages, HTTP/file/iframe and desktop/320 px/print. Forty-two recovery captures are retained and the new
+  startup screen/print states are visually inspected. Full integrated acceptance and published-head gates remain
+  pending and will be recorded separately from these focused results.
   A final fail-first probe covers both initial scripts being absent, when no data namespace exists. Initial loading
   now treats that case as a revision failure and offers Reload before accepting any graph. The expanded browser
   matrix verifies corrected Reload, retained saved answers and bilingual reflow, with 26 current recovery captures;
