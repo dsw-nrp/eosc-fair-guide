@@ -6,10 +6,10 @@
 source = "KNAV Data Management Tools Catalogue"
 url = "https://openscience.lib.cas.cz/fair-data/katalog-nastroju-pro-spravu-dat/"
 api = "https://github.com/Open-Science-Department-KNAV/Data-Management-Tools-Catalogue"
-retrieved = 2026-10-18
+retrieved = 2026-11-08
 license = "https://www.gnu.org/licenses/gpl-3.0.html"
-datasetVersion = "8903ab88008c50986f30f0a4db61b7d05dbabea2"
-datasetUpdated = "2026-03-28"
+datasetVersion = "d0c74de6a46b0453a312a3c7d544ef46ade5db7f"
+datasetUpdated = "2026-11-04"
 
 [[tool]]
 id = "ais-cr"
@@ -1090,6 +1090,16 @@ url = "https://doi.org/10.7907/z6czh-7zx60"
 steps = ["planning"]
 disciplines = ["all"]
 description = "Collection of structured exercises designed to help researchers improve their data management practices across the data lifecycle. Focuses on reproducible, discrete data management activities and serves as a supplementary resource to existing data management training and education."
+
+[[tool]]
+id = "re3data"
+alternateIds = [{ "scheme" = "knav", "value" = "re3data" }]
+guideRoute = "resources"
+name = "Re3Data"
+url = "https://www.re3data.org/"
+steps = ["storing-archiving", "reusing"]
+disciplines = ["all"]
+description = "Open science registry of research data repositories from all academic disciplines. It acts as a search index designed to help find, overview, and reference trustworthy platforms for storing and sharing research data."
 
 [[tool]]
 id = "redcap"
