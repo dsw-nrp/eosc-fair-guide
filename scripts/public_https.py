@@ -24,7 +24,7 @@ class DestinationRefusedError(ValueError):
 TRANSITION = tuple(
     ipaddress.ip_network(value) for value in ("64:ff9b::/96", "64:ff9b:1::/48", "2002::/16", "2001::/32")
 )
-SPECIAL_V4 = (ipaddress.ip_network("192.0.0.0/24"), ipaddress.ip_network("192.88.99.0/24"))
+SPECIAL_V4 = tuple(ipaddress.ip_network(value) for value in ("100.64.0.0/10", "192.0.0.0/24", "192.88.99.0/24"))
 
 
 def public_address(value: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address:

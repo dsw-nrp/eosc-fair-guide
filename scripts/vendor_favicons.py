@@ -482,7 +482,7 @@ def working_path(folder: Path, item: Found, index: int, extension: str) -> Path:
         for name in names
     ):
         raise ValueError("invalid favicon working identity")
-    if extension not in {"png", "ico", "svg", "gif", "jpeg", "jpg", "webp"}:
+    if extension not in {"png", "ico", "svg", "gif", "jpg", "webp"}:
         raise ValueError("invalid favicon working identity image format")
     path = folder / f"{item.stem}~{index}.{extension}"
     if path.resolve().parent != folder.resolve() or is_link_or_reparse(path):
