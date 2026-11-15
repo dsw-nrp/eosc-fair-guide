@@ -360,7 +360,6 @@
 
   FG.views.footer = function () {
     const root = FG.root;
-    const analysis = FG.refs(root, "isBasedOn")[0];
     const build = FG.config.build || {
       version: FG.config.version,
       commit: "",
@@ -395,8 +394,7 @@
           commit ? " · " : null,
           commit
         ),
-        analysis ? h("p", null, h("strong", null, FG.t("footer.basis") + ": "), citeWork(analysis)) : null,
-        h("p", null, h("strong", null, FG.t("footer.cite") + ": "), citeGuide(root), " · ", h("a", { href: FG.href("page", "about") + "/credits" }, FG.t("footer.credits"))),
+        h("p", null, h("a", { href: FG.href("page", "about") + "/credits" }, FG.t("footer.credits"))),
         h("p", null, FG.t("footer.licence")),
         h(
           "ul",
@@ -1466,7 +1464,11 @@
             page.identifier === "licence-compatibility" ? licenceCompatibility(FG.linkedParagraphs(section)) : FG.linkedParagraphs(section),
             section.potentialAction ? h("p", { class: "section-action" }, actionButton(FG.get(section.potentialAction))) : null,
             page.identifier === "ai" && section.identifier === "station-tips" ? aiStationTips() : null,
-            section.identifier === "credits" ? creditsTable() : null,
+            section.identifier === "credits" ? [
+              FG.refs(FG.root, "isBasedOn")[0] ? h("p", { class: "analysis-citation" }, h("strong", null, FG.t("footer.basis") + ": "), citeWork(FG.refs(FG.root, "isBasedOn")[0])) : null,
+              h("p", { class: "guide-citation" }, h("strong", null, FG.t("footer.cite") + ": "), citeGuide(FG.root)),
+              creditsTable(),
+            ] : null,
             page.identifier === "machines" && section.identifier === "tasks" ? machineTasks() : null,
             page.identifier === "machines" && section.identifier === "practice" ? signpostTable() : null,
             page.identifier === "machines" && section.identifier === "endpoints" ? FG.views.endpointTable() : null,

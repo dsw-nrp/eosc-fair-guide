@@ -103,7 +103,12 @@ class VocabularyDeclarationTests(unittest.TestCase):
         self.assertTrue(exported <= set(build_crate.EXPORT_GUIDE_TERMS))
         found = vocabularies.declaration_problems(self.graphs, self.document, self.base, ())
         self.assertEqual(sorted(found), sorted(f"guide:{term}: declared, but no graph uses it" for term in exported))
-        published = vocabularies.declaration_problems(self.graphs[:1], self.document, self.base, exported)
+        # Plant the absent use explicitly: a production NKR snapshot may already supply this property.
+        without_deposits = Graph()
+        for triple in self.graphs[0]:
+            if triple[1] != self.term("acceptsDeposits"):
+                without_deposits.add(triple)
+        published = vocabularies.declaration_problems([without_deposits], self.document, self.base, exported)
         self.assertEqual(published, ["guide:acceptsDeposits: declared, but no graph uses it"])
 
     def test_an_rdfs_closure_adds_no_class_to_a_guide_node(self) -> None:

@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: >-
-  This file credits the guide's software. To cite the guide itself, use the citation given in its footer, which
+  This file credits the guide's software. To cite the guide itself, use the citation given on its About page, which
   names its compiler as editor. The guide's content builds on the FAIR analysis for NRP/NDI listed under
   references; please credit its authors when you use the content.
 type: software

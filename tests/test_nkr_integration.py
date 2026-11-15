@@ -37,8 +37,15 @@ def fixture_snapshot():
     return tomllib.loads(catalogue_identity.preserve_snapshot(snapshot.text(), ""))
 
 
-def reference_content():
+def content_without_nkr():
+    """Isolate pre-harvest assertions from the independently refreshed production snapshot."""
     content = build_crate.load_content()
+    content["snapshots"] = [row for row in content["snapshots"] if row["snapshot"]["source"] != "NKR"]
+    return content
+
+
+def reference_content():
+    content = content_without_nkr()
     content["snapshots"].append(fixture_snapshot())
     next(row for row in content["repositories"] if row["id"] == "czech-bioimaging")["nkr"] = "20.500.14818/srhtp4ek"
     return content
@@ -320,7 +327,7 @@ class NkrCatalogueTests(unittest.TestCase):
     def test_curated_repository_and_resource_statuses_control_deposits(self):
         for status in ("planned", "in-development", "prospective", "pilot", "operational"):
             with self.subTest(status=status):
-                content = build_crate.load_content()
+                content = content_without_nkr()
                 repository = next(row for row in content["repositories"] if row["id"] == "czech-bioimaging")
                 resource = next(row for row in content["resources"] if row["id"] == "datarepo")
                 for entry in (repository, resource):
@@ -555,7 +562,7 @@ class NkrCatalogueTests(unittest.TestCase):
         self.assertFalse(validate(data, shacl_graph=shapes, advanced=True)[0])
 
     def test_reference_harvest_joins_four_entries_and_adds_one(self):
-        original = build_crate.build_crate(build_crate.load_content())
+        original = build_crate.build_crate(content_without_nkr())
         crate = build_crate.build_crate(reference_content())
         entities = {row["@id"]: row for row in crate["@graph"]}
         before = next(row for row in original["@graph"] if row["@id"] == "#repositories")["hasPart"]

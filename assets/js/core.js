@@ -15,9 +15,15 @@
   /* ---------------------------------------------------------------- knowledge base */
 
   /* Generated classic scripts supply the crate and UI on file:// and HTTP. */
+  function requireRevision(actual, expected) {
+    if (!expected || actual !== expected) throw Object.assign(new Error("The Guide's data revision has changed."), { code: "data-revision" });
+  }
   FG.load = function () {
-    const crate = window.FairGuideData.kb;
-    const page = window.FairGuideData.ui;
+    const crate = window.FairGuideData?.kb;
+    const page = window.FairGuideData?.ui;
+    const expected = document.documentElement.dataset.revision;
+    requireRevision(window.FairGuideData?.revision, expected);
+    requireRevision(page?.config?.revision, expected);
     FG.graph = crate["@graph"];
     FG.byId = new Map(FG.graph.map((entity) => [entity["@id"], entity]));
     FG.ui = page.ui;
@@ -79,11 +85,19 @@
   }
 
   const scriptLoads = new Map();
+  /** Set one build revision without losing an existing query value or fragment. */
+  FG.scriptUrl = function (path) {
+    const [address, fragment] = path.split(/#(.*)/s);
+    const [file, query] = address.split(/\?(.*)/s);
+    const parameters = new URLSearchParams(query);
+    parameters.set("v", FG.config.revision);
+    return file + "?" + parameters + (fragment === undefined ? "" : "#" + fragment);
+  };
   function loadScript(path, registered = null) {
     if (!scriptLoads.has(path)) {
       scriptLoads.set(path, new Promise((resolve, reject) => {
         const script = document.createElement("script");
-        script.src = path;
+        script.src = FG.scriptUrl(path);
         const failed = (error) => {
           scriptLoads.delete(path);
           script.remove();
@@ -93,6 +107,7 @@
           try {
             const data = registered?.();
             if (registered && !data) throw new Error("The Guide's data is missing: " + path);
+            if (registered) requireRevision(data.revision, FG.config.revision);
             resolve(data);
           }
           catch (error) { failed(error); }
@@ -131,15 +146,7 @@
     if (!partLoads[key]) {
       partLoads[key] = (async () => {
         if (!partLoads[name]) {
-          partLoads[name] = loadScript(FG.config.parts[name], () => window.FairGuideData.parts?.[name]).then((part) => {
-            for (const entity of part.entities || []) {
-              FG.graph.push(entity);
-              FG.byId.set(entity["@id"], entity);
-            }
-            FG.partsLoaded.add(name);
-            FG.invalidateData();
-            return part;
-          }).catch((error) => {
+          partLoads[name] = loadScript(FG.config.parts[name], () => window.FairGuideData.parts?.[name]).catch((error) => {
             delete partLoads[name];
             throw error;
           });
@@ -149,6 +156,13 @@
         const values = await loadScript(FG.config.partLanguages[name][language], () => window.FairGuideData.partLanguages?.[name]?.[language]);
         mergeData(part, values.values);
         bindSearch(part, values.search);
+        if (!FG.partsLoaded.has(name)) {
+          for (const entity of part.entities || []) {
+            FG.graph.push(entity);
+            FG.byId.set(entity["@id"], entity);
+          }
+          FG.partsLoaded.add(name);
+        }
         partLanguagesLoaded.add(key);
         for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
         if (part.ui) mergeData(FG.ui, part.ui);

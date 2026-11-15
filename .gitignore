@@ -9,6 +9,8 @@ _site/
 
 # Local caches and check output
 .cache/
+assets/.favicons-stage-*/
+assets/.favicons-backup/
 previews/
 test-results/
 playwright-report/

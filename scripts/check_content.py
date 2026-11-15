@@ -535,6 +535,8 @@ def check_type_crosswalk(report: Report, content: dict[str, Any]) -> None:
                     f"'{value}' belongs to {len(owners)} resource types; it must belong to one",
                 )
     for item in types:
+        if "favicon" in item and not isinstance(item["favicon"], bool):
+            report.error(f"guide:resourceType.{item['id']}", "favicon must be a boolean")
         if item["id"] not in RESOURCE_TYPES:
             report.error(f"guide:resourceType.{item['id']}", "no schema.org type for this resource type")
 
