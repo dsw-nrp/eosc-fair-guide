@@ -4,11 +4,11 @@
 source = "FIP Dashboard"
 url = "https://fip-dashboard.dmp.eosc.cz/"
 api = "https://fip-dashboard.dmp.eosc.cz/api"
-retrieved = 2026-10-18
+retrieved = 2026-11-08
 datasetName = { cs = "Dashboard FIP NRP — ukázková datová sada", en = "NRP FIP Dashboard — example dataset" }
-datasetVersion = "0.1.0"
-datasetUpdated = "2026-09-23"
-disclaimer = { cs = "Níže uvedené organizace, služby a standardy jsou skutečné, avšak zde uvedené profily a deklarace byly sestaveny pro účely této ukázky a nejsou oficiálními FIP deklaracemi uvedených komunit.", en = "The organisations, services and standards below are real, but the profiles and declarations shown here were assembled for this demo and are not official FIP declarations of the listed communities." }
+datasetVersion = "0.2.0"
+datasetUpdated = "2026-11-04"
+disclaimer = { cs = "Níže uvedené organizace, služby a standardy jsou skutečné, avšak zde uvedené profily a deklarace byly sestaveny pro účely této ukázky a nejsou oficiálními deklaracemi uvedených komunit.", en = "The organisations, services and standards below are real, but the profiles and declarations shown here were assembled for this demo and are not official FIP declarations of the listed communities." }
 
 [[resourceType]]
 id = "access-protocol"
@@ -43,8 +43,12 @@ id = "provenance-model"
 label = { cs = "Model provenience", en = "Provenance model" }
 
 [[resourceType]]
+id = "registry"
+label = { cs = "Registr nebo katalog", en = "Registry or catalogue" }
+
+[[resourceType]]
 id = "repository"
-label = { cs = "Repozitář nebo registr", en = "Repository or registry" }
+label = { cs = "Repozitář", en = "Repository" }
 
 [[resourceType]]
 id = "tool"
@@ -495,10 +499,10 @@ id = "fairsharing"
 alternateIds = [{ "scheme" = "fip-dashboard", "value" = "fairsharing" }]
 guideRoute = "resources"
 name = "FAIRsharing"
-type = "repository"
+type = "registry"
 scope = "global"
 url = "https://fairsharing.org/"
-description = { cs = "Kurátorovaný registr standardů, databází a politik sloužící k identifikaci a citování zdrojů umožňujících FAIR, na nichž komunita staví.", en = "A curated registry of standards, databases and policies, used to identify and cite the FAIR Enabling Resources a community relies on." }
+description = { cs = "Kurátorovaný registr standardů, databází a politik sloužící k identifikaci a citování zdrojů umožňujících FAIR, na nichž komunita staví.", en = "A curated registry of standards, databases and policies, used to identify and cite the FAIR enabling resources a community relies on." }
 principles = ["F4", "I2", "R1.3"]
 verification = []
 
@@ -570,7 +574,7 @@ alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nma" }]
 guideRoute = "resources"
 name = "National Metadata Directory"
 acronym = "NMA"
-type = "repository"
+type = "registry"
 scope = "national"
 provider = "eosc-cz"
 description = { cs = "Plánovaný národní katalog agregující metadata z českých repozitářů do jednoho místa pro vyhledávání a předávající je dále do EOSC.", en = "The planned national catalogue aggregating metadata from Czech repositories into a single discovery point and passing them on to EOSC." }
