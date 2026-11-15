@@ -162,8 +162,23 @@ tasks and require new acceptance evidence before delivery preparation is complet
   neutral Reload recovery, saved answers and current input; verify both languages, file/HTTP and iframe states.
 - [x] 10.8 Update maintained design/content/maintenance documentation, changelog, dispositions and paradata; keep
   the 300 KB limit through existing-part deferral if necessary and run complete native checks and visual review.
-- [ ] 10.9 Prepare focused commits, propagate through the existing PR stack with preserved ancestry and source facts,
+- [x] 10.9 Prepare focused commits, propagate through the existing PR stack with preserved ancestry and source facts,
   read back descriptions/heads and verify required hosted checks on every actual head before final handoff.
+
+## 11. Address the third runtime review within the approved contract
+
+- [x] 11.1 Reproduce nested-consumer omissions, equally stale initial pairs, malformed query paths and ineffective
+  startup Retry; add fail-first regressions before repairing F1-F4.
+- [x] 11.2 Cover consumer paths recursively, stamp the document expectation and enforce it before initial acceptance;
+  share one query/fragment-safe versioning helper without changing individual loader caching or retry semantics.
+- [x] 11.3 Offer Reload alone for startup failures and retain deferred Retry; verify saved answers, current input,
+  both languages, HTTP/file/iframe, reflow and print in the expanded browser matrix.
+- [x] 11.4 Add explicit CGNAT refusal with interpreter-independent coverage and remove the unreachable extension;
+  record F5 as hardening without claiming an unverified Python-floor bypass and retain the other-client scope limit.
+- [ ] 11.5 Update maintained explanations, provenance and the rolling usage/disposition records; run focused checks
+  on Python 3.11, full native acceptance and strict OpenSpec validation, plus combined-reader size and visual checks.
+- [ ] 11.6 Commit the runtime repair, propagate forward through all six PRs, preserve native source fields/history,
+  read back descriptions/heads and verify required hosted checks on the final heads before handoff.
 
 ## Workflow follow-up
 

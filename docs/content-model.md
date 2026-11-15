@@ -997,7 +997,7 @@ assets separately from latest acquired/unavailable/failed attempts, since a reta
 failed attempt. Maintenance observations are not included in browser configuration.
 Acquisition permits public HTTPS only on every hop. It validates all DNS answers, connects directly to a vetted
 numeric address, checks the connected peer and verifies the certificate against the original hostname. Private,
-loopback, link-local, reserved and tunnel/translation destinations are refused, including mixed DNS answers;
+shared CGNAT, loopback, link-local, reserved and tunnel/translation destinations are refused, including mixed DNS answers;
 `failed/destination-refused` retains a verified old asset. Environment proxies are deliberately excluded from this
 maintenance transport; use reviewed offline `--input` fixtures when direct public access is unavailable. The policy
 does not change browser connectors or other source-refresh clients.

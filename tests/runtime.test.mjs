@@ -7,12 +7,39 @@ import { browserEnvironment, root, mapLimit, workerCount, checkDefaults } from "
 import { slotIsAbandoned } from "../scripts/browser_slots.mjs";
 import { runInNewContext } from "node:vm";
 
+const revisionDocument = (revision = "fixture-build") => ({ documentElement: { dataset: { revision } } });
+
+test("initial data must match the document even when both payloads agree", () => {
+  for (const [expected, payload] of [["current-build", "older-build"], [undefined, "older-build"]]) {
+    const document = revisionDocument(expected), window = { FairGuideData: { revision: payload, kb: { "@graph": [] },
+      ui: { ui: {}, config: { revision: payload, links: {} } } } };
+    if (expected === undefined) delete document.documentElement.dataset.revision;
+    runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, document, URL, URLSearchParams });
+    assert.throws(() => window.FairGuide.load(), (error) => error.code === "data-revision");
+    for (const key of ["graph", "ui", "config"]) assert.equal(window.FairGuide[key], undefined, key + " stays unaccepted");
+  }
+});
+
+test("script versioning preserves queries and fragments and replaces old revision parameters", () => {
+  const window = {};
+  runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL, URLSearchParams });
+  const FG = window.FairGuide; FG.config = { revision: "current build" };
+  assert.equal(typeof FG.scriptUrl, "function");
+  for (const path of ["x.js", "x.js?q=1", "x.js?q=a?b#frag", "x.js?v=old&v=older&q=a%3Fb#frag", "x.js?#"]) {
+    const before = new URL(path, "file:///guide/index.html"), after = new URL(FG.scriptUrl(path), before);
+    assert.equal(after.pathname, before.pathname);
+    assert.equal(after.searchParams.get("q"), before.searchParams.get("q"));
+    assert.equal(after.hash, before.hash);
+    assert.deepEqual(after.searchParams.getAll("v"), ["current build"]);
+  }
+});
+
 for (const problem of ["missing", "stale"]) for (const missing of ["neutral", "translation", "language"]) {
   test("local data retry recovers " + problem + " " + missing + " registration without repeating accepted data", async () => {
     const window = {}, requests = [], versions = [], removed = [];
     const paths = { neutral: "fixture.js", translation: "fixture-cs.js", language: "en.js" };
     let corrected = false;
-    const document = { createElement: () => ({ remove() { removed.push(this.src.split("?")[0]); } }), head: { append(script) {
+    const document = { ...revisionDocument(), createElement: () => ({ remove() { removed.push(this.src.split("?")[0]); } }), head: { append(script) {
       const path = script.src.split("?")[0];
       requests.push(path);
       versions.push(new URL(script.src, "https://fixture.test/").searchParams.get("v"));
@@ -27,7 +54,7 @@ for (const problem of ["missing", "stale"]) for (const missing of ["neutral", "t
         script.onload();
       });
     } } };
-    runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, document, URL });
+    runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, document, URL, URLSearchParams });
     const FG = window.FairGuide;
     window.FairGuideData = { revision: "fixture-build", kb: { "@graph": [] }, ui: { ui: {}, config: { revision: "fixture-build", links: {}, languages: { en: paths.language },
       parts: { fixture: paths.neutral }, partLanguages: { fixture: { cs: paths.translation } } } } };
@@ -62,11 +89,11 @@ for (const problem of ["missing", "stale"]) for (const missing of ["neutral", "t
 
 test("initial KB and UI must have the same nonempty build revision before graph acceptance", () => {
   const absent = {};
-  runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window: absent, URL });
+  runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window: absent, document: revisionDocument(), URL });
   assert.throws(() => absent.FairGuide.load(), (error) => error.code === "data-revision", "an absent namespace offers Reload");
   for (const [kb, ui] of [[undefined, undefined], ["one", "two"], [undefined, "two"]]) {
     const window = { FairGuideData: { revision: kb, kb: { "@graph": [] }, ui: { ui: {}, config: { revision: ui, links: {} } } } };
-    runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });
+    runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, document: revisionDocument(), URL });
     assert.throws(() => window.FairGuide.load(), /revision/);
     assert.equal(window.FairGuide.graph, undefined);
   }
@@ -74,7 +101,7 @@ test("initial KB and UI must have the same nonempty build revision before graph 
 
 test("source lookup indexes a real graph once and invalidates misses, ambiguity and reloads", () => {
   const window = {};
-  runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });
+  runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, document: revisionDocument(), URL });
   const FG = window.FairGuide;
   const crate = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"));
   window.FairGuideData = { revision: "fixture-build", kb: crate, ui: { ui: {}, config: { revision: "fixture-build", links: {} } } };
@@ -115,7 +142,7 @@ test("source lookup indexes a real graph once and invalidates misses, ambiguity 
 
 test("check questions share one ordered index per data revision", () => {
   const window = {};
-  runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, URL });
+  runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window, document: revisionDocument(), URL });
   const FG = window.FairGuide;
   window.FairGuideData = { revision: "fixture-build", kb: JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8")), ui: { ui: {}, config: { revision: "fixture-build", links: {} } } };
   FG.load();

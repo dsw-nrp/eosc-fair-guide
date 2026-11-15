@@ -1,6 +1,7 @@
 """Public destination, redirect and pinned-TLS boundaries, without contacting any service."""
 
 import io
+import ipaddress
 import os
 import socket
 import ssl
@@ -25,6 +26,14 @@ def answer(ip="8.8.8.8", port=443):
 
 
 class DestinationTests(unittest.TestCase):
+    def test_shared_cgnat_space_is_refused_independently_of_interpreter_global_flag(self):
+        with mock.patch.object(ipaddress.IPv4Address, "is_global", new_callable=mock.PropertyMock, return_value=True):
+            for value in ("100.64.0.0", "100.127.255.255", "::ffff:100.64.1.2"):
+                with self.subTest(value=value), self.assertRaises(transport.DestinationRefusedError):
+                    transport.public_address(value)
+            for value in ("100.63.255.255", "100.128.0.0"):
+                self.assertEqual(str(transport.public_address(value)), value)
+
     def test_non_public_and_transition_addresses_are_refused_on_all_supported_pythons(self):
         for ip in (
             "0.0.0.0",

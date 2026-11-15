@@ -5419,10 +5419,12 @@ def outputs(
     localized_parts = {name: split_languages(part) for name, part in parts.items()}
     # A revision covers the data and its consumer code, independently of timestamps or checkout location.
     digest = hashlib.sha256(script_json([core, ui, parts, page]).encode("utf-8"))
-    for path in sorted((root / "assets/js").glob("*.js")):
-        digest.update(path.name.encode("utf-8") + b"\0" + path.read_bytes())
+    browser_scripts = root / "assets/js"
+    for path in sorted(browser_scripts.rglob("*.js")):
+        digest.update(path.relative_to(browser_scripts).as_posix().encode("utf-8") + b"\0" + path.read_bytes())
     revision = digest.hexdigest()[:24]
     localized_ui["config"]["revision"] = revision
+    page = re.sub(r"<html\b", f'<html data-revision="{revision}"', page, count=1)
     page = re.sub(r'(<script\b[^>]*\bsrc=")([^"?]+\.js)(")', rf"\g<1>\g<2>?v={revision}\3", page)
     # Production discovery follows the same per-record projection as API v1 and the landing pages.
     record_paths = api_paths(api_records({entity["@id"]: entity for entity in crate["@graph"]}, content))
