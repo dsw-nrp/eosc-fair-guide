@@ -21,7 +21,9 @@
   FG.load = function () {
     const crate = window.FairGuideData?.kb;
     const page = window.FairGuideData?.ui;
-    requireRevision(window.FairGuideData?.revision, page?.config?.revision);
+    const expected = document.documentElement.dataset.revision;
+    requireRevision(window.FairGuideData?.revision, expected);
+    requireRevision(page?.config?.revision, expected);
     FG.graph = crate["@graph"];
     FG.byId = new Map(FG.graph.map((entity) => [entity["@id"], entity]));
     FG.ui = page.ui;
@@ -83,11 +85,19 @@
   }
 
   const scriptLoads = new Map();
+  /** Set one build revision without losing an existing query value or fragment. */
+  FG.scriptUrl = function (path) {
+    const [address, fragment] = path.split(/#(.*)/s);
+    const [file, query] = address.split(/\?(.*)/s);
+    const parameters = new URLSearchParams(query);
+    parameters.set("v", FG.config.revision);
+    return file + "?" + parameters + (fragment === undefined ? "" : "#" + fragment);
+  };
   function loadScript(path, registered = null) {
     if (!scriptLoads.has(path)) {
       scriptLoads.set(path, new Promise((resolve, reject) => {
         const script = document.createElement("script");
-        script.src = path + (path.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(FG.config.revision);
+        script.src = FG.scriptUrl(path);
         const failed = (error) => {
           scriptLoads.delete(path);
           script.remove();

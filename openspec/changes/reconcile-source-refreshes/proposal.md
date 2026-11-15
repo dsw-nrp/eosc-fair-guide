@@ -32,6 +32,9 @@ the semantic repairs, source observations and reader-visible result before imple
   destinations and redirects, and reject incompatible initial/deferred data revisions with recoverable loading.
   Retain intentional search-focus preloading. Keep source facts, Python 3.11, local-file/iframe operation and the
   300 KB limit; defer assessment-only configuration through existing parts if needed to pay for revision checks.
+- Complete that revision contract against the third review: cover nested consumer modules, bind initial data to
+  the document's expected revision, share query-safe script versioning and offer actionable startup recovery.
+  Make the favicon policy explicitly refuse shared CGNAT space and keep only reachable image extensions.
 
 ## Capabilities
 

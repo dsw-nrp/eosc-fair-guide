@@ -46,10 +46,18 @@ class LanguageTests(unittest.TestCase):
             expected, revision(build_crate.outputs(content=content)), "a translation changes the revision"
         )
         read_bytes = Path.read_bytes
-        with mock.patch.object(
-            Path, "read_bytes", lambda path: read_bytes(path) + (b"\n// updated" if path.name == "core.js" else b"")
-        ):
-            self.assertNotEqual(expected, revision(build_crate.outputs()), "consumer code changes the revision")
+        for script in ("core.js", "tests/object.js", "tests/software.js"):
+            with (
+                self.subTest(script=script),
+                mock.patch.object(
+                    Path,
+                    "read_bytes",
+                    lambda path, changed=ROOT / "assets/js" / script: (
+                        read_bytes(path) + (b"\n// updated" if path == changed else b"")
+                    ),
+                ),
+            ):
+                self.assertNotEqual(expected, revision(build_crate.outputs()), "consumer code changes the revision")
         for name, path in build_crate.PART_SCRIPTS.items():
             self.assertEqual(
                 expected, assignment(self.generated[path], f'window.FairGuideData.parts["{name}"] = ')["revision"]
@@ -68,6 +76,7 @@ class LanguageTests(unittest.TestCase):
         scripts = re.findall(r'<script[^>]+src="([^"]+)"', self.generated[build_crate.PAGE_FILE])
         self.assertTrue(scripts)
         self.assertTrue(all(path.endswith("?v=" + expected) for path in scripts), scripts)
+        self.assertTrue(f'data-revision="{expected}"' in self.generated[build_crate.PAGE_FILE])
         self.assertNotIn("revision", json.loads(self.generated[build_crate.CRATE_FILE]))
 
     def test_assessment_configuration_loads_with_questions(self):
