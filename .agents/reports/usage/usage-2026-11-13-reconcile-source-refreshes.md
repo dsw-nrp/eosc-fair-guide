@@ -153,3 +153,10 @@
   dependency or visual change and no new specification delta. Complete integrated native acceptance passes
   all 36 checks on the combined reader head; the stored health receipt records every required job as passed.
   Published-head gates remain required before handoff.
+
+  After the five prerequisite PRs land as squash commits, merge current main into the reader branch to reconcile
+  their independent ancestry. Resolve nine conflicts in identifiers, provenance, review/task records and page
+  checks; remove the duplicate test method introduced by the automatic merge. Before this usage note, the
+  resolved tree exactly matches the reviewed reader tree, preserving all source facts, runtime repairs, identity
+  separations, glossary references and the separate reader provenance action. Full native acceptance and the
+  new published-head gate are required before handing back the conflict-free PR; no PR merge is performed here.
