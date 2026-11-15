@@ -1,6 +1,6 @@
 # Source-refresh reconciliation and catalogue presentation
 
-- **When:** 2026-11-13 to 2026-11-15
+- **When:** 2026-11-13 to 2026-11-16
 - **Agent / runtime:** OpenAI Codex
 - **Model / backend:** GPT-6; exact backend model id not exposed by the runtime.
 - **What:** Implement the approved `reconcile-source-refreshes` change for
@@ -183,3 +183,13 @@
   strict OpenSpec validation, documentation, usage, content, API/profile, page and unit checks.
   The maintainer separately authorizes committing and pushing this verified archival bundle on the existing
   reader branch, preserving the implementation and leaving the sibling change active.
+  The maintainer next requests main synchronization and explicitly approves a regular merge after fast-forward
+  refusal. Merge the two landed dependency updates from main 80fb207: OpenSpec 2.0.0 and Ruff 0.17.5. Product
+  source, assets and archived change contents remain unchanged. OpenSpec 2.0.0 passes strict validation; Windows
+  refuses replacement of the existing Ruff executable, so full validation uses an isolated ignored-cache
+  environment with the required pins. This merge is local; remote publication is separate.
+  The first aggregate attempt encounters a missing Chromium build after npm ci. Its failed results are retained
+  separately; npm run browsers installs the required revision and a browser-start probe passes before repeating
+  the full check suite on the final local merge.
+  The rerun passes all 36 native checks in 220.4 seconds with OpenSpec 2.0.0, Ruff 0.17.5 and the required
+  Chromium build. Final usage-record validation and committed payload bounds are checked separately.
