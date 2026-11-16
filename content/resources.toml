@@ -866,6 +866,21 @@ lenses = ["V"]
 stations = ["licence"]
 languages = ["en"]
 
+# Identity enrichment of the existing licence; no new station recommendation.
+[[resource]]
+guideRoute = "resources"
+id = "cc-by-4-0"
+name = "Creative Commons Attribution 4.0"
+description = { cs = "Otevřená licence CC BY 4.0 pro sdílení a úpravy děl s uvedením autorství.", en = "The CC BY 4.0 open licence for sharing and adapting works with attribution." }
+url = "https://creativecommons.org/licenses/by/4.0/"
+type = "licence"
+fipDashboard = "cc-by-40"
+sameAs = ["http://purl.org/np/RArwY4j9hx40cvd_La20zXCutOM-D4whR2lwbG0WoW5Ys#cc-by-4-0"]
+status = "operational"
+asOf = 2026-11-16
+lenses = []
+stations = []
+
 [[resource]]
 guideRoute = "resources"
 id = "ethical-seven"

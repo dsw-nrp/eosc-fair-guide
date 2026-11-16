@@ -53,6 +53,8 @@ Requirements, FIP records, page texts, detailed advice, provenance and language 
 glossary source identifiers load with their definitions while primary IDs remain available for navigation.
 NKR/re3data pre-fill and assessment-provider configuration load with `questions`; repository identifier detail and unreferenced API
 lookup entries load with the registry/check/API parts that use them, while authored-reference targets remain initial.
+FER nanopublication identities on resources load with `fips`; other identities, including Dashboard links, remain
+initial, and the registry part restores each complete identity list.
 Primary repository keywords load as property
 patches with `fips`. Repository catalogue/check routes wait for both parts, and cold text search waits for `fips`.
 Together they reconstruct the complete crate. Language changes preserve answers and view state.

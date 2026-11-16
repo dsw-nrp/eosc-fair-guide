@@ -160,6 +160,28 @@ class LanguageTests(unittest.TestCase):
                 if "keywords" in original:
                     self.assertEqual(parts["fips"]["properties"][row["@id"]]["keywords"], original["keywords"])
 
+    def test_fer_nanopublication_identities_wait_for_registry_detail(self) -> None:
+        crate = json.loads(self.generated[build_crate.CRATE_FILE])
+        licence = iri("resources/cc-by-4-0")
+        original = next(row for row in crate["@graph"] if row["@id"] == licence)
+        only_fer = {
+            "@id": iri("resources/fer-only-test"),
+            "sameAs": build_crate.ref("https://purl.org/np/example#licence"),
+        }
+        other = {
+            "@id": iri("resources/other-identities-test"),
+            "sameAs": build_crate.refs(["https://doi.org/10.0000/example", "https://purl.org/np-other/example"]),
+        }
+        crate["@graph"].extend([only_fer, other])
+        core, parts = build_crate.split_crate(crate)
+        initial = {row["@id"]: row for row in core["@graph"]}
+        self.assertEqual(build_crate.ids_of(initial[licence]["sameAs"]), [build_crate.FIP_DASHBOARD + "cc-by-40"])
+        self.assertEqual(parts["fips"]["properties"][licence]["sameAs"], original["sameAs"])
+        self.assertNotIn("sameAs", initial[only_fer["@id"]])
+        self.assertEqual(parts["fips"]["properties"][only_fer["@id"]]["sameAs"], only_fer["sameAs"])
+        self.assertEqual(initial[other["@id"]], other)
+        self.assertNotIn(other["@id"], parts["fips"]["properties"])
+
     def test_mixed_bilingual_keywords_preserve_scalars_order_and_search(self) -> None:
         value = {
             "keywords": [

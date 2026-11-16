@@ -1288,6 +1288,7 @@ resources = [
   "eosc-federation-handbook",
   "eosc-cz-node",
   "clarin-dspace",
+  "cc-by-4-0",
 ]
 repositories = [
   "datarepo",

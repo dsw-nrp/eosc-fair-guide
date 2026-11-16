@@ -90,3 +90,26 @@ must reproduce the reviewed working files exactly.
 The reader PR records its content work in `2026-11-14-identity-review`, separate from the runtime action
 `2026-11-14-catalogue-repair`. Freshness is checked against the assembled source-cohort parent as well as the
 original main branch, so the content remains covered after the prerequisite PRs merge.
+
+## Reader-PR review follow-up (2026-11-16)
+
+[Review 5915741645](https://github.com/dsw-nrp/eosc-fair-guide/pull/181#pullrequestreview-5915741645)
+identifies a missing disposition in the licence separation: the overview's existing FER nanopublication IRI was
+removed without transferring it to the specific licence. Restore that exact IRI,
+`http://purl.org/np/RArwY4j9hx40cvd_La20zXCutOM-D4whR2lwbG0WoW5Ys#cc-by-4-0`, on the curated
+`resources/cc-by-4-0` entry joined by `fipDashboard = "cc-by-40"`. The join enriches the existing licence identity
+and retains its Dashboard URL as another `sameAs`; it creates no second licence or licence-family identity.
+The publisher and overview remain separate, and the source snapshot is unchanged.
+
+The regression assertion first fails on the reviewed head because this IRI is absent. It requires both external
+identities on the specific licence and requires that no other crate entity carry this nanopublication identity.
+This follow-up repairs existing content semantics after archival; it adds no capability requirement and does not
+restate the archived verification as evidence for the repair.
+
+The new curation brings a formerly deferred imported entity into the initial graph. Under the approved
+300 KB requirement and task 10.8's existing-part deferral, keep FER nanopublication identity detail in the existing
+`fips` property patches: retain other identities, including the Dashboard address, in the initial entity, then
+restore its complete `sameAs` list when registry detail loads. Apply this by the nanopublication namespace to
+resource identities, rather than by the licence's local ID. Verify exact graph reconstruction and both language
+orders, direct resource loading and the API; preserve the full crate and source snapshot. This introduces no
+part, route, field or external request and leaves the completed archive's earlier acceptance record intact.

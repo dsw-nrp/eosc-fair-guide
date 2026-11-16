@@ -1943,5 +1943,5 @@ description = "Corrected licence-family, software-deployment and provider-mechan
 agent = "david-novak"
 instruments = ["openai-codex", "openai-gpt-6-runtime"]
 objects = ["resources/fip-dashboard", "clauses/A.K4.1", "clauses/NKR-SCHEMA.01", "clauses/RDMKIT.publication.01", "clauses/POLICY-MANUAL.02"]
-results = ["guide", "resources/creative-commons", "resources/clarin-dspace", "resources/dmp-eosc", "resources/datacite", "resources/avcr-fair-wizard", "pages/about", "pages/ai", "pages/provenance", "checks/fip", "advice/plan.17", "advice/plan.21", "advice/plan.22", "advice/plan.32", "advice/publication.21", "advice/publication.30"]
-endTime = 2026-11-14T12:20:22+00:00
+results = ["guide", "resources/creative-commons", "resources/cc-by-4-0", "resources/clarin-dspace", "resources/dmp-eosc", "resources/datacite", "resources/avcr-fair-wizard", "pages/about", "pages/ai", "pages/provenance", "checks/fip", "advice/plan.17", "advice/plan.21", "advice/plan.22", "advice/plan.32", "advice/publication.21", "advice/publication.30"]
+endTime = 2026-11-16T07:26:54+00:00

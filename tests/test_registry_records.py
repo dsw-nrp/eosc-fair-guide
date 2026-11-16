@@ -36,6 +36,19 @@ class RegistryRecordTests(unittest.TestCase):
             iri, ("resources/cc-by-4-0", "resources/creative-commons", "organizations/cc")
         )
         self.assertEqual(self.entities[licence]["url"], "https://creativecommons.org/licenses/by/4.0/")
+        nanopublication = "http://purl.org/np/RArwY4j9hx40cvd_La20zXCutOM-D4whR2lwbG0WoW5Ys#cc-by-4-0"
+        self.assertEqual(
+            set(kb.ids_of(self.entities[licence]["sameAs"])),
+            {kb.FIP_DASHBOARD + "cc-by-40", nanopublication},
+        )
+        self.assertEqual(
+            [
+                entity_id
+                for entity_id, entity in self.entities.items()
+                if nanopublication in kb.ids_of(entity.get("sameAs"))
+            ],
+            [licence],
+        )
         self.assertEqual(set(records_of(self.entities, licence)), {"fip-dashboard"})
         self.assertNotIn("fip-dashboard", records_of(self.entities, overview))
         self.assertEqual(set(records_of(self.entities, publisher)), {"fip-dashboard-organization"})

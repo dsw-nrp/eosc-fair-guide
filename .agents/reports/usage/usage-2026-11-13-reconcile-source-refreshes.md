@@ -193,3 +193,25 @@
   the full check suite on the final local merge.
   The rerun passes all 36 native checks in 220.4 seconds with OpenSpec 2.0.0, Ruff 0.17.5 and the required
   Chromium build. Final usage-record validation and committed payload bounds are checked separately.
+
+  Reader review 5915741645 on [dsw-nrp/eosc-fair-guide#181](https://github.com/dsw-nrp/eosc-fair-guide/pull/181#pullrequestreview-5915741645)
+  identifies the CC BY 4.0 FER nanopublication IRI lost during the licence split. A regression assertion reproduces
+  the omission before repair. The authored licence joins its existing Dashboard record, retains both external
+  identities on resources/cc-by-4-0 and keeps the overview and publisher separate, without a new station
+  recommendation. Its bilingual purpose follows the official licence deed. The source snapshot is unchanged;
+  the existing reader provenance action, identifier registration and archived identity-review disposition are
+  updated without restating historical acceptance. The original nanopublication IRI is preserved exactly,
+  including its HTTP scheme; its resolver could not be revalidated through the web tool.
+  New curation brings a formerly deferred entity into the initial graph. Under the already approved 300 KB
+  requirement and existing-part deferral, FER nanopublication identities now use fips property patches, retaining
+  other identities initially and restoring each exact list with registry detail. No part or format is added.
+  The loading assertion also fails before repair. Initial diagnostic runs expose missing purpose/provenance
+  validation and a concurrent rebuild during browser reads; these are corrected before final acceptance.
+  All 36 native checks pass on the final tree in 227.3 seconds, including full reconstruction in both language
+  orders, API/profile, browser, content, health and unit checks. The focused Python modules pass 49 tests.
+  Initial download is 306,793 bytes in Czech and 304,359 in English, below 307,200. Eight file navigations verify
+  both language orders, the HTTPS resolver link for the unchanged HTTP IRI, one owner and no external requests.
+  Twenty desktop/320 px screen/print viewports are captured, with licence, identifier and overview states inspected.
+  No new commit, push or GitHub review-thread write is performed by this repair.
+  The maintainer subsequently authorizes committing and pushing this verified repair on the existing reader
+  branch. The 36/36 result is local evidence; hosted checks on the resulting commit are verified separately.
