@@ -11,7 +11,7 @@ author: AIS CR (Archaeological Information System of the Czech Republic) <https:
 <!-- SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- aiscr:compiled=aiscr-plan-issue -->
-<!-- delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00 -->
+<!-- delivery-version: 00e795f3863999e297a997632377fb33415531a8 2026-11-15T00:18:09+01:00 -->
 
 <!-- aiscr:entry-scope -->
 
@@ -187,6 +187,7 @@ Classify every fragment from that emitted list and from the thread:
 
 - **Load-bearing** — content another system reads: issue-closing keywords, task-list checkboxes, trailers.
   Carry each **verbatim** into the delimited reporter region; absorbing one into prose drops the token with no diagnostic.
+  When the work deliberately ticks, rewords, or retires a task item, write the new form where it belongs and record the segment holding the old one as `absorbed` or `superseded` **with its reason**; that declaration releases it from verbatim carry, and the approval view shows it.
 - **Narrative** — everything a human reads.
   Absorb it into the section of the shape it belongs to; leaving it as a separate unreconciled block defeats the point.
 
@@ -283,6 +284,19 @@ When the regenerated body matches what is already posted, it skips the write rat
 When filing from review findings, check whether an issue already owns the stable key before creating one, and update or cite it rather than open a duplicate.
 Group inputs into one issue only when they share an owner and remediation path.
 Never copy secrets, real personal data, or raw log output into an issue body: summarize and cite the source location.
+
+For a PR-observation caller, accept the stable tracking key, identity, evidence and source revisions with their tiers, disposition rationale, and acquired PR context as external input.
+Keep this workflow's existing language choice, dialogue and crystallization, shaping, reconciliation, and exact-write approval gates; use the caller's established evidence and investigate gaps rather than asking for already established facts or upgrading a read path to a reproduction.
+Use the existing `sources.json` shape (`source` and `text`) and reconcile each segment into the issue body.
+Include `Observation key: <tracking_key>` and the source references in the shaped issue's `Problem`, preserving that key for later duplicate lookup even after local run cleanup.
+This caller needs no codebase finding identity and runs neither `codebase_review.py issue-transfer` nor `record-issue`.
+
+Before a PR-observation create, search by its key and confirm whether an existing issue owns the defect; cite it as reused, or obtain this workflow's own approval if it needs an update.
+After an uncertain create result, search and confirm the outcome before any repeated create.
+Return a confirmed reused or created issue reference to the calling PR review before it renders its final review body.
+If capture is declined, deferred, unavailable, fails, or remains uncertain, return a pending outcome and its reason without fabricating an issue reference.
+The caller's later review-posting approval remains separate from this workflow's issue-write approval.
+If issue creation succeeded but posting the calling review failed, retain and reuse the returned issue on retry.
 
 Render the exact create envelope before asking for approval:
 

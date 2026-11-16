@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
-# delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00
+# delivery-version: 00e795f3863999e297a997632377fb33415531a8 2026-11-15T00:18:09+01:00
 
 """Paths for visible run hand-offs and their bulk staging.
 
@@ -23,7 +23,7 @@ from pathlib import Path
 from lib import runtime_env
 
 LOCAL_SCRATCH_REL = ".agents/local_scratch"
-OPERATOR_PATCHES_REL = "operator-patches"
+OPERATOR_PATCHES_REL = runtime_env.OPERATOR_PATCHES_DIRNAME
 _SEGMENT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,254}$")
 POINTER_NAME = "POINTER.md"
 

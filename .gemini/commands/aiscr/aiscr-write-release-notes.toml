@@ -1,4 +1,4 @@
-# delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00
+# delivery-version: 00e795f3863999e297a997632377fb33415531a8 2026-11-15T00:18:09+01:00
 
 description = "Use when the user asks to generate or revise semantic, issue/PR-aligned release notes for an AIS CR repository. Store them under .agents/reports/release-notes/; updating the GitHub release body requires explicit approval."
 prompt = """
