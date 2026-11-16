@@ -5116,7 +5116,9 @@ def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[st
         entity = original
         if kind(entity) == "resources" and not fragment(entity):
             identities = as_list(entity.get("sameAs"))
-            initial = [item for item in identities if not re.match(r"^https?://purl\.org/np/", item.get("@id", ""))]
+            initial = [
+                item for item in identities if not re.match(r"^https?://(?:purl|w3id)\.org/np/", item.get("@id", ""))
+            ]
             if len(initial) != len(identities):
                 # FER nanopublication identities serve registry detail. Keep other identities (including the
                 # Dashboard link) initially, then restore the exact complete list through its existing part.

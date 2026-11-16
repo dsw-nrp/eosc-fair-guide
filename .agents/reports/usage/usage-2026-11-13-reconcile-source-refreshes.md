@@ -215,3 +215,20 @@
   No new commit, push or GitHub review-thread write is performed by this repair.
   The maintainer subsequently authorizes committing and pushing this verified repair on the existing reader
   branch. The 36/36 result is local evidence; hosted checks on the resulting commit are verified separately.
+
+  Reader review 5928101670 on [dsw-nrp/eosc-fair-guide#181](https://github.com/dsw-nrp/eosc-fair-guide/pull/181#pullrequestreview-5928101670)
+  confirms the licence identity repair and identifies three follow-ups. The split predicate now covers both
+  recognized nanopublication namespaces, purl.org/np/ and w3id.org/np/, matching the existing reader scheme.
+  The expanded test first reproduces FAIRsharing's omitted deferral, then passes for both HTTP/HTTPS hosts,
+  exact complete-list restoration and near-miss/other identities retained initially. All 49 focused Python tests
+  pass. The archived report's 18 source references now resolve to the archive, preserving its original date,
+  commit and historical evidence. R11 removes the unrelated page-check citation and explicitly identifies its
+  local, uncommitted manual-probe evidence. These are corrections within the existing loading and verification
+  contracts; source content and capability requirements are unchanged, and historical verification results are
+  retained. All 36 native checks pass in 228.1 seconds, including exact bilingual reconstruction, API/profile,
+  browser, unit, documentation and OpenSpec checks. Fresh manual probes verify eight resource navigations in
+  both language orders and four contextual FIP/FER glossary navigations at 320 px, with no external requests or
+  page errors. Twenty bilingual desktop/320 px screen/print captures are retained; representative identifier and
+  resource states are inspected. Initial downloads are 306,737 bytes Czech and 304,303 English, below 307,200.
+  Same-branch publication uses the maintainer's existing commit-and-push authorization; exact-head hosted
+  results remain separate from this local acceptance. No GitHub review-thread write or merge is performed.

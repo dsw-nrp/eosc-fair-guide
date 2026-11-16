@@ -109,7 +109,8 @@ restate the archived verification as evidence for the repair.
 The new curation brings a formerly deferred imported entity into the initial graph. Under the approved
 300 KB requirement and task 10.8's existing-part deferral, keep FER nanopublication identity detail in the existing
 `fips` property patches: retain other identities, including the Dashboard address, in the initial entity, then
-restore its complete `sameAs` list when registry detail loads. Apply this by the nanopublication namespace to
-resource identities, rather than by the licence's local ID. Verify exact graph reconstruction and both language
-orders, direct resource loading and the API; preserve the full crate and source snapshot. This introduces no
-part, route, field or external request and leaves the completed archive's earlier acceptance record intact.
+restore its complete `sameAs` list when registry detail loads. Apply this to resource identities in both recognized
+nanopublication namespaces (`purl.org/np/` and `w3id.org/np/`), rather than by the licence's local ID. Verify exact
+graph reconstruction and both language orders, direct resource loading and the API; preserve the full crate and
+source snapshot. This introduces no part, route, field or external request and leaves the completed archive's
+earlier acceptance record intact.

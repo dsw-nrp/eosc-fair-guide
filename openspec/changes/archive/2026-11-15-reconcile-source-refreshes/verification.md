@@ -5,6 +5,11 @@ Verified on 2026-11-15 using `openspec-verify-change`, against commit `58e54f6bd
 The CLI-selected proposal, all three delta specs, design and complete task file were read. No tracked artifact
 is unavailable or intentionally skipped. The apply state is context, not the basis for the verdict below.
 
+Archival reference maintenance (2026-11-16): source paths within this change now name their archive location.
+The verification date, verified commit and historical line references remain unchanged. R11 explicitly identifies
+its local manual-probe receipt; the unrelated committed page-check citation has been removed. These reference
+corrections do not represent a new execution of the original verification.
+
 ## Summary
 
 | Dimension | Status |
@@ -76,7 +81,7 @@ test method. The independent reader provenance action remains available and pass
 
 ### R01: Favicon integrity requires an explicit asset set
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:3` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:3` (ADDED Requirements).
 
 Implementation: `scripts/vendor_favicons.py:643`.
 
@@ -87,7 +92,7 @@ Implementation: `scripts/vendor_favicons.py:643`.
 
 ### R02: Favicon work files stay inside their owned directory
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:21` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:21` (ADDED Requirements).
 
 Implementation: `scripts/vendor_favicons.py:477`, `scripts/vendor_favicons.py:548`.
 
@@ -97,7 +102,7 @@ Implementation: `scripts/vendor_favicons.py:477`, `scripts/vendor_favicons.py:54
 
 ### R03: Favicon acquisition reaches only validated public HTTPS destinations
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:33` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:33` (ADDED Requirements).
 
 Implementation: `scripts/public_https.py:79`, `scripts/public_https.py:106`, `scripts/public_https.py:167`.
 
@@ -109,7 +114,7 @@ Implementation: `scripts/public_https.py:79`, `scripts/public_https.py:106`, `sc
 
 ### R04: Favicon connections pin validated public addresses
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:55` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:55` (ADDED Requirements).
 
 Implementation: `scripts/public_https.py:118`, `scripts/public_https.py:144`.
 
@@ -119,7 +124,7 @@ Implementation: `scripts/public_https.py:118`, `scripts/public_https.py:144`.
 
 ### R05: Favicon publication preserves a recoverable verified set
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:66` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:66` (ADDED Requirements).
 
 Implementation: `scripts/vendor_favicons.py:513`, `scripts/vendor_favicons.py:493`.
 
@@ -130,7 +135,7 @@ Implementation: `scripts/vendor_favicons.py:513`, `scripts/vendor_favicons.py:49
 
 ### R06: Favicon acquisition has dated outcomes
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:87` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:87` (ADDED Requirements).
 
 Implementation: `scripts/vendor_favicons.py:548`, `scripts/vendor_favicons.py:397`.
 
@@ -142,7 +147,7 @@ Implementation: `scripts/vendor_favicons.py:548`, `scripts/vendor_favicons.py:39
 
 ### R07: Failed favicon refresh preserves verified assets
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:115` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:115` (ADDED Requirements).
 
 Implementation: `scripts/vendor_favicons.py:430`, `scripts/vendor_favicons.py:548`.
 
@@ -153,7 +158,7 @@ Implementation: `scripts/vendor_favicons.py:430`, `scripts/vendor_favicons.py:54
 
 ### R08: Favicon validation reports integrity and coverage honestly
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:135` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-delivery/spec.md:135` (ADDED Requirements).
 
 Implementation: `scripts/vendor_favicons.py:643`, `scripts/vendor_favicons.py:734`.
 
@@ -165,7 +170,7 @@ Implementation: `scripts/vendor_favicons.py:643`, `scripts/vendor_favicons.py:73
 
 ### R09: Browser data belongs to one compatible build revision
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:3` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:3` (ADDED Requirements).
 
 Implementation: `scripts/build_crate.py:5422`, `assets/js/core.js:18`, `assets/js/core.js:143`, `assets/js/core.js:89`.
 
@@ -180,7 +185,7 @@ Implementation: `scripts/build_crate.py:5422`, `assets/js/core.js:18`, `assets/j
 
 ### R10: Entry actions wait for their deferred evidence
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:48` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:48` (ADDED Requirements).
 
 Implementation: `assets/js/selfcheck.js:729`.
 
@@ -190,17 +195,17 @@ Implementation: `assets/js/selfcheck.js:729`.
 
 ### R11: Explain terms where they help the reader
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:61` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:61` (ADDED Requirements).
 
-Implementation: `content/pages.toml:47`, `content/stations/01-plan.toml:243`, `openspec/changes/reconcile-source-refreshes/identity-review.md:60`.
+Implementation: `content/pages.toml:47`, `content/stations/01-plan.toml:243`, `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/identity-review.md:60`.
 
 | Scenario | Test/probe evidence | Result |
 | --- | --- | --- |
-| A community records its implementation choices | `.cache/reconcile-source-refreshes/openspec-verification/glossary-probe.mjs:18`, `tests/page/check_page.mjs:2919` | Covered |
+| A community records its implementation choices | Manual browser probe, local receipt only: `.cache/reconcile-source-refreshes/openspec-verification/glossary-probe.mjs:18` (four Czech/English navigations at 320 px; no committed glossary-link test) | Covered by manual probe |
 
 ### R12: Credit for content and compilation
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:76` (MODIFIED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:76` (MODIFIED Requirements).
 
 Implementation: `assets/js/views.js:1407`, `assets/js/views.js:1467`, `assets/js/views.js:397`.
 
@@ -212,7 +217,7 @@ Implementation: `assets/js/views.js:1407`, `assets/js/views.js:1467`, `assets/js
 
 ### R13: Own-site favicons cover eligible resource kinds consistently
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:108` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:108` (ADDED Requirements).
 
 Implementation: `scripts/build_crate.py:643`, `scripts/vendor_favicons.py:130`, `assets/js/catalogue.js:404`, `assets/js/core.js:319`.
 
@@ -226,7 +231,7 @@ Implementation: `scripts/build_crate.py:643`, `scripts/vendor_favicons.py:130`, 
 
 ### R14: Registry detail loads when its reader task needs it
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:148` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-experience/spec.md:148` (ADDED Requirements).
 
 Implementation: `scripts/build_crate.py:5395`, `scripts/build_crate.py:5118`.
 
@@ -239,7 +244,7 @@ Implementation: `scripts/build_crate.py:5395`, `scripts/build_crate.py:5118`.
 
 ### R15: New snapshot identifiers are reserved across the Guide
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-knowledge-base/spec.md:3` (MODIFIED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-knowledge-base/spec.md:3` (MODIFIED Requirements).
 
 Implementation: `scripts/catalogue_identity.py:186`, `scripts/catalogue_identity.py:365`, `scripts/refresh_snapshots.py:923`, `scripts/refresh_snapshots.py:981`.
 
@@ -259,7 +264,7 @@ Implementation: `scripts/catalogue_identity.py:186`, `scripts/catalogue_identity
 
 ### R16: Refresh reserves inferred organisation addresses
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-knowledge-base/spec.md:87` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-knowledge-base/spec.md:87` (ADDED Requirements).
 
 Implementation: `scripts/build_crate.py:2345`, `scripts/refresh_snapshots.py:923`.
 
@@ -269,7 +274,7 @@ Implementation: `scripts/build_crate.py:2345`, `scripts/refresh_snapshots.py:923
 
 ### R17: Dashboard registry classification survives source reclassification
 
-Spec: `openspec/changes/reconcile-source-refreshes/specs/fair-guide/guide-knowledge-base/spec.md:101` (ADDED Requirements).
+Spec: `openspec/changes/archive/2026-11-15-reconcile-source-refreshes/specs/fair-guide/guide-knowledge-base/spec.md:101` (ADDED Requirements).
 
 Implementation: `scripts/build_crate.py:2454`, `scripts/build_crate.py:2646`.
 
