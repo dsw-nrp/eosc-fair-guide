@@ -425,15 +425,31 @@ date. A repository outside the snapshot SHALL be named and linked, with an expla
 
 ### Requirement: Results carry their format and version
 
-The JSON-LD export and the Markdown summary SHALL declare the result format and its version and the guide's version.
-Loading SHALL tell apart a file the guide did not make, a damaged file, a file in a newer format and a file for an
-unknown check, each with its own message. Questions the current guide does not know SHALL be skipped with a note.
+JSON-LD and Markdown exports SHALL declare their result format/revision and Guide version. Revision 4 SHALL record answers as quality measurements of their persistent question IRIs and tests by distinct persistent IRIs; invocation endpoints/forms SHALL stay separate links. Revisions 1–3 SHALL load. Loading SHALL give separate messages for files not made by the Guide, damaged files, newer formats and unknown checks, and skip unknown questions with a note.
 
 #### Scenario: A file from an older guide
 
 - **GIVEN** a saved result that includes a question the current guide no longer has
 - **WHEN** a user loads it
 - **THEN** the preview opens with the other answers and says how many questions were left out
+
+#### Scenario: A result names its questions and tests persistently
+
+- **GIVEN** a dataset check exported by the current guide, with a reader's answer and a FAIR-Checker result
+- **WHEN** a tool reads them
+- **THEN** the answer is a quality measurement of the question's persistent IRI, the FAIR-Checker result names its test's persistent IRI, and both resolve wherever the Guide is hosted
+
+#### Scenario: Imported criteria sharing a provider form keep distinct identities
+
+- **GIVEN** results for two different F-UJI criteria whose records share the provider's form address
+- **WHEN** the current guide exports them
+- **THEN** each result names its criterion's distinct persistent IRI and the shared form remains only an invocation link
+
+#### Scenario: A revision 3 file after the address change
+
+- **GIVEN** a result saved in revision 3, whose test references name `api/tests/<question>.json` at the address it was served from
+- **WHEN** a user loads it into the current guide
+- **THEN** it loads with its answers and evidence, and its test references are read as references to the same questions
 
 ### Requirement: Advisory software and FDO checks
 

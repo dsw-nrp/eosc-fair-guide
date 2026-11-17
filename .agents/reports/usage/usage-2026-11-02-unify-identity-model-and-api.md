@@ -648,3 +648,32 @@
 - **Corrections:** the maintainer explicitly selected the advisory retry repair, confirmed artifact capture, then
   separately authorized apply. Its pre-existing, non-verdict-bearing origin remains distinct from the four new
   review findings.
+
+## Codex session (spec synchronization)
+
+- **When:** 2026-11-17 (+01:00).
+- **Agent / runtime:** OpenAI Codex.
+- **Model / backend:** GPT-6; exact backend model ID not exposed by the runtime.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** the maintainer's explicit `openspec-sync-specs` request for this change,
+  `fair-guide-editor`, the pinned OpenSpec CLI and its current specs-rule snapshot.
+- **What:** Sync the four delta paths selected by `status` into the matching main capabilities. Add 28 requirements
+  and update 25, preserving all four Purpose/preamble sections, 327 unrelated requirement blocks verbatim and every
+  existing scenario name. Keep explicit source-ID validation and joins, curated snapshot links, offline host
+  restrictions, head/linkset agreement and the newer startup Reload policy. Retain the complete added scenarios
+  while making four overlong delta descriptions concise enough for main-spec validation. Replace the stale
+  DataCite example with the already reviewed FAIRsharing project join so the provider/DOI-mechanism split remains
+  valid. Existing order, counter rejection, dated source claims and saved-result compatibility are retained.
+- **Impacted:** Main specs for `fair-guide/guide-delivery`, `fair-guide/guide-experience`,
+  `fair-guide/guide-knowledge-base` and `fair-guide/guide-self-check`, plus this rolling usage entry. Delta specs,
+  proposal/design/tasks, implementation, content sources and the archived source-refresh change are unchanged.
+- **Close-out:** Strict main-spec validation passes 5/5 and whole-project validation passes 6/6. The merge audit
+  preserves 677 existing scenario names and adds 113 scenarios; all four candidates are idempotent. Before/after
+  snapshots and the explicit reconciliation decisions are retained in the ignored task cache. The CLI reports two
+  already-present ADDED blocks whose reconciled text differs from the delta: a later archive should use
+  `--skip-specs` after confirming these main specs, rather than replacing the semantic merge. All 36 native
+  repository checks pass in 251.1 seconds. Final trailing-blank cleanup, strict spec validation, whitespace and
+  usage checks are recorded separately from that complete run; the actual written files pass the preservation
+  and idempotence audit. This sync does not certify the remaining implementation or external hand-offs; task
+  progress remains 90/99. No archive, staging, commit, push or GitHub write is performed.
