@@ -122,3 +122,30 @@ evidence = "certificate verify failed (unable to get local issuer certificate) f
 reviewer = "david-novak"
 reviewed = 2026-11-01
 reviewBy = 2027-04-30
+
+[[limitation]]
+key = "link:https://docs.it4i.cz/lumi/about/"
+outcome = "broken"
+reason = "The address no longer leads to a page: it redirects to /en/lumi/about, which is gone. It comes from the KNAV tools snapshot, which the Guide does not edit; the catalogue was asked on 2026-10-30 to update it and has not answered."
+evidence = "HEAD 404 from GitHub-hosted runners in 9 checks since 2026-10-28; 404 after the redirect from a maintainer's network on 2026-10-30 and 2026-11-17"
+reviewer = "david-novak"
+reviewed = 2026-11-17
+reviewBy = 2027-02-17
+
+[[limitation]]
+key = "link:https://cdsweb.u-strasbg.fr/"
+outcome = "unavailable"
+reason = "The Strasbourg astronomical Data Center's host resolves but does not answer from any network tried. The address comes from the KNAV tools snapshot, which the Guide does not edit, and nothing else in the Guide links it."
+evidence = "HEAD timed out from GitHub-hosted runners in 5 checks since 2026-10-28; timed out from a maintainer's network on 2026-11-01 and 2026-11-17"
+reviewer = "david-novak"
+reviewed = 2026-11-17
+reviewBy = 2027-02-17
+
+[[limitation]]
+key = "link:https://www.image-net.org/"
+outcome = "unavailable"
+reason = "ImageNet's host resolves but does not answer from any network tried. The address comes from the KNAV tools snapshot, which the Guide does not edit, and nothing else in the Guide links it."
+evidence = "HEAD timed out from GitHub-hosted runners in 5 checks since 2026-10-28; timed out from a maintainer's network on 2026-11-01 and 2026-11-17"
+reviewer = "david-novak"
+reviewed = 2026-11-17
+reviewBy = 2027-02-17
