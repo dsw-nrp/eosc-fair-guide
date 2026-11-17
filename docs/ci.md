@@ -14,6 +14,7 @@ Choose the task you need. Each runbook names the place, action, visible result a
 | Refresh a source | A snapshot needs a new observation | [Refresh a source](runbooks/refresh-a-source.md) |
 | Apply a safe duplicate link | A pull request has a reviewed suggestion | [Fix a duplicate](runbooks/fix-a-duplicate.md) |
 | Triage maintenance | The weekly digest changes | [Handle the digest](runbooks/handle-the-digest.md) |
+| Review evaluator mappings | Six months have passed, or an evaluator changed | [Review the evaluator mappings](runbooks/review-evaluator-mappings.md) |
 | Rerun a failed check | A failure needs diagnosis or a retry | [Rerun a check](runbooks/rerun-a-check.md) |
 | Inspect or change settings | An audit reports drift | [Audit settings](runbooks/audit-settings.md) |
 

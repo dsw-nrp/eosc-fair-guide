@@ -444,6 +444,9 @@ maxParallel = 3
 timeoutSeconds = 60
 maxBytes = 65536
 observed = 2026-10-12
+# FAIR-Checker publishes one version, the API version of its swagger.json, and that stays its reviewed identity. The
+# number need not change when the metric list or a metric's wording does, so the mapping review compares the metrics
+# themselves (docs/runbooks/review-evaluator-mappings.md).
 reviewed = [{ api = "1.0" }]
 
 [[provider.metric]]

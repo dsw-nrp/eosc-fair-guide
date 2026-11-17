@@ -289,6 +289,23 @@ try {
     assert((await page.locator("#provider-overview-1").textContent()).includes(lang === "cs" ? "test_status" : "test_status"), "the report's own status is shown where it differs");
     assert.equal((await item("dataset.10")).value, "no", "a whole-mapping pass leaves the reader's No unchanged");
     assert.equal((await item("dataset.10")).origin, "user");
+    /* A changed mapping changes only the suggestion: the same stored assessment read through a narrower mapping
+       suggests Partly instead of Yes, and neither its native results nor the reader's answers change. */
+    const narrowed = await page.evaluate(() => {
+      const FG = window.FairGuide, P = FG.providers, st = FG.state.answers.dataset;
+      const snapshot = () => JSON.stringify([st.assessments, st.items]);
+      const before = snapshot();
+      const assessment = st.assessments.find((entry) => entry.provider === "f-uji");
+      const question = FG.get("questions/dataset.01");
+      const row = P.mappings(P.provider("f-uji")).find((entry) => entry.metric === "FsF-F1-02MD" && entry.question === "dataset.01");
+      return {
+        whole: P.evidence(question, [row], assessment).value,
+        partial: P.evidence(question, [Object.assign({}, row, { coverage: "partial" })], assessment).value,
+        native: assessment.results.length,
+        unchanged: snapshot() === before,
+      };
+    });
+    assert.deepEqual(narrowed, { whole: "yes", partial: "partly", native: 17, unchanged: true }, "a changed mapping changes the suggestion and keeps the stored native results and the reader's answers");
     const licence = await item("dataset.04");
     assert.equal(licence.value, "no"); assert(licence.observations.filter((seen) => ["fair-checker", "f-uji"].includes(seen.source)).every((seen) => seen.value === "partly"), "partial coverage suggests Partly beside the reader's No");
     assert((await page.locator("#provider-overview-1").textContent()).includes(lang === "cs" ? "Průvodce tyto stránky sám nečetl" : "the Guide did not read these pages itself"), "harvested evidence is attributed to F-UJI");
