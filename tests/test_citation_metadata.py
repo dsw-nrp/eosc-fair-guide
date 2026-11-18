@@ -4,6 +4,7 @@ import contextlib
 import copy
 import io
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -37,12 +38,42 @@ class CitationMetadataTests(unittest.TestCase):
             self.assertEqual(citation.check(self.root), [])
         self.assertEqual(before, {str(path): path.read_bytes() for path in self.root.rglob("*") if path.is_file()})
 
-    def test_invalid_cff_is_not_hidden_by_matching_version_and_date(self):
+    def edit_cff(self, old, new):
         path = self.root / "CITATION.cff"
-        path.write_text(
-            path.read_text(encoding="utf-8").replace("cff-version: 1.2.0", "cff-version: 9.9.9"), encoding="utf-8"
+        text = path.read_text(encoding="utf-8")
+        self.assertIn(old, text)
+        path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+    def test_invalid_cff_is_not_hidden_by_matching_version_and_date(self):
+        # Each value is invalid under the CFF 1.2.0 schema, and the report names the file and the field.
+        for old, new, field in (
+            ('date-released: "2026-', 'date-released: "1 November ', "CITATION.cff date-released:"),
+            ("title: ", "titles: ", "CITATION.cff root: 'title' is a required property"),
+            ("type: software", "type: poster", "CITATION.cff type:"),
+        ):
+            with self.subTest(field=field):
+                self.setUp()
+                self.edit_cff(old, new)
+                self.assertIn(field, "\n".join(citation.check(self.root)))
+
+    def test_unquoted_dates_are_validated_as_written(self):
+        # YAML would read an unquoted date as a date object; the check keeps it as the text the schema expects.
+        path = self.root / "CITATION.cff"
+        text, count = re.subn(r'date-released: "(\d{4}-\d{2}-\d{2})"', r"date-released: \1", path.read_text("utf-8"))
+        self.assertGreater(count, 0)
+        path.write_text(text, encoding="utf-8")
+        self.assertEqual(citation.check(self.root), [])
+
+    def test_another_cff_version_is_refused_rather_than_checked_against_the_wrong_schema(self):
+        self.edit_cff("cff-version: 1.2.0", "cff-version: 1.3.0")
+        self.assertEqual(
+            citation.check(self.root),
+            ["CITATION.cff cff-version must be 1.2.0, the version whose schema the check holds"],
         )
-        self.assertIn("CITATION.cff schema", "\n".join(citation.check(self.root)))
+
+    def test_broken_yaml_is_reported_without_a_traceback(self):
+        (self.root / "CITATION.cff").write_text("cff-version: 1.2.0\ntitle: [unclosed\n", encoding="utf-8")
+        self.assertTrue(citation.check(self.root)[0].startswith("CITATION.cff is not valid YAML"))
 
     def test_import_profile_rejects_unsupported_shapes_and_unknown_keys(self):
         for edit in (

@@ -1,5 +1,10 @@
 """Check CFF, the Zenodo GitHub import profile and shared metadata without network or writes.
 
+CITATION.cff is validated against the Citation File Format 1.2.0 schema, kept unchanged as
+scripts/schemas/cff-1.2.0.json (tag 1.2.0 of citation-file-format/citation-file-format, SHA-256
+0b8d22140da702d766df318dcff3a91af2f39521298dcf36d76315fd99cc169b). A file declaring another
+cff-version is refused rather than checked against a schema it does not declare.
+
 The profile follows Zenodo's importer at commit 1fab575d6b7eea09e5ebef5329ee366efbddc802,
 site/zenodo_rdm/legacy/deserializers/metadata.py and github/schemas.py. The developer docs'
 legacyrecord.json is older: it omits version and structured creator affiliations. This local
@@ -20,10 +25,11 @@ from pathlib import Path
 
 import release_versions
 import yaml
-from cffconvert import Citation
 from jsonschema import Draft7Validator, FormatChecker
 
 ROOT = Path(__file__).resolve().parents[1]
+CFF_VERSION = "1.2.0"
+CFF_SCHEMA = Path(__file__).resolve().parent / "schemas" / f"cff-{CFF_VERSION}.json"
 TEXT = {"type": "string", "minLength": 1}
 PERSON = {
     "type": "object",
@@ -200,6 +206,36 @@ PROFILE = {
 }
 
 
+class TextDates(yaml.SafeLoader):
+    """YAML as written: an unquoted date stays text, so the schema's date format sees what the file says."""
+
+
+TextDates.yaml_implicit_resolvers = {
+    first: [(tag, pattern) for tag, pattern in resolvers if tag != "tag:yaml.org,2002:timestamp"]
+    for first, resolvers in yaml.SafeLoader.yaml_implicit_resolvers.items()
+}
+
+
+def cff_errors(raw: str) -> tuple[dict | None, list[str]]:
+    """Load CITATION.cff and validate it against the vendored schema of the version it declares."""
+    try:
+        cff = yaml.load(raw, Loader=TextDates)
+    except yaml.YAMLError as error:
+        return None, [f"CITATION.cff is not valid YAML: {error}"]
+    if not isinstance(cff, dict):
+        return None, ["CITATION.cff must be a YAML mapping"]
+    if cff.get("cff-version") != CFF_VERSION:
+        return None, [f"CITATION.cff cff-version must be {CFF_VERSION}, the version whose schema the check holds"]
+    schema = json.loads(CFF_SCHEMA.read_text(encoding="utf-8"))
+    errors = [
+        f"CITATION.cff {'/'.join(map(str, error.path)) or 'root'}: {error.message}"
+        for error in sorted(
+            Draft7Validator(schema, format_checker=FormatChecker()).iter_errors(cff), key=lambda error: list(error.path)
+        )
+    ]
+    return cff, errors
+
+
 def unique_object(pairs):
     """JSON must not hide a stale value behind a duplicate key."""
     result = {}
@@ -316,10 +352,11 @@ def check(root: Path) -> list[str]:
     """Return actionable diagnostics; no network or file writes, even on malformed input."""
     try:
         raw = (root / "CITATION.cff").read_text(encoding="utf-8")
-        Citation(raw).validate()
-        cff = yaml.safe_load(raw)
-    except Exception as error:  # cffconvert uses several schema/YAML exception types
-        return [f"CITATION.cff schema validation failed: {error}"]
+    except OSError as error:
+        return [f"CITATION.cff: {error}"]
+    cff, errors = cff_errors(raw)
+    if errors:
+        return errors
     try:
         zenodo = json.loads((root / ".zenodo.json").read_text(encoding="utf-8"), object_pairs_hook=unique_object)
     except (OSError, ValueError) as error:
