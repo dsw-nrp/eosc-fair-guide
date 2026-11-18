@@ -100,6 +100,18 @@ status = "operational"
 asOf = 2026-10-14
 operator = { name = { cs = "Masarykova univerzita (RECETOX a IBA MU)", en = "Masaryk University (RECETOX and IBA MU)" }, source = "https://genasis.cz/" }
 
+[[repository]]
+guideRoute = "repositories"
+id = "digitalia-muni-arts"
+functions = ["deposit-data"]
+name = "Digitalia MUNI ARTS"
+url = "https://digitalia.phil.muni.cz/"
+kind = "institutional"
+subjects = { cs = "humanitní vědy a umění", en = "humanities and the arts" }
+status = "operational"
+asOf = 2026-11-18
+operator = { name = { cs = "Filozofická fakulta Masarykovy univerzity", en = "Faculty of Arts, Masaryk University" }, source = "https://digitalia.phil.muni.cz/o-nas/poslani-infrastruktury" }
+
 # Annotations of records, not extra entries or changes to the source snapshots. An annotation naming records of
 # several registries (re3data, the FIP Dashboard, the KNAV tools catalogue) says they are one thing.
 [[record]]

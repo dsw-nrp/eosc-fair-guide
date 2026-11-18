@@ -855,6 +855,27 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 guideRoute = "resources"
+id = "deposit-licence-manual"
+name = { cs = "Manuál ke vzoru depozičních licenčních podmínek", en = "Guide to the template for deposit licence terms" }
+description = { cs = "Vysvětluje ustanovení [[resources/deposit-licence|vzoru depoziční licence]] a doporučuje, jak je zřizovatel repozitáře může upravit.", en = "Explains the provisions of the [[resources/deposit-licence|deposit licence template]] and recommends how a repository's owner can adapt them." }
+url = "https://www.eosc.cz/media/4271801/manual-ke-vzoru-depozicnich-licencnich-podminek-cz.pdf"
+type = "document"
+status = "operational"
+asOf = 2026-11-18
+lenses = ["SR"]
+stations = ["licence", "repository"]
+languages = ["cs", "en"]
+
+[resource.citation]
+type = "document"
+title = "Manuál ke vzoru depozičních licenčních podmínek"
+inLanguage = "cs"
+publisher = "eosc-cz"
+dateAccessed = 2026-11-18
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[resource]]
+guideRoute = "resources"
 id = "creative-commons"
 name = { cs = "Licence Creative Commons", en = "Creative Commons licences" }
 description = { cs = "Standardní veřejné licence, například [[resources/cc-by-4-0|CC BY 4.0]], a nástroj CC0.", en = "Standard public licences, such as [[resources/cc-by-4-0|CC BY 4.0]], and the CC0 tool." }
