@@ -16,7 +16,7 @@ reason = "The KNAV catalogue lists three services of the EOSC EU Node (large fil
 
 [[accepted]]
 entries = ["fip-dashboard:dsw", "knav:data-stewardship-wizard"]
-reason = "Two instances of the Data Stewardship Wizard: the FIP Dashboard record stands for the guide's DMP.eosc.cz, the national instance, and the KNAV catalogue lists ELIXIR's instance for researchers."
+reason = "The FIP Dashboard describes the generic Data Stewardship Wizard platform; KNAV describes the hosted ELIXIR instance for researchers. DMP.eosc.cz is another deployment, not the platform itself."
 
 # Things the Guide describes under one exact name that are two things, by their addresses, each with its reason.
 [[distinct]]
@@ -28,5 +28,5 @@ addresses = ["organizations/csda", "repositories/csda"]
 reason = "The Czech Social Science Data Archive is a department of the Institute of Sociology, which publishes data, and, under the same name, the data repository the department operates."
 
 [[distinct]]
-addresses = ["organizations/dsw", "resources/data-stewardship-wizard"]
-reason = "The FIP Dashboard's organisation record names the project that develops the Data Stewardship Wizard; the KNAV catalogue's record names ELIXIR's instance of the tool for researchers."
+addresses = ["organizations/dsw", "resources/data-stewardship-wizard", "resources/dsw"]
+reason = "The FIP Dashboard organisation names the developer project, its resource names the generic software platform, and KNAV names the hosted ELIXIR instance for researchers. They share a name but describe different things."

@@ -3066,6 +3066,34 @@ sections.push(["grouping and typography", async () => {
   }
 }]);
 
+sections.push(["Source identity", async () => {
+  const { context, page } = await openPage();
+  for (const lang of ["cs", "en"]) {
+    await gotoView(page, pageUrl + `#/${lang}/SR/catalogue/resources/clarin-dspace`);
+    const software = page.locator('[id="item-clarin-dspace"]');
+    if (await software.locator(":scope > .badges [data-verification]").count()) fail("source identity: instance verification badges certify CLARIN software: " + lang);
+    const claims = software.locator(".source-claims");
+    if (await claims.count() !== 1) fail("source identity: CLARIN source claims missing: " + lang);
+    else {
+      await claims.locator("summary").click();
+      if (!(await claims.textContent()).includes(lang === "cs" ? "CLARIN typu B" : "B-centre")) fail("source identity: CLARIN scoped source verification note lost: " + lang);
+      if (await claims.locator('[data-verification="verified"]').count() !== 1) fail("source identity: CLARIN source verification lost: " + lang);
+    }
+    for (const id of ["cc-by-4-0", "creative-commons", "dsw", "dmp-eosc", "doi", "datacite"]) {
+      await gotoView(page, pageUrl + `#/${lang}/V/catalogue/resources/${id}`);
+      if (await page.locator(`[id="item-${id}"]`).count() !== 1) fail("source identity: distinct entry missing: " + id + " " + lang);
+      await page.setViewportSize({ width: 320, height: 1000 });
+      for (const media of ["screen", "print"]) {
+        await page.emulateMedia({ media });
+        if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) fail(`source identity: ${id} overflows at 320 px in ${lang} ${media}`);
+      }
+      await page.emulateMedia({ media: "screen" });
+      await page.setViewportSize({ width: 1280, height: 1000 });
+    }
+  }
+  await context.close();
+}]);
+
 sections.push(["Citations", async () => {
   const { context, page } = await openPage();
   for (const lang of ["cs", "en"]) {

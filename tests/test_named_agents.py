@@ -1,6 +1,5 @@
-"""A named agent is the one thing the Guide describes under that name: an organisation and its eponymous service are one
-node, a registry's organisation record joins a thing only by a reviewed key, and two things of one name are reported
-unless a reviewed group says why they are two."""
+"""Named agents resolve to reviewed things, not merely similar names. A reviewed project/service can hold both source
+records; a provider is not thereby its identifier mechanism, software or hosted deployment. Shared names need review."""
 
 import copy
 import sys
@@ -40,13 +39,13 @@ class NamedAgentTests(unittest.TestCase):
         self.assertEqual(agents(self.entities[iri("resources/ostrails-cli")]), [iri("resources/github")])
         self.assertNotIn(iri("organizations/github"), self.entities)
 
-    def test_an_organisation_and_its_eponymous_service_hold_both_dashboard_records(self):
-        datacite = iri("resources/datacite")
+    def test_a_reviewed_project_and_service_hold_both_dashboard_records(self):
+        orcid = iri("resources/orcid")
         for fragment in ("#fip-dashboard", "#fip-dashboard-organization"):
-            record = self.entities[datacite + fragment]
-            self.assertEqual(record["primaryTopic"], kb.ref(datacite), fragment)
-            self.assertNotIn(kb.ref(datacite + fragment), kb.as_list(self.entities[datacite].get("isBasedOn")))
-        self.assertNotIn(iri("organizations/datacite"), self.entities)
+            record = self.entities[orcid + fragment]
+            self.assertEqual(record["primaryTopic"], kb.ref(orcid), fragment)
+            self.assertNotIn(kb.ref(orcid + fragment), kb.as_list(self.entities[orcid].get("isBasedOn")))
+        self.assertNotIn(iri("organizations/orcid-2"), self.entities)
 
     def test_no_two_described_things_share_a_name_outside_a_reviewed_group(self):
         errors, _ = check_duplicates.shared_names(self.content, check_duplicates._distinct(ROOT))
@@ -61,7 +60,9 @@ class NamedAgentTests(unittest.TestCase):
 
     def test_an_organisation_record_named_like_a_thing_is_listed_for_review(self):
         content = copy.deepcopy(self.content)
-        next(row for row in content["resources"] if row["id"] == "creative-commons").pop("fipDashboardOrganization")
+        resource = next(row for row in content["resources"] if row["id"] == "creative-commons")
+        resource.pop("fipDashboardOrganization", None)
+        resource["name"] = "Creative Commons"
         entities = self.build(content)
         # Without its reviewed handle the record founds an organisation of its own; its name joins nothing.
         self.assertIn(iri("organizations/cc"), entities)

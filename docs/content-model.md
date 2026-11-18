@@ -1334,6 +1334,8 @@ results name a page as `pages/<id>`.
 The initial knowledge base keeps check descriptions and structural links. Question entities load from
 `_site/assets/data/kb-questions.js` for checks, the catalogue, the explorer, a station or a search; returning visitors with
 answers also load them before the landing renders its gaps. Full reconstruction still yields the crate.
+Resource FER nanopublication IRIs load as complete `sameAs` property patches with `fips`; their other identities
+remain initial. Catalogue entry routes and complete search already wait for that part.
 Original passages and their source bylines load together for checks, the catalogue, principles and
 individual stations. The guide's foundation citation keeps its authors in the initial data for the
 landing and About page. Attribution does not depend on which view the reader visited first.

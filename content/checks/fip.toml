@@ -6,7 +6,7 @@
 id = "fip"
 name = { cs = "Úplnost FIP", en = "FIP completeness" }
 icon = "people-group"
-description = { cs = "Co už FIP vašeho oboru určuje a co v něm chybí? Odpovědi lze předvyplnit z profilu komunity ve [[resources/fip-dashboard|FIP Dashboardu]] nebo z publikované nanopublikace FIP.", en = "What does your domain's FIP already set, and what is missing? Answers can be pre-filled from the community's profile in the [[resources/fip-dashboard|FIP Dashboard]] or from a published FIP nanopublication." }
+description = { cs = "Co už [[glossary/fair-implementation-profile|FIP]] vašeho oboru určuje a co v něm chybí? Odpovědi lze předvyplnit z profilu komunity ve [[resources/fip-dashboard|FIP Dashboardu]] nebo z publikované [[glossary/nanopublication|nanopublikace]] FIP.", en = "What does your domain's [[glossary/fair-implementation-profile|FIP]] already set, and what is missing? Answers can be pre-filled from the community's profile in the [[resources/fip-dashboard|FIP Dashboard]] or from a published FIP [[glossary/nanopublication|nanopublication]]." }
 lenses = ["K"]
 minutes = 10
 

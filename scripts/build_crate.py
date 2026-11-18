@@ -5114,6 +5114,19 @@ def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[st
     # with their own deferred entities, so concurrent part loading cannot drop a patch for a missing target.
     for index, original in enumerate(core):
         entity = original
+        if kind(entity) == "resources" and not fragment(entity):
+            identities = as_list(entity.get("sameAs"))
+            initial = [
+                item for item in identities if not re.match(r"^https?://(?:purl|w3id)\.org/np/", item.get("@id", ""))
+            ]
+            if len(initial) != len(identities):
+                # FER nanopublication identities serve registry detail. Keep other identities (including the
+                # Dashboard link) initially, then restore the exact complete list through its existing part.
+                parts["fips"]["properties"].setdefault(entity["@id"], {})["sameAs"] = entity["sameAs"]
+                entity = {key: value for key, value in entity.items() if key != "sameAs"}
+                if initial:
+                    entity["sameAs"] = initial
+                core[index] = entity
         if kind(entity) == "repositories" and not fragment(entity) and "keywords" in entity:
             parts["fips"]["properties"].setdefault(entity["@id"], {})["keywords"] = entity["keywords"]
             entity = {key: value for key, value in entity.items() if key != "keywords"}

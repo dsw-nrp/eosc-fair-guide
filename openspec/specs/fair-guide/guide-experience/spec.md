@@ -223,9 +223,9 @@ be chosen from a vertical menu grouped by F, A, I and R, laid out like the path'
 
 ### Requirement: Resource and repository finder
 
-The guide SHALL let users filter resources by station, lens, type, status and language. Repositories and registries
-SHALL form one catalogue family regardless of whether their records come from the guide's selection, the FIP
-Dashboard, re3data, NKR or FAIRsharing, without duplicates.
+The guide SHALL let users filter resources by station, lens, type, status and language. Repositories SHALL form one
+catalogue family regardless of whether their records come from the guide's selection, the FIP Dashboard, re3data,
+NKR or FAIRsharing, without duplicates. A registry SHALL be a resource, listed and filtered with the resources.
 
 #### Scenario: Repository listed in two sources
 
@@ -257,6 +257,12 @@ Dashboard, re3data, NKR or FAIRsharing, without duplicates.
 - **WHEN** the content checks run
 - **THEN** they fail, name the NKR record and both entries, and the build joins the record to neither
 
+#### Scenario: A registry among the resources
+
+- **GIVEN** NKR, a registry the guide curates with the data-repository function of finding repositories
+- **WHEN** a reader opens the catalogue
+- **THEN** NKR is listed once, among the resources, with its functions shown, and not in the repositories family
+
 ### Requirement: Repository and registry functions
 
 A function facet SHALL distinguish data and publication deposit from finding metadata, standards, repositories
@@ -268,8 +274,8 @@ qualification.
 #### Scenario: Dashboard repository and registry
 
 - **GIVEN** repositories and registries imported from the FIP Dashboard alongside other sources
-- **WHEN** the user opens the repositories and registries family
-- **THEN** every such thing is available there by meaning, with its functions and source records
+- **WHEN** the user opens the repositories family and the resources
+- **THEN** every such thing is available by meaning, a repository among the repositories and a registry among the resources, each with its functions and source records
 - **AND** the data-deposit filter excludes metadata directories and standards registries that do not accept data deposits
 
 #### Scenario: Reviewed cross-registry identity
@@ -284,7 +290,7 @@ qualification.
 - **GIVEN** a data repository whose status is planned or in development, or whose NKR record says it is a pilot not accepting data
 - **WHEN** a reader opens the data-repository chooser
 - **THEN** the repository is not offered there
-- **AND** it remains listed in the repositories and registries family with its status and its data-deposit function
+- **AND** it remains listed in the repositories family with its status and its data-deposit function
 
 ### Requirement: Reader's meaning and task guide the interface
 
@@ -569,29 +575,33 @@ ministry pair SHALL stay whole; on a narrow screen the EOSC CZ logo MAY move bel
 
 ### Requirement: Credit for content and compilation
 
-Credit SHALL separate the content's basis from the guide's compilation. The footer SHALL credit the authors of the
-FAIR analysis the content builds on and SHALL give the guide's own citation as software, naming its compiler as
-editor. The about page SHALL list: authors of the analysis, compilation and development, editorial review,
-content contributors, AI tools and funding. Each station SHALL show its sources and provenance as one short line
-without person names, linking to the full detail.
+Credit SHALL separate the content's basis from compilation. About SHALL contain both complete citations: the FAIR
+analysis with its authors and the Guide as software with its compiler as editor. The footer SHALL link to About
+without either citation. About SHALL retain analysis authors, compilation/development, editorial review, content
+contributors, AI tools and funding. Each station SHALL keep its short sources/provenance line without person names,
+linked to full detail.
 
 #### Scenario: Who wrote the content
 
 - **GIVEN** any view
 - **WHEN** a user reads the footer
-- **THEN** it credits the authors of the FAIR analysis as the basis of the content and gives the guide's citation with its compiler as editor, so no single person appears as the author of everything
+- **THEN** neither complete citation is repeated there, and a clear link opens About at the full credits and citations
+- **AND** the footer retains its version/build identity, licence, funding and existing useful navigation
 
 #### Scenario: Roles on the about page
 
 - **GIVEN** a user who follows "Who contributed" in the footer
 - **WHEN** the about page opens at its roles
-- **THEN** a table names the authors of the analysis with their ORCID iDs, the editor, the editorial review, the content contributors with an ORCID link where one is recorded, the tools used and the funding
+- **THEN** a table names the authors of the analysis with their ORCID iDs, the editor, the editorial review,
+  the content contributors with an ORCID link where one is recorded, the tools used and the funding
+- **AND** the analysis and Guide are each cited in full once, with their distinct roles, in either language and print
 
 #### Scenario: A content contributor is not a software author
 
 - **GIVEN** a person credited as a content contributor
 - **WHEN** a reader compares the about page with the guide's citation and with `CITATION.cff`
-- **THEN** the person appears in the content-contributors row and not as the guide's editor or as a software author, and a contributor without an ORCID iD appears by name only
+- **THEN** the person appears in the content-contributors row and not as the guide's editor or as a software author,
+  and a contributor without an ORCID iD appears by name only
 
 ### Requirement: Shared callouts
 
@@ -732,31 +742,36 @@ kinds, using the same case-insensitive matching as descriptive text.
 
 ### Requirement: The machine-readable side is visible
 
-A page for machines SHALL teach machine-actionability by example, for data stewards first. It SHALL start from
-what a reader wants to do and lead to the matching data (the whole knowledge base, one record, an integration,
-discovery by harvesters, a saved check result), SHALL show how the guide applies its own advice, and SHALL explain
-and link the knowledge base (the RO-Crate), the API with its documentation and every endpoint, the guide's profile
-and the licence.
+A page for machines SHALL teach machine-actionability by example, for data stewards first. It SHALL lead from a reader's task to the data (the whole knowledge base, one record, a query, an integration, discovery by harvesters, a saved check result). It SHALL show how the Guide applies its own advice, and explain and link the RO-Crate, RDF distribution and query recipes, API documentation and every endpoint, IRI pattern, profile and licence.
 
 #### Scenario: A data steward wants one record
 
 - **GIVEN** a data steward on the page for machines who wants the data about one principle
 - **WHEN** they read what the page offers
-- **THEN** they find the API record's address pattern, a working example, and how the guide itself uses the same means
+- **THEN** they find the record's persistent IRI pattern and API address pattern, a working example, and how the guide itself uses the same means
+
+#### Scenario: A data steward wants to ask a question of the whole graph
+
+- **GIVEN** a data steward who wants the advice for one lens across all stations
+- **WHEN** they read what the page offers for queries
+- **THEN** they find the RDF distribution, the profile that defines what they may query and a recipe that answers that question
+
+#### Scenario: A data steward needs a saved-result question definition
+
+- **GIVEN** a saved result from revisions 1 to 3 that names a question-support document
+- **WHEN** the reader compares the accessible endpoint table with the OpenAPI operations
+- **THEN** `/api/tests/{id}.json` appears alongside the other operations as the displayed template, and its actual link
+  opens a concrete retained question-support document without requiring URI-template substitution by the reader
 
 ### Requirement: The guide signposts itself
 
-The guide's HTML head SHALL carry FAIR Signposting links: the crate (`describedby`), the API description
-(`service-desc`), the API documentation (`service-doc`), the licence (`license`), the type of what the page
-presents (`type`), the editors (`author`), the guide's persistent identifier (`cite-as`) once it has one, and a
-linkset (`linkset`) that lists the same links from the same source. Every link SHALL be relative to the site, so
-the guide can move.
+The Guide's HTML head SHALL carry FAIR Signposting links: the crate and RDF distribution (`describedby`), API description (`service-desc`), API documentation (`service-doc`), licence (`license`), presented type (`type`), editors (`author`), persistent identifier (`cite-as`) once available, and linkset (`linkset`). The linkset SHALL list the same links from the same source. Links SHALL be relative to the site so the Guide can move.
 
 #### Scenario: Harvester discovers the API
 
 - **GIVEN** a harvester that reads the guide's home page
 - **WHEN** it inspects the typed links in the HTML head, or the linkset they point to
-- **THEN** it finds the crate, the OpenAPI description, the API documentation and the licence
+- **THEN** it finds the crate, the RDF distribution, the OpenAPI description, the API documentation and the licence
 
 ### Requirement: Export from every view
 
@@ -779,16 +794,23 @@ from the page for machines.
 
 ### Requirement: Named resources link from text
 
-A catalogue entry named in a text body SHALL be a link to its entry where one exists, styled so that reading is
-not disturbed. Editors SHALL mark such references explicitly in the content, and the content checks SHALL reject a
+A catalogue entry named in a text body SHALL be a link to its entry where one exists, styled so that reading is not
+disturbed. Editors SHALL mark such references explicitly in the content, and the content checks SHALL reject a
 reference to an unknown entry. The knowledge base SHALL keep the text clean, with the referenced entities recorded
-as mentions.
+as mentions. Addresses required by these synchronous references SHALL remain available without loading an unrelated
+catalogue part.
 
 #### Scenario: DataCite in a step
 
 - **GIVEN** a step whose text names DataCite
 - **WHEN** the step is shown
 - **THEN** "DataCite" links to its resource entry, and the crate records the resource as mentioned by the step without markup in the text
+
+#### Scenario: An infrastructure named before its graph part loads
+
+- **GIVEN** a reader at a station whose advice names CSDA/ESS-CZ, LINDAT/CLARIAH-CZ or ELIXIR CZ while `fips` has not loaded
+- **WHEN** the advice is shown
+- **THEN** each name links to its infrastructure entry from the initially available issued address
 
 ### Requirement: Landing view
 
@@ -873,10 +895,7 @@ to continue.
 
 ### Requirement: Universal search
 
-The landing's search box SHALL search text locally over the knowledge base and route identifiers by what they
-denote. Text results SHALL end with a link that opens the catalogue with the same query, which is the full results
-page. Matching SHALL ignore diacritics and cover both languages. Typing SHALL send nothing to any service; a service
-is called only after the user picks an identifier result.
+Search SHALL match knowledge base text in both languages, ignoring diacritics, and link to the catalogue with the same query. Typing SHALL send nothing; identifier lookups SHALL require user choice, independently of text indexes. Text results SHALL wait for standards, questions, advice and fips in the selected language. Failed loads SHALL offer retry. Recovery SHALL respect current forms, pending queries, newer input and unrelated errors, retire obsolete search errors, and confirm results once.
 
 #### Scenario: Searching a term
 
@@ -890,11 +909,84 @@ is called only after the user picks an identifier result.
 - **WHEN** they press Enter
 - **THEN** the first result offers to find out what the DOI is, and nothing is sent until the user chooses it
 
+#### Scenario: A text-search part fails
+
+- **GIVEN** a text search whose required deferred part fails to load
+- **WHEN** the reader confirms the search
+- **THEN** a visible error offers retry and a later successful retry shows the results
+
+#### Scenario: Only the FIP text-search part fails
+
+- **GIVEN** a query matching a record supplied only by `fips`, with `standards`, `questions` and `advice` loaded
+- **AND** loading `fips` fails
+- **WHEN** the reader confirms the search
+- **THEN** a visible error offers retry and neither partial nor empty results are confirmed as complete
+- **AND** a successful retry includes the FIP-supplied match
+
+#### Scenario: Navigation replaces a failed search form before retry
+
+- **GIVEN** a failed text search whose original form has been replaced by lens navigation
+- **WHEN** the reader retries without entering a newer query
+- **THEN** the currently attached form shows recovered results for the pending query in the current route, not the detached predecessor
+- **AND** completion of an older retry does not overwrite a query entered after navigation
+
+#### Scenario: A replacement was deliberately cleared before retry completed
+
+- **GIVEN** a failed search whose replacement form received a new query that the reader then cleared while retry was pending
+- **WHEN** the older retry completes
+- **THEN** the replacement stays empty and the older query and its results are not restored
+
+#### Scenario: Retry completes during a deferred language render
+
+- **GIVEN** a Czech text-search retry and a switch to English whose language scripts are still pending
+- **WHEN** retry completes before the English form is ready and the scripts then finish
+- **THEN** no recovered result is rendered into the outgoing Czech form and the current English form shows the pending query's recovered results
+
+#### Scenario: Text changes to an identifier while its part fails
+
+- **GIVEN** a text submission waiting for a required part whose input the reader replaces with a recognised identifier on the same form
+- **WHEN** that text-only part fails
+- **THEN** the current identifier's routes appear without another submission and the obsolete text-part failure does not suppress them
+
+#### Scenario: An identifier search needs no text index
+
+- **GIVEN** a recognised identifier while an unrelated text-index part cannot load
+- **WHEN** the reader confirms the search
+- **THEN** its routes still appear and the part failure is not treated as an identifier result
+
+#### Scenario: Recovery finishes on a view without a search form
+
+- **GIVEN** a failed text search whose retry is pending
+- **WHEN** the reader opens a view without a search form, retry finishes there, and the reader then opens a different search-bearing route
+- **THEN** the current form receives the pending query and its confirmed results
+- **AND** a newer query or deliberate clear in that form is preserved, and a newer submission supersedes the older pending query
+
+#### Scenario: A visible text-search failure is followed by a successful identifier
+
+- **GIVEN** a visible search load error with a retry action after a text-search failure
+- **WHEN** the reader confirms a recognised identifier successfully
+- **THEN** its routes appear and the obsolete text-search error and retry action are removed
+- **AND** a late completion of the older text operation cannot restore that error or replace the newer result
+
+#### Scenario: The reader clears a failed search
+
+- **GIVEN** a visible search load error and a pending query from that failed search
+- **WHEN** the reader deliberately clears the current search field
+- **THEN** the field and results stay empty, the obsolete search error and retry action are removed, and no older completion restores the query
+- **AND** an unrelated load error is not dismissed
+
+#### Scenario: Cold focus loading overlaps confirmation
+
+- **GIVEN** a fresh search whose required local data is still loading after the field receives focus
+- **WHEN** the reader confirms a text query before that loading finishes
+- **THEN** completion shows one confirmed results update for the current query without an immediately preceding unconfirmed replacement
+- **AND** repeating focus and confirmation with unchanged query, language, role and content leaves those results in place
+
 ### Requirement: Identifiers are routed by what they denote
 
 An identifier SHALL be placed without any request where its form or the knowledge base tells what it denotes: a
 re3data record or NKR record leads to the repository maturity check, a nanopublication or FIP profile to the FIP
-check, a ROR ID to the institution check, an ORCID iD to the identifier helper, and an entry of the guide to its
+check, a ROR ID to the institution check, an ORCID iD to the identifier helper, and a Guide IRI or address to its
 catalogue entry. A generic DOI or Handle SHALL offer one lookup that says what it is before the fitting check.
 
 #### Scenario: A repository's DOI
@@ -902,6 +994,12 @@ catalogue entry. A generic DOI or Handle SHALL offer one lookup that says what i
 - **GIVEN** a user who pastes the DOI of a re3data record
 - **WHEN** they press Enter
 - **THEN** the first result offers the repository maturity check filled in from re3data, not the dataset check
+
+#### Scenario: A Guide IRI
+
+- **GIVEN** a user who pastes `https://w3id.org/eosc-cz/fair-guide/id/stations/licence`
+- **WHEN** they press Enter
+- **THEN** the first result opens the catalogue entry of the licence station, without any request
 
 ### Requirement: Every page is reachable from the main menu
 
@@ -936,12 +1034,12 @@ prioritise EOSC CZ, then European EOSC, then other initiatives, retaining origin
 
 ### Requirement: Kind-specific facets remain inside their family
 
-The repository function facet SHALL appear under the Repositories and registries heading. Changing the
-selected family SHALL NOT move the shared Kind facet.
+The repository function facet SHALL appear under the Repositories heading. Changing the selected family SHALL NOT
+move the shared Kind facet.
 
 #### Scenario: Reader switches catalogue families
 
-- **GIVEN** a reader switching from resources to repositories and registries
+- **GIVEN** a reader switching from resources to repositories
 - **WHEN** the repository function choices appear
 - **THEN** they appear inside that family section and the Kind facet retains its shared position
 
@@ -1119,14 +1217,27 @@ in maintainer docs when it does not help a reader's task.
 ### Requirement: Identifiers appear as chips
 
 Wherever the Guide shows an identifier, whether its own ID, a persistent identifier, a record address or a metric or
-test ID, it SHALL show it as a chip rather than a bare link. A persistent identifier SHALL keep its scheme and be shown
-in full; a chip for an entry of the catalogue SHALL lead to it.
+test ID, it SHALL show it as a chip rather than a bare link. A persistent identifier SHALL keep its scheme and be
+shown in full, without a label that repeats what the identifier states; a chip for an entry of the catalogue SHALL
+lead to it. Every catalogue entry SHALL show its own persistent IRI first among its identifiers.
 
 #### Scenario: A repository with records in several registries
 
 - **GIVEN** a repository with a re3data record, a FAIRsharing record and a FIP Dashboard record
 - **WHEN** its catalogue entry is shown
-- **THEN** each record is a chip naming its scheme, and its sources lead to those registries' catalogue entries
+- **THEN** each identifier is a chip that shows it in full and carries no label, and its sources lead to those registries' catalogue entries
+
+#### Scenario: A record's own IRI
+
+- **GIVEN** the catalogue entry of DMP.eosc.cz
+- **WHEN** it is shown
+- **THEN** its ID chip reads `dmp-eosc`, and its first identifier chip shows its full persistent IRI without a label
+
+#### Scenario: Every kind shows its IRI
+
+- **GIVEN** the catalogue entries of a question, a requirement, a life-cycle stage, a model layer and a content change
+- **WHEN** each is shown
+- **THEN** each shows its own persistent IRI among its identifiers
 
 ### Requirement: The glossary terms read as an index
 
@@ -1319,3 +1430,319 @@ qualified lists SHALL be rows. The catalogue's own labels SHALL NOT address the 
 - **GIVEN** a test's health and a FIP declaration's status
 - **WHEN** they are shown
 - **THEN** each carries an icon, a text and, where recorded, an as-of date
+
+### Requirement: Browser data belongs to one compatible build revision
+
+The initial KB/UI pair, display-language payloads and deferred neutral/translated parts SHALL carry one build
+revision matching the generated document's expectation. The loader SHALL reject missing or incompatible revisions
+before merging data. A part and its selected
+translation SHALL be accepted together and each contribution SHALL be merged at most once. Versioned local requests
+SHALL preserve file, HTTP and iframe operation without external requests on load.
+
+#### Scenario: A cached part comes from another build
+
+- **GIVEN** a usable current view with saved answers and reader input
+- **WHEN** a requested neutral or translated part has another or no revision
+- **THEN** the graph, configuration, UI and answers retain their accepted state
+- **AND** a neutral bilingual loading error offers recovery without asserting an empty source or a failed requirement
+
+#### Scenario: Retry receives corrected matching data
+
+- **WHEN** the rejected payload is corrected and the reader retries
+- **THEN** it is fetched again, accepted data is reused and the requested view becomes usable without duplicate entities
+- **AND** saved answers remain unchanged
+
+#### Scenario: The initial files belong to different builds
+
+- **WHEN** the Guide starts with an incompatible initial KB/UI pair
+- **THEN** it stops normal rendering and provides a bilingual reload action
+- **AND** reloading retains saved answers
+
+#### Scenario: Both initial data files are equally stale
+
+- **GIVEN** a document from the current build and matching KB/UI data from an older build
+- **WHEN** startup checks the expected revision
+- **THEN** no graph, UI or configuration is accepted
+- **AND** a bilingual Reload action is offered without an ineffective startup Retry
+
+#### Scenario: A nested consumer module changes
+
+- **WHEN** only a nested assessment script under `assets/js/tests/` changes
+- **THEN** the generated revision and versioned requests change
+
+#### Scenario: A script path already contains a query and fragment
+
+- **WHEN** any local script loader versions that path
+- **THEN** it preserves the query values and fragment and sets exactly one current revision parameter
+- **AND** all loaders use the same URL helper while keeping their established load/retry behavior
+
+### Requirement: Entry actions wait for their deferred evidence
+
+A maturity entry action SHALL retain its re3data target and wait for required questions data before interpreting
+the snapshot. Failed loading SHALL use the existing neutral Retry flow and SHALL NOT claim that a record is absent.
+Embedded-state checks SHALL exercise the embedded document's own state without requiring shared parent storage.
+
+#### Scenario: A maturity action starts while questions data is delayed
+
+- **GIVEN** a known re3data identifier selected from a cold landing search
+- **WHEN** the required questions data is delayed or fails to load
+- **THEN** the identifier and authored answers remain available and no missing-record conclusion is recorded
+- **AND** successful loading permits pre-fill while failed loading offers the existing Retry behavior
+
+### Requirement: Explain terms where they help the reader
+
+The Guide SHALL link newly imported glossary terms from suitable existing bilingual guidance when a definition
+helps the reader's current task. References SHALL preserve the advice's action, cited basis and normative strength.
+Terms without a useful placement MAY remain available through the glossary rather than being forced into advice.
+
+#### Scenario: A community records its implementation choices
+
+- **GIVEN** guidance discussing a FAIR Implementation Profile and FAIR enabling resources
+- **WHEN** a reader encounters those terms
+- **THEN** contextual references open their glossary definitions in either language
+- **AND** archival appraisal is not used as a synonym for FAIR assessment, nor succession for any preservation plan
+
+### Requirement: Own-site favicons cover eligible resource kinds consistently
+
+Services, tools, registries, standards, guides and documents SHALL use their own site's vendored favicon wherever
+a usable one is obtained, consistently in catalogue entries and existing resource badges. A shared platform or
+resolver mark SHALL NOT represent an item hosted there. Missing marks SHALL retain the established kind fallback;
+infrastructures SHALL retain their separately reviewed marks. No external request SHALL start on page load.
+
+#### Scenario: CoreTrustSeal has a usable favicon
+
+- **GIVEN** the CoreTrustSeal standard has its own reviewed HTTPS site and a usable favicon
+- **WHEN** favicon collection and catalogue rendering run
+- **THEN** the normalized local icon appears beside the standard instead of the missing-icon fallback
+- **AND** its source and observation date remain recorded without changing its kind, meaning or verification status
+
+#### Scenario: A document is identified through a resolver or shared platform
+
+- **GIVEN** a resource whose only address is a non-homepage item on a guarded resolver or shared platform
+- **WHEN** the resource is rendered
+- **THEN** it keeps its kind fallback rather than borrowing that platform's mark
+
+#### Scenario: An eligible site has no usable mark
+
+- **GIVEN** a completed acquisition observation finds no usable favicon for an eligible host
+- **WHEN** the entry is rendered
+- **THEN** it retains the same accessible fallback and remains usable in both languages and print
+
+#### Scenario: NKR alone supplies a repository's site
+
+- **GIVEN** an NKR-only repository with its own usable HTTPS site
+- **WHEN** favicon targets are collected
+- **THEN** that site's host is included even without a curated, KNAV, FIP Dashboard or re3data entry
+- **AND** its NKR catalogue-record URL is not used as the repository's site
+
+#### Scenario: A repository has only its NKR record address
+
+- **GIVEN** a repository without a public site that is linked through its NKR record
+- **WHEN** its badge is rendered
+- **THEN** it keeps its repository-kind fallback rather than borrowing NKR's favicon
+- **AND** the NKR catalogue's own entry may still use its own homepage mark
+
+### Requirement: Registry detail loads when its reader task needs it
+
+Detailed NKR and re3data pre-fill data and repository keyword detail SHALL load on demand through existing local data parts.
+The first download in either language SHALL remain within 300 KB gzip with all four reconciled refreshes and
+presentation changes. Repository controls and complete search SHALL wait for required data. Source fields,
+dates, identities, answers and exports SHALL retain their meanings and values.
+
+#### Scenario: First visit with populated NKR data
+
+- **GIVEN** the reviewed NKR snapshot, the reconciled KNAV, FIP Dashboard and Heslář refreshes and the presentation changes
+- **WHEN** a reader opens the landing in Czech or English
+- **THEN** the actual initial scripts, styles and selected-language data total at most 307,200 gzip bytes
+- **AND** detailed NKR/re3data pre-fill records and repository keywords are absent from that initial payload
+
+#### Scenario: Direct repository check from a local file
+
+- **GIVEN** a fresh local-file or iframe session in either language
+- **WHEN** the reader opens the repository check directly
+- **THEN** its existing data parts load before the NKR chooser renders
+- **AND** every reviewed record retains its source identifier, fields and snapshot date without an empty-NKR notice
+
+#### Scenario: Search needs a deferred keyword
+
+- **GIVEN** a repository keyword not present in its label or other initial text
+- **WHEN** a reader searches for that keyword from a cold session
+- **THEN** the deferred data loads before complete results are presented
+- **AND** the matching repository and its attribution remain available in both languages and exports
+
+#### Scenario: The required local data fails to register
+
+- **GIVEN** saved answers and an unavailable or unregistered required data part
+- **WHEN** a reader opens the repository check or searches repository keywords
+- **THEN** the existing retry flow preserves usable navigation and answers
+- **AND** corrected registration restores the requested view without presenting missing data as an empty source
+
+### Requirement: The bare Guide URL opens the path's start predictably
+
+Opening `index.html` without a hash SHALL select the existing `#/<lang>/<lens>/path/start` lifecycle landing for every
+reader, regardless of saved station history. The Path menu and resume action SHALL still use the last-read station.
+Changing the default SHALL NOT alter an explicit route without a station or the crate preview's machines exception.
+
+#### Scenario: A first visit opens the bare URL
+
+- **GIVEN** a reader with no saved station history
+- **WHEN** they open the Guide at `index.html` without a hash
+- **THEN** they see the existing search-and-lifecycle landing selected by `#/<lang>/<lens>/path/start`
+
+#### Scenario: A returning reader opens the bare URL
+
+- **GIVEN** a reader whose saved last-read station is the licence step
+- **WHEN** they open the same bare URL
+- **THEN** they see that same lifecycle landing rather than automatically opening the licence station
+- **AND** the Path menu and resume action still lead to the licence step
+
+#### Scenario: The crate preview remains the exception
+
+- **WHEN** a reader opens `ro-crate-preview.html` without a hash
+- **THEN** the machines page appears instead of the lifecycle landing
+
+### Requirement: An entry credits the catalogues that supplied it
+
+A catalogue entry's sources SHALL name the Guide's selection where the entry is curated and the catalogue of every
+registry record the entry holds, each leading to that catalogue's entry with the date of its snapshot. A registry
+that only identifies the entry, without a record the Guide holds, SHALL appear among the identifiers and SHALL NOT be
+credited as a source.
+
+#### Scenario: A repository several catalogues supply
+
+- **GIVEN** Zenodo, which the guide curates and which the KNAV catalogue and the FIP Dashboard also record
+- **WHEN** its catalogue entry is shown
+- **THEN** its sources name the guide's selection, the KNAV catalogue and the FIP Dashboard, each leading to that catalogue's entry with its snapshot date
+
+#### Scenario: A curated resource a registry also records
+
+- **GIVEN** a curated resource with a KNAV record and no other registry record
+- **WHEN** its catalogue entry is shown
+- **THEN** its sources name the guide's selection and the KNAV catalogue
+
+#### Scenario: A registry that only identifies the entry
+
+- **GIVEN** a curated repository that names its NKR handle while no NKR snapshot holds its record
+- **WHEN** its catalogue entry is shown
+- **THEN** the NKR record page appears among its identifiers, and NKR is not among its sources
+
+### Requirement: Catalogue routes follow record addresses
+
+A catalogue entry's route SHALL be its address under the reader's language and lens,
+`#/<lang>/<lens>/catalogue/<kind>/<id>`, with the same kind word as the address, the API and catalogue filters. A
+route SHALL open with the lens it names.
+
+#### Scenario: A shared catalogue link keeps its lens
+
+- **GIVEN** the link `#/en/DS/catalogue/resources/dmp-eosc`, shared by a data steward
+- **WHEN** a reader whose saved lens is the researcher's opens it
+- **THEN** the entry opens with the data-steward lens the link names
+
+### Requirement: One entry route applies the reader's settings
+
+The page SHALL keep one route without reader state, `#/id/<address>`. It SHALL open the catalogue entry an address
+names, stations and checks included, in the reader's saved language and lens, or else in Czech with the researcher
+lens, and SHALL replace itself with the full route. An unknown address SHALL say that no entry has it.
+
+#### Scenario: Opening a record from its landing page
+
+- **GIVEN** a reader whose saved lens is the data steward's, on the landing page of the licence station
+- **WHEN** they follow its link into the Guide, `#/id/stations/licence`
+- **THEN** the page shows the catalogue entry of the licence station in their language with the data-steward lens, with a link to the station on the path
+- **AND** the page's address becomes `#/<lang>/DS/catalogue/stations/licence`
+
+#### Scenario: An embedded Guide opens a record
+
+- **GIVEN** a Guide embedded in a host page and asked to open `#/id/resources/dmp-eosc`
+- **WHEN** it publishes its view to the host page
+- **THEN** the host receives the full route with language and lens, in the form the embedding protocol accepts
+
+#### Scenario: An address no entry has
+
+- **WHEN** a reader opens `#/id/resources/no-such-entry`
+- **THEN** the page says that no catalogue entry has that address and offers the catalogue search
+
+### Requirement: Every record has a landing page
+
+Every address the build issues SHALL have a static bilingual landing page, `id/<address>.html`, readable without
+JavaScript and marked with each language. Every issued direct or nested part and term-set member SHALL have one
+anchored section, and the page SHALL link into the Guide through `#/id/<address>`. A request for an unknown address
+SHALL return a bilingual not-found page that offers the catalogue search and resolves its styles at any depth.
+
+#### Scenario: A reader without scripts
+
+- **GIVEN** a browser with JavaScript turned off
+- **WHEN** it opens the landing page of DMP.eosc.cz
+- **THEN** the reader sees the record's name and text in Czech and English, each marked with its language
+
+#### Scenario: A landing page opened at a part
+
+- **WHEN** a reader opens Zenodo's landing page with the fragment `#knav`
+- **THEN** it shows the section of Zenodo's KNAV record, with KNAV's wording, licence and retrieval date
+
+#### Scenario: A landing page opened from a local copy
+
+- **GIVEN** the built site opened from `file://`
+- **WHEN** a reader opens a landing page and follows its link into the Guide
+- **THEN** the Guide opens that entry, and no external request is made
+
+#### Scenario: An address no record has
+
+- **WHEN** a browser requests the landing page of an address the build has not issued
+- **THEN** the response is not found, and its page says so in both languages and links to the catalogue search
+
+#### Scenario: A nested part has one static target
+
+- **GIVEN** a record whose API issues a nested action or a term-set member under a fragment
+- **WHEN** a reader opens its landing page at that fragment
+- **THEN** exactly one anchored section presents that part, including its nested action or term content
+
+#### Scenario: A deeply nested missing address keeps its styling
+
+- **GIVEN** a browser requesting `/id/resources/no-such-record`
+- **WHEN** the server answers with the shared `404.html`
+- **THEN** the response is not found, its text appears in both languages and both stylesheets resolve and load from the
+  publication's actual root instead of below the missing record
+
+### Requirement: Landing pages present statuses through one model
+
+Every status property specialising `adms:status` SHALL use the landing page's Status field. An API record's actual
+status date SHALL accompany the value where present, and no date SHALL be invented for an undated record. Each status
+SHALL retain its date's role: ordinary statuses use `statusAsOf`, while `nodeState` prefers `nodeStateSince` when both
+are present, so a later verification date cannot replace the Node's operational-state date.
+
+#### Scenario: A registry-created infrastructure shows its ESFRI status
+
+- **GIVEN** HL-LHC's API record naming `esfriStatus = landmark` without an observation date
+- **WHEN** its landing page is read without JavaScript
+- **THEN** landmark appears in the Status field rather than merely as a related-record link, and no date is fabricated
+
+#### Scenario: A dated status keeps its date
+
+- **GIVEN** an API record whose status includes `statusAsOf`, `nodeStateSince` or `reviewedDate`
+- **WHEN** its landing page is shown
+- **THEN** that actual date accompanies the value in the Status field
+
+#### Scenario: The Node's state keeps its own date
+
+- **GIVEN** the EOSC CZ Node API record with `nodeStateSince = 2026-10-08` and `statusAsOf = 2026-10-16`
+- **WHEN** its landing page is read without JavaScript
+- **THEN** the `nodeState` Status field shows the operational-state date, 2026-10-08, rather than the later check date
+
+### Requirement: Landing pages signpost their record
+
+A landing page's head SHALL carry FAIR Signposting links for its record: its persistent IRI (`cite-as`), its API
+record (`describedby`), its type (`type`), its licence (`license`) and the Guide as its collection (`collection`).
+
+#### Scenario: A harvester follows a record's typed links
+
+- **GIVEN** a harvester that does not run JavaScript
+- **WHEN** it reads the head of DMP.eosc.cz's landing page
+- **THEN** it finds the record's persistent IRI as `cite-as` and its API record as `describedby`, without fetching the Guide page
+
+#### Scenario: An action's type expands to its vocabulary
+
+- **GIVEN** a provenance action whose API record carries `prov:Activity`
+- **WHEN** a harvester reads the action page's `type` links
+- **THEN** it finds `http://www.w3.org/ns/prov#Activity`, and every other compact class expands through its actual
+  established-vocabulary mapping rather than a schema.org fallback

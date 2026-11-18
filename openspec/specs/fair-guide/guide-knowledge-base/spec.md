@@ -44,6 +44,12 @@ and at deployment. Reviewed snapshots of external sources are authored input and
 - **WHEN** the hygiene check runs
 - **THEN** it fails and names the generated file
 
+#### Scenario: Generated HTML in a pull request
+
+- **GIVEN** a pull request that adds root `404.html` or a nested `id/<address>.html` built alongside API records
+- **WHEN** the content check examines tracked files
+- **THEN** it refuses the generated HTML and does not reject an authored HTML page
+
 ### Requirement: Names have an English form
 
 Every name readers see SHALL have an English form. A name that is not language-neutral, such as an
@@ -287,10 +293,11 @@ the snapshot SHALL keep that disclaimer and the guide SHALL show it.
 
 ### Requirement: Static read-only API
 
-The guide SHALL publish a read-only API without a backend: JSON files for each collection and each entity
-(principles, stations, checks, resources, repositories, clauses, sources and glossary terms), generated at
-deployment and described by an OpenAPI 3.1 document with a relative server address. Responses SHALL carry language
-maps and a JSON-LD context. Paths SHALL follow the FIP Dashboard API's naming where both describe the same thing.
+The guide SHALL publish a read-only API without a backend under a versioned path (`api/v1/`): for each kind, a list
+whose entries carry the fields a client filters on, and one record per entity at its address. Advice SHALL be a kind
+of its own. Responses SHALL carry language maps and a JSON-LD context and SHALL refer to shared vocabulary terms
+rather than repeat them. An OpenAPI 3.1 document with a relative server address SHALL describe one templated
+operation per kind and response.
 
 #### Scenario: A consumer reads a principle
 
@@ -298,24 +305,45 @@ maps and a JSON-LD context. Paths SHALL follow the FIP Dashboard API's naming wh
 - **WHEN** it reads the response
 - **THEN** it receives the principle with its advice per lens, the stations that address it and the check items that test it, as JSON with a JSON-LD context
 
+#### Scenario: A consumer filters one list
+
+- **GIVEN** a service that needs the researcher advice at the licence station at level L0
+- **WHEN** it fetches the advice list once
+- **THEN** every entry carries its station, lens, level, principles and text, so the service filters the list without fetching any record
+
+#### Scenario: The description names templates
+
+- **WHEN** a developer opens the OpenAPI description
+- **THEN** each kind has one list and one record operation with a path parameter, every published record file matches one described template, and no operation names a single record
+
+#### Scenario: Every issued identity has an API record
+
+- **GIVEN** an organization or infrastructure identity issued through a registry join, named agent or roadmap relation
+- **WHEN** the API is built
+- **THEN** its kind's list contains that identity and its record resolves at the issued address, without depending on a
+  separate curated entry
+
+#### Scenario: Filter metadata matches list summaries
+
+- **GIVEN** a kind whose compact summaries do not supply a default position or term-position field
+- **WHEN** a client reads its list metadata and the corresponding OpenAPI schema
+- **THEN** only fields the summaries can filter on are advertised, both surfaces agree, and no position is invented to
+  fill the gap
+
 ### Requirement: Content addressed relative to the site
 
-API files SHALL reference the guide's own entities and each other relative to the referring file, never by the
-site's address. Outbound links, such as test references in an exported result, SHALL use the page's serving address.
-Runtime links SHALL use the Guide window's location, including its channel path, not an iframe parent's. Offline use
-SHALL keep usable relative or local references without inventing a public host or exposing filesystem paths as
-public identifiers.
+API files SHALL link the Guide's own records and each other relative to the referring file, never by the site's address. Entity identities SHALL be persistent IRIs under the Guide namespace. Saved results SHALL name questions and tests by persistent IRI; other outbound links SHALL use the serving address. Runtime links SHALL use the Guide window's location and channel path, not its parent's. Offline references SHALL stay usable without inventing a public host or exposing filesystem paths.
 
 #### Scenario: The guide moves
 
 - **GIVEN** the guide published at a new address
-- **WHEN** a consumer follows a link in an API record, or the test reference in a result exported there
+- **WHEN** a consumer follows a link in an API record, or a question or test IRI in a result exported before the move
 - **THEN** it reaches the record at the new address, without the guide being rebuilt for it
 
 #### Scenario: The Guide is embedded at a repository subpath
 
 - **GIVEN** the Guide runs in an iframe under a different origin or path from its parent
-- **WHEN** a reader opens an API reference, share link or exported test reference
+- **WHEN** a reader opens an API reference or share link
 - **THEN** the link follows the Guide's current origin and channel path, not the parent or a predicted public hostname
 
 #### Scenario: The Guide is opened from a local file
@@ -325,14 +353,28 @@ public identifiers.
 
 ### Requirement: Checks published as FTR definitions
 
-Each check SHALL be published in the API as an FTR benchmark, with its items as metrics and manual tests, so that
-the test references in an exported self-check result set resolve.
+Each check SHALL be an FTR benchmark in the knowledge graph and the API, and its questions FTR metrics. A test that is
+a service implementing one metric SHALL be an FTR test linked to that metric. A reader's answer SHALL be a quality
+measurement of its question, and the Guide SHALL publish no test for it. The API SHALL use the graph's types and
+property names without renaming them, so that the references in an exported result set resolve to the same
+definitions in both.
 
 #### Scenario: Exported result resolves
 
-- **GIVEN** a self-check result set exported from the guide
-- **WHEN** a tool follows a result's test reference
-- **THEN** it reaches the item's FTR test definition in the published API
+- **GIVEN** a self-check result set exported from the guide, with a reader's answer and an automated result
+- **WHEN** a tool follows the question the answer measures, or the test the automated result names
+- **THEN** it reaches that question's FTR metric, or that test's FTR definition, in the published API
+
+#### Scenario: The graph carries the FTR definitions
+
+- **WHEN** a consumer queries the published graph for FTR tests
+- **THEN** it finds every FAIR Champion test and every FAIR-Checker criterion, each linked to the metric it implements and that metric to its benchmark, and no test for a reader's answer
+
+#### Scenario: An evaluator whose reports are imported
+
+- **GIVEN** F-UJI, whose results the Guide reads from imported reports
+- **WHEN** the graph is built
+- **THEN** each F-UJI criterion is published as F-UJI's FTR metric, not as an FTR test
 
 ### Requirement: Interactive API documentation
 
@@ -347,16 +389,19 @@ copied in at deployment, with its own content security policy; the guide's own p
 
 ### Requirement: One entry per real-world thing
 
-Curated content SHALL describe each real-world thing once, in one entry that carries every role it plays, and a
-content identifier SHALL name exactly one entity. Two curated entries SHALL NOT share a web address or a DOI. A
-curated entry that matches a snapshot record SHALL link to it instead of repeating it. The content checks SHALL
-enforce these rules and SHALL report entries that nothing uses.
+Curated content SHALL describe each real-world thing once, in one entry carrying all its roles; each content ID SHALL name one entity. Curated entries SHALL NOT share a web address or DOI, and SHALL link matching snapshot records instead of duplicating them. The graph SHALL hold one node per thing, with registry records attached as records about it rather than peer things. Content checks SHALL enforce these rules and report unused entries.
 
 #### Scenario: A duplicate in a pull request
 
 - **GIVEN** an editor who adds a source with the address of an existing resource
 - **WHEN** the content checks run
 - **THEN** they fail and name both entries
+
+#### Scenario: A repository listed by two registries
+
+- **GIVEN** Zenodo, which the guide curates and which KNAV and the FIP Dashboard also list
+- **WHEN** the graph is built
+- **THEN** it holds one Zenodo node with one persistent IRI, and the KNAV and FIP Dashboard records are attached to it as records about it
 
 ### Requirement: Research practice sources retain their scope
 
@@ -447,6 +492,13 @@ attached files in the RO-Crate. Shared algorithm files MAY implement multiple na
 - **GIVEN** a software question with a local prefill rule
 - **WHEN** the reader inspects its test record
 - **THEN** the record identifies the criterion, its source code and documentation and the limited evidence it derives, without claiming external certification or successful execution of the inspected software
+
+#### Scenario: Following local-test documentation
+
+- **GIVEN** the bilingual local-test documentation and one of its criteria
+- **WHEN** a reader follows the criterion's API record or the test collection link
+- **THEN** the record resolves at `api/v1/tests/guide/<id>.json` and the collection at `api/v1/tests.json`, while the
+  separate saved-result support documents remain distinct from local criteria
 
 ### Requirement: Original coverage is inventoried across content kinds
 
@@ -625,15 +677,22 @@ imported selectively, for the steps they serve, within the initial-download budg
 
 ### Requirement: EOSC CZ Node membership is recorded with its state
 
-The EOSC CZ Node SHALL be a record with its operator and candidate status. Each member entry SHALL carry its role,
-state, any planned milestone, the date checked and the source. Membership SHALL be curated from the node's
-published charter and announcements until a machine-readable node catalogue exists.
+The EOSC CZ Node SHALL be a record of a service platform, with its operator and its state in the EOSC Federation, as
+the federation's current handbook defines a Node. Each service or repository it onboards SHALL be a qualified
+relation from the Node carrying the entry's role, any planned milestone, the date checked and the source, stated
+once. Membership SHALL be curated from the node's published charter and announcements until a machine-readable node
+catalogue exists.
 
 #### Scenario: A repository planned for integration
 
 - **GIVEN** MBDB, listed in the node charter for integration by month 6
 - **WHEN** the crate and the API are built
-- **THEN** MBDB's record carries the node membership with that milestone, the date checked and the charter as its source
+- **THEN** the Node's relation to MBDB carries the repository role, that milestone, the date checked and the charter as its source, and MBDB's API record shows its membership
+
+#### Scenario: What the Node is
+
+- **WHEN** a consumer reads the EOSC CZ Node in the graph
+- **THEN** it finds a service platform operated by e-INFRA CZ, not an organisation, and no service or repository stated as a member of an organisation
 
 ### Requirement: Large research infrastructures keep distinct relations
 
@@ -656,7 +715,10 @@ relation SHALL be recorded only where a source states it.
 
 ### Requirement: Prose references name catalogue entries
 
-A prose reference SHALL resolve to any allowed published catalogue entry by its compact Guide address. Its targets SHALL derive from the same identity projection as API records and routes, with a short collection allow-list. Current authored short forms for resources/sources, pages, stations, clauses, infrastructure and model records SHALL remain available; synthetic source-route aliases SHALL NOT be required.
+A prose reference SHALL name a published catalogue entry by its address, `[[<kind>/<id>|phrase]]`, or a kind's
+catalogue list by the kind word. A content field that can name records of several kinds SHALL name a record by its
+address too. Targets SHALL derive from the same identity projection as IRIs, API records and routes. The content
+checks SHALL reject any other reference and name the record whose ID it ends with, where one has it.
 
 #### Scenario: A catalogue tool named in a step
 
@@ -664,25 +726,49 @@ A prose reference SHALL resolve to any allowed published catalogue entry by its 
 - **WHEN** the step is shown
 - **THEN** the reference is one the content checks accept, and it links to that tool's catalogue entry
 
+#### Scenario: A reference without a kind
+
+- **GIVEN** an advice text that references a station as `[[licence|...]]`
+- **WHEN** the content checks run
+- **THEN** they fail, name the item and give the address form `[[stations/licence|...]]`
+
+#### Scenario: A field that names records of several kinds
+
+- **GIVEN** a model association whose target is the question `dataset.01`
+- **WHEN** the content checks run
+- **THEN** they accept the target `questions/dataset.01` and reject the bare `dataset.01`, naming the address form
+
+#### Scenario: The Guide's profile named in prose
+
+- **GIVEN** a text that names the Guide's profile
+- **WHEN** the page is shown
+- **THEN** the reference names the section of the machines page that presents the profile, and no reference names a target that is neither a record nor a kind
+
 ### Requirement: Catalogue addresses are guide-issued
 
-Each catalogue record SHALL own a locally stored identifier and one compact address,
-`<kind-code>/<type-code>/<id>`, emitted once by the build for API, routes, references and exports. Chips SHALL show
-the compact record ID. Kind/type codes SHALL use one vocabulary; unneeded type SHALL be omitted. Complete computed
-addresses SHALL NOT be duplicated in a parallel per-record register.
+Each catalogue record SHALL own a locally stored identifier and one address, `<kind>/<id>`, emitted once by the build
+for IRIs, API, routes, references and exports. The kind SHALL be a plural English word from one vocabulary. A scope
+segment, `<kind>/<scope>/<id>`, SHALL appear only where it is part of the identity; a classification SHALL NOT be part
+of an address. Chips SHALL show the record ID. Complete addresses SHALL NOT be duplicated in a per-record register.
 
 #### Scenario: A repository the guide takes from re3data
 
 - **GIVEN** a repository re3data lists and the guide does not curate
 - **WHEN** the catalogue and the API are built
-- **THEN** its record carries a Guide-owned identifier and compact address, its re3data identifier remains external
+- **THEN** its record carries a Guide-owned identifier and address, its re3data identifier remains external
   metadata/search input, and a changed source identifier does not silently reissue the Guide identity
 
 #### Scenario: Classification changes after issue
 
 - **GIVEN** a released entry whose resource type changes
 - **WHEN** its classification is updated
-- **THEN** its issued address remains unchanged and its current classification remains accurately described
+- **THEN** its address remains unchanged, because the type is not part of it, and its current classification remains accurately described
+
+#### Scenario: A scope that is part of the identity
+
+- **GIVEN** the stage `plan` in two life-cycle models
+- **WHEN** their addresses are built
+- **THEN** they are `lifecycles/rdmkit/plan` and `lifecycles/maldreth/plan`, each scope named by its model's own identifier
 
 ### Requirement: Catalogue slugs use meaningful local names
 
@@ -698,19 +784,34 @@ Catalogue ID slugs SHALL omit grammatical particles and prefer official abbrevia
 - **GIVEN** a new NKR record whose record page is `https://repo.cz/objects/20.500.14818/jgu5fyqf` and whose own address is `https://herbarium.biodiversity.cz`
 - **WHEN** the snapshot is refreshed
 - **THEN** the record's slug comes from the repository's own address or name, such as `herbarium`, never from the NKR handle
-- **AND** its address is routed by its NKR type, for a disciplinary repository under `repo/dom`
+- **AND** its address is `repositories/herbarium`, and its NKR type sets its repository kind, never a segment of the address
 
 ### Requirement: Records have one primary identity
 
-Every normalized catalogue record SHALL store one Guide-owned primary `id`. Genuine source identifiers SHALL
-use typed `alternateIds` with source scheme and value; obsolete local IDs SHALL NOT become source alternates.
-Graph and API identities SHALL use the primary; external joins SHALL use explicit source identities.
-The build SHALL reject competing primary fields and missing or malformed source identifiers.
+Each normalized record SHALL store one Guide `id` and an address-based persistent IRI. Genuine source IDs SHALL use typed `alternateIds` (scheme/value), never obsolete local IDs. Graph/API SHALL use the primary; joins SHALL use explicit source IDs. The primary SHALL occur once, not recur as a name or duplicate field, or encode type codes/counters. Section fragments SHALL use reviewed IDs, not positions. The build SHALL reject competing primary fields and missing/malformed source IDs.
 
 #### Scenario: An imported record is normalized
 
 - **WHEN** the Guide imports a record with a real source identifier
 - **THEN** `id` holds the Guide assignment, `alternateIds` retains the genuine typed source identifier, and no `guideId` or obsolete own-ID alternate remains
+
+#### Scenario: A requirement without a title
+
+- **GIVEN** the clause `A.R1.1.N1`, which has a text but no title of its own
+- **WHEN** the graph is built
+- **THEN** its node carries the identifier once and its text, and no name that repeats the identifier
+
+#### Scenario: Two records whose source IDs collide
+
+- **GIVEN** a FIP Dashboard organisation whose source ID equals a curated organisation's ID
+- **WHEN** the graph is built
+- **THEN** the Dashboard record attaches to the organisation it describes, or is rejected for review, and no identifier gains a counter suffix
+
+#### Scenario: A page's sections are reordered
+
+- **GIVEN** the machines page, whose sections are parts of `pages/machines`
+- **WHEN** an editor moves its introduction ahead of the worked example
+- **THEN** every section keeps its fragment and its IRI, because a section's fragment is its own identifier and never its position
 
 ### Requirement: Imported identities survive source refresh
 
@@ -727,15 +828,22 @@ SHALL denote equivalent identity rather than a general citation.
 
 ### Requirement: The first release establishes the route baseline
 
-Before the first official release, identifiers MAY change in place. Compatibility routes, historical alias tables
-and duplicate API documents SHALL NOT be retained for unreleased addresses. Genuine external identifiers SHALL
-remain usable as metadata and search inputs. Separately required saved-result format support SHALL be preserved.
+Before the first official release (Guide `1.0.0`), identifiers, addresses, IRIs, API paths, the profile and the
+query recipes MAY change in place. Compatibility routes, historical alias tables and duplicate API documents SHALL
+NOT be retained for unreleased addresses. Genuine external identifiers SHALL remain usable as metadata and search
+inputs. Separately required saved-result format support SHALL be preserved.
 
 #### Scenario: An unreleased catalogue route changes
 
-- **GIVEN** an unreleased address replaced by the final compact address
+- **GIVEN** an unreleased address replaced by the final address
 - **WHEN** the product is built
-- **THEN** its callers and tests use the compact address and no old-route compatibility document is emitted
+- **THEN** its callers and tests use the address and no old-route compatibility document is emitted
+
+#### Scenario: Saved results from an alpha release
+
+- **GIVEN** a result saved in format revision 3, which names its tests under `api/tests/<question>.json`
+- **WHEN** the product is built after the address change
+- **THEN** those test references still resolve, because saved-result support is preserved separately
 
 ### Requirement: Reviewed missing-link decisions remain scoped and visible
 
@@ -865,17 +973,86 @@ Safe suggestions SHALL require explicit human action and provenance naming the r
 - **THEN** the command prints the applied working-tree diff, which contains the links, one provenance action naming the responsible person and that action's registration, and returns zero
 
 ### Requirement: New snapshot identifiers are reserved across the Guide
-A snapshot refresh SHALL NOT assign a new record identifier that is already used by another Guide entry, and SHALL preserve existing local identifiers across refresh as before. A collision that cannot be resolved by an existing identity join SHALL be rejected for review rather than written.
+
+Refresh SHALL reserve identities by their issued kind, scope and identifier. A reviewed source match SHALL attach
+to its existing thing. Distinct kinds MAY use the same local word. Unresolved collisions within one kind/scope
+SHALL be rejected for review without allocating a counter suffix. Existing identities and retired reservations
+SHALL survive refresh; source IDs SHALL retain their issuing schemes and values.
 
 #### Scenario: A new record would reuse a curated identifier
+
 - **GIVEN** a new snapshot record whose derived local identifier is already owned by a curated entry
 - **WHEN** the snapshot is generated
-- **THEN** the refresh uses a non-colliding identifier or rejects the replacement with a reviewable reason
+- **THEN** a reviewed identity match attaches the source record to that entry without a second thing or counter ID
+- **AND** a different or unresolved thing in the same kind/scope requires a reviewed descriptive ID or is rejected
 
 #### Scenario: A new record would reuse a retired identifier
-- **GIVEN** a derived identifier retired in the central register or a snapshot's retiredIds
+
+- **GIVEN** an identity retired in the central register or a snapshot's retirement metadata
 - **WHEN** a snapshot is refreshed
-- **THEN** the identifier remains reserved and is not assigned to the new record
+- **THEN** that identity remains reserved and is not assigned to a different thing
+- **AND** an unqualified legacy retirement is retained conservatively rather than guessed into another kind
+
+#### Scenario: A glossary term shares a word with software
+
+- **GIVEN** the Git software resource and a newly imported Heslář term for Git
+- **WHEN** their Guide identities are reconciled
+- **THEN** `resources/git` and `glossary/git` remain distinct records of their respective kinds
+- **AND** the term retains its Heslář source ID without becoming `git-2`
+
+#### Scenario: A glossary term shares a word with a page
+
+- **GIVEN** `pages/provenance` and a newly imported Heslář term for provenance
+- **WHEN** the term receives its Guide identity
+- **THEN** it uses `glossary/provenance` without changing the page or allocating `provenance-2`
+
+#### Scenario: KNAV describes the existing re3data resource
+
+- **GIVEN** the reviewed KNAV link on the curated re3data resource and the KNAV row whose source ID is `re3data`
+- **WHEN** the refreshed graph and API are built
+- **THEN** one `resources/re3data` thing has its KNAV record at `resources/re3data#knav`
+- **AND** no `resources/re3data-2` thing or Guide collision-counter identifier is introduced
+
+#### Scenario: NKR describes the existing DataRepo repository
+
+- **GIVEN** an NKR record whose reviewed handle or exact normalized address joins the existing DataRepo repository
+- **WHEN** the refreshed graph and API are built
+- **THEN** one `repositories/datarepo` thing has its NKR record at `repositories/datarepo#nkr`
+- **AND** the input identity and emitted source metadata do not introduce a `datarepo-2` Guide identity
+
+#### Scenario: A source match is ambiguous
+
+- **GIVEN** a source record whose reviewed identity keys reach two different things
+- **WHEN** refresh or the build reconciles its identity
+- **THEN** it reports the source record and conflicting things, creates neither a new numbered thing nor a guessed join,
+  and preserves the previous snapshot bytes on refresh rejection
+
+#### Scenario: An identifier contains a genuine published version
+
+- **GIVEN** a reviewed identifier whose digits express a source's actual version rather than collision allocation
+- **WHEN** identity validation runs
+- **THEN** it retains that meaningful identifier and does not reject it merely for ending in digits
+
+#### Scenario: An established source row joins a curated thing
+
+- **GIVEN** a source row with an established precise local key and a reviewed join to a curated thing
+- **WHEN** refresh carries the row forward
+- **THEN** it preserves the row's local key and genuine source handle while projection attaches its record to the thing
+- **AND** a canonical thing's more general name does not replace a versioned licence key such as `cc-by-4-0`
+
+#### Scenario: Similar labels describe different things
+
+- **GIVEN** a specific licence and a licence overview, or repository software and a deployed repository
+- **WHEN** their identities and source observations are reconciled
+- **THEN** their records describe separate things and a shared publisher, name or implementation does not join them
+- **AND** verification scoped to a deployed instance stays on its source record and does not certify the software
+
+#### Scenario: A reviewed software classification differs from a native repository label
+
+- **GIVEN** a curated software entry and a linked Dashboard record whose native type is `repository`
+- **WHEN** catalogue and API data are generated
+- **THEN** the software retains its reviewed Guide type and is not listed as a deposit repository
+- **AND** the source record retains its native classification, wording and verification as source claims
 
 ### Requirement: Local duplicate repair resolves a reviewed responsible person
 
@@ -902,20 +1079,20 @@ SHALL never invent a person.
 
 ### Requirement: Guide vocabulary IRIs come from a reviewed namespace
 
-Guide-owned vocabulary/profile IRIs SHALL derive from the namespace declared in the Guide's reviewed configuration,
-independent of where the Guide is served. Changing it SHALL be a reviewed breaking change recorded in the
-changelog. Logical IDs and exact external IRIs SHALL remain unchanged; prior artifacts SHALL retain their bytes and
-original contexts, without invented aliases or redirects.
+Guide-owned term, profile and record IRIs SHALL derive from the namespace declared in the Guide's reviewed
+configuration, `https://w3id.org/eosc-cz/fair-guide/`, independent of where the Guide is served. Changing it SHALL be
+a reviewed breaking change recorded in the changelog. Logical IDs and exact external IRIs SHALL remain unchanged; prior
+artifacts SHALL retain their bytes and original contexts, without invented aliases or redirects.
 
 #### Scenario: A different origin or repository prefix is deployed
 
 - **WHEN** the Guide is built for another origin or path with the same namespace setting
-- **THEN** navigation and discovery follow that location, expanded JSON-LD and profile references keep the declared namespace, and logical content IDs and exact external IRIs retain their identity
+- **THEN** navigation and discovery follow that location, expanded JSON-LD, record IRIs and profile references keep the declared namespace, and logical content IDs and exact external IRIs retain their identity
 
 #### Scenario: The namespace setting changes
 
 - **WHEN** a reviewed change sets a new namespace
-- **THEN** every Guide term and the profile move to it together, no other identifier changes, and the changelog names the break
+- **THEN** every Guide term, the profile and every record IRI move to it together, no logical identifier changes, and the changelog names the break
 
 #### Scenario: Publication combines production and preview
 
@@ -1137,3 +1314,354 @@ exception.
 - **GIVEN** a built site with an operational repository that has no address
 - **WHEN** the API and profile checks run
 - **THEN** both reject it and name the repository
+
+### Requirement: Refresh reserves inferred organisation addresses
+
+Source refresh SHALL reserve the existing addresses of organisations inferred from named publishers, operators,
+developers and infrastructure hosts, using the build's shared identity resolution. The identity-only projection
+SHALL not require complete page or assessment content. A colliding unjoined source organisation SHALL be refused
+for review before snapshot replacement, without numeric counters or implicit source joins by name.
+
+#### Scenario: An incoming organisation competes with an inferred agent
+
+- **GIVEN** an existing inferred organisation at `organizations/carpentries`
+- **WHEN** a new unjoined source row would allocate that address
+- **THEN** refresh refuses the collision with a reviewable diagnostic and preserves the prior snapshot
+- **AND** the full and identity-only projections agree on the existing organisation addresses
+
+### Requirement: Dashboard registry classification survives source reclassification
+
+A FIP Dashboard record classified as `registry` SHALL retain its native catalogue type and the reviewed FIP
+Registry classification on the source record. Reclassification SHALL NOT move its described thing's identity,
+type the source record as that thing, or imply deposit capability or verification not supported by the source.
+
+#### Scenario: FAIRsharing and NMA become registries in the Dashboard
+
+- **GIVEN** the refreshed FAIRsharing and NMA records change their Dashboard type from `repository` to `registry`
+- **WHEN** their crate, API and catalogue records are generated
+- **THEN** both keep their existing thing identities and native source classification
+- **AND** their Dashboard source records retain the FIP Registry classification as catalogue records
+- **AND** the records are not themselves classified as repository or service entities
+
+### Requirement: Persistent IRIs resolve through a registered redirect
+
+The namespace SHALL be registered with w3id. Its redirect SHALL send `terms` and `profile/<version>` to the published
+vocabulary and profile, and `id/<address>` to the API record when JSON is requested and otherwise to the record's
+landing page. No redirect target SHALL carry a fragment, so the fragment of a part's IRI survives the redirect. IRIs
+SHALL carry no API version. A host move or a new API major version SHALL change only the redirect, never an IRI.
+
+#### Scenario: A machine dereferences a record IRI
+
+- **WHEN** a client requests `https://w3id.org/eosc-cz/fair-guide/id/resources/dmp-eosc` asking for JSON
+- **THEN** it is redirected to that record in the current API version
+
+#### Scenario: A person opens a record IRI
+
+- **WHEN** a browser opens the same IRI
+- **THEN** it is redirected to the landing page of DMP.eosc.cz, which links to its catalogue entry in the Guide
+
+#### Scenario: A person opens a part's IRI
+
+- **WHEN** a browser opens `https://w3id.org/eosc-cz/fair-guide/id/repositories/zenodo#knav`
+- **THEN** it reaches Zenodo's landing page at the section of its KNAV record
+
+#### Scenario: The Guide moves to another host
+
+- **GIVEN** the redirect updated for a new host
+- **WHEN** a consumer dereferences an IRI issued before the move
+- **THEN** it reaches the same record at the new host, and no IRI changed
+
+### Requirement: Registry records describe one thing
+
+A registry's record (KNAV, FIP Dashboard, NKR, re3data, FAIRsharing, DataCite) SHALL be a catalogue record that
+names the one thing it describes, scoped under it by the registry's scheme; the thing SHALL NOT name its records. The
+record SHALL keep the registry's wording, licence, retrieval date and classification of the thing. A record matching
+no curated entry SHALL found a thing. The duplicate check SHALL report a record that could attach to two things.
+
+#### Scenario: A registry describes a curated service
+
+- **GIVEN** the KNAV record for Zenodo, the curated repository Zenodo and their shared re3data identifier
+- **WHEN** the graph is built
+- **THEN** the KNAV record is `.../id/repositories/zenodo#knav`, it is about the Zenodo node, and its description keeps KNAV's wording and licence
+
+#### Scenario: Two records for one service under different addresses
+
+- **GIVEN** a curated service and a KNAV record that name the same provider and service, one by its documentation page and one by its service address
+- **WHEN** the duplicate check runs
+- **THEN** it reports the pair for review instead of publishing two things
+
+#### Scenario: A repository re3data describes
+
+- **GIVEN** a curated repository that re3data and FAIRsharing also describe
+- **WHEN** the graph is built
+- **THEN** it holds one node with `#re3data` and `#fairsharing` records under it, each keeping its registry's values and naming the node it describes, while the node does not list them again
+
+#### Scenario: A registry classifies a thing
+
+- **GIVEN** a FIP Dashboard record that classifies a curated resource as a metadata schema
+- **WHEN** a consumer selects every metadata schema by its class
+- **THEN** it receives the resources the Guide classifies so, and the Dashboard's classification is found on its record
+
+### Requirement: Named agents resolve to one thing
+
+An organisation, publisher, operator, developer or author named in content SHALL resolve to the one thing the Guide
+describes under exactly that name, in any language and of any kind, and SHALL be a new organisation only where no
+thing has the name. A name that two things share SHALL be refused unless the content names the agent by address. A
+registry's organisation record SHALL attach to a thing only by a reviewed key, never by its name.
+
+#### Scenario: A publisher that is a described service
+
+- **GIVEN** a source whose publisher is named "Zenodo", and the curated repository Zenodo
+- **WHEN** the graph is built
+- **THEN** the source's publisher is the Zenodo repository node, and no separate organisation named Zenodo exists
+
+#### Scenario: An organisation named in its other language
+
+- **GIVEN** an operator named "Charles University" and the curated organisation whose names are "Univerzita Karlova" and "Charles University"
+- **WHEN** the graph is built
+- **THEN** the operator is that organisation
+
+#### Scenario: An organisation and its eponymous service
+
+- **GIVEN** the curated FAIRsharing registry, its FIP Dashboard resource record and the reviewed organisation handle `fairsharing-org`, which describe the same FAIRsharing project
+- **WHEN** the graph is built
+- **THEN** one node holds both records, as `#fip-dashboard` and `#fip-dashboard-organization`, and no separate organisation named FAIRsharing exists
+
+#### Scenario: A registry's organisation record with a known name
+
+- **GIVEN** a FIP Dashboard organisation record named like a described infrastructure, with no ROR and no reviewed handle
+- **WHEN** the graph is built and the duplicate check runs
+- **THEN** the record is not attached by its name, and the duplicate check lists the pair for review
+
+### Requirement: Provenance names items by their addresses
+
+A provenance action SHALL name what it consulted and what it produced or changed by address or address prefix. A
+prefix SHALL match records, and a part of a record only where the prefix names one. An action that covers every item
+(`*`) SHALL record the Guide itself as its result, while the freshness check SHALL read it as covering every item.
+
+#### Scenario: A structural change
+
+- **GIVEN** a provenance action with the result `*` that renamed every record's identity
+- **WHEN** its catalogue entry is shown
+- **THEN** it names the Guide as what it changed, and no record lists it among its own changes
+
+#### Scenario: Advice of one station
+
+- **GIVEN** an action with the result `advice/plan.*`
+- **WHEN** the graph is built
+- **THEN** its results are the plan station's advice items, without their steps or actions
+
+### Requirement: Controlled vocabularies have one model
+
+Every controlled value, including tiers, levels, lenses, actors, modes, resource types, statuses, clause kinds, model
+kinds, mapping bases and coverage, a registry's own lists, glossary terms, principles, layers and life-cycle stages,
+SHALL be a defined term in exactly one term set, its membership stated once, by the term. The vocabulary document
+SHALL publish once how these terms align with SKOS. No controlled value SHALL be a free string.
+
+#### Scenario: A consumer lists a scheme's terms
+
+- **WHEN** a consumer queries the graph for the terms of the service-status scheme
+- **THEN** it finds each term once, through one membership property, with its code and bilingual name
+
+#### Scenario: A requirement under review
+
+- **GIVEN** a clause whose status is that it needs a refresh
+- **WHEN** the graph is built
+- **THEN** its status refers to the refresh term of the clause-status scheme, not to a string
+
+#### Scenario: A clause's kind
+
+- **GIVEN** the clause `A.F1.R1`, a requirement
+- **WHEN** the graph is built
+- **THEN** its kind refers to the requirement term of the clause-kind scheme, not to a string
+
+#### Scenario: A term set and its terms
+
+- **WHEN** a consumer reads the life-cycle stages of RDMkit
+- **THEN** each stage names its set, and the set does not list its stages a second time
+
+### Requirement: Advice items share one class
+
+Every advice item SHALL carry one class that identifies it as advice, whatever its kind. Its kind, lens, level and
+station SHALL be properties, so a consumer selects all advice by its class and narrows it by those properties.
+
+#### Scenario: All advice for one lens
+
+- **WHEN** a consumer queries the graph for advice items addressed to data stewards
+- **THEN** it selects them by the advice class and the lens, without relying on an identifier's form
+
+### Requirement: Pre-fill mappings are typed statements
+
+A question's pre-fill mapping SHALL be a typed statement naming the source that can answer it, the field read and the
+level of coverage. The graph and the API SHALL both publish it.
+
+#### Scenario: A question DataCite can pre-fill
+
+- **GIVEN** the question `dataset.01`, which DataCite metadata can answer from the DOI
+- **WHEN** a consumer reads the question in the graph or the API
+- **THEN** it finds a pre-fill statement naming the DataCite source, the field `doi` and its coverage, not an untyped name-value pair
+
+### Requirement: A question that restates its clause takes its text
+
+A question whose statement is the same as one of its cited clauses SHALL take its text from that clause and SHALL NOT
+hold a copy. Its own fields stay on the question. A question keeps its own statement only when it addresses another
+actor, covers part of the clause, or must be phrased to be answerable. The content checks SHALL reject a statement
+identical to one of its clauses.
+
+#### Scenario: A CoreTrustSeal question
+
+- **GIVEN** the question `coretrustseal.01`, whose wording is that of the requirement `CTS.R01`
+- **WHEN** the question is shown, exported or published
+- **THEN** its text is the clause's text in both languages, and the sources hold it once, in the ledger
+
+#### Scenario: A copied statement in a pull request
+
+- **GIVEN** an editor who adds a question whose statement repeats a clause it cites
+- **WHEN** the content checks run
+- **THEN** they fail, name the question and the clause, and point to taking the text from the clause
+
+### Requirement: The knowledge graph is published as RDF
+
+The build SHALL publish the knowledge graph as N-Triples next to the crate, with every IRI absolute and no remote
+context needed to read it. It SHALL hold the same triples a JSON-LD processor obtains from the crate.
+
+#### Scenario: Loading the graph offline
+
+- **GIVEN** a consumer without network access and the published N-Triples file
+- **WHEN** it loads the file into an RDF store
+- **THEN** it loads without fetching any context, and its triples equal those of the crate
+
+### Requirement: Graph queries have a tested contract
+
+The classes, properties and shapes a consumer may query SHALL be published as the versioned RO-Crate profile, with
+documented SPARQL recipes for common questions. CI SHALL run every recipe against the built graph with its expected
+results. Every shape SHALL refuse a real node that lacks what it requires. Before Guide `1.0.0` the contract MAY
+change in place; from `1.0.0` a change SHALL follow the published deprecation rule.
+
+#### Scenario: A recipe breaks
+
+- **GIVEN** a pull request that renames a property a recipe uses
+- **WHEN** the checks run
+- **THEN** the recipe check fails and names the recipe
+
+#### Scenario: A node loses what defines its kind
+
+- **GIVEN** a clause without its kind, a resource without its type, or a repository without its kind, address and NKR page
+- **WHEN** the profile validates the graph
+- **THEN** it refuses the node, because its shape selects it by class and requires what it lacks
+
+#### Scenario: A declaration loses its required status
+
+- **GIVEN** a FIP whose `hasPart` names a declaration without `declarationStatus`
+- **WHEN** the profile validates the graph
+- **THEN** it refuses the declaration, because the nested status is required as well as the FIP's own status
+
+#### Scenario: A consumer starts from a recipe
+
+- **GIVEN** a data steward who wants the researcher advice at one station
+- **WHEN** they run the documented recipe against the published graph
+- **THEN** it returns those advice items with their levels, in the language they select
+
+### Requirement: Every kind is selected by its class
+
+Every kind SHALL have a class or a term set that selects exactly its records, or a recorded reason why it is reached
+only by IRI. Every class a node has SHALL be stated as its type, never as a string. A registry record SHALL be typed
+as a catalogue record and a creative work, never with the class of the thing it describes. The checks SHALL fail on
+a kind with neither a selector nor a reason.
+
+#### Scenario: Counting organisations
+
+- **WHEN** a consumer selects every organisation in the graph by its class
+- **THEN** it receives the organisations and infrastructures the Guide describes, and no registry record
+
+#### Scenario: Selecting FTR tests by type
+
+- **WHEN** a consumer selects every FTR test by its type
+- **THEN** it finds each one without reading any string value
+
+#### Scenario: A new kind without a selector
+
+- **GIVEN** a pull request that adds a kind sharing its class with others, with no term set and no recorded reason
+- **WHEN** the checks run
+- **THEN** they fail and name the kind
+
+### Requirement: The vocabulary's declarations hold for the graph
+
+Every domain and range the Guide's vocabulary declares SHALL hold for each use in the published graph, including the
+range of an established property that a Guide term specialises, so that a reasoner adds no class a node does not
+have. The vocabulary SHALL declare no term the Guide does not use. The checks SHALL fail on a use the declarations do
+not admit and name the term and the use.
+
+#### Scenario: A reasoner reads the graph
+
+- **GIVEN** a consumer that applies RDFS reasoning with the Guide's vocabulary
+- **WHEN** it selects every organisation and every repository
+- **THEN** it receives no membership, service or registry record among them
+
+#### Scenario: A misdeclared term in a pull request
+
+- **GIVEN** a change that gives a Guide term a domain that one of its uses does not have
+- **WHEN** the checks run
+- **THEN** they fail and name the term and the use
+
+### Requirement: Each relation is stated in one direction
+
+For each kind, the graph SHALL state a relation and its inverse in one documented direction only, never both for the
+same pair. A term SHALL name its set, and the set SHALL NOT list it again. The checks SHALL fail on a pair stated both
+ways.
+
+#### Scenario: An infrastructure that operates a repository
+
+- **GIVEN** an infrastructure that a source names as the operator of a repository
+- **WHEN** the graph is built
+- **THEN** the operation is stated once, in the direction the content model documents
+
+#### Scenario: A pair stated both ways in a pull request
+
+- **GIVEN** a change that states a part's whole and the whole's part for the same pair
+- **WHEN** the checks run
+- **THEN** they fail and name the relation and the pair
+
+### Requirement: schema.org properties are used within their domains
+
+A schema.org property SHALL be used only on a subject that one of its published domain classes admits, with a value
+its published range admits; elsewhere a property whose definition fits SHALL replace it. A value that names a web
+resource SHALL be an IRI reference unless the property's range is text. The checks SHALL fail on a use outside these
+bounds.
+
+#### Scenario: A clause addressed to an actor
+
+- **GIVEN** a clause addressed to repositories
+- **WHEN** the graph is built
+- **THEN** the actor it is addressed to has a class that the property naming it admits
+
+#### Scenario: A licence on a glossary term
+
+- **GIVEN** a glossary term whose definition is quoted under a licence
+- **WHEN** the graph is built
+- **THEN** the property that states the licence admits the node it is stated on
+
+### Requirement: Every term is the IRI its vocabulary defines
+
+Every class and property the published graph uses from an established vocabulary SHALL be the IRI that vocabulary
+defines, in its scheme. A pinned copy of every vocabulary the graph refers to SHALL be kept with the tests, and the
+checks SHALL read those copies, never the network. The checks SHALL fail on a namespace without a pinned copy and on a
+term its vocabulary does not define, naming the term and the vocabulary.
+
+#### Scenario: What a test implements
+
+- **GIVEN** a FAIR Champion test the Guide curates
+- **WHEN** a consumer that loads SIO and FAIR Champion's own test records asks which question the test implements
+- **THEN** it finds the link under SIO's own "is implementation of" IRI, the one FAIR Champion's records use
+
+#### Scenario: A term in the wrong scheme
+
+- **GIVEN** a change that writes a schema.org class in its `https` form
+- **WHEN** the checks run
+- **THEN** they fail and name the term and schema.org
+
+#### Scenario: A vocabulary without a pinned copy
+
+- **GIVEN** a change that uses a property from a vocabulary that has no pinned copy
+- **WHEN** the checks run
+- **THEN** they fail and name the namespace

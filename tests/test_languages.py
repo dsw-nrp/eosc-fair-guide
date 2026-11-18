@@ -160,6 +160,47 @@ class LanguageTests(unittest.TestCase):
                 if "keywords" in original:
                     self.assertEqual(parts["fips"]["properties"][row["@id"]]["keywords"], original["keywords"])
 
+    def test_fer_nanopublication_identities_wait_for_registry_detail(self) -> None:
+        crate = json.loads(self.generated[build_crate.CRATE_FILE])
+        licence = iri("resources/cc-by-4-0")
+        original = next(row for row in crate["@graph"] if row["@id"] == licence)
+        fairsharing = iri("resources/fairsharing")
+        fairsharing_original = next(row for row in crate["@graph"] if row["@id"] == fairsharing)
+        w3id = "https://w3id.org/np/RAVCg1Kvj3fePeJfmO1hLQ6HavxTL_9audWkERmodE2no#FAIRsharing"
+        self.assertIn(w3id, build_crate.ids_of(fairsharing_original["sameAs"]))
+        only_fers = [
+            {
+                "@id": iri(f"resources/fer-only-{scheme}-{host.split('.')[0]}-test"),
+                "sameAs": build_crate.ref(f"{scheme}://{host}/np/example#licence"),
+            }
+            for scheme in ("http", "https")
+            for host in ("purl.org", "w3id.org")
+        ]
+        other = {
+            "@id": iri("resources/other-identities-test"),
+            "sameAs": build_crate.refs(
+                [
+                    "https://doi.org/10.0000/example",
+                    "https://purl.org/np-other/example",
+                    "https://w3id.org/np-other/example",
+                    "https://example.org/np/example",
+                ]
+            ),
+        }
+        crate["@graph"].extend([*only_fers, other])
+        core, parts = build_crate.split_crate(crate)
+        initial = {row["@id"]: row for row in core["@graph"]}
+        self.assertEqual(build_crate.ids_of(initial[licence]["sameAs"]), [build_crate.FIP_DASHBOARD + "cc-by-40"])
+        self.assertEqual(parts["fips"]["properties"][licence]["sameAs"], original["sameAs"])
+        self.assertNotIn(w3id, build_crate.ids_of(initial[fairsharing]["sameAs"]))
+        self.assertEqual(parts["fips"]["properties"][fairsharing]["sameAs"], fairsharing_original["sameAs"])
+        for only_fer in only_fers:
+            with self.subTest(iri=only_fer["sameAs"]["@id"]):
+                self.assertNotIn("sameAs", initial[only_fer["@id"]])
+                self.assertEqual(parts["fips"]["properties"][only_fer["@id"]]["sameAs"], only_fer["sameAs"])
+        self.assertEqual(initial[other["@id"]], other)
+        self.assertNotIn(other["@id"], parts["fips"]["properties"])
+
     def test_mixed_bilingual_keywords_preserve_scalars_order_and_search(self) -> None:
         value = {
             "keywords": [

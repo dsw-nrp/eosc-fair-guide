@@ -55,7 +55,22 @@ Fail-first tests reproduce the reservation collision, invalid empty-set success,
 registration acceptance and partial graph mutation. Controlled network fixtures cover DNS answer sets, numeric
 connections, peers, TLS, proxy exclusion and redirects without contacting a private service. The browser matrix
 covers both languages, desktop/320 px, HTTP/file/iframe, saved answers, input retention and initial-pair Reload.
-The visual pass repairs hidden recovery messages and verifies spacing, touch targets and print; twenty captures
-are retained locally. Complete integrated local acceptance passes all 36 checks in 252.3 seconds. Publication and
-required checks on the new exact heads remain the final task; the historical head table above is retained as
-evidence of the preceding review round.
+The visual pass repairs hidden recovery messages and verifies spacing, touch targets and print; 26 captures
+are retained locally. Complete integrated local acceptance passes all 36 checks in 215.4 seconds. All six new implementation heads pass required hosted checks; the historical head table above remains evidence
+of the preceding review round. The final absent-pair regression also covers a missing data namespace and Reload
+with retained saved answers. No native source facts or favicon acquisition records changed.
+
+
+### Consolidated implementation-head acceptance
+
+| PR | Head | Required checks |
+| --- | --- | --- |
+| [dsw-nrp/eosc-fair-guide#180](https://github.com/dsw-nrp/eosc-fair-guide/pull/180) | `ffa84a7d5469297a3c46761d799ba39cbd432c9e` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43643073551) |
+| [dsw-nrp/eosc-fair-guide#181](https://github.com/dsw-nrp/eosc-fair-guide/pull/181) | `fca2ebd2355bd8d09c5c88a9f6b114cd67432cb6` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43643074285) |
+| [dsw-nrp/eosc-fair-guide#178](https://github.com/dsw-nrp/eosc-fair-guide/pull/178) | `5d6914e83bfcea940417d28baf159e631e0d6ade` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43643078703) |
+| [dsw-nrp/eosc-fair-guide#177](https://github.com/dsw-nrp/eosc-fair-guide/pull/177) | `d2baf1da5c7a073c9d35c6f20190b6c0ef7c1b3f` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43643078566) |
+| [dsw-nrp/eosc-fair-guide#176](https://github.com/dsw-nrp/eosc-fair-guide/pull/176) | `7f2bf950471cee09b69f3fb81960d369fa8ed02b` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43643079376) |
+| [dsw-nrp/eosc-fair-guide#168](https://github.com/dsw-nrp/eosc-fair-guide/pull/168) | `7a6b714f4d3579f79a69db99d5d03ba38b82adf9` | [passed](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/43643079341) |
+
+The subsequent completion record updates notes and task status only and receives its own required hosted checks
+before handoff. Original source histories, reviewed identities, source claims and merge order remain preserved.

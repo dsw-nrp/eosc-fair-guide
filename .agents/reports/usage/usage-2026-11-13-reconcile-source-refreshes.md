@@ -1,6 +1,6 @@
 # Source-refresh reconciliation and catalogue presentation
 
-- **When:** 2026-11-13 to 2026-11-15
+- **When:** 2026-11-13 to 2026-11-16
 - **Agent / runtime:** OpenAI Codex
 - **Model / backend:** GPT-6; exact backend model id not exposed by the runtime.
 - **What:** Implement the approved `reconcile-source-refreshes` change for
@@ -52,9 +52,18 @@
   Phone screenshots of both failure states were inspected. The required changelog line and breaking-change label
   were added; metadata attribution, licences and funding remain intact. Protocol/network-policy observations retain
   explicit advisory dispositions in review-r1.md; no separate issue has been filed. Complete runtime acceptance
-  passes all 36 checks in 261.9 seconds. Hosted checks on repaired heads are pending. Human acceptance, merges, issue closure, spec sync, archive and release
+  passes all 36 checks in 261.9 seconds. Hosted checks on all six repaired implementation heads subsequently pass. Human acceptance, merges, issue closure, spec sync, archive and release
   remain separate.
-
+  Preparing the actual commit stack reproduced a provenance failure against the reader's immediate prerequisite:
+  the combined candidate had reused the runtime action without a later completion. The separate reader PR now
+  records its content changes in `2026-11-14-identity-review`; each prepared stage is checked against its own base.
+  The repaired runtime passes 36/36 local checks in 261.9 seconds and the merged reader passes 36/36 in 230.9 seconds.
+  Runtime and all five dependent heads are published with forward history and atomic expected-head source updates.
+  All six stages pass prerequisite-relative freshness, duplicates and size checks; the combined initial payload is
+  307,003 bytes in Czech and 304,604 bytes in English. Exact native-source and typed-identifier fidelity is rechecked.
+  Eight further bilingual desktop/320 px screen/print captures verify the retained re3data control; these were
+  visually inspected. Required hosted checks pass on all six published implementation heads, and PR descriptions
+  and heads are read back exactly. The subsequent completion record receives its own required hosted checks before handoff.
   Second runtime review 5906482392 confirms the previous blocking repairs and identifies abandoned staging residue
   and a Python 3.12-only directory-link method. The approved repair retains Python 3.11, inspects links/reparse
   metadata without newer Path methods, and removes only owned generated staging directories after recovery.
@@ -64,6 +73,13 @@
   Missing-set check semantics and input-host work-path validation are recorded as advisory observations in
   review-r2.md; no separate issue is filed and no source or favicon acquisition is repeated. Complete integrated
   local acceptance, forward propagation and hosted verification of this second repair remain pending.
+  Second-round integrated acceptance subsequently passes all 36 checks in 208.8 seconds, and all 28 favicon tests
+  also pass on Python 3.11.15 against the assembled catalogue. Forward merges are published across all six PRs;
+  each stage passes freshness, duplicates and size checks, and exact original-source/typed-identifier fidelity
+  remains intact. The integrated initial payload is 307,001 bytes in Czech and 304,602 bytes in English. Required
+  hosted checks subsequently pass on all six implementation heads; PR descriptions and heads are read back
+  exactly. The reader completion record changes only notes/status and receives its own hosted checks before handoff.
+
   The maintainer subsequently authorizes all remaining observations in this same change. Planning precedes the
   expanded apply: inferred organisations are reserved through the shared build resolver; favicon integrity
   requires explicit set metadata; working identities/paths are contained before image writes; maintenance
@@ -84,6 +100,19 @@
   is repeated. Focused minimum-version verification, committed-stage freshness/fidelity, forward publication and
   exact-head hosted acceptance are recorded as the final delivery step rather than inferred from this local pass.
 
+  A final fail-first probe covers both initial scripts being absent, when no data namespace exists. Initial loading
+  now treats that case as a revision failure and offers Reload before accepting any graph. The expanded browser
+  matrix verifies corrected Reload, retained saved answers and bilingual reflow, with 26 current recovery captures;
+  the additional absent-pair screen/print states are visually inspected. Complete native acceptance is repeated on
+  this final code and passes 36/36 checks in 215.4 seconds. The small follow-up is prepared as a forward runtime
+  commit and propagated through the same source/reader stack; exact-head hosted acceptance remains required.
+
+  Final committed-stage freshness, duplicates and the unchanged 300 KB bound pass for all six stages. Original
+  source fields, headers and unique typed identifiers remain exact. Required hosted checks pass on all six
+  consolidated implementation heads, and PR bodies/heads are read back exactly. The following record-only
+  completion commit receives its own required checks before final handoff; no merge, issue closure, review-thread
+  resolution, spec sync, archive or release is performed.
+
   Third review 5908126039 confirms all nine preceding findings and identifies six bounded follow-ups in the
   existing contract. Fail-first probes reproduce missing nested-consumer revisions, acceptance of equal stale
   initial pairs, malformed query-bearing module requests and an ineffective startup Retry. The revision now
@@ -98,6 +127,11 @@
   both languages, HTTP/file/iframe and desktop/320 px/print. Forty-two recovery captures are retained and the new
   startup screen/print states are visually inspected. Full integrated acceptance and published-head gates remain
   pending and will be recorded separately from these focused results.
+  Complete integrated native acceptance subsequently passes 36/36 checks in 255.8 seconds, including the new
+  document-bound startup and real query-bearing loader matrix. Strict OpenSpec validation passes 7/7; all original
+  source fields/headers and typed identifiers remain exact, and both languages retain the 300 KB bound. The
+  runtime commit is forward-merged through all four source branches and the reader; publication and exact-head
+  hosted checks remain the final delivery step.
   A final fail-first probe covers both initial scripts being absent, when no data namespace exists. Initial loading
   now treats that case as a revision failure and offers Reload before accepting any graph. The expanded browser
   matrix verifies corrected Reload, retained saved answers and bilingual reflow, with 26 current recovery captures;
@@ -105,9 +139,96 @@
   this final code and passes 36/36 checks in 215.4 seconds. The small follow-up is prepared as a forward runtime
   commit and propagated through the same source/reader stack; exact-head hosted acceptance remains required.
 
+  Third-review publication is subsequently verified on all six exact implementation heads: required hosted checks
+  pass, PR descriptions/heads read back exactly, original source fields and published ancestry remain intact, and
+  all six stages pass freshness, duplicate and 300 KB checks. The record-only completion commit receives its own
+  required hosted check before handoff. No source/favicon fetch, review-thread reply/resolution, issue closure,
+  merge, spec sync, archive or release is performed.
+
   Fourth review 5910050172 confirms all fifteen preceding findings and identifies one test-coverage gap. The
   document-current / KB-current / UI-stale tuple now isolates the UI-to-document guard. A temporary in-memory
   mutation removes that guard and the new tuple reports the expected failure; production core.js is unchanged,
   and all 21 Node runtime tests pass with the real guard. The digest comment is corrected to acknowledge build
   metadata. This is test/comment maintenance under the existing contract, with no behavior, API, stored-format,
-  dependency or visual change and no new specification delta. Full integrated and hosted verification follow.
+  dependency or visual change and no new specification delta. Complete integrated native acceptance passes
+  all 36 checks on the combined reader head; the stored health receipt records every required job as passed.
+  Published-head gates remain required before handoff.
+
+  After the five prerequisite PRs land as squash commits, merge current main into the reader branch to reconcile
+  their independent ancestry. Resolve nine conflicts in identifiers, provenance, review/task records and page
+  checks; remove the duplicate test method introduced by the automatic merge. Before this usage note, the
+  resolved tree exactly matches the reviewed reader tree, preserving all source facts, runtime repairs, identity
+  separations, glossary references and the separate reader provenance action. Full native acceptance and the
+  new published-head gate are required before handing back the conflict-free PR; no PR merge is performed here.
+
+  The explicitly requested OpenSpec verification checks the CLI-selected proposal, all three delta specs,
+  design and all 51 tasks against implementation commit 58e54f6. All 17 requirements and 50 scenarios map to
+  implementation and test/probe evidence; no applicable check is skipped and no critical issue, warning or
+  suggestion is found. Fresh verification passes 153 focused Python tests, 21 Node runtime tests, strict
+  OpenSpec validation (7/7), eight original-source fidelity comparisons and four bilingual contextual glossary
+  navigations at 320 px without external requests. The exact-head 36/36 native and green hosted receipts are
+  retained, with representative visual evidence sampled again. Favicon coverage still separates 56 failed
+  attempts from confirmed unavailability. The advisory report is saved as verification.md in this change;
+  implementation is unchanged and no commit, push, PR merge, issue closure, spec sync or archive is performed
+  by this verification.
+
+  The maintainer then explicitly selects archival and approves syncing all three capability deltas. Sync adds
+  15 requirements and modifies two while preserving existing titles, Purpose sections and unrelated requirements;
+  strict main-spec validation passes and an independent comparison finds all 17 deltas already represented.
+  The complete change, including its metadata and verification report, is moved to
+  openspec/changes/archive/2026-11-15-reconcile-source-refreshes with every file hash preserved. Final repository
+  validation is recorded separately from the earlier implementation acceptance. No commit, push, PR merge,
+  issue closure, sibling-change archive or release is performed by this archival step.
+  The final synced/archived working tree passes all 36 native repository checks in 231.3 seconds, including
+  strict OpenSpec validation, documentation, usage, content, API/profile, page and unit checks.
+  The maintainer separately authorizes committing and pushing this verified archival bundle on the existing
+  reader branch, preserving the implementation and leaving the sibling change active.
+  The maintainer next requests main synchronization and explicitly approves a regular merge after fast-forward
+  refusal. Merge the two landed dependency updates from main 80fb207: OpenSpec 2.0.0 and Ruff 0.17.5. Product
+  source, assets and archived change contents remain unchanged. OpenSpec 2.0.0 passes strict validation; Windows
+  refuses replacement of the existing Ruff executable, so full validation uses an isolated ignored-cache
+  environment with the required pins. This merge is local; remote publication is separate.
+  The first aggregate attempt encounters a missing Chromium build after npm ci. Its failed results are retained
+  separately; npm run browsers installs the required revision and a browser-start probe passes before repeating
+  the full check suite on the final local merge.
+  The rerun passes all 36 native checks in 220.4 seconds with OpenSpec 2.0.0, Ruff 0.17.5 and the required
+  Chromium build. Final usage-record validation and committed payload bounds are checked separately.
+
+  Reader review 5915741645 on [dsw-nrp/eosc-fair-guide#181](https://github.com/dsw-nrp/eosc-fair-guide/pull/181#pullrequestreview-5915741645)
+  identifies the CC BY 4.0 FER nanopublication IRI lost during the licence split. A regression assertion reproduces
+  the omission before repair. The authored licence joins its existing Dashboard record, retains both external
+  identities on resources/cc-by-4-0 and keeps the overview and publisher separate, without a new station
+  recommendation. Its bilingual purpose follows the official licence deed. The source snapshot is unchanged;
+  the existing reader provenance action, identifier registration and archived identity-review disposition are
+  updated without restating historical acceptance. The original nanopublication IRI is preserved exactly,
+  including its HTTP scheme; its resolver could not be revalidated through the web tool.
+  New curation brings a formerly deferred entity into the initial graph. Under the already approved 300 KB
+  requirement and existing-part deferral, FER nanopublication identities now use fips property patches, retaining
+  other identities initially and restoring each exact list with registry detail. No part or format is added.
+  The loading assertion also fails before repair. Initial diagnostic runs expose missing purpose/provenance
+  validation and a concurrent rebuild during browser reads; these are corrected before final acceptance.
+  All 36 native checks pass on the final tree in 227.3 seconds, including full reconstruction in both language
+  orders, API/profile, browser, content, health and unit checks. The focused Python modules pass 49 tests.
+  Initial download is 306,793 bytes in Czech and 304,359 in English, below 307,200. Eight file navigations verify
+  both language orders, the HTTPS resolver link for the unchanged HTTP IRI, one owner and no external requests.
+  Twenty desktop/320 px screen/print viewports are captured, with licence, identifier and overview states inspected.
+  No new commit, push or GitHub review-thread write is performed by this repair.
+  The maintainer subsequently authorizes committing and pushing this verified repair on the existing reader
+  branch. The 36/36 result is local evidence; hosted checks on the resulting commit are verified separately.
+
+  Reader review 5928101670 on [dsw-nrp/eosc-fair-guide#181](https://github.com/dsw-nrp/eosc-fair-guide/pull/181#pullrequestreview-5928101670)
+  confirms the licence identity repair and identifies three follow-ups. The split predicate now covers both
+  recognized nanopublication namespaces, purl.org/np/ and w3id.org/np/, matching the existing reader scheme.
+  The expanded test first reproduces FAIRsharing's omitted deferral, then passes for both HTTP/HTTPS hosts,
+  exact complete-list restoration and near-miss/other identities retained initially. All 49 focused Python tests
+  pass. The archived report's 18 source references now resolve to the archive, preserving its original date,
+  commit and historical evidence. R11 removes the unrelated page-check citation and explicitly identifies its
+  local, uncommitted manual-probe evidence. These are corrections within the existing loading and verification
+  contracts; source content and capability requirements are unchanged, and historical verification results are
+  retained. All 36 native checks pass in 228.1 seconds, including exact bilingual reconstruction, API/profile,
+  browser, unit, documentation and OpenSpec checks. Fresh manual probes verify eight resource navigations in
+  both language orders and four contextual FIP/FER glossary navigations at 320 px, with no external requests or
+  page errors. Twenty bilingual desktop/320 px screen/print captures are retained; representative identifier and
+  resource states are inspected. Initial downloads are 306,737 bytes Czech and 304,303 English, below 307,200.
+  Same-branch publication uses the maintainer's existing commit-and-push authorization; exact-head hosted
+  results remain separate from this local acceptance. No GitHub review-thread write or merge is performed.
