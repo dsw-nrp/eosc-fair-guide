@@ -32,8 +32,9 @@ None.
 
 ### Modified Capabilities
 
-- `fair-guide/guide-delivery`: "Deferred advice retains complete content and search" also defers ledger clause
-  texts from the initial transport, with a scenario for a view that shows a clause before the part has loaded.
+- `fair-guide/guide-delivery`: gains "Deferred requirement text retains complete content and search", which defers
+  ledger clause texts from the initial transport, with scenarios for a view that shows a requirement before the
+  part has loaded and for the first download's headroom.
 
 ## Impact
 

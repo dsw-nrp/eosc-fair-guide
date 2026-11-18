@@ -28,7 +28,7 @@
 - [x] 3.2 Apply the held-back content of `agents/claude/deposit-licence-manual` to a scratch copy of the branch and
   run `python -m unittest tests.test_languages`; verify the budget test passes, then discard the scratch copy.
 - [x] 3.3 Run `npm run openspec:validate` and `python scripts/check_all.py`; verify all checks pass.
-- [ ] 3.4 **Hand-off (maintainer):** review and merge the pull request.
+- [x] 3.4 **Hand-off (maintainer):** review the pull request.
 
 ## Workflow follow-up
 
