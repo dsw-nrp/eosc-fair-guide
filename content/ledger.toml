@@ -2081,6 +2081,28 @@ kind = "statement"
 text = { cs = "Vzor depoziční licence zajišťuje oprávnění ke zveřejnění a archivaci dat v repozitáři.", en = "The deposit licence template secures the permissions needed to publish and archive data in a repository." }
 
 [[clause]]
+id = "DEPOSIT-LICENCE-MANUAL.01"
+source = "deposit-licence-manual"
+locator = "PDF pp. 2–3"
+principles = ["R1.1"]
+actor = "repository"
+kind = "recommendation"
+text = { cs = "Repozitář si nechá udělit nevýhradní licenci, výslovně bezúplatnou, na dobu trvání práv a výhradně k uložení a zpřístupnění dat, s oprávněním upravit data pro repozitář bez zásahu do jejich obsahu.", en = "The repository obtains a non-exclusive licence, stated as free of charge, for the duration of the rights and solely to store and provide the data, with permission to adapt the data to the repository without changing their content." }
+guidance = "Výhradní (nebo dokonce výlučná) licence by pro účely depoziční licence nebyla vhodná, proto důrazně doporučujeme zachování nevýhradní licence. Pokud neuvedete, zda vkladatel uděluje nevýhradní, nebo výhradní licenci, bude ze zákona licence vykládána jako nevýhradní.\n\nLicenční oprávnění jsou standardně udělována úplatně, tj. za finanční odměnu, proto v případě, kdy je udělováno bezúplatně, tj. bez nároku na protiplnění ze strany nabyvatele licence, zákon vyžaduje, aby toto bylo v ujednání mezi stranami výslovně uvedeno.\n\nDoba, na kterou je licence udělována, může být i kratší, to by nicméně znamenalo, že po uplynutí doby, na kterou byla licence sjednána, by musela být data z repozitáře odstraněna. Pro Vás jako zřizovatele by to znamenalo nutnost implementace systému kontroly, zda pro jednotlivé datové sady stále máte práva. Spíše proto doporučujeme si do licenčních podmínek dát, že je licence udělována na dobu trvání práv.\n\nDoporučujeme v podmínkách uvést, že je licence udělována výhradně pro účely (trvalého) uložení a zpřístupnění dat v repozitáři. Je-li uveden účel, není nezbytné uvádět jednotlivé způsoby užití – licence se vyloží tak, že je udělena pro veškeré způsoby užití nezbytné pro dosažení uvedeného účelu. Nicméně doporučujeme přinejmenším uvést, že jste jako nabyvatelé licence oprávněni upravit data či datovou sadu tak, aby byla kompatibilní a funkční v rámci Vašeho repozitáře, zároveň dát ale vkladateli (a tedy i uživatelům) záruku, že do jejich dat nebude zasahováno co do obsahové stránky a zůstanou autentická (např. užitím fráze v druhé větě uvedeného odst. 1.2.)."
+guidanceLanguage = "cs"
+
+[[clause]]
+id = "DEPOSIT-LICENCE-MANUAL.02"
+source = "deposit-licence-manual"
+locator = "PDF pp. 3–4"
+principles = ["R1.1", "A1.2"]
+actor = "repository"
+kind = "recommendation"
+text = { cs = "Repozitář podmíní uložení výběrem uživatelské licence, nejlépe z předem vymezených standardních licencí, údajem o případném omezení přístupu, které také technicky umožní, a prohlášením vkladatele, že je oprávněn licenci udělit.", en = "The repository makes deposit conditional on choosing a user licence, preferably from a predefined set of standard licences, on information about any access restriction, which it also makes technically possible, and on the depositor's declaration that they may grant the licence." }
+guidance = "Aby obsah repozitáře mohli dále užívat jeho uživatelé, musí být opatřen licencí. Vklad obsahu do repozitáře je proto třeba podmínit výběrem licence určující, jakým způsobem může být obsah dále šířen a užíván. Ideálním řešením je dát na výběr z předem vymezeného okruhu CC licencí, případně jiných standardizovaných licencí, je-li to možné.\n\nDále je možné zpřístupnění obsahu veřejnosti omezit například časově (embargo) či zpřístupnit data pouze určitému okruhu uživatelů, kteří splňují určité podmínky (např. pouze pro přihlášené uživatele; podmínění přístupu rozhodnutím Data Access Comittee). Nestačí pouze tuto skutečnost zahrnout do licenčních podmínek – je nutné jednak získat od vkladatele informaci, zda jím vkládaný obsah podléhá takovémuto omezení (podmínit vklad obsahu do repozitáře sdělením této informace), a dále takové omezení umožnit technicky.\n\nVkladatel nemusí být vždy autorem nebo osobou, která je sama o sobě oprávněná nakládat s příslušnými právy (například pokud jde o zaměstnance, licenci k zaměstnaneckému dílu je standardně oprávněn udělit zaměstnavatel). Je proto vhodné požadovat po vkladateli, aby prohlásil, že je oprávněn licenci udělit."
+guidanceLanguage = "cs"
+
+[[clause]]
 id = "RDMKIT.collect.01"
 source = "rdmkit"
 principles = ["R1", "R1.2"]

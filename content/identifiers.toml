@@ -375,6 +375,7 @@ advice = [
   "collect.23",
   "publication.30",
   "licence.31",
+  "licence.32",
 ]
 questions = [
   "cdif.01",
@@ -1052,6 +1053,8 @@ clauses = [
   "LAW-527-1990.5",
   "RDMKIT.publication.02",
   "RDMKIT.publication.03",
+  "DEPOSIT-LICENCE-MANUAL.01",
+  "DEPOSIT-LICENCE-MANUAL.02",
 ]
 resources = [
   "layers-seams-manuscript",
@@ -1289,6 +1292,7 @@ resources = [
   "eosc-cz-node",
   "clarin-dspace",
   "cc-by-4-0",
+  "deposit-licence-manual",
 ]
 repositories = [
   "datarepo",
@@ -1299,6 +1303,7 @@ repositories = [
   "czech-bioimaging",
   "datahub-cuni",
   "genasis",
+  "digitalia-muni-arts",
 ]
 actions = [
   "2026-10-16-initial-state",
@@ -1329,6 +1334,7 @@ actions = [
   "2026-11-13-fip-refresh",
   "2026-11-14-catalogue-repair",
   "2026-11-14-identity-review",
+  "2026-11-18-eosc-cz-outputs",
 ]
 models = [
   "layers-seams",
