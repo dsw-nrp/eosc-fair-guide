@@ -740,6 +740,22 @@ Initial transport SHALL keep structure and short advice within the unchanged con
 - **WHEN** switching languages fails to retrieve that part and the reader retries
 - **THEN** the usable view and answers survive, retry loads the requested advice and the reconstructed graph retains both languages
 
+### Requirement: Deferred requirement text retains complete content and search
+
+A ledger requirement that stays in the initial transport SHALL keep its identifier, source, principles, actor, kind, locator and status there, deferring its text to the part that holds its quoted guidance; a requirement that part holds whole keeps its record and text together. Every language/part load order SHALL reconstruct the requirement text, and the crate/API SHALL retain it. Station routes, views that show a requirement's text and complete search SHALL wait for the part that holds it.
+
+#### Scenario: A requirement's text is shown from a cold start
+
+- **GIVEN** a fresh browser that opens a view showing a ledger requirement, such as its catalogue entry, a station's basis or a principle in the explorer, while the part holding requirement texts is delayed
+- **WHEN** the view is drawn
+- **THEN** it waits for that part and shows the requirement's text in the reader's language, never an empty or untranslated requirement
+
+#### Scenario: The first download leaves room for content
+
+- **GIVEN** the content of the default branch
+- **WHEN** the build measures what each language's page downloads before any user action
+- **THEN** requirement texts are not part of it, and both languages stay within the configured budget
+
 ### Requirement: Accessibility optimizations preserve audit outcomes and coverage
 
 Optimized audits SHALL retain the pinned engine, shared WCAG policy, full context and required coverage. Reuse SHALL prove equivalent normalized rule/check/node outcomes, including deliberate violations and dynamic states. Frame/scoped audits SHALL retain the established adapter unless proven equivalent. Unproven cases SHALL fall back without suppressing rules, excluding navigation/frames or accepting incomplete results as passes.
