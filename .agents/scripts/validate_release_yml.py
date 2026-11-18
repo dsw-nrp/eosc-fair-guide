@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
-# delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00
+# delivery-version: 00e795f3863999e297a997632377fb33415531a8 2026-11-15T00:18:09+01:00
 
 """Validate `.github/release.yml` and release-notes report layout.
 

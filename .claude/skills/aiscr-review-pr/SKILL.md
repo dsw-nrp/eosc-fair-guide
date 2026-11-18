@@ -12,7 +12,7 @@ author: AIS CR (Archaeological Information System of the Czech Republic) <https:
 <!-- SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- aiscr:compiled=aiscr-review-pr -->
-<!-- delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00 -->
+<!-- delivery-version: 00e795f3863999e297a997632377fb33415531a8 2026-11-15T00:18:09+01:00 -->
 
 <!-- aiscr:entry-scope -->
 
@@ -172,6 +172,31 @@ Record line/file counts, size tier, effort override, final tier, adjustment and 
 A direct conductor review records itself, with zero dispatched tracks and its coverage, and still performs all applicable phase checks.
 Vendor bot reviews remain auxiliary evidence.
 
+### Triage pre-existing observations
+
+Apply the shared conduct's provenance admission before this decision; uncertainty does not establish an older defect.
+For each proven pre-existing observation, evaluate its relationship to the resolved logical change and the scope of its repair and validation:
+
+- **Fix in this PR** (`fix-in-pr`): recommend a concrete, bounded repair within the same function or logical change already touched by the reviewed material, even if unnecessary for the PR's correctness.
+  The recommendation names exactly one anchor at the place in the acquired material that makes the repair logical — a changed line preferred, an acquired file as fallback — and the defect itself may lie outside the diff.
+  Record why that relationship and repair scope fit; being elsewhere in the same changed file is insufficient.
+- **Track separately** (`track-separately`): select this when the defect is unrelated or the repair and validation would materially enlarge the change, explaining that distinction.
+
+Both dispositions stay advisory and outside the verdict; recommending a repair does not authorize editing code.
+Assess a separately introduced regression on its own evidence rather than attaching its severity to an older observation.
+Keep the same stable tracking key for the same defect across rounds and retries, grounded in repository, affected code or symbol, and symptom rather than a moving line number or round ordinal.
+Recheck current evidence before retaining an older observation from a previous review.
+
+PR runs record the decisions in the required `preexisting_observations` collection of findings-ledger v4; `[]` explicitly declares an empty result.
+Use the [format companion](../../../.agents/skills/aiscr-review-pr/review-formats.md) for record and projection examples.
+Each record carries its identity, tracking key, description, revision-bearing provenance evidence and evidence tier, disposition, rationale, and either a proposed repair with its anchor or a tracking outcome; PR observation records carry no severity field and cannot also occupy a finding bucket.
+The engine checks shape, uniqueness, tracking references, anchor coverage, and agreement with its canonical section and anchors, while the conductor establishes provenance, relevance, semantic identity, repair size, the anchor place's logical fit, and completeness of what was observed.
+A valid collection does not prove those judgments.
+
+For local Git scope, apply these same decisions in the local report and record a separate-tracking handoff as pending without initiating GitHub acquisition, issue capture, or PR rendering/posting.
+Do not claim the PR engine's mechanical acceptance for local-only output.
+For automated PR runs, new issue work remains pending for an interactive operator; automated review authority never supplies issue-write approval.
+
 ### Procedure
 
 #### 1. Load repository governance
@@ -307,7 +332,7 @@ That reports whether the description is already workflow-owned, whether anyone e
 
 Classify each author fragment:
 
-- **Load-bearing** — content another system reads: issue-closing keywords, task-list checkboxes, and `Signed-off-by` / `Co-authored-by` trailers, each carried **verbatim** into the delimited author-context region, because absorbing one breaks it silently and the failure lands at merge time rather than at approval.
+- **Load-bearing** — content another system reads: issue-closing keywords, task-list checkboxes, and `Signed-off-by` / `Co-authored-by` trailers, each carried **verbatim** into the delimited author-context region, because absorbing one breaks it silently and the failure lands at merge time rather than at approval; a deliberate change to one is recorded as a reworking disposition with its reason, which releases it from verbatim carry.
 - **Narrative** — everything a human reads, absorbed into the generated section it belongs to so the posted body reads as one account rather than stating the same intent twice.
 
 Regenerate from the diff, PR metadata, and thread — **never** from the body posted on an earlier round, because re-absorbing your own output drifts and inflates across rounds.
@@ -403,14 +428,50 @@ Only **verified** findings may post inline; route the shared conduct's unverifie
 Rediscovery at the same path and line corroborates the existing thread: reply to the root instead of opening a new inline comment.
 A new `inline-root` at an occupied path and line is refused, not rewritten into a reply.
 
+#### 4a. Run the capture selection and record its outcome
+
+Apply the triage rule above, keeping all observations in the review's own separated section rather than a codebase findings store.
+Treat every observation assigned `track-separately` as the capture set; `fix-in-pr` observations are advice on the PR and are not captured.
+
+Build the capture set before rendering.
+Search for an issue owning each member's stable tracking key and verify that it covers the defect; record `reused` with its confirmed reference and show it as already tracked.
+Citing an existing issue is read-only; updating it still needs the issue workflow's own approval.
+
+Present the remaining members to the operator as one selection step: identity, tracking key, description, evidence tier, and disposition rationale, with no drafted issue body.
+The operator selects any subset, including none; when the set is empty, state that no capture candidate exists.
+Selection authorizes only which members proceed to capture: it creates no issue and does not replace any later approval.
+Shape an issue body only for a selected member.
+
+For each selected member, capture through `/aiscr-plan-issue` in the resolved target repository.
+Pass the key, evidence with revisions and tiers, rationale, and acquired PR context as external input, without inventing a codebase finding identity or calling codebase-review transfer or record commands.
+Reuse established evidence, then follow the issue workflow's language choice, dialogue and crystallization, shaping, reconciliation, and exact-write approval checkpoints.
+Keep its drafts and sources in its own prescribed handoff and bulk directories, not extra files in the PR run.
+Preserve the observation key and source references in the shaped issue so later lookup works after local cleanup; grouping and issue relationships follow the issue workflow rather than assuming that a PR is a parent.
+
+After independently approved creation succeeds, record `created` with the returned repository, issue number, and matching issue URL before rendering the final review.
+The issue approval does not pre-approve the review that now contains its link.
+A member the operator did not select records `pending` with reason code `declined`; a capture that is deferred, unavailable, fails, or is uncertain records `pending` with the matching reason code and a specific detail, and no completed issue reference.
+That outcome does not itself block the PR or determine the verdict.
+After uncertain creation, search and confirm by the key before any repeat create; after successful creation followed by failed review posting, reuse the returned issue rather than create another one.
+Retain unresolved issue handoffs for retry under their owning workflow.
+
+Rendering refuses a `track-separately` member without a recorded outcome or with a pending outcome that lacks a valid reason code.
+The closed reason codes are `declined`, `deferred`, `unavailable`, `failed`, and `uncertain`.
+
 #### 5. Render the mandatory approval artefact
 
 Write the draft grouped review payload and reply list as JSON.
 The payload contains `body`, `event`, `commit_id`, and optional `comments`; replies contain `comment_id` and `body`.
 The findings ledger at `<BULK_DIR>/findings-ledger.json` must already name a placement for every new finding, a reason for every outstanding finding, and a declared platform-resolved state plus a reply or justified no-reply communication decision for every mechanically enumerated inline thread, with a reopen decision on every platform-resolved thread it replies to.
+It must also contain the explicit observation collection with a capture outcome for every `track-separately` observation from step 4a, and every pending outcome must carry a closed reason code.
 
 Render the exact post bundle and approval view.
 Rendering is local — no GitHub writes — but it refuses when coverage is incomplete or the ledger disagrees with the payload.
+It generates one delimited pre-existing-observations section from the records, including an explicit empty result, and refuses a supplied section that conflicts with that projection or repeats its delimiters or heading.
+Its delimiters must occupy standalone lines in top-level Markdown context; rendering and pre-post validation refuse a section hidden in code or raw HTML, including insertion after an unclosed block.
+Observation fields are rendered as data; supply their evidence locations and revisions separately rather than embedding report structure in field text.
+The section, proposed repairs, anchor bodies and positions, capture decisions, tracking reasons and issue links appear in the exact approval view, and the records are bound by the bundle digest and revalidated before posting.
+Older pending ledgers or bundles require regeneration and fresh approval rather than an implicit empty collection.
 A local diff supplied at render time fills unavailable files from `<BULK_DIR>/pr-diff.patch` without re-gathering:
 
 ```bash
@@ -426,7 +487,7 @@ python .agents/scripts/github/github_pr_review.py render \
 ```
 
 The renderer injects the interactive disclosure and `<!-- aiscr-review-pr:v1 -->`, then prints a SHA-256 digest over the bundle including the ledger and coverage snapshots.
-The approval view exposes the exact body, review event, commit, every new inline placement, every exact reply body, every ledger placement, each outstanding disposition and reason, every reply/no-reply decision with the thread's platform-resolved state, each no-reply rationale, every reopen decision with its rationale, and the digest.
+The approval view exposes the exact body, review event, commit, every new inline placement, every observation anchor with its exact body and place, every exact reply body, every ledger placement, each outstanding disposition and reason, every reply/no-reply decision with the thread's platform-resolved state, each no-reply rationale, every reopen decision with its rationale, and the digest.
 Present that file to the reviewer.
 Do not post a paraphrase or reconstruct the payload afterward.
 
@@ -450,7 +511,8 @@ python .agents/scripts/github/github_pr_review.py post <PR_NUMBER> \
 ```
 
 Before any GitHub mutation the script compares the supplied approval file with its exact fresh rendering and rejects a missing or edited view, a digest mismatch, a ledger or coverage altered after approval, a missing marker/disclosure, an invalid mode/environment combination, a disallowed event, a disposition/reply mismatch, or a misdeclared thread state.
-It posts the grouped review first, then replies to existing threads, then reopens exactly the approved threads; replies precede reopening so a failure leaves a recoverable comment.
+It posts the grouped review with the approved line anchors first, then the approved file anchors as standalone review comments, then replies to existing threads, then reopens exactly the approved threads; replies precede reopening so a failure leaves a recoverable comment, and an anchor already present under its marker and path is reused only when its canonical body, kind, and line/side also match exactly.
+Any mismatched live anchor refuses the entire posting batch before the grouped review is written.
 It never resolves a thread, skips an exact reply already present rather than duplicating it on retry, and never writes the run-local ledger to the pull request.
 
 On GitHub HTTP 422 for an inline target, move the content into the review body, re-render, present the new approval view, obtain approval for its new digest, and post again — never silently retry a changed payload.
@@ -459,6 +521,15 @@ On GitHub HTTP 422 for an inline target, move the content into the review body, 
 
 Correcting a posted placement or disposition does not require another review round: render a repair bundle for standalone inline roots, replies, a reopened thread the repair replies to, and/or an amended body, present its approval view, and post under that digest.
 A repair never reopens a thread it does not reply to, and a reply-only repair posts no grouped review and carries no new verdict.
+Every body amendment requires `--findings-ledger` with the explicit complete observation collection and `--source-review-bundle` naming the existing `review-bundle.json`, even when preserving the same observations; its projection, records, and source snapshot are bound by repair-bundle v4 and revalidated before any mutation in the batch.
+The source supplies the acquired coverage, and the repair preserves every anchored record exactly; additions, removals, changed repairs, or moved anchors require a later review round.
+For an intentional observation change, supply the matching replacement projection or let rendering insert an absent section; a conflicting old section is refused rather than overwritten silently.
+Changes to `track-separately` observations retain that approved repair path.
+Before the first write, posting reads the target review and confirms its source observation section, commit, and every preserved live anchor; a missing or changed source refuses the whole batch.
+On retry, the exact approved replacement section is also accepted when an earlier attempt already amended the body.
+The same Markdown-context checks apply to body repairs before any mutation in the batch.
+Body-unchanged reply or inline repairs omit `--body`, `--findings-ledger`, and `--source-review-bundle` and do not invent observation records.
+A body repair never edits a posted observation anchor; a later round re-derives the observation and replies or re-anchors under the thread dispositions.
 Keep the bulk pointer in `POINTER.md`, outside the repair body posted to GitHub.
 
 ```bash
@@ -470,6 +541,8 @@ python .agents/scripts/github/github_pr_review.py repair render \
   --replies <BULK_DIR>/review-replies.json \
   --reopen <BULK_DIR>/repair-reopen.json \
   --body <HANDOFF_DIR>/repair-body.md \
+  --findings-ledger <BULK_DIR>/findings-ledger.json \
+  --source-review-bundle <BULK_DIR>/review-bundle.json \
   --bundle <BULK_DIR>/repair-bundle.json \
   --approval-view <HANDOFF_DIR>/repair-approval.md
 python .agents/scripts/github/github_pr_review.py repair post <PR_NUMBER> \
@@ -582,6 +655,11 @@ No exceptions.
 | "The main review posted, so cleanup can run before replies finish." | Retain the run directory until every approved write succeeds and all posting decisions are final. |
 | "I will wrap the summary prose at a sensible width." | Do not hand-wrap. GitHub turns each newline inside a paragraph into a line break, so a wrap posts mid-sentence. Write one line per paragraph; fenced evidence, tables, list items, and the review marker keep their own lines. |
 | "This anchor is not in my summary, so I will declare it dropped." | If it survives in the archived original, declare it preserved. `dropped` means gone. |
+| "The observation is pending, so tracking is recorded." | Present the capture selection step first; `pending` is valid only after a decision or an unavailable, failed, or uncertain capture, with its reason code. |
+| "I will draft every issue body before asking." | List observations, not bodies; shape only what the operator selects. |
+| "The anchor exists, so the body can carry the full record too." | The body indexes; the anchor carries the record. Duplicating it defeats the index. |
+| "A retry can post the file anchor again." | File anchors are idempotent by marker and path; an existing anchor is reused. |
+| "The observation anchor is an inline thread, so it counts as a finding." | Marker-carrying threads are observations; they never enter the finding buckets or the verdict. |
 
 ## Verification before completion
 
@@ -603,6 +681,11 @@ Before claiming this workflow complete:
 - [ ] Open threads dispositioned `resolved` or `disputed` have exact replies; agreed closures on platform-resolved threads are `no-reply`; `not-addressed` there and first-time or changed-ground disputes have exact replies; standing-dispute no-replies carry a rationale, rest on a prior reviewer reply, and the review body names the dispute.
 - [ ] Every reply to a platform-resolved thread carries a reopen decision the operator was asked for, with its rationale, and no reopen sits on a finding with no closure to reverse.
 - [ ] Findings were normalized into the required buckets and severities.
+- [ ] Every proven pre-existing observation has an advisory disposition, rationale, evidence, and proposed repair or truthful tracking outcome; the conductor checked provenance, relevance, repair size, and completeness independently of structural validation.
+- [ ] Separate tracking either links a confirmed existing or independently approved created issue, or remains explicitly pending with its reason; issue approval and review approval were kept separate and no codebase finding record was created.
+- [ ] The capture set covered every `track-separately` observation, the selection step was presented with observations rather than drafted bodies, and every outcome is recorded as `reused`, `created`, or `pending` with a valid reason code.
+- [ ] Every `fix-in-pr` observation carries exactly one anchor in coverage, line-first with a file fallback; the body indexes it, the anchor carries the full record, and no `track-separately` record carries an anchor.
+- [ ] Line anchors were part of the grouped review, file anchors were posted once under their markers, and no observation thread was counted as a finding.
 - [ ] The exact rendered formal review and digest received explicit approval.
 - [ ] Posting mode, identity, disclosure, and event gates passed.
 - [ ] No findings were copied into another review's store.
@@ -616,7 +699,7 @@ Before claiming this workflow complete:
 ## Governance
 
 - GitHub references follow the delivered `aiscr-quality-first-execution` rule (*GitHub references*).
-- Apply the shared conduct's PR observation route: the separated pre-existing-observations section is the single route in local or PR output, never copied to a codebase backlog.
+- Apply the shared conduct's PR observation route: the separated pre-existing-observations section is the single review record in local or PR output; an approved tracking issue is linked there, never copied into a codebase findings store.
 - Deterministic engine: `.agents/scripts/github/github_pr_review.py`.
 
 ## Valid next steps

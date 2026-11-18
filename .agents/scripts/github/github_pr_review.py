@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
-# delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00
+# delivery-version: 00e795f3863999e297a997632377fb33415531a8 2026-11-15T00:18:09+01:00
 
 """Gather, render, and post governed GitHub PR reviews.
 
@@ -9,7 +9,9 @@
 view without contacting GitHub, and refuses when coverage is incomplete or a finding is unplaced. ``post`` accepts only
 that bundle, re-verifies the findings ledger, and enforces the selected identity mode and the unchanged interactive
 approval file before any GitHub write. ``repair`` posts standalone inline roots and amends a submitted review body under
-its own approval digest. ``post-summary`` posts the exact approved PR summary file to the explicitly selected surface.
+its own approval digest. Normal reviews and body repairs validate structured advisory observations and their one
+rendered section; legacy pending records require regeneration and renewed approval. ``post-summary`` posts the exact
+approved PR summary file to the explicitly selected surface.
 ``cleanup`` removes only the prescribed artifacts from one bounded review run directory in each root after the workflow
 reaches a terminal outcome. ``prepare-run`` creates the directories and sidecar pointer before body authoring.
 
@@ -24,12 +26,14 @@ from __future__ import annotations
 # in one auditable module.
 # pylint: disable=too-many-lines
 import argparse
+import html
 import json
 import os
 import re
 import stat
 import subprocess
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
@@ -57,10 +61,20 @@ AUTOMATED_DISCLOSURE = (
     "Automated review conducted with AI assistance through the AIS CR review "
     "workflow; this review is non-blocking and remains subject to human disposition."
 )
-BUNDLE_SCHEMA = "aiscr-review-pr-bundle-v1"
-REPAIR_BUNDLE_SCHEMA = "aiscr-review-pr-repair-bundle-v2"
+BUNDLE_SCHEMA = "aiscr-review-pr-bundle-v3"
+REPAIR_BUNDLE_SCHEMA = "aiscr-review-pr-repair-bundle-v4"
 COVERAGE_SCHEMA = "aiscr-review-pr-coverage-v1"
-FINDINGS_LEDGER_SCHEMA = "aiscr-review-pr-findings-ledger-v2"
+FINDINGS_LEDGER_SCHEMA = "aiscr-review-pr-findings-ledger-v4"
+OBSERVATIONS_OPEN = "<!-- aiscr-review-pr:preexisting-observations -->"
+OBSERVATIONS_CLOSE = "<!-- /aiscr-review-pr:preexisting-observations -->"
+OBSERVATIONS_HEADING = "## Pre-existing observations"
+OBSERVATION_DISPOSITIONS = ("fix-in-pr", "track-separately")
+OBSERVATION_TRACKING_STATES = ("pending", "reused", "created")
+OBSERVATION_PENDING_REASON_CODES = ("declined", "deferred", "unavailable", "failed", "uncertain")
+OBSERVATION_EVIDENCE_TIERS = ("reproduced", "instrumented", "read", "reported", "inferred")
+OBSERVATION_ANCHOR_KINDS = ("line", "file")
+OBSERVATION_MARKER_PREFIX = "<!-- aiscr-review-pr:observation"
+OBSERVATION_MARKER_RE = re.compile(r"<!-- aiscr-review-pr:observation (\S+) (\S+) -->")
 FILE_STATE_AVAILABLE = "available"
 FILE_STATE_UNAVAILABLE = "unavailable"
 PLACEMENT_INLINE_ROOT = "inline-root"
@@ -589,6 +603,15 @@ def _anchor_set(coverage: dict[str, Any]) -> set[tuple[str, int, str]]:
     return anchors
 
 
+def _coverage_paths(coverage: dict[str, Any]) -> set[str]:
+    """Files the acquired coverage reaches, for a file-level anchor."""
+    return {
+        item["path"]
+        for item in coverage.get("files") or []
+        if isinstance(item.get("path"), str) and item["path"].strip()
+    }
+
+
 def _is_vendor_bot(login: str | None) -> bool:
     if not login:
         return False
@@ -635,7 +658,7 @@ def _occupied_thread_locations(existing_threads: list[dict[str, Any]]) -> set[tu
     return occupied
 
 
-def _enumerate_outstanding_findings(
+def _enumerate_outstanding_findings(  # pylint: disable=too-many-locals
     conversation: dict[str, Any],
     lineage: dict[str, Any],
 ) -> list[dict[str, Any]]:
@@ -668,6 +691,8 @@ def _enumerate_outstanding_findings(
         else:
             kind = "human"
         prior_review_reply = any(comment.get("author") in reviewer_logins for comment in comments[1:])
+        root_body = str(root.get("body") or "")
+        marker = OBSERVATION_MARKER_RE.search(root_body)
         findings.append(
             {
                 "id": f"thread:{root_id}",
@@ -679,7 +704,8 @@ def _enumerate_outstanding_findings(
                 "platform_resolved": bool(thread.get("resolved")),
                 "platform_outdated": bool(thread.get("outdated")),
                 "prior_review_reply": prior_review_reply,
-                "body": root.get("body") or "",
+                "body": root_body,
+                "observation_id": marker.group(1) if marker else None,
             }
         )
     return findings
@@ -700,11 +726,323 @@ def _emit_json(payload: Any, output_path: str | None) -> None:
     print(f"Wrote {output_path}")
 
 
-def _validate_findings_ledger(ledger: Any) -> dict[str, Any]:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+def _observation_fields(value: Any, fields: set[str], label: str) -> dict[str, Any]:
+    """Check closed record shapes, including fields that would introduce verdict severity."""
+    if not isinstance(value, dict) or set(value) != fields:
+        _abort(f"{label} must be an object with exactly: {', '.join(sorted(fields))}.")
+    return value
+
+
+def _observation_text(value: Any, label: str) -> str:
+    """Accept single-line data, never structural delimiters or control characters."""
+    if not isinstance(value, str) or not value.strip():
+        _abort(f"{label} must be non-empty text.")
+    if any(ord(char) < 32 or ord(char) == 127 for char in value) or "<!--" in value or "-->" in value:
+        _abort(f"{label} must be single-line data without control characters or comment delimiters.")
+    return value.strip()
+
+
+def _validate_observation_tracking(value: Any, label: str) -> None:
+    """Check disjoint shapes for a pending handoff and a confirmed issue."""
+    if not isinstance(value, dict) or value.get("state") not in OBSERVATION_TRACKING_STATES:
+        _abort(f"{label} needs a tracking state of pending, reused, or created.")
+    if value["state"] == "pending":
+        _observation_fields(value, {"state", "reason", "reason_code"}, label)
+        _observation_text(value["reason"], f"{label} reason")
+        if value["reason_code"] not in OBSERVATION_PENDING_REASON_CODES:
+            _abort(f"{label} reason_code must be one of: {', '.join(OBSERVATION_PENDING_REASON_CODES)}.")
+        return
+    _observation_fields(value, {"state", "issue"}, label)
+    issue = _observation_fields(value["issue"], {"repository", "number", "url"}, f"{label} issue")
+    repository = _observation_text(issue["repository"], f"{label} issue repository")
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
+        _abort(f"{label} issue repository must be owner/repo.")
+    number = issue["number"]
+    if isinstance(number, bool) or not isinstance(number, int) or number <= 0:
+        _abort(f"{label} issue number must be a positive integer.")
+    url = _observation_text(issue["url"], f"{label} issue URL")
+    if url != f"https://github.com/{repository}/issues/{number}":
+        _abort(f"{label} issue URL must identify the same repository and issue number.")
+
+
+def _validate_observation_anchor(value: Any, label: str, coverage: dict[str, Any] | None) -> None:
+    """Check an anchor's shape and its presence in coverage, not whether its place is the logical one."""
+    if not isinstance(value, dict) or value.get("kind") not in OBSERVATION_ANCHOR_KINDS:
+        _abort(f"{label} needs an anchor kind of line or file.")
+    if value["kind"] == "line":
+        _observation_fields(value, {"kind", "path", "line", "side"}, label)
+        path = _observation_text(value["path"], f"{label} path")
+        if isinstance(value["line"], bool) or not isinstance(value["line"], int):
+            _abort(f"{label} line must be an integer.")
+        if value["side"] not in {"LEFT", "RIGHT"}:
+            _abort(f"{label} side must be LEFT or RIGHT.")
+        if coverage is not None and (path, value["line"], value["side"]) not in _anchor_set(coverage):
+            _abort(f"{label} is not present in the acquired diff; unverifiable anchors are refused.")
+        return
+    _observation_fields(value, {"kind", "path"}, label)
+    path = _observation_text(value["path"], f"{label} path")
+    if coverage is not None and path not in _coverage_paths(coverage):
+        _abort(f"{label} names a file outside the acquired coverage.")
+
+
+def _validate_preexisting_observations(  # pylint: disable=too-many-locals
+    value: Any, finding_ids: set[str], coverage: dict[str, Any] | None = None
+) -> list[dict[str, Any]]:
+    """Verify recorded triage, not the conductor's provenance or repair-scope judgments."""
+    if not isinstance(value, list):
+        _abort(
+            "preexisting_observations must be an explicit JSON array; regenerate the ledger, render, and approve again."
+        )
+    identities: set[str] = set()
+    tracking_keys: set[str] = set()
+    common = {"id", "tracking_key", "description", "evidence", "disposition", "rationale"}
+    for index, record in enumerate(value, start=1):
+        label = f"pre-existing observation {index}"
+        if not isinstance(record, dict) or record.get("disposition") not in OBSERVATION_DISPOSITIONS:
+            _abort(f"{label} needs exactly one disposition: fix-in-pr or track-separately.")
+        fields = common | ({"repair", "anchor"} if record["disposition"] == "fix-in-pr" else {"tracking"})
+        _observation_fields(record, fields, label)
+        identity = _observation_text(record["id"], f"{label} id")
+        key = _observation_text(record["tracking_key"], f"{label} tracking key")
+        if identity in identities or identity in finding_ids or key in tracking_keys:
+            _abort(f"{label} '{identity}' duplicates an identity, tracking key, or verdict-bearing finding.")
+        identities.add(identity)
+        tracking_keys.add(key)
+        for field in ("description", "rationale"):
+            _observation_text(record[field], f"observation '{identity}' {field}")
+        evidence = record["evidence"]
+        if not isinstance(evidence, list) or not evidence:
+            _abort(f"observation '{identity}' needs non-empty provenance evidence references.")
+        for reference in evidence:
+            entry = _observation_fields(
+                reference, {"location", "revision", "tier"}, f"observation '{identity}' evidence"
+            )
+            for field in ("location", "revision"):
+                _observation_text(entry[field], f"observation '{identity}' evidence {field}")
+            if entry["tier"] not in OBSERVATION_EVIDENCE_TIERS:
+                _abort(
+                    f"observation '{identity}' evidence tier must be "
+                    "reproduced, instrumented, read, reported, or inferred."
+                )
+        if record["disposition"] == "fix-in-pr":
+            _observation_text(record["repair"], f"observation '{identity}' proposed repair")
+            _validate_observation_anchor(record["anchor"], f"observation '{identity}' anchor", coverage)
+        else:
+            _validate_observation_tracking(record["tracking"], f"observation '{identity}' tracking")
+    return value
+
+
+def _observation_literal(value: str) -> str:
+    """Render field content as literal Markdown text rather than headings, links, or HTML."""
+    return re.sub(r"([\\`*_{}\[\]()#!|])", r"\\\1", html.escape(value.strip(), quote=False))
+
+
+def _render_observations(observations: list[dict[str, Any]]) -> str:
+    """Project the approved records once; the machine ledger itself never gets posted."""
+    lines = [
+        OBSERVATIONS_OPEN,
+        OBSERVATIONS_HEADING,
+        "",
+        "Advisory only: these observations predate the reviewed material and do not contribute to the verdict.",
+        "",
+    ]
+    if not observations:
+        lines.extend(["None identified.", ""])
+    for record in observations:
+        lines.extend(
+            [
+                f"### Observation: {_observation_literal(record['id'])}",
+                "",
+                f"- Tracking key: {_observation_literal(record['tracking_key'])}",
+                f"- Observation: {_observation_literal(record['description'])}",
+                f"- Disposition: `{record['disposition']}`",
+            ]
+        )
+        if record["disposition"] == "fix-in-pr":
+            lines.append(f"- Anchor: `{_anchor_place(record['anchor'])}`")
+            lines.append("- Full record and proposed repair: the observation anchor on that place.")
+        else:
+            lines.append(f"- Rationale: {_observation_literal(record['rationale'])}")
+            lines.extend(_observation_evidence_lines(record))
+            tracking = record["tracking"]
+            lines.append(f"- Tracking state: `{tracking['state']}`")
+            if tracking["state"] == "pending":
+                lines.append(f"- Tracking reason code: `{tracking['reason_code']}`")
+                lines.append(f"- Tracking reason: {_observation_literal(tracking['reason'])}")
+            else:
+                lines.append(f"- Issue: {github_references.reference_link(tracking['issue']['url'].strip())}")
+        lines.append("")
+    lines.append(OBSERVATIONS_CLOSE)
+    return "\n".join(lines)
+
+
+def _anchor_place(anchor: dict[str, Any]) -> str:
+    if anchor["kind"] == "line":
+        return f"{anchor['path']}:{anchor['line']} ({anchor['side']})"
+    return anchor["path"]
+
+
+def _observation_evidence_lines(record: dict[str, Any]) -> list[str]:
+    lines = ["- Provenance evidence:"]
+    for entry in record["evidence"]:
+        location = entry["location"].strip()
+        display = (
+            github_references.reference_link(location)
+            if github_references.reference_target(location)
+            else _observation_literal(location)
+        )
+        lines.append(f"  - {display}; revision: {_observation_literal(entry['revision'])}; tier: `{entry['tier']}`")
+    return lines
+
+
+def _observation_marker(record: dict[str, Any]) -> str:
+    return f"{OBSERVATION_MARKER_PREFIX} {record['id']} {record['tracking_key']} -->"
+
+
+def _render_observation_anchor(record: dict[str, Any]) -> str:
+    """Render the anchor's canonical record, the only full record for an anchored observation."""
+    lines = [
+        _observation_marker(record),
+        f"### Pre-existing observation: {_observation_literal(record['id'])}",
+        "",
+        f"- Tracking key: {_observation_literal(record['tracking_key'])}",
+        f"- Observation: {_observation_literal(record['description'])}",
+        "- Disposition: `fix-in-pr`",
+        f"- Rationale: {_observation_literal(record['rationale'])}",
+    ]
+    lines.extend(_observation_evidence_lines(record))
+    lines.extend(
+        [
+            f"- Proposed repair: {_observation_literal(record['repair'])}",
+            f"- Anchor: `{_anchor_place(record['anchor'])}`",
+            "",
+            "Advisory only: this observation predates the reviewed material and does not contribute to the verdict.",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def _observation_anchors(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Derive every fix-in-pr anchor from the records; the ledger stays the single home."""
+    anchors: list[dict[str, Any]] = []
+    for record in records:
+        if record.get("disposition") != "fix-in-pr":
+            continue
+        place = record["anchor"]
+        anchor = {
+            "observation_id": record["id"],
+            "kind": place["kind"],
+            "path": place["path"],
+            "marker": _observation_marker(record),
+            "body": _render_observation_anchor(record),
+        }
+        if place["kind"] == "line":
+            anchor["line"] = place["line"]
+            anchor["side"] = place["side"]
+        anchors.append(anchor)
+    return anchors
+
+
+def _observation_html_end(line: str) -> str | None:
+    """Recognize raw HTML blocks, retaining long-lived blocks across blank lines."""
+    for opening, closing in (
+        (r"<!--", r"-->"),
+        (r"<\?", r"\?>"),
+        (r"<!\[CDATA\[", r"\]\]>"),
+        (r"<![A-Z]", r">"),
+    ):
+        if re.match(r" {0,3}" + opening, line):
+            return closing
+    raw_tag = re.match(r" {0,3}<(script|pre|style|textarea)(?=[ \t>]|$)", line, re.IGNORECASE)
+    if raw_tag:
+        return rf"</{raw_tag[1]}>"
+    if re.match(r" {0,3}</?[A-Za-z][A-Za-z0-9-]*(?=[ \t/>]|$)", line):
+        return ""
+    return None
+
+
+def _observation_prefix_is_top_level(prefix: str) -> bool:
+    """Fail closed on open fences, raw HTML, and unfinished HTML tokenization.
+
+    Root delimiters cannot inherit list/quote indentation. Balanced fences and blank-ended HTML are supported; an
+    ambiguous unclosed container fence is rejected rather than silently closed. The standard-library HTML tokenizer
+    keeps an unfinished quoted attribute from appearing to end merely because a Markdown blank line was encountered.
+    """
+    fence = ""
+    html_end: str | None = None
+    html_lines: list[str] = []
+    markup = HTMLParser(convert_charrefs=False)
+    # The standalone opening delimiter follows the final newline immediately; that
+    # newline does not supply an additional blank line to terminate an HTML block.
+    for line in re.split(r"\r\n|\r|\n", prefix)[:-1]:
+        if fence:
+            if re.fullmatch(r" {0,3}" + re.escape(fence[0]) + "{" + str(len(fence)) + r",}[ \t]*", line):
+                fence = ""
+            continue
+        if html_end is None:
+            opening = re.fullmatch(r" {0,3}(`{3,}|~{3,})(.*)", line)
+            if opening and (opening[1][0] != "`" or "`" not in opening[2]):
+                fence = opening[1]
+                continue
+            html_end = _observation_html_end(line)
+            if html_end is None:
+                continue
+            html_lines.clear()
+        html_lines.append(line)
+        ended = not line.strip() if html_end == "" else re.search(html_end, line, re.IGNORECASE)
+        if ended:
+            markup.reset()
+            try:
+                markup.feed("\n".join(html_lines) + "\n")
+            except AssertionError:
+                return False
+            if markup.rawdata:
+                return False
+            html_end = None
+    return not fence and html_end is None
+
+
+def _with_observations(body: str, observations: list[dict[str, Any]], *, inject: bool = False) -> str:
+    """Insert a missing section only at render time; otherwise require its exact projection."""
+    expected = _render_observations(observations)
+    counts = (body.count(OBSERVATIONS_OPEN), body.count(OBSERVATIONS_CLOSE))
+    headings = re.findall(r"(?im)^#{1,6}[ \t]+pre[- ]existing[ -]observations[ \t]*$", body)
+    if counts == (0, 0) and not headings and inject:
+        body = body.rstrip() + "\n\n" + expected
+    elif counts != (1, 1) or len(headings) != 1:
+        _abort(
+            "review body needs exactly one delimited pre-existing observations section; "
+            "regenerate, render, and approve again."
+        )
+    start = body.index(OBSERVATIONS_OPEN)
+    end = body.index(OBSERVATIONS_CLOSE) + len(OBSERVATIONS_CLOSE)
+    if body[start:end] != expected:
+        _abort("pre-existing observations section disagrees with its structured records; re-render and approve again.")
+    if (start and body[start - 1] not in "\r\n") or (end < len(body) and body[end] not in "\r\n"):
+        _abort("pre-existing observations delimiters must occupy standalone lines in top-level Markdown context.")
+    if not _observation_prefix_is_top_level(body[:start]):
+        _abort(
+            "pre-existing observations require top-level Markdown context; close preceding code fences or raw HTML "
+            "before rendering or posting."
+        )
+    return body
+
+
+def _validate_findings_ledger(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    ledger: Any, coverage: dict[str, Any] | None = None
+) -> dict[str, Any]:
     if not isinstance(ledger, dict):
         _abort("findings ledger must be a JSON object.")
+    if ledger.get("schema") == "aiscr-review-pr-findings-ledger-v3":
+        _abort(
+            "findings ledger v3 is superseded by v4: every pending observation needs a reason_code "
+            f"({', '.join(OBSERVATION_PENDING_REASON_CODES)}); regenerate the ledger, render, and approve again."
+        )
     if ledger.get("schema") != FINDINGS_LEDGER_SCHEMA:
-        _abort(f"findings ledger schema must be '{FINDINGS_LEDGER_SCHEMA}'.")
+        _abort(
+            f"findings ledger schema must be '{FINDINGS_LEDGER_SCHEMA}'; "
+            "regenerate the ledger, render, and approve again."
+        )
     new_findings = ledger.get("new_findings")
     outstanding = ledger.get("outstanding")
     if not isinstance(new_findings, list):
@@ -780,6 +1118,11 @@ def _validate_findings_ledger(ledger: Any) -> dict[str, Any]:  # pylint: disable
         else:
             # A review-body finding has no thread, so it has no closure to reverse.
             _validate_reopen_decision(item, item_id, False, "")
+    _validate_preexisting_observations(
+        ledger.get("preexisting_observations"),
+        {identity.strip() for identity in seen_ids | outstanding_ids},
+        coverage,
+    )
     return ledger
 
 
@@ -1098,7 +1441,12 @@ def _validate_review_contract(body: str, mode: str) -> None:
 _bundle_digest = github_utils.canonical_digest
 
 
-def _validate_outgoing_references(review: dict[str, Any], replies: list[dict[str, Any]], label: str) -> None:
+def _validate_outgoing_references(
+    review: dict[str, Any],
+    replies: list[dict[str, Any]],
+    label: str,
+    anchors: list[dict[str, Any]] | None = None,
+) -> None:
     """Preflight the entire review/repair batch, never a lazy sequence of individual posts."""
     fields = []
     if review.get("body") is not None:
@@ -1111,17 +1459,24 @@ def _validate_outgoing_references(review: dict[str, Any], replies: list[dict[str
         github_utils.ReferenceField(f"{label}.replies[{index}].body", item["body"])
         for index, item in enumerate(replies)
     )
+    fields.extend(
+        github_utils.ReferenceField(f"{label}.observation_anchors[{index}].body", item["body"])
+        for index, item in enumerate(anchors or [])
+    )
     github_utils.validate_reference_batch(fields)
 
 
 def _validate_bundle(bundle: Any, mode: str) -> dict[str, Any]:
     if not isinstance(bundle, dict):
         _abort("review bundle must be a JSON object.")
-    expected_keys = {"schema", "mode", "review", "replies", "findings_ledger", "coverage"}
+    expected_keys = {"schema", "mode", "review", "replies", "findings_ledger", "coverage", "observation_anchors"}
     if set(bundle) != expected_keys:
-        _abort("review bundle must contain exactly: schema, mode, review, replies, findings_ledger, coverage.")
+        _abort(
+            "review bundle must contain exactly: schema, mode, review, replies, findings_ledger, coverage, "
+            "observation_anchors."
+        )
     if bundle.get("schema") != BUNDLE_SCHEMA:
-        _abort(f"review bundle schema must be '{BUNDLE_SCHEMA}'.")
+        _abort(f"review bundle schema must be '{BUNDLE_SCHEMA}'; regenerate the ledger, render, and approve again.")
     if bundle.get("mode") != mode:
         _abort(f"review bundle mode '{bundle.get('mode')}' does not match requested mode '{mode}'.")
 
@@ -1133,8 +1488,17 @@ def _validate_bundle(bundle: Any, mode: str) -> dict[str, Any]:
     coverage = bundle.get("coverage")
     if not isinstance(coverage, dict) or coverage.get("schema") != COVERAGE_SCHEMA:
         _abort(f"review bundle coverage schema must be '{COVERAGE_SCHEMA}'.")
-    _validate_findings_ledger(bundle.get("findings_ledger"))
-    _validate_outgoing_references(review, bundle["replies"], "review")
+    ledger = _validate_findings_ledger(bundle.get("findings_ledger"), coverage)
+    anchors = bundle.get("observation_anchors")
+    if not isinstance(anchors, list):
+        _abort("review bundle observation_anchors must be a JSON array.")
+    if not _payloads_match(anchors, _observation_anchors(ledger["preexisting_observations"])):
+        _abort(
+            "review bundle observation_anchors do not match the validated observation records; "
+            "re-render and approve the exact current artefacts."
+        )
+    _with_observations(review["body"], ledger["preexisting_observations"])
+    _validate_outgoing_references(review, bundle["replies"], "review", anchors)
     return bundle
 
 
@@ -1230,7 +1594,7 @@ def _require_approval_view(path: Path, expected: str) -> None:
         _abort("approval view was edited; re-render and obtain fresh approval before posting.")
 
 
-def _approval_view(  # pylint: disable=too-many-locals
+def _approval_view(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     bundle: dict[str, Any], digest: str, bulk_run: Path | None = None
 ) -> str:
     review = bundle["review"]
@@ -1267,6 +1631,29 @@ def _approval_view(  # pylint: disable=too-many-locals
                 "",
             ]
         )
+    anchors = bundle.get("observation_anchors") or []
+    lines.extend(
+        [
+            "",
+            "## Observation anchors",
+            "",
+            "Line anchors join the grouped review; file anchors are posted as standalone review comments after it.",
+            "",
+        ]
+    )
+    if not anchors:
+        lines.append("None.")
+    for index, anchor in enumerate(anchors, start=1):
+        lines.extend(
+            [
+                f"### Anchor {index} — observation `{anchor['observation_id']}` ({anchor['kind']})",
+                "",
+                f"- Path: `{anchor['path']}`",
+            ]
+        )
+        if anchor["kind"] == "line":
+            lines.extend([f"- Line: `{anchor['line']}`", f"- Side: `{anchor['side']}`"])
+        lines.extend(["", "Exact body:", "", anchor["body"], ""])
     lines.extend(["", "## Existing-thread replies", ""])
     if not replies:
         lines.append("None.")
@@ -1284,6 +1671,32 @@ def _approval_view(  # pylint: disable=too-many-locals
             ]
         )
     ledger = bundle.get("findings_ledger") or {}
+    lines.extend(["", "## Capture decisions", ""])
+    capture_set = [
+        record
+        for record in (ledger.get("preexisting_observations") or [])
+        if record.get("disposition") == "track-separately"
+    ]
+    if not capture_set:
+        lines.append("(no capture-set observation.)")
+    for record in capture_set:
+        tracking = record.get("tracking") or {}
+        lines.extend(
+            [
+                f"### Observation `{record.get('id')}`",
+                "",
+                f"- Tracking key: {record.get('tracking_key')}",
+                f"- Disposition: `{record.get('disposition')}`",
+                f"- Outcome: `{tracking.get('state')}`",
+            ]
+        )
+        if tracking.get("state") == "pending":
+            lines.append(f"- Reason code: `{tracking.get('reason_code')}`")
+            lines.append(f"- Detail: {tracking.get('reason')}")
+        else:
+            issue = tracking.get("issue") or {}
+            lines.append(f"- Issue: {github_references.reference_link(str(issue.get('url', '')).strip())}")
+        lines.append("")
     lines.extend(["", "## Findings ledger placements", ""])
     new_findings = ledger.get("new_findings") or []
     if not new_findings:
@@ -1339,7 +1752,7 @@ def cmd_render(  # pylint: disable=too-many-arguments,too-many-positional-argume
     if local_diff_path:
         coverage = _apply_local_diff(coverage, local_diff_path)
     _refuse_incomplete_coverage(coverage)
-    ledger = _validate_findings_ledger(_load_json(findings_ledger_path, "findings ledger"))
+    ledger = _validate_findings_ledger(_load_json(findings_ledger_path, "findings ledger"), coverage)
     outstanding = context.get("outstanding_findings") or []
     if not isinstance(outstanding, list):
         _abort("PR context outstanding_findings must be a JSON array when present.")
@@ -1347,7 +1760,9 @@ def cmd_render(  # pylint: disable=too-many-arguments,too-many-positional-argume
     if not isinstance(existing_threads, list):
         _abort("PR context existing_threads must be a JSON array when present.")
     rendered_review = dict(review)
-    rendered_review["body"] = _inject_review_contract(review["body"], mode)
+    rendered_review["body"] = _inject_review_contract(
+        _with_observations(review["body"], ledger["preexisting_observations"], inject=True), mode
+    )
     if mode == "automated" and rendered_review["event"] != "COMMENT":
         _abort("automated review bundles must use the non-blocking COMMENT event.")
     _validate_placements(ledger, rendered_review, replies, coverage, outstanding, existing_threads)
@@ -1359,6 +1774,7 @@ def cmd_render(  # pylint: disable=too-many-arguments,too-many-positional-argume
         "replies": replies,
         "findings_ledger": ledger,
         "coverage": coverage,
+        "observation_anchors": _observation_anchors(ledger["preexisting_observations"]),
     }
     _validate_bundle(bundle, mode)
     _enforce_review_gates(bundle, outstanding, existing_threads)
@@ -1984,6 +2400,33 @@ def _post_replies(
             os.unlink(payload_path)
 
 
+def _post_file_anchors(owner_repo: str, pr_number: int, commit_id: str, anchors: list[dict[str, Any]]) -> None:
+    """Write approved file anchors as standalone review comments, one per observation."""
+    for anchor in anchors:
+        payload_path = _temporary_json(
+            {
+                "body": anchor["body"],
+                "commit_id": commit_id,
+                "path": anchor["path"],
+                "subject_type": "file",
+            }
+        )
+        try:
+            anchor_url = _gh(
+                "api",
+                f"repos/{owner_repo}/pulls/{pr_number}/comments",
+                "--method",
+                "POST",
+                "--input",
+                payload_path,
+                "--jq",
+                ".html_url",
+            )
+            print(f"Observation anchor posted: {anchor_url}")
+        finally:
+            os.unlink(payload_path)
+
+
 def _payloads_match(left: Any, right: Any) -> bool:
     return json.dumps(left, ensure_ascii=False, sort_keys=True, separators=(",", ":")) == json.dumps(
         right,
@@ -1993,7 +2436,41 @@ def _payloads_match(left: Any, right: Any) -> bool:
     )
 
 
-def cmd_post(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+def _new_observation_anchors(
+    owner_repo: str, pr_number: int, anchors: list[dict[str, Any]], *, require_existing: bool = False
+) -> list[dict[str, Any]]:
+    """Reuse only exact live anchors; validate the entire set before any write."""
+    if not anchors:
+        return []
+    existing = _paginated_rest_items(f"repos/{owner_repo}/pulls/{pr_number}/comments?per_page=100")
+    if existing is None:
+        _abort("cannot verify existing observation anchors before posting; no GitHub write was made.")
+    pending: list[dict[str, Any]] = []
+    for anchor in anchors:
+        matches = [comment for comment in existing if anchor["marker"] in str(comment.get("body") or "")]
+        if not matches:
+            if require_existing:
+                _abort(f"observation anchor '{anchor['observation_id']}' is missing; use a later review round.")
+            pending.append(anchor)
+            continue
+        for comment in matches:
+            same = (
+                comment.get("body") == anchor["body"]
+                and comment.get("path") == anchor["path"]
+                and comment.get("subject_type", "line") == anchor["kind"]
+            )
+            if anchor["kind"] == "line":
+                same = same and comment.get("line") == anchor["line"] and comment.get("side") == anchor["side"]
+            if not same:
+                _abort(
+                    f"observation anchor '{anchor['observation_id']}' differs from its approved body or location; "
+                    "reconcile it in a later review round before posting."
+                )
+        print(f"Observation anchor already present: {anchor['observation_id']}")
+    return pending
+
+
+def cmd_post(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches,too-many-statements
     pr_number: int,
     mode: str,
     review_bundle_path: str,
@@ -2008,15 +2485,15 @@ def cmd_post(  # pylint: disable=too-many-arguments,too-many-positional-argument
         _load_json(review_bundle_path, "review bundle"),
         mode,
     )
-    ledger = _validate_findings_ledger(_load_json(findings_ledger_path, "findings ledger"))
     context = _load_json(pr_context_path, "PR context")
     if not isinstance(context, dict):
         _abort("PR context must be a JSON object.")
-    if not _payloads_match(ledger, bundle["findings_ledger"]):
-        _abort("findings ledger was altered after approval; re-render and approve the exact current artefacts.")
     coverage = context.get("coverage")
     if not _payloads_match(coverage, bundle["coverage"]):
         _abort("coverage was altered after approval; re-render and approve the exact current artefacts.")
+    ledger = _validate_findings_ledger(_load_json(findings_ledger_path, "findings ledger"), coverage)
+    if not _payloads_match(ledger, bundle["findings_ledger"]):
+        _abort("findings ledger was altered after approval; re-render and approve the exact current artefacts.")
     outstanding = context.get("outstanding_findings") or []
     existing_threads = context.get("existing_threads") or []
     if not isinstance(outstanding, list) or not isinstance(existing_threads, list):
@@ -2037,7 +2514,15 @@ def cmd_post(  # pylint: disable=too-many-arguments,too-many-positional-argument
         _require_approval_view(view, _approval_view(bundle, digest, _bulk_run_for_handoff(str(view))))
     _validate_write_environment(mode, "post")
     owner_repo = _resolve_repo(repo)
-    review_payload_path = _temporary_json(bundle["review"])
+    new_anchors = _new_observation_anchors(owner_repo, pr_number, bundle["observation_anchors"])
+    line_anchors = [anchor for anchor in new_anchors if anchor["kind"] == "line"]
+    file_anchors = [anchor for anchor in new_anchors if anchor["kind"] == "file"]
+    review_payload = dict(bundle["review"])
+    review_payload["comments"] = list(review_payload.get("comments") or []) + [
+        {"path": anchor["path"], "line": anchor["line"], "side": anchor["side"], "body": anchor["body"]}
+        for anchor in line_anchors
+    ]
+    review_payload_path = _temporary_json(review_payload)
     try:
         review_url = _gh(
             "api",
@@ -2052,6 +2537,7 @@ def cmd_post(  # pylint: disable=too-many-arguments,too-many-positional-argument
         print(f"Review posted: {review_url}")
     finally:
         os.unlink(review_payload_path)
+    _post_file_anchors(owner_repo, pr_number, str(bundle["review"]["commit_id"]), file_anchors)
 
     reopen_targets = _approved_reopen_targets(ledger, existing_threads)
     _post_replies(owner_repo, pr_number, bundle["replies"])
@@ -2085,16 +2571,45 @@ def _validate_repair_reopen(reopen: Any, replies: list[dict[str, Any]]) -> list[
     return reopen
 
 
+def _validate_repair_source(bundle: dict[str, Any], mode: str, observations: list[dict[str, Any]]) -> None:
+    """Bind a body repair to acquired coverage while preserving every anchored record."""
+    source = _validate_bundle(bundle["source_review"], mode)
+    if source["review"]["commit_id"] != bundle["commit_id"]:
+        _abort("body repair commit must match its source review bundle; use a later review round.")
+    _refuse_incomplete_coverage(source["coverage"])
+    _validate_preexisting_observations(observations, set(), source["coverage"])
+    original = {
+        record["id"]: record
+        for record in source["findings_ledger"]["preexisting_observations"]
+        if record["disposition"] == "fix-in-pr"
+    }
+    replacement = {record["id"]: record for record in observations if record["disposition"] == "fix-in-pr"}
+    if not _payloads_match(original, replacement):
+        _abort("body repair must preserve every anchored record exactly; use a later review round to change anchors.")
+
+
 def _validate_repair_bundle(bundle: Any, mode: str) -> dict[str, Any]:
     if not isinstance(bundle, dict):
         _abort("repair bundle must be a JSON object.")
-    expected_keys = {"schema", "mode", "review_id", "commit_id", "comments", "replies", "reopen", "body"}
+    expected_keys = {
+        "schema",
+        "mode",
+        "review_id",
+        "commit_id",
+        "comments",
+        "replies",
+        "reopen",
+        "body",
+        "preexisting_observations",
+        "source_review",
+    }
     if set(bundle) != expected_keys:
         _abort(
-            "repair bundle must contain exactly: schema, mode, review_id, commit_id, comments, replies, reopen, body."
+            "repair bundle must contain exactly: schema, mode, review_id, commit_id, comments, replies, reopen, body, "
+            "preexisting_observations, source_review; regenerate, render, and approve again."
         )
     if bundle.get("schema") != REPAIR_BUNDLE_SCHEMA:
-        _abort(f"repair bundle schema must be '{REPAIR_BUNDLE_SCHEMA}'.")
+        _abort(f"repair bundle schema must be '{REPAIR_BUNDLE_SCHEMA}'; regenerate, render, and approve again.")
     if bundle.get("mode") != mode:
         _abort(f"repair bundle mode '{bundle.get('mode')}' does not match requested mode '{mode}'.")
     review_id = bundle.get("review_id")
@@ -2114,6 +2629,11 @@ def _validate_repair_bundle(bundle: Any, mode: str) -> dict[str, Any]:
         if not isinstance(body, str) or not body.strip():
             _abort("repair bundle body must be a non-empty string when present.")
         _validate_review_contract(body, mode)
+        observations = _validate_preexisting_observations(bundle["preexisting_observations"], set())
+        _with_observations(body, observations)
+        _validate_repair_source(bundle, mode, observations)
+    elif bundle["preexisting_observations"] is not None or bundle["source_review"] is not None:
+        _abort("a body-unchanged repair must not replace pre-existing observation records.")
     if not comments and not replies and body is None:
         _abort("repair bundle must include at least one standalone inline root, thread reply, or body amendment.")
     _validate_outgoing_references(bundle, replies, "repair")
@@ -2177,6 +2697,17 @@ def _repair_approval_view(bundle: dict[str, Any], digest: str, bulk_run: Path | 
         lines.append("(unchanged.)")
     else:
         lines.extend([bundle["body"], ""])
+        source = bundle["source_review"]
+        lines.extend(
+            [
+                "## Preserved observation anchors",
+                "",
+                "The source observation section and these exact anchors are checked live before any repair write.",
+                "",
+            ]
+        )
+        for anchor in source["observation_anchors"]:
+            lines.extend([f"### Observation `{anchor['observation_id']}`", "", anchor["body"], ""])
     lines.extend(["", "## Canonical repair digest", "", f"`{digest}`"])
     lines.extend(_handoff_pointer_lines(bulk_run))
     return "\n".join(lines)
@@ -2192,6 +2723,8 @@ def cmd_repair_render(  # pylint: disable=too-many-arguments,too-many-positional
     approval_view_path: str,
     replies_path: str | None = None,
     reopen_path: str | None = None,
+    findings_ledger_path: str | None = None,
+    source_review_path: str | None = None,
 ) -> None:
     """Render a repair bundle and its exact approval view (local only)."""
     comments: list[dict[str, Any]] = []
@@ -2205,12 +2738,23 @@ def cmd_repair_render(  # pylint: disable=too-many-arguments,too-many-positional
     replies = _validate_replies(_load_json(replies_path, "repair replies")) if replies_path else []
     reopen = _validate_repair_reopen(_load_json(reopen_path, "repair reopen"), replies) if reopen_path else []
     body: str | None = None
+    observations: list[dict[str, Any]] | None = None
+    source: dict[str, Any] | None = None
     if body_path:
         try:
             raw_body = Path(body_path).read_text(encoding="utf-8")
         except OSError as exc:
             _abort(f"cannot read repair body '{body_path}': {exc}")
-        body = _inject_review_contract(raw_body, mode)
+        if not findings_ledger_path:
+            _abort("body repair requires --findings-ledger; regenerate the records, render, and approve again.")
+        ledger = _validate_findings_ledger(_load_json(findings_ledger_path, "findings ledger"))
+        observations = ledger["preexisting_observations"]
+        body = _inject_review_contract(_with_observations(raw_body, observations, inject=True), mode)
+        if not source_review_path:
+            _abort("body repair requires --source-review-bundle naming its existing review bundle.")
+        source = _validate_bundle(_load_json(source_review_path, "source review bundle"), mode)
+    elif findings_ledger_path or source_review_path:
+        _abort("--findings-ledger and --source-review-bundle are only applicable to a body repair.")
     bundle = {
         "schema": REPAIR_BUNDLE_SCHEMA,
         "mode": mode,
@@ -2220,6 +2764,8 @@ def cmd_repair_render(  # pylint: disable=too-many-arguments,too-many-positional
         "replies": replies,
         "reopen": reopen,
         "body": body,
+        "preexisting_observations": observations,
+        "source_review": source,
     }
     _validate_repair_bundle(bundle, mode)
     digest = _bundle_digest(bundle)
@@ -2231,6 +2777,28 @@ def cmd_repair_render(  # pylint: disable=too-many-arguments,too-many-positional
     print(f"Repair bundle: {os.path.abspath(bundle_path)}")
     print(f"Repair approval view: {os.path.abspath(approval_view_path)}")
     print(f"Repair digest (SHA-256): {digest}")
+
+
+def _verify_repair_source(owner_repo: str, pr_number: int, bundle: dict[str, Any]) -> None:
+    """Refuse stale source sections or anchors before even the first mutation in a repair batch."""
+    source = bundle["source_review"]
+    if source is None:
+        return
+    raw = _gh("api", f"repos/{owner_repo}/pulls/{pr_number}/reviews/{bundle['review_id']}")
+    try:
+        current = json.loads(raw)
+    except json.JSONDecodeError:
+        _abort("cannot parse the live source review; no repair write was made.")
+    if not isinstance(current, dict) or not isinstance(current.get("body"), str):
+        _abort("live source review must contain its body; no repair write was made.")
+    if current.get("commit_id") != source["review"]["commit_id"]:
+        _abort("live source review commit differs from its bundle; no repair write was made.")
+    records = source["findings_ledger"]["preexisting_observations"]
+    if _render_observations(bundle["preexisting_observations"]) in current["body"]:
+        # A prior attempt may have amended the body before a later write failed.
+        records = bundle["preexisting_observations"]
+    _with_observations(current["body"], records)
+    _new_observation_anchors(owner_repo, pr_number, source["observation_anchors"], require_existing=True)
 
 
 def cmd_repair_post(  # pylint: disable=too-many-arguments,too-many-positional-arguments
@@ -2257,6 +2825,7 @@ def cmd_repair_post(  # pylint: disable=too-many-arguments,too-many-positional-a
         _require_approval_view(view, _repair_approval_view(bundle, digest, _bulk_run_for_handoff(str(view))))
     _validate_write_environment(mode, "post")
     owner_repo = _resolve_repo(repo)
+    _verify_repair_source(owner_repo, pr_number, bundle)
     for comment in bundle["comments"]:
         payload = {
             "body": comment["body"],
@@ -3186,6 +3755,14 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     repair_render.add_argument("--replies", metavar="FILE")
     repair_render.add_argument("--reopen", metavar="FILE")
     repair_render.add_argument("--body", metavar="FILE")
+    repair_render.add_argument(
+        "--findings-ledger", metavar="FILE", help="Required structured records for a body amendment."
+    )
+    repair_render.add_argument(
+        "--source-review-bundle",
+        metavar="FILE",
+        help="Required source review bundle for preserving body-repair anchors.",
+    )
     repair_render.add_argument("--bundle", required=True, metavar="FILE")
     repair_render.add_argument("--approval-view", required=True, metavar="FILE")
     repair_post = repair_sub.add_parser(
@@ -3274,6 +3851,8 @@ def main() -> None:  # pylint: disable=too-many-branches
                 args.approval_view,
                 replies_path=args.replies,
                 reopen_path=args.reopen,
+                findings_ledger_path=args.findings_ledger,
+                source_review_path=args.source_review_bundle,
             )
         else:
             cmd_repair_post(

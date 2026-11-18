@@ -1,6 +1,6 @@
 # PR review formats
 
-<!-- delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00 -->
+<!-- delivery-version: 00e795f3863999e297a997632377fb33415531a8 2026-11-15T00:18:09+01:00 -->
 
 ## Reference format 1
 
@@ -68,3 +68,198 @@ QUOTED     1   "we deliberately kept the old codepath"
 SUPERSEDED 1   stale para describing the v1 approach
 DROPPED    1   empty template boilerplate
 ```
+
+## Reference format 4: observation records
+
+An example `findings-ledger.json` with two older defects and no verdict-bearing findings:
+
+```json
+{
+  "schema": "aiscr-review-pr-findings-ledger-v4",
+  "new_findings": [],
+  "outstanding": [],
+  "preexisting_observations": [
+    {
+      "id": "O1",
+      "tracking_key": "org/repo:parser:empty-input",
+      "description": "Empty input reaches an unchecked index in the older parser.",
+      "evidence": [
+        {"location": "src/parser.py:42", "revision": "base-sha", "tier": "read"}
+      ],
+      "disposition": "fix-in-pr",
+      "rationale": "Same changed parser; a guard and focused validation keep the repair bounded.",
+      "repair": "Guard empty input before indexing.",
+      "anchor": {"kind": "line", "path": "src/parser.py", "line": 42, "side": "RIGHT"}
+    },
+    {
+      "id": "O2",
+      "tracking_key": "org/repo:cache:expiry",
+      "description": "Cache entries never expire in an unrelated function.",
+      "evidence": [
+        {"location": "src/parser.py:90", "revision": "base-sha", "tier": "read"}
+      ],
+      "disposition": "track-separately",
+      "rationale": "Cache repair lies outside the parser change.",
+      "tracking": {"state": "pending", "reason_code": "declined", "reason": "Operator declined capture for this round."}
+    }
+  ]
+}
+```
+
+The same ledger with no older observations uses `"preexisting_observations": []`.
+A `fix-in-pr` anchor names a line in the acquired diff when one is commentable at the logical place, and otherwise an acquired file; the defect itself may lie outside the diff.
+A `track-separately` record carries no anchor.
+Evidence entries use `location`, `revision`, and `tier`; tier values are `reproduced`, `instrumented`, `read`, `reported`, or `inferred`.
+The evidence's truth and sufficiency remain reviewer judgments, including whether it establishes older provenance.
+
+## Reference format 5: generated observation section
+
+The projection of format 4, inserted by the renderer or checked against a supplied section:
+
+```markdown
+<!-- aiscr-review-pr:preexisting-observations -->
+## Pre-existing observations
+
+Advisory only: these observations predate the reviewed material and do not contribute to the verdict.
+
+### Observation: O1
+
+- Tracking key: org/repo:parser:empty-input
+- Observation: Empty input reaches an unchecked index in the older parser.
+- Disposition: `fix-in-pr`
+- Anchor: `src/parser.py:42 (RIGHT)`
+- Full record and proposed repair: the observation anchor on that place.
+
+### Observation: O2
+
+- Tracking key: org/repo:cache:expiry
+- Observation: Cache entries never expire in an unrelated function.
+- Disposition: `track-separately`
+- Rationale: Cache repair lies outside the parser change.
+- Provenance evidence:
+  - src/parser.py:90; revision: base-sha; tier: `read`
+- Tracking state: `pending`
+- Tracking reason code: `declined`
+- Tracking reason: Operator declined capture for this round.
+
+<!-- /aiscr-review-pr:preexisting-observations -->
+```
+
+The closed pending reason codes are `declined`, `deferred`, `unavailable`, `failed`, and `uncertain`.
+The code `declined` records an operator decision on the capture selection step; the other four record why capture could not produce an issue.
+A `track-separately` record without a tracking outcome, or a `pending` outcome without a valid reason code, is refused before rendering.
+
+## Reference format 6: confirmed tracking
+
+For the two tracking objects below, `ISSUE_URL` denotes the literal HTTPS target of [org/repo#7](https://github.com/org/repo/issues/7).
+It is a variable in these examples; the actual record contains that target URL.
+
+```json
+{
+  "state": "reused",
+  "issue": {"repository": "org/repo", "number": 7, "url": "ISSUE_URL"}
+}
+```
+
+```json
+{
+  "state": "created",
+  "issue": {"repository": "org/repo", "number": 7, "url": "ISSUE_URL"}
+}
+```
+
+The corresponding rendered lines for the first object are:
+
+```markdown
+- Tracking state: `reused`
+- Issue: [org/repo#7](https://github.com/org/repo/issues/7)
+```
+
+## Reference format 7: body-repair input
+
+A body amendment uses the same complete ledger shape as format 4, passed through `repair render --body <HANDOFF_DIR>/repair-body.md --findings-ledger <BULK_DIR>/findings-ledger.json --source-review-bundle <BULK_DIR>/review-bundle.json` alongside the other arguments shown in the workflow.
+The source bundle supplies acquired coverage and the anchored records that the repair must preserve; the engine checks the live section and anchors before writing.
+An unchanged-body reply or inline repair omits all three arguments; its repair-bundle observation collection and source snapshot are `null` because it changes no observation section.
+
+## Reference format 8: capture decisions in the approval view
+
+The approval view lists the capture set — every `track-separately` observation — with its recorded outcome.
+A `fix-in-pr` observation carries no capture decision and is not listed.
+
+```markdown
+## Capture decisions
+
+### Observation `O2`
+
+- Tracking key: org/repo:cache:expiry
+- Disposition: `track-separately`
+- Outcome: `pending`
+- Reason code: `declined`
+- Detail: Operator declined capture for this round.
+
+### Observation `O3`
+
+- Tracking key: org/repo:parser:index
+- Disposition: `track-separately`
+- Outcome: `created`
+- Issue: [org/repo#7](https://github.com/org/repo/issues/7)
+```
+
+When the capture set is empty, the block states that no capture-set observation exists.
+
+## Reference format 9: anchored observation index and anchor body
+
+The body section indexes every `fix-in-pr` observation; the anchor carries its full record.
+
+```markdown
+### Observation: O1
+
+- Tracking key: org/repo:parser:empty-input
+- Observation: Empty input reaches an unchecked index in the older parser.
+- Disposition: `fix-in-pr`
+- Anchor: `src/parser.py:42 (RIGHT)`
+- Full record and proposed repair: the observation anchor on that place.
+```
+
+The anchor body opens with the marker the gather uses to classify it as an observation thread:
+
+```markdown
+<!-- aiscr-review-pr:observation O1 org/repo:parser:empty-input -->
+### Pre-existing observation: O1
+
+- Tracking key: org/repo:parser:empty-input
+- Observation: Empty input reaches an unchecked index in the older parser.
+- Disposition: `fix-in-pr`
+- Rationale: Same changed parser; a guard and focused validation keep the repair bounded.
+- Provenance evidence:
+  - src/parser.py:42; revision: base-sha; tier: `read`
+- Proposed repair: Guard empty input before indexing.
+- Anchor: `src/parser.py:42 (RIGHT)`
+
+Advisory only: this observation predates the reviewed material and does not contribute to the verdict.
+```
+
+A line anchor joins the grouped review; a file anchor is posted as a standalone review comment after it.
+Both carry the marker and are bound by the approval digest.
+
+## Reference format 10: observation anchors in the approval view
+
+```markdown
+## Observation anchors
+
+Line anchors join the grouped review; file anchors are posted as standalone review comments after it.
+
+### Anchor 1 — observation `O1` (line)
+
+- Path: `src/parser.py`
+- Line: `42`
+- Side: `RIGHT`
+
+Exact body:
+
+<!-- aiscr-review-pr:observation O1 org/repo:parser:empty-input -->
+### Pre-existing observation: O1
+...
+```
+
+An existing anchor is shown once and reused on retry; a file anchor under the same marker and path is never posted twice.

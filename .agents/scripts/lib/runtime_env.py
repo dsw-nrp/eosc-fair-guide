@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
-# delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00
+# delivery-version: 00e795f3863999e297a997632377fb33415531a8 2026-11-15T00:18:09+01:00
 
 """Shared repo-local runtime paths.
 
@@ -108,9 +108,14 @@ def openspec_corpus_dir(root: Path, *, create: bool = False) -> Path:
     return cache_dir(root, "openspec-corpus", create=create)
 
 
+# The operator-patch staging directory name, shared by the cache stage here and the visible
+# hand-off under ``.agents/local_scratch/`` (``local_scratch_paths`` imports this module).
+OPERATOR_PATCHES_DIRNAME = "operator-patches"
+
+
 def operator_patch_cache_dir(root: Path, label: Optional[str] = None, *, create: bool = False) -> Path:
     """Return the operator-patch bulk stage ``<venv>/.cache/operator-patches[/<label>]``."""
-    return cache_dir(root, "operator-patches", label, create=create)
+    return cache_dir(root, OPERATOR_PATCHES_DIRNAME, label, create=create)
 
 
 def review_pr_cache_dir(root: Path, run: Optional[str] = None, *, create: bool = False) -> Path:

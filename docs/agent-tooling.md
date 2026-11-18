@@ -65,8 +65,18 @@ is the fallback for every client. No personal or machine-local configuration is 
 | Claude Code | `CLAUDE.md` points to AGENTS; project rules are `.claude/rules/` | `/fair-guide-editor` and the enrolled skills use `.claude/skills/`; subagents use `.claude/agents/` |
 | Cursor | Read AGENTS; `.cursor/rules/*.mdc` native rules declare `alwaysApply: true` | Read `.agents/skills/<name>/SKILL.md` when no matching discovery is available; use registered agent definitions only when supported |
 | Kilo | Read AGENTS and `.kilo/rules/` | Read the selected `.agents/skills/` workflow; `.kilo/agents/` definitions require compatible client support |
-| Gemini CLI | Read AGENTS and explicitly include `.gemini/context/` rules, unless context configuration already loads them | Enrolled commands live in `.gemini/commands/`; OpenSpec uses `opsx`; read the native skill directly |
-| GitHub Copilot | `.github/copilot-instructions.md` points to AGENTS; delivered and native rules use `.github/instructions/` | Enrolled workflows use the shared `.agents/skills/` tree; discovery depends on client support, so read the selected skill when needed. `.github/prompts/opsx-*` and `.github/agents/openspec.agent.md` are tool-generated OpenSpec surfaces; no enrolled `aiscr-*` prompts or agents are delivered there |
+| Gemini CLI | Read AGENTS and explicitly include `.gemini/context/` rules, unless context configuration already loads them | Enrolled AISCR commands live in `.gemini/commands/aiscr/`; OpenSpec workflows use shared `.agents/skills/openspec-*/SKILL.md` files. Read the selected skill directly when client discovery is unavailable |
+| GitHub Copilot | `.github/copilot-instructions.md` points to AGENTS; delivered and native rules use `.github/instructions/` | Enrolled workflows use the shared `.agents/skills/` tree; discovery depends on client support, so read the selected skill when needed. `.github/agents/openspec.agent.md` is the tool-generated OpenSpec cloud-agent entry; no enrolled `aiscr-*` prompts or agents are delivered there |
+
+OpenSpec 2 keeps project skills in `.agents/skills/` and records configured clients in
+`.agents/skills/.openspec-target`; this checkout also retains Claude's compatibility copies. Invoke a selected
+`openspec-*` skill by name using the client's supported syntax. The refresh removes the former Gemini `opsx`
+commands and Copilot `opsx-*` prompt files.
+
+The generated Copilot cloud agent contains generic CLI examples. Apply this Guide's pinned invocation and
+workflow approval rules from [AGENTS.md](../AGENTS.md): the
+[Copilot setup workflow](../.github/workflows/copilot-setup-steps.yml) installs the lockfile with `npm ci`, and
+the agent can use `npx openspec` or `npm run openspec:cli -- <command>`.
 
 GitHub workflows that use local scripts require their documented interpreter and `gh` authentication where
 applicable. A command or agent being installed does not authorize remote writes, staging, commits, merges,
