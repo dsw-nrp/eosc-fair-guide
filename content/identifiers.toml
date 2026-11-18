@@ -1299,6 +1299,7 @@ repositories = [
   "czech-bioimaging",
   "datahub-cuni",
   "genasis",
+  "digitalia-muni-arts",
 ]
 actions = [
   "2026-10-16-initial-state",
@@ -1329,6 +1330,7 @@ actions = [
   "2026-11-13-fip-refresh",
   "2026-11-14-catalogue-repair",
   "2026-11-14-identity-review",
+  "2026-11-18-digitalia-muni-arts",
 ]
 models = [
   "layers-seams",
