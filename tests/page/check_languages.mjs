@@ -749,7 +749,78 @@ try {
     await context.close();
   }
 
-  console.log("language checks: selected downloads, both directions, exact graph, bilingual exports/search and failed-file retry passed");
+  // Requirement texts load with the standards part, outside the first download: a view that shows them waits for it
+  // from a cold start and then draws each requirement's own text, not its title.
+  const clauseRows = crate["@graph"].filter((row) => row["@id"].startsWith(base + "clauses/") && !row["@id"].includes("#") && row.text);
+  const clauseText = (identifier, lang) => {
+    const row = clauseRows.find((entry) => entry.identifier === identifier);
+    const value = row && [].concat(row.text).find((item) => item["@language"] === lang);
+    return value ? value["@value"].replace(/\[\[[^\]|]+\|([^\]]+)\]\]/g, "$1").replace(/\s+/g, " ").trim() : null;
+  };
+  assert(!initialGraph.some((row) => row["@id"].startsWith("clauses/") && row.text), "the first download carries no requirement text");
+  const coldViews = [
+    { name: "catalogue entry", hash: (lang) => `#/${lang}/K/catalogue/clauses/A.F1.R1`, selector: ".clause-card [data-field~=\"text\"]", id: () => "A.F1.R1" },
+    { name: "station basis", hash: (lang) => `#/${lang}/SR/path/identifier`, selector: "li.clause .clause-text" },
+    { name: "principle", hash: (lang) => `#/${lang}/K/explorer/F1`, selector: ".principle-requirements li.clause .clause-text" },
+  ];
+  for (const lang of ["cs", "en"]) for (const view of coldViews) {
+    const context = await browser.newContext(), page = await context.newPage(), observed = watched(page);
+    let release, announce;
+    const gate = new Promise((done) => { release = done; });
+    const asked = new Promise((done) => { announce = done; });
+    await context.route("https://clause-text.test/**", async (route) => {
+      const pathname = new URL(route.request().url()).pathname;
+      if (pathname === `/assets/data/kb-standards-${lang}.js`) { announce(); await gate; }
+      await route.fulfill({ body: readFileSync(resolve(site, "." + pathname)),
+        contentType: pathname.endsWith(".js") ? "text/javascript" : pathname.endsWith(".css") ? "text/css" : pathname.endsWith(".svg") ? "image/svg+xml" : "text/html" });
+    });
+    // The held part keeps the document from finishing its load, so navigation waits only for the response.
+    await page.goto("https://clause-text.test/index.html" + view.hash(lang), { waitUntil: "commit" });
+    // A view that does not wait for the part draws its requirements without their text, and never asks for it.
+    const drawn = page.waitForSelector(view.selector, { state: "attached" }).then(() => "drawn", () => "none");
+    assert.equal(await Promise.race([asked.then(() => "asked"), drawn]), "asked", `${view.name} ${lang}: requirements are drawn before their text has loaded`);
+    assert.equal(await page.locator(view.selector).count(), 0, `${view.name} ${lang}: no requirement is drawn before its text has loaded`);
+    release();
+    await page.waitForSelector(view.selector, { state: "attached" });
+    const shown = await page.locator(view.selector).evaluateAll((nodes) => nodes.map((node) => ({
+      id: node.closest(".clause, .clause-card")?.querySelector(".id-chip, .entry-id")?.textContent.trim() || null,
+      text: node.textContent.replace(/\s+/g, " ").trim(),
+    })));
+    assert(shown.length, `${view.name} ${lang}: requirements are drawn`);
+    for (const row of shown) {
+      const identifier = view.id ? view.id() : row.id;
+      const expected = clauseText(identifier, lang);
+      assert(expected, `${view.name} ${lang}: the drawn requirement ${identifier} is a clause with text`);
+      assert.equal(row.text, expected, `${view.name} ${lang}: ${identifier} shows its own text`);
+    }
+    assert.deepEqual(observed.errors, []);
+    await context.close();
+  }
+
+  // Complete search finds a requirement by a word only its text holds, from a cold start.
+  const clauseProbe = (() => {
+    const counts = new Map();
+    const words = clauseRows.map((row) => [row.identifier, new Set([].concat(row.text).flatMap((item) => String(item["@value"]).toLowerCase().match(/[\p{L}]{8,}/gu) || []))]);
+    for (const [, set] of words) for (const word of set) counts.set(word, (counts.get(word) || 0) + 1);
+    const others = JSON.stringify(crate["@graph"].filter((row) => !row["@id"].startsWith(base + "clauses/"))).toLowerCase();
+    for (const [identifier, set] of words) for (const word of set) if (counts.get(word) === 1 && !others.includes(word)) return { identifier, word };
+    return null;
+  })();
+  assert(clauseProbe, "the corpus supplies a word that only one requirement's text holds");
+  for (const lang of ["cs", "en"]) {
+    const context = await browser.newContext(), page = await context.newPage();
+    await page.goto(file + `#/${lang}/K/path/start`);
+    await rendered(page, lang, "#search-input");
+    assert.equal(await page.evaluate(() => window.FairGuide.partHasLanguage("standards", window.FairGuide.state.lang)), false);
+    await page.fill("#search-input", clauseProbe.word);
+    await page.locator("form.search").evaluate((form) => form.requestSubmit());
+    await page.waitForFunction(() => document.querySelector("#search-results")?.dataset.confirmed === "true");
+    const links = await page.locator("#search-results a").evaluateAll((nodes) => nodes.map((node) => decodeURIComponent(node.getAttribute("href"))));
+    assert(links.some((href) => href.includes("/catalogue/clauses/" + clauseProbe.identifier)), `cold search ${lang} finds the requirement by its text: ` + JSON.stringify(clauseProbe));
+    await context.close();
+  }
+
+  console.log("language checks: selected downloads, both directions, exact graph, bilingual exports/search, deferred requirement texts and failed-file retry passed");
 } finally {
   await browser.close();
 }

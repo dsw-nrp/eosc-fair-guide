@@ -345,6 +345,36 @@ class LanguageTests(unittest.TestCase):
         self.assertNotIn("fipCollections", api_part["config"]["api"])
         self.assertEqual(set(api_part["config"]["api"]["recipes"]), {"root"})
 
+    def test_requirement_texts_load_with_the_standards_part(self) -> None:
+        # The first download keeps each requirement's record but not its text, which loads with the standards part
+        # in both languages, so that content fits the page's budget.
+        core = assignment(self.generated[build_crate.KB_SCRIPT], "window.FairGuideData.kb = ")
+        for lang in build_crate.LANGS:
+            language = assignment(
+                self.generated[build_crate.LANGUAGE_SCRIPTS[lang]],
+                f"window.FairGuideData.languages[{json.dumps(lang)}] = ",
+            )
+            merge_patch(core, language["kb"])
+        clauses = [
+            entity for entity in core["@graph"] if entity["@id"].startswith("clauses/") and "#" not in entity["@id"]
+        ]
+        self.assertGreater(len(clauses), 100)
+        self.assertEqual([entity["@id"] for entity in clauses if "text" in entity], [])
+        part = assignment(
+            self.generated[build_crate.PART_SCRIPTS["standards"]], 'window.FairGuideData.parts["standards"] = '
+        )
+        for lang in build_crate.LANGS:
+            language = assignment(
+                self.generated[build_crate.PART_LANGUAGE_SCRIPTS["standards"][lang]],
+                f'window.FairGuideData.partLanguages["standards"][{json.dumps(lang)}] = ',
+            )
+            merge_patch(part, language["values"])
+        for clause in clauses:
+            with self.subTest(clause=clause["@id"]):
+                values = build_crate.as_list(part["properties"].get(clause["@id"], {}).get("text"))
+                self.assertEqual({value.get("@language") for value in values}, set(build_crate.LANGS))
+                self.assertTrue(all(value.get("@value") for value in values))
+
     def test_generated_languages_and_parts_reconstruct_full_crate(self) -> None:
         for order in (("cs", "en"), ("en", "cs")):
             core = assignment(self.generated[build_crate.KB_SCRIPT], "window.FairGuideData.kb = ")
