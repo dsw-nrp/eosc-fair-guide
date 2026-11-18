@@ -4,7 +4,7 @@
 [snapshot]
 source = "NKR"
 url = "https://repo.cz/"
-retrieved = 2026-11-08
+retrieved = 2026-11-15
 fields = ["repositoryName", "additionalNames", "mainUrl", "type", "status", "keywordCz", "keywordEn", "mainContact", "metadataSchema", "workingGroup"]
 
 [[record]]
@@ -75,7 +75,7 @@ repositoryName = "CzBIRD"
 additionalNames = [{ "additionalName" = "CzBIRD", "lang" = "English" }]
 mainUrl = ""
 type = "disciplinary"
-status = "development"
+status = "pilot - not accepting data"
 keywordCz = ["Biologické Zobrazování", "Světelná Mikroskopie", "Elektronová Mikroskopie", "Zobrazovací Data", "REMBI", "CzBI"]
 keywordEn = ["Biological Imaging", "BioImaing", "Light Microscopy", "Electron Microscopy", "Imaging Data", "REMBI", "CzBI"]
 workingGroup = ["B/H/F - Bio/Health/Food"]
