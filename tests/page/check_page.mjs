@@ -1094,6 +1094,10 @@ async function checkViews(views) {
   for (const hash of views) {
     await page.evaluate((value) => { document.getElementById("main").dataset.previousView = "true"; window.location.hash = value; }, hash);
     await page.waitForFunction((value) => window.location.hash === value && document.querySelector("#main h1") && !document.getElementById("main").dataset.previousView, hash);
+    // Measure each view from its top. The page keeps the previous view's scroll position while the new heading is in
+    // sight, and content scrolled under the opaque sticky lens band would otherwise read as a collision that no reader
+    // sees, depending only on how long the view before it was.
+    await page.evaluate(() => window.scrollTo(0, 0));
     const headingText = (await page.textContent("#main h1")).trim();
     if (!headingText) fail(`${hash}: the main heading is empty`);
     const lang = await page.evaluate(() => document.documentElement.lang);
