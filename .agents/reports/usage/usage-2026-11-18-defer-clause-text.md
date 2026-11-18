@@ -13,7 +13,7 @@
   `scripts/build_crate.py`, `tests/test_languages.py`, `tests/page/check_languages.mjs` and this usage entry.
 - **Close-out:** The change was archived on 2026-11-18 at
   `openspec/changes/archive/2026-11-18-defer-clause-text/`; PR
-  [#191](https://github.com/dsw-nrp/eosc-fair-guide/pull/191) remains an open draft. The first download's
+  [#191](https://github.com/dsw-nrp/eosc-fair-guide/pull/191) remains open for review. The first download's
   headroom is 27,370 bytes (Czech) and 29,454 bytes (English), from 471 and 2,906 on `main`. The new unit test fails
   on `main`'s split; the cold-start page check fails, rather than hangs, when the explorer or a station stops waiting
   for `standards`; cold search finds a clause by a word only its text holds, in both languages. With the held-back
@@ -25,3 +25,9 @@
   limit; with operator approval the delta was split into a new ADDED "Deferred requirement text retains complete
   content and search" requirement plus the unchanged MODIFIED requirement, the main spec was synced, and the
   change archived.
+- **Corrections (review repair):** During AIS CR review (Kilo, `deepseek-v4.1-flash-thinking`) the new requirement's
+  first sentence was found to over-claim: `STANDARD_CLAUSES` sends `clauses/CTS.`, `clauses/CDIF.`, `clauses/FDO.`
+  and `clauses/FRSM.` whole into the `standards` part, so none of the listed fields of those 104 ledger entries is
+  in the initial transport, 25 of them `kind = "requirement"`. With operator direction the sentence was scoped to
+  the requirements that stay in the initial transport, the archived delta and the archived proposal were aligned,
+  and the requirement stays within the 500-character limit.

@@ -10,9 +10,10 @@ fail the budget test.
 
 ## What Changes
 
-- The text of every ledger clause moves from the first download to the `standards` part, which already carries
-  the clauses' quoted guidance. The clause records themselves (identifier, source, principles, actor, kind,
-  locator, status) stay in the first download, so references, counts and filters keep working.
+- The text of every ledger clause that stays in the first download moves to the `standards` part, which already
+  carries the clauses' quoted guidance. For those clauses the record itself (identifier, source, principles, actor,
+  kind, locator, status) stays in the first download, so references, counts and filters keep working. The clauses of
+  the external standards (CoreTrustSeal, CDIF, FDO, FRSM) already move to that part whole and stay whole.
 - Views and search that show clause text wait for the `standards` part, as they already do for guidance; any that
   does not yet load it is added to the parts it waits for.
 - A prototype on `main` measured the effect: the Czech first download gains about 26.9 KB of headroom (471 →

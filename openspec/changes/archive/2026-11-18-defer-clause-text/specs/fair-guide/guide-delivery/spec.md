@@ -2,7 +2,7 @@
 
 ### Requirement: Deferred requirement text retains complete content and search
 
-Initial transport SHALL keep each ledger requirement's identifier, source, principles, actor, kind, locator and status, while deferring its text. Every language/part load order SHALL reconstruct the requirement text, and the crate/API SHALL retain it. Station routes, views that show a requirement's text and complete search SHALL wait for the part that holds it.
+A ledger requirement that stays in the initial transport SHALL keep its identifier, source, principles, actor, kind, locator and status there, deferring its text to the part that holds its quoted guidance; a requirement that part holds whole keeps its record and text together. Every language/part load order SHALL reconstruct the requirement text, and the crate/API SHALL retain it. Station routes, views that show a requirement's text and complete search SHALL wait for the part that holds it.
 
 #### Scenario: A requirement's text is shown from a cold start
 
