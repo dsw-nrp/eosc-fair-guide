@@ -1945,3 +1945,14 @@ instruments = ["openai-codex", "openai-gpt-6-runtime"]
 objects = ["resources/fip-dashboard", "clauses/A.K4.1", "clauses/NKR-SCHEMA.01", "clauses/RDMKIT.publication.01", "clauses/POLICY-MANUAL.02"]
 results = ["guide", "resources/creative-commons", "resources/cc-by-4-0", "resources/clarin-dspace", "resources/dmp-eosc", "resources/datacite", "resources/avcr-fair-wizard", "pages/about", "pages/ai", "pages/provenance", "checks/fip", "advice/plan.17", "advice/plan.21", "advice/plan.22", "advice/plan.32", "advice/publication.21", "advice/publication.30"]
 endTime = 2026-11-16T07:26:54+00:00
+
+[[action]]
+id = "2026-11-18-maldreth-access"
+type = "update"
+name = "Review the RDMkit Reuse to MaLDReTH Access correspondence"
+description = "Rested the correspondence between RDMkit's Reuse and MaLDReTH's Access on MaLDReTH's own definition of Access, which covers access by designated users and reusers, instead of on Figure 2 of the report, which labels that column SHARE. The correspondence is now the Guide's reviewed reading; the report and its figure are unchanged."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5"]
+objects = ["resources/maldreth", "resources/rdmkit"]
+results = ["crosswalks/lifecycle-stages/rdm-reuse-mld-access"]
+endTime = 2026-11-18T00:58:56+00:00

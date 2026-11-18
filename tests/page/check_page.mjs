@@ -2292,11 +2292,17 @@ sections.push(["life cycle", async () => {
       basis: li.dataset.basis, target: decodeURIComponent(li.querySelector("a").getAttribute("href")), sources: li.querySelectorAll(".source-link").length,
     })));
     const row = (stage) => rows.find((item) => item.target.endsWith("/lifecycles/" + stage.replace(".", "/")));
-    for (const [stage, basis] of Object.entries({ "maldreth.access": "unconfirmed", "maldreth.transform": "reviewed", "knav-tools.reusing": "reviewed" })) {
-      if (!row(stage)) fail(`life cycle ${lang}: the reuse stage does not list ${stage}`);
+    // Each correspondence shows the basis the crate records; a published or unconfirmed one names its source, and a
+    // reviewed one, the Guide's own reading, names none.
+    for (const stage of ["maldreth.access", "maldreth.transform", "knav-tools.reusing"]) {
+      const target = crateNodes.get("lifecycles/" + stage.replace(".", "/"))["@id"];
+      const pair = graph.find((e) => [].concat(e["@type"]).includes("StageCorrespondence") && [].concat(e.about).every((a) => a) && [].concat(e.about).some((a) => a["@id"] === target) && [].concat(e.about).some((a) => a["@id"] === crateNodes.get("lifecycles/rdmkit/reuse")["@id"]));
+      const basis = pair && pair.mappingBasis ? pair.mappingBasis["@id"].split("/").pop() : null;
+      if (!basis) fail(`life cycle: the crate records no correspondence between the reuse stage and ${stage}`);
+      else if (!row(stage)) fail(`life cycle ${lang}: the reuse stage does not list ${stage}`);
       else if (row(stage).basis !== basis) fail(`life cycle ${lang}: ${stage} is marked ${row(stage).basis}, not ${basis}`);
+      else if ((basis === "reviewed") === Boolean(row(stage).sources)) fail(`life cycle ${lang}: the ${basis} correspondence to ${stage} ${basis === "reviewed" ? "names a source" : "names no source"}`);
     }
-    if (row("maldreth.access") && !row("maldreth.access").sources) fail(`life cycle ${lang}: the unconfirmed correspondence names no source`);
     const sources = await card.locator(".relations .source-link").count();
     if (sources < 2) fail(`life cycle ${lang}: the stage cites ${sources} source(s); RDMkit and KNAV expected`);
     const steps = await card.locator(".relations .holder-link").evaluateAll((all) => all.map((a) => a.getAttribute("href")));
