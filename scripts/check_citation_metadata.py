@@ -207,17 +207,39 @@ PROFILE = {
 
 
 class TextDates(yaml.SafeLoader):
-    """YAML as written: an unquoted date stays text, so the schema's date format sees what the file says."""
+    """YAML as written: an unquoted date or YAML 1.1 boolean stays text, so the schema sees what the file says."""
+
+    def construct_mapping(self, node, deep=False):
+        """Refuse a duplicate explicit key instead of silently keeping the last value."""
+        seen = set()
+        for key_node, _ in node.value:
+            if key_node.tag == "tag:yaml.org,2002:merge":
+                continue
+            key = self.construct_object(key_node, deep=deep)
+            try:
+                duplicate = key in seen
+            except TypeError:
+                continue
+            if duplicate:
+                raise yaml.constructor.ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    f"found duplicate key {key!r}",
+                    key_node.start_mark,
+                )
+            seen.add(key)
+        return super().construct_mapping(node, deep=deep)
 
 
+TEXT_SCALAR_TAGS = {"tag:yaml.org,2002:timestamp", "tag:yaml.org,2002:bool"}
 TextDates.yaml_implicit_resolvers = {
-    first: [(tag, pattern) for tag, pattern in resolvers if tag != "tag:yaml.org,2002:timestamp"]
+    first: [(tag, pattern) for tag, pattern in resolvers if tag not in TEXT_SCALAR_TAGS]
     for first, resolvers in yaml.SafeLoader.yaml_implicit_resolvers.items()
 }
 
 
 def cff_errors(raw: str) -> tuple[dict | None, list[str]]:
-    """Load CITATION.cff and validate it against the vendored schema of the version it declares."""
+    """Load CITATION.cff and validate it against the vendored CFF 1.2.0 schema."""
     try:
         cff = yaml.load(raw, Loader=TextDates)
     except yaml.YAMLError as error:

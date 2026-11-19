@@ -278,9 +278,11 @@ Run `python -m unittest discover -s tests -p test_release_versions.py` and
 
 Install the pinned `requirements-dev.txt` and run `python scripts/check_citation_metadata.py`. This read-only
 check runs in local `check_all` and the CPU CI lane, and both release dispatches run it before delivery or
-tagging. CFF is validated against its declared schema; the Zenodo import profile and shared citation fields
-are checked separately. `python scripts/release_versions.py check --version <version>` additionally requires
-matching committed release metadata and dated, nonempty notes for that requested version.
+tagging. CFF is validated against the vendored CFF 1.2.0 schema, and a file that declares another
+`cff-version` is refused rather than checked against a schema it does not declare; the Zenodo import
+profile and shared citation fields are checked separately.
+`python scripts/release_versions.py check --version <version>` additionally requires matching committed
+release metadata and dated, nonempty notes for that requested version.
 
 The Guide owns release version/date, and CFF owns software authors, ORCIDs, title, abstract, keywords and license.
 Zenodo uses the equivalent values, including bare ORCIDs and the lowercase MIT license identifier. Its description

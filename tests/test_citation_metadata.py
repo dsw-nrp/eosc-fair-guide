@@ -75,6 +75,20 @@ class CitationMetadataTests(unittest.TestCase):
         (self.root / "CITATION.cff").write_text("cff-version: 1.2.0\ntitle: [unclosed\n", encoding="utf-8")
         self.assertTrue(citation.check(self.root)[0].startswith("CITATION.cff is not valid YAML"))
 
+    def test_a_duplicate_cff_key_is_reported_rather_than_hidden(self):
+        # YAML keeps the last duplicate by default; the check must not let a stale value hide behind it.
+        path = self.root / "CITATION.cff"
+        path.write_text(path.read_text("utf-8") + '\ntitle: "Hidden second title"\n', encoding="utf-8")
+        self.assertIn("duplicate key", "\n".join(citation.check(self.root)))
+
+    def test_yaml11_boolean_spellings_stay_text(self):
+        # PyYAML's YAML 1.1 resolver would read an unquoted `NO` as False; CFF's country is the string "NO".
+        self.edit_cff(
+            'orcid: "https://orcid.org/0000-0001-6592-6291"',
+            'orcid: "https://orcid.org/0000-0001-6592-6291"\n    country: NO',
+        )
+        self.assertEqual(citation.check(self.root), [])
+
     def test_a_file_that_is_not_utf8_is_reported_rather_than_raising(self):
         # A Windows-1250 save is a decoding error, not an OSError; the check reports it like other read failures.
         path = self.root / "CITATION.cff"
