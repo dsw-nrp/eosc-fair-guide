@@ -24,10 +24,10 @@ answers the Guide suggests.
 3. **Check each mapping against its fixtures.**
    - **Where:** `tests/fixtures/providers/` and `tests/page/check_providers.mjs`.
    - **Do:** confirm for each `[[provider.mapping]]` that `whole` holds only where a native pass establishes
-     everything the question asks; a narrower criterion is `partial`. Promote nothing to `whole` here: a new whole
-     mapping needs its own validation. For a new version, add a synthetic fixture with the public report's structure
-     and no real subject metadata, test both whole mappings against it, then list the version in `reviewed`. Run
-     `npm run check:providers`.
+     everything the question asks; a narrower criterion is `partial`. Remove a mapping whose `metric` is unlisted.
+     Promote nothing to `whole` here: a new whole mapping needs its own validation. For a new version, add a
+     synthetic fixture with the public report's structure and no real subject metadata, test both whole mappings
+     against it, then list the version in `reviewed`. Run `npm run check:providers`.
    - **Done when:** the check passes and every reviewed F-UJI version has a fixture that exercises both whole
      mappings.
    - **If it fails:** leave the version out of `reviewed`. Its reports keep their native results and suggest no
