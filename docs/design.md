@@ -401,7 +401,10 @@ recorded. FAIR-Checker's outcome is a score on its own 0 to 2 scale, which its i
 (1) and red (0).
 
 Recognised report structures and reviewed metric/API/specification combinations are owned by
-`content/live.toml`; fixtures preserve these structures without real subject metadata.
+`content/live.toml`; fixtures preserve these structures without real subject metadata. FAIR-Checker publishes one
+version, the API version of its `swagger.json`, and that stays its reviewed identity. The number need not change when
+the metric list or a metric's wording does, so the [mapping review](runbooks/review-evaluator-mappings.md) compares
+the metrics themselves, every six months and whenever a provider changes.
 
 The reviewed F-UJI specifications list the same seventeen metric identifiers and names. A report with another
 specification or metric version is recognised, kept with its complete native results and shown as unreviewed; it
