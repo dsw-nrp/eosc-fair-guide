@@ -1,9 +1,9 @@
 <!-- type: how-to -->
 # Review the evaluator mappings
 
-The mapping owner reviews the external-evaluator mappings every six months and whenever a provider
-changes; a review takes about an hour. The mappings decide which answers the Guide suggests, so a provider's change
-is reviewed before it can suggest anything.
+The mapping owner, the technical owner in [`CODEOWNERS`](../../.github/CODEOWNERS), reviews the external-evaluator
+mappings every six months and whenever a provider changes; a review takes about an hour. The mappings decide which
+answers the Guide suggests.
 
 1. **Decide whether a review is due.**
    - **Where:** the date in this step, F-UJI's [releases](https://github.com/pangaea-data-publisher/fuji/releases)
@@ -34,11 +34,13 @@ is reviewed before it can suggest anything.
      answer.
 4. **Record the review.**
    - **Where:** a pull request.
-   - **Do:** set the provider's `observed` date, move the date in step 1 six months on and add the pull request's
-     provenance action. A review that finds no difference still moves both dates.
+   - **Do:** apply step 2's differences to the metric records (`name`, `label`, a new or retired metric), set the
+     provider's `observed` date, move the step 1 date six months on and add the pull request's provenance action. No
+     difference still moves both dates.
    - **Done when:** the pull request merges through the [merge runbook](merge.md).
    - **If it fails:** follow [rerun a check](rerun-a-check.md) for a failed check.
 
 A changed mapping changes only what the Guide suggests: stored assessments keep every native result, and an answer
-a reader gave stays theirs. FAIR-Checker's reviewed identity is its API version, the only version it publishes;
+a reader gave stays theirs. Unreviewed versions suggest nothing; same-version changes are caught only here.
+FAIR-Checker's reviewed identity is its API version, the only version it publishes;
 [the design](../design.md#optional-evaluators) explains how each provider's results are read.

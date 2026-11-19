@@ -15,3 +15,20 @@
   assertion. All 36 repository checks pass in 258.3 seconds; this entry was written afterwards and the documentation
   and agent-surface ownership checks were run again. No push or pull request is made before the maintainer approves
   the diff and the pull-request text.
+
+## Review round and fixes (2026-11-19)
+
+- **When (review fixes):** 2026-11-19T01:10:00+01:00
+- **Agent / runtime (review fixes):** Kilo
+- **Model / backend (review fixes):** e-infra-cz/deepseek-v4.1-flash-thinking
+- **What (review fixes):** Reviewed pull request 187 and applied its three Low findings to the runbook: point the
+  owner at `CODEOWNERS` instead of an undefined role, make step 4 apply the metric-record differences found in step 2,
+  and replace the over-broad claim that every provider change is gated before it suggests with the accurate
+  version-gate wording. The pull-request description was regenerated once from the author's template and the original
+  was archived first.
+- **Impacted (review fixes):** `docs/runbooks/review-evaluator-mappings.md` and this entry. No content record,
+  mapping, stored format or runtime behaviour changes.
+- **Close-out (review fixes):** `python scripts/check_docs.py` passes 38 documents. The project-venv
+  `python scripts/check_all.py` passes 34 of 36 checks; the two Ruff `I001` findings are in
+  `tests/test_check_docs.py` and `tests/test_publication_location.py`, both untouched by this change and not introduced
+  here. The unit tests, page checks and build passed.
