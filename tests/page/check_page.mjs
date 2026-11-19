@@ -2268,8 +2268,9 @@ sections.push(["inactive", async () => {
 }]);
 
 // The life-cycle models in the catalogue: every stage is listed, and the path's reuse stage shows its definition as
-// published and each correspondence with its basis and source, the unconfirmed one marked (guide-knowledge-base,
-// "Life-cycle models and their crosswalk are records"). A name the guide translated says so.
+// published and each correspondence with its basis; a reviewed one names no source, while the planning stage's
+// published correspondence names its source (guide-knowledge-base, "Life-cycle models and their crosswalk are
+// records"). A name the guide translated says so.
 sections.push(["life cycle", async () => {
   const stageCount = graph.filter((e) => isRecord(e, "lifecycles", namespace) && localId(address(e)).includes("/")).length;
   const citing = graph.filter((e) => e["@type"] === "HowToSection" && e.lifecycleStage && e.lifecycleStage["@id"] === crateNodes.get("lifecycles/rdmkit/reuse")["@id"]).map((e) => e.identifier);
@@ -2292,25 +2293,40 @@ sections.push(["life cycle", async () => {
     const quote = card.locator(".stage-quote");
     if ((await quote.count()) !== 1 || !(await quote.textContent()).startsWith("Opakované užití dat: ") || (await quote.getAttribute("lang")) !== "cs") fail(`life cycle ${lang}: KNAV's Czech definition is not quoted with its stage label`);
     if (await card.locator(".card-details").count()) fail(`life cycle ${lang}: the published RDMkit/KNAV name is marked as translated`);
-    const rows = await card.locator(".crosswalk li").evaluateAll((all) => all.map((li) => ({
+    const crosswalkRows = () => card.locator(".crosswalk li").evaluateAll((all) => all.map((li) => ({
       basis: li.dataset.basis, target: decodeURIComponent(li.querySelector("a").getAttribute("href")), sources: li.querySelectorAll(".source-link").length,
     })));
-    const row = (stage) => rows.find((item) => item.target.endsWith("/lifecycles/" + stage.replace(".", "/")));
+    const rowFor = (rows, stage) => rows.find((item) => item.target.endsWith("/lifecycles/" + stage.replace(".", "/")));
+    const correspondenceBasis = (stage, other) => {
+      const target = crateNodes.get("lifecycles/" + stage.replace(".", "/"))["@id"];
+      const pair = graph.find((e) => [].concat(e["@type"]).includes("StageCorrespondence") && [].concat(e.about).every((a) => a) && [].concat(e.about).some((a) => a["@id"] === target) && [].concat(e.about).some((a) => a["@id"] === crateNodes.get("lifecycles/" + other.replace(".", "/"))["@id"]));
+      return pair && pair.mappingBasis ? pair.mappingBasis["@id"].split("/").pop() : null;
+    };
+    const rows = await crosswalkRows();
     // Each correspondence shows the basis the crate records; a published or unconfirmed one names its source, and a
     // reviewed one, the Guide's own reading, names none.
     for (const stage of ["maldreth.access", "maldreth.transform", "knav-tools.reusing"]) {
-      const target = crateNodes.get("lifecycles/" + stage.replace(".", "/"))["@id"];
-      const pair = graph.find((e) => [].concat(e["@type"]).includes("StageCorrespondence") && [].concat(e.about).every((a) => a) && [].concat(e.about).some((a) => a["@id"] === target) && [].concat(e.about).some((a) => a["@id"] === crateNodes.get("lifecycles/rdmkit/reuse")["@id"]));
-      const basis = pair && pair.mappingBasis ? pair.mappingBasis["@id"].split("/").pop() : null;
-      if (!basis) fail(`life cycle: the crate records no correspondence between the reuse stage and ${stage}`);
-      else if (!row(stage)) fail(`life cycle ${lang}: the reuse stage does not list ${stage}`);
-      else if (row(stage).basis !== basis) fail(`life cycle ${lang}: ${stage} is marked ${row(stage).basis}, not ${basis}`);
-      else if ((basis === "reviewed") === Boolean(row(stage).sources)) fail(`life cycle ${lang}: the ${basis} correspondence to ${stage} ${basis === "reviewed" ? "names a source" : "names no source"}`);
+      const basis = correspondenceBasis(stage, "rdmkit.reuse");
+      if (!basis) fail(`life cycle ${lang}: the crate records no correspondence between the reuse stage and ${stage}`);
+      else if (!rowFor(rows, stage)) fail(`life cycle ${lang}: the reuse stage does not list ${stage}`);
+      else if (rowFor(rows, stage).basis !== basis) fail(`life cycle ${lang}: ${stage} is marked ${rowFor(rows, stage).basis}, not ${basis}`);
+      else if ((basis === "reviewed") === Boolean(rowFor(rows, stage).sources)) fail(`life cycle ${lang}: the ${basis} correspondence to ${stage} ${basis === "reviewed" ? "names a source" : "names no source"}`);
     }
     const sources = await card.locator(".relations .source-link").count();
     if (sources < 2) fail(`life cycle ${lang}: the stage cites ${sources} source(s); RDMkit and KNAV expected`);
     const steps = await card.locator(".relations .holder-link").evaluateAll((all) => all.map((a) => a.getAttribute("href")));
     for (const station of citing) if (!steps.some((href) => href.endsWith("/path/" + station))) fail(`life cycle ${lang}: the stage does not lead to its step ${station}`);
+    // The planning stage has a published correspondence, so the non-reviewed branch keeps its page coverage: the mark
+    // matches the crate and the source is named. No live correspondence is unconfirmed; a reviewed one names no source.
+    await visit(`#/${lang}/K/catalogue/lifecycles/rdmkit/plan`);
+    const planRows = await crosswalkRows();
+    const planStage = "maldreth.plan";
+    const planBasis = correspondenceBasis(planStage, "rdmkit.plan");
+    const planRow = rowFor(planRows, planStage);
+    if (!planBasis) fail(`life cycle ${lang}: the crate records no correspondence between the planning stage and ${planStage}`);
+    else if (!planRow) fail(`life cycle ${lang}: the planning stage does not list ${planStage}`);
+    else if (planRow.basis !== planBasis) fail(`life cycle ${lang}: ${planStage} is marked ${planRow.basis}, not ${planBasis}`);
+    else if (!planRow.sources) fail(`life cycle ${lang}: the ${planBasis} correspondence to ${planStage} names no source`);
     await visit(`#/${lang}/K/catalogue/lifecycles/maldreth/access`);
     const marked = await card.locator(".card-details").count();
     if ((lang === "cs") !== (marked === 1)) fail(`life cycle ${lang}: the guide's translated name is ${marked ? "" : "not "}marked`);
