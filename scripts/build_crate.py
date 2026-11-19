@@ -5127,6 +5127,12 @@ def split_crate(crate: dict[str, Any], base: str | None = None) -> tuple[dict[st
                 if initial:
                     entity["sameAs"] = initial
                 core[index] = entity
+        if kind(entity) == "clauses" and not fragment(entity) and "text" in entity:
+            # A requirement's record stays in the core for references, counts and filters; its summary loads with
+            # its guidance, which every view that shows requirement text already waits for.
+            parts["standards"]["properties"].setdefault(entity["@id"], {})["text"] = entity["text"]
+            entity = {key: value for key, value in entity.items() if key != "text"}
+            core[index] = entity
         if kind(entity) == "repositories" and not fragment(entity) and "keywords" in entity:
             parts["fips"]["properties"].setdefault(entity["@id"], {})["keywords"] = entity["keywords"]
             entity = {key: value for key, value in entity.items() if key != "keywords"}

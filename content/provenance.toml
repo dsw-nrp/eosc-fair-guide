@@ -1956,3 +1956,14 @@ instruments = ["claude-code", "claude-opus-5-5"]
 objects = ["resources/maldreth", "resources/rdmkit"]
 results = ["crosswalks/lifecycle-stages/rdm-reuse-mld-access"]
 endTime = 2026-11-18T00:58:56+00:00
+
+[[action]]
+id = "2026-11-18-eosc-cz-outputs"
+type = "update"
+name = "Adopt the November 2026 EOSC CZ outputs"
+description = "Reviewed the source updates the health watch reported on the EOSC CZ outputs and services pages. Added the NRP manual to the deposit licence template as a source, with two clauses quoting its recommendations under its CC BY 4.0 licence and one item advising repository owners how to set their deposit licence terms. Added Digitalia MUNI ARTS, an operating humanities repository that the EOSC CZ catalogue of NDI repositories lists, as a curated repository with its operator from its own pages."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5", "kilo-code", "einfra-deepseek-4-1-ft"]
+objects = ["resources/deposit-licence-manual", "resources/deposit-licence", "resources/copyright-licences"]
+results = ["resources/deposit-licence-manual", "clauses/DEPOSIT-LICENCE-MANUAL.01", "clauses/DEPOSIT-LICENCE-MANUAL.02", "advice/licence.32", "repositories/digitalia-muni-arts"]
+endTime = 2026-11-18T22:25:12+00:00

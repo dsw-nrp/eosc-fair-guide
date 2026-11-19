@@ -121,6 +121,13 @@ text = { cs = "Podmínky NRP vyžadují, aby každá datová sada měla v metada
 sources = ["A.R1.1.R1", "A.R1.1.X1", "A.MIN3", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05", "DEPOSIT-LICENCE.01"]
 
 [[advice]]
+id = "licence.32"
+lens = "SR"
+level = "L1"
+text = { cs = "Vhodně nastavte depoziční licenční podmínky, např. podle [[resources/deposit-licence-manual|manuálu ke vzoru]]: nechte si udělit nevýhradní, výslovně bezúplatnou licenci na dobu trvání práv, a to nejméně k uložení a zpřístupnění dat a s právem upravit data pro repozitář bez zásahu do věcné podstaty obsahu. Vklad podmiňte výběrem uživatelské licence, údajem o případném omezení přístupu, které pak technicky zajistíte, a prohlášením vkladatele, že licenci smí udělit.", en = "Set the deposit licence terms appropriately, e.g. in accordance with the [[resources/deposit-licence-manual|template manual]]: obtain a non-exclusive, expressly royalty-free licence for the duration of the rights, covering at least the storage and provision of access to the data, and including the right to adapt the data for the repository without altering the substantive content. Make the deposit conditional upon the selection of a user licence, details of any access restrictions (which you will then implement technically), and a declaration by the depositor that they are authorised to grant the licence." }
+sources = ["DEPOSIT-LICENCE-MANUAL.01", "DEPOSIT-LICENCE-MANUAL.02", "COPYRIGHT-LICENCES.02"]
+
+[[advice]]
 id = "licence.15"
 lens = "SR"
 level = "L1"
