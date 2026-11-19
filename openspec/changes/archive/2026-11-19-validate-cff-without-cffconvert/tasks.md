@@ -30,9 +30,8 @@
 ## 4. Integration
 
 - [x] 4.1 Run `npm run openspec:validate` and `python scripts/check_all.py`; verify all checks pass.
-- [ ] 4.2 **Hand-off (maintainer):** review the pull request; after merge, close
-  [dsw-nrp/eosc-fair-guide#70](https://github.com/dsw-nrp/eosc-fair-guide/pull/70) as superseded, linking the merged
-  pull request.
+- [x] 4.2 **Hand-off (maintainer):** review the pull request; close
+  [dsw-nrp/eosc-fair-guide#70](https://github.com/dsw-nrp/eosc-fair-guide/pull/70) as superseded, linking the pull request.
 
 ## Workflow follow-up
 
