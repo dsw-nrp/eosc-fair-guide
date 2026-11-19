@@ -75,6 +75,17 @@ class CitationMetadataTests(unittest.TestCase):
         (self.root / "CITATION.cff").write_text("cff-version: 1.2.0\ntitle: [unclosed\n", encoding="utf-8")
         self.assertTrue(citation.check(self.root)[0].startswith("CITATION.cff is not valid YAML"))
 
+    def test_a_file_that_is_not_utf8_is_reported_rather_than_raising(self):
+        # A Windows-1250 save is a decoding error, not an OSError; the check reports it like other read failures.
+        path = self.root / "CITATION.cff"
+        raw = path.read_bytes()
+        self.assertIn(b"Nov\xc3\xa1k", raw)
+        path.write_bytes(raw.replace(b"Nov\xc3\xa1k", b"Nov\xe1k", 1))
+        errors = citation.check(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertTrue(errors[0].startswith("CITATION.cff: "))
+        self.assertIn("codec", errors[0])
+
     def test_import_profile_rejects_unsupported_shapes_and_unknown_keys(self):
         for edit in (
             {"license": ["MIT", "CC-BY-4.0"]},

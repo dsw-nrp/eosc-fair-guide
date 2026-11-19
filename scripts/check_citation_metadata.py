@@ -352,7 +352,7 @@ def check(root: Path) -> list[str]:
     """Return actionable diagnostics; no network or file writes, even on malformed input."""
     try:
         raw = (root / "CITATION.cff").read_text(encoding="utf-8")
-    except OSError as error:
+    except (OSError, UnicodeDecodeError) as error:
         return [f"CITATION.cff: {error}"]
     cff, errors = cff_errors(raw)
     if errors:

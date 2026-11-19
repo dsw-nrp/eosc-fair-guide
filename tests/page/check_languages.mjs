@@ -415,7 +415,9 @@ try {
   await fipPage.fill("#search-input", fipQuery);
   await fipPage.locator("form.search").evaluate((form) => form.requestSubmit());
   await fipPage.locator(".data-load-error").waitFor();
-  assert(await fipPage.evaluate(() => ["standards", "questions", "advice"].every((part) => window.FairGuide.partHasLanguage(part, "cs"))));
+  /* The three local parts load alongside the failing FIP part, so their arrival is not ordered against
+     the abort: wait for them instead of racing it, and only then read the settled result state. */
+  await fipPage.waitForFunction(() => ["standards", "questions", "advice"].every((part) => window.FairGuide.partHasLanguage(part, "cs")));
   assert.equal(await fipPage.evaluate(() => window.FairGuide.partHasLanguage("fips", "cs")), false);
   assert.notEqual(await fipPage.locator("#search-results").getAttribute("data-query"), fipQuery, "a missing FIP part never produces confirmed empty or partial results");
   assert.notEqual(await fipPage.locator("#search-results").getAttribute("data-confirmed"), "true");
