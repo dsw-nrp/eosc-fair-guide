@@ -54,10 +54,8 @@ locator = "Deliverable 1, Figure 2 (crosswalk to existing models); PDF p. 18"
 guideRoute = "crosswalks/lifecycle-stages"
 id = "rdm-reuse-mld-access"
 stages = ["rdmkit.reuse", "maldreth.access"]
-basis = "unconfirmed"
-source = "maldreth"
-locator = "Deliverable 1, Figure 2 (crosswalk to existing models); PDF p. 18"
-note = { cs = "Obrázek 2 označuje dva sloupce MaLDReTH jako SHARE; pořadí fází na obrázku 3 ukazuje na Access.", en = "Figure 2 labels two MaLDReTH columns SHARE; the order of stages in Figure 3 indicates Access." }
+basis = "reviewed"
+note = { cs = "MaLDReTH vymezuje přístup jako řízení přístupu určených uživatelů a dalších uživatelů dat, na kterém opakované užití stojí. Obrázek 2 zprávy tento sloupec označuje SHARE.", en = "MaLDReTH defines Access as controlling and managing data access by designated users and reusers, on which reuse depends. Figure 2 of the report labels this column SHARE." }
 
 [[correspondence]]
 guideRoute = "crosswalks/lifecycle-stages"

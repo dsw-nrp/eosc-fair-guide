@@ -1947,6 +1947,17 @@ results = ["guide", "resources/creative-commons", "resources/cc-by-4-0", "resour
 endTime = 2026-11-16T07:26:54+00:00
 
 [[action]]
+id = "2026-11-18-maldreth-access"
+type = "update"
+name = "Review the RDMkit Reuse to MaLDReTH Access correspondence"
+description = "Rested the correspondence between RDMkit's Reuse and MaLDReTH's Access on MaLDReTH's own definition of Access, which covers access by designated users and reusers, instead of on Figure 2 of the report, which labels that column SHARE. The correspondence is now the Guide's reviewed reading; the report and its figure are unchanged."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5"]
+objects = ["resources/maldreth", "resources/rdmkit"]
+results = ["crosswalks/lifecycle-stages/rdm-reuse-mld-access"]
+endTime = 2026-11-18T00:58:56+00:00
+
+[[action]]
 id = "2026-11-18-eosc-cz-outputs"
 type = "update"
 name = "Adopt the November 2026 EOSC CZ outputs"
