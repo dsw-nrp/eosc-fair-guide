@@ -1,9 +1,9 @@
 # Guide metadata and shared vocabularies. Field reference: docs/content-model.md.
 
 [guide]
-version = "1.0.0-alpha.5"
+version = "1.0.0-beta.1"
 testingNotice = { cs = "Průvodce je ve fázi testování. Obsah se může měnit a zatím jej neschválila iniciativa EOSC CZ.", en = "This Guide is in testing. Its content may change, and the EOSC CZ initiative has not approved it yet." }
-datePublished = 2026-11-01
+datePublished = 2026-11-20
 # Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case; the content check reads them.
 genericGuideUses = ["průvodce licencemi", "průvodcem licencemi", "praktický průvodce", "interaktivní průvodce", "interaktivního průvodce", "an interactive guide"]
 name = { cs = "Průvodce FAIR daty", en = "FAIR Data Guide" }

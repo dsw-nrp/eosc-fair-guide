@@ -1967,3 +1967,14 @@ instruments = ["claude-code", "claude-opus-5-5", "kilo-code", "einfra-deepseek-4
 objects = ["resources/deposit-licence-manual", "resources/deposit-licence", "resources/copyright-licences"]
 results = ["resources/deposit-licence-manual", "clauses/DEPOSIT-LICENCE-MANUAL.01", "clauses/DEPOSIT-LICENCE-MANUAL.02", "advice/licence.32", "repositories/digitalia-muni-arts"]
 endTime = 2026-11-18T22:25:12+00:00
+
+[[action]]
+id = "release-1.0.0-beta.1"
+type = "update"
+name = "Prepare release metadata"
+description = "Release metadata and complete PR/direct-commit changelog prepared for human review."
+agent = "david-novak"
+instruments = ["release-automation"]
+objects = []
+results = ["guide"]
+endTime = 2026-11-20T01:31:56+00:00

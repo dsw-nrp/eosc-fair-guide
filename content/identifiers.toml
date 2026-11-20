@@ -1336,6 +1336,7 @@ actions = [
   "2026-11-14-identity-review",
   "2026-11-18-maldreth-access",
   "2026-11-18-eosc-cz-outputs",
+  "release-1.0.0-beta.1",
 ]
 models = [
   "layers-seams",
