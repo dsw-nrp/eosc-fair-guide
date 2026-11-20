@@ -4,6 +4,7 @@ import contextlib
 import copy
 import io
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -37,12 +38,87 @@ class CitationMetadataTests(unittest.TestCase):
             self.assertEqual(citation.check(self.root), [])
         self.assertEqual(before, {str(path): path.read_bytes() for path in self.root.rglob("*") if path.is_file()})
 
-    def test_invalid_cff_is_not_hidden_by_matching_version_and_date(self):
+    def edit_cff(self, old, new):
         path = self.root / "CITATION.cff"
-        path.write_text(
-            path.read_text(encoding="utf-8").replace("cff-version: 1.2.0", "cff-version: 9.9.9"), encoding="utf-8"
+        text = path.read_text(encoding="utf-8")
+        self.assertIn(old, text)
+        path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+    def test_invalid_cff_is_not_hidden_by_matching_version_and_date(self):
+        # Each value is invalid under the CFF 1.2.0 schema, and the report names the file and the field.
+        for old, new, field in (
+            ('date-released: "2026-', 'date-released: "1 November ', "CITATION.cff date-released:"),
+            ("title: ", "titles: ", "CITATION.cff root: 'title' is a required property"),
+            ("type: software", "type: poster", "CITATION.cff type:"),
+        ):
+            with self.subTest(field=field):
+                self.setUp()
+                self.edit_cff(old, new)
+                self.assertIn(field, "\n".join(citation.check(self.root)))
+
+    def test_unquoted_dates_are_validated_as_written(self):
+        # YAML would read an unquoted date as a date object; the check keeps it as the text the schema expects.
+        path = self.root / "CITATION.cff"
+        text, count = re.subn(r'date-released: "(\d{4}-\d{2}-\d{2})"', r"date-released: \1", path.read_text("utf-8"))
+        self.assertGreater(count, 0)
+        path.write_text(text, encoding="utf-8")
+        self.assertEqual(citation.check(self.root), [])
+
+    def test_another_cff_version_is_refused_rather_than_checked_against_the_wrong_schema(self):
+        self.edit_cff("cff-version: 1.2.0", "cff-version: 1.3.0")
+        self.assertEqual(
+            citation.check(self.root),
+            ["CITATION.cff cff-version must be 1.2.0, the version whose schema the check holds"],
         )
-        self.assertIn("CITATION.cff schema", "\n".join(citation.check(self.root)))
+
+    def test_broken_yaml_is_reported_without_a_traceback(self):
+        (self.root / "CITATION.cff").write_text("cff-version: 1.2.0\ntitle: [unclosed\n", encoding="utf-8")
+        self.assertTrue(citation.check(self.root)[0].startswith("CITATION.cff is not valid YAML"))
+
+    def test_a_duplicate_cff_key_is_reported_rather_than_hidden(self):
+        # YAML keeps the last duplicate by default; the check must not let a stale value hide behind it.
+        path = self.root / "CITATION.cff"
+        path.write_text(path.read_text("utf-8") + '\ntitle: "Hidden second title"\n', encoding="utf-8")
+        self.assertIn("duplicate key", "\n".join(citation.check(self.root)))
+
+    def test_a_duplicate_key_inside_an_inline_merge_is_reported(self):
+        # A merge value is flattened into the merging mapping rather than constructed on its own.
+        path = self.root / "CITATION.cff"
+        path.write_text(path.read_text("utf-8") + '\n<<: {title: "First", title: "Second"}\n', encoding="utf-8")
+        self.assertIn("duplicate key", "\n".join(citation.check(self.root)))
+
+    def test_a_key_merged_from_another_source_may_be_overridden(self):
+        # An explicit key wins over a merged one on purpose; that is precedence, not a duplicate.
+        path = self.root / "CITATION.cff"
+        path.write_text('<<: {title: "Merged title"}\n' + path.read_text("utf-8"), encoding="utf-8")
+        self.assertEqual(citation.check(self.root), [])
+
+    def test_a_mapping_that_overrides_a_merged_key_may_be_merged_again(self):
+        # Merging flattens the anchored mapping in place; checking it again afterwards would see its override as a
+        # duplicate. The loader reads the chain as YAML does, and still refuses a duplicate in an anchored mapping.
+        chained = "base: &b {x: 1}\nmid: &m {<<: *b, x: 2}\ntop: {<<: *m}\nlow: {<<: [*m, *b]}\n"
+        self.assertEqual(citation.yaml.load(chained, Loader=citation.TextDates), citation.yaml.safe_load(chained))
+        with self.assertRaisesRegex(citation.yaml.YAMLError, "duplicate key"):
+            citation.yaml.load("base: &b {x: 1, x: 2}\ntop: {<<: *b}\n", Loader=citation.TextDates)
+
+    def test_yaml11_boolean_spellings_stay_text(self):
+        # PyYAML's YAML 1.1 resolver would read an unquoted `NO` as False; CFF's country is the string "NO".
+        self.edit_cff(
+            'orcid: "https://orcid.org/0000-0001-6592-6291"',
+            'orcid: "https://orcid.org/0000-0001-6592-6291"\n    country: NO',
+        )
+        self.assertEqual(citation.check(self.root), [])
+
+    def test_a_file_that_is_not_utf8_is_reported_rather_than_raising(self):
+        # A Windows-1250 save is a decoding error, not an OSError; the check reports it like other read failures.
+        path = self.root / "CITATION.cff"
+        raw = path.read_bytes()
+        self.assertIn(b"Nov\xc3\xa1k", raw)
+        path.write_bytes(raw.replace(b"Nov\xc3\xa1k", b"Nov\xe1k", 1))
+        errors = citation.check(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertTrue(errors[0].startswith("CITATION.cff: "))
+        self.assertIn("codec", errors[0])
 
     def test_import_profile_rejects_unsupported_shapes_and_unknown_keys(self):
         for edit in (

@@ -33,6 +33,14 @@ precedence = "override"
 SPDX-FileCopyrightText = "The RO-Crate Community"
 SPDX-License-Identifier = "CC0-1.0"
 
+# The Citation File Format 1.2.0 schema, unchanged from tag 1.2.0 of citation-file-format/citation-file-format;
+# scripts/check_citation_metadata.py records its digest.
+[[annotations]]
+path = "scripts/schemas/cff-1.2.0.json"
+precedence = "override"
+SPDX-FileCopyrightText = "The Citation File Format authors <https://citation-file-format.github.io/>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
 # Pinned copies of the vocabularies the graph refers to, unchanged; tests/fixtures/vocabularies/sources.toml records
 # where and when each was retrieved. The W3C namespace documents are under the W3C Software and Document License,
 # whose 2023 version differs from the 2015 text only in naming the copyright holder.

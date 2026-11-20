@@ -53,7 +53,7 @@ python scripts/check_duplicates.py # one entry per thing
 python scripts/check_docs.py       # documentation types, runbook steps and named files
 python scripts/register_ids.py     # after adding entries: register their identifiers
 reuse lint                         # every file has a declared licence and copyright
-cffconvert --validate              # CITATION.cff is valid
+python scripts/check_citation_metadata.py # CITATION.cff and .zenodo.json are valid and agree
 ```
 
 ## Use the development container

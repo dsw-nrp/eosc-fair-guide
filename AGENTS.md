@@ -111,7 +111,7 @@ python scripts/build_site.py --sizes    # also print what the page downloads, co
 python scripts/check_content.py         # content contract and no build output in the repository (--base <ref> also checks paradata freshness from where the branch left <ref>)
 python scripts/check_duplicates.py      # one entry per thing: no two entries share an address, an identifier, a name or a text
 python scripts/register_ids.py          # register the identifiers of new entries in content/identifiers.toml
-python -m unittest discover -s tests    # tests of the generator, the checks and the snapshot script
+python -m unittest discover -s tests    # tests of the generator, the checks and the snapshot script; -p test_<module>.py runs one module while iterating (the whole suite takes about eight minutes)
 python scripts/refresh_snapshots.py     # refresh the Heslář, re3data, FIP Dashboard, NKR, KNAV, FAIRsharing and DataCite snapshots; a response that fails validation leaves the snapshot unchanged (--report writes each outcome)
 python scripts/vendor_icons.py          # copy the icons the content names from node_modules (after npm ci); --check fails on drift
 python scripts/vendor_fonts.py          # copy the web fonts from node_modules (after npm ci); --check fails on drift

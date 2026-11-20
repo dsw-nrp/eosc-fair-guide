@@ -1301,7 +1301,9 @@ sections.push(["self-check", async () => {
   if (!(await checked("answer-dataset-08-no"))) fail("dataset check: changing scope lost the saved answer outside it");
   await page.locator('label[for="extended-toggle"]').click();
   // The collapse control stays exactly where it was.
-  await page.locator("#item-dataset-04").scrollIntoViewIfNeeded();
+  // Put the item in the middle of the view: "if needed" leaves the page wherever the previous clicks ended, and near
+  // the document end the summary leaves its container instead of sticking.
+  await page.evaluate(() => document.querySelector("#item-dataset-04").scrollIntoView({ block: "center" }));
   await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
   const toggleBefore = await page.locator("#result-toggle").boundingBox();
   if (!(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("#result-toggle"), { x: toggleBefore.x + toggleBefore.width / 2, y: toggleBefore.y + toggleBefore.height / 2 }))) fail("dataset check: the sticky collapse control is covered by another element");
