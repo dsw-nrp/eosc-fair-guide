@@ -7,6 +7,8 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0-beta.1] - 2026-11-20
+
 - Security: favicon acquisition now uses direct, certificate-verified public HTTPS with DNS/peer pinning on every
   redirect; environment proxies are excluded. Use reviewed offline inputs when direct access is unavailable.
 
@@ -66,6 +68,33 @@ All notable changes to this guide are recorded here. The format follows
 - Required step: a question that asks what a cited clause says names it as its `requirement` and states no
   `statement`; the content check refuses a statement that copies a cited clause.
 - Security: render source-controlled refresh diagnostics as bounded literal text in logs, reports and workflow summaries.
+
+Since v1.0.0-alpha.5.
+
+### Merged pull requests
+
+- Fix NKR harvesting and repository catalogue integration ([#170](https://github.com/dsw-nrp/eosc-fair-guide/pull/170))
+- chore\(deps-dev\): Bump the minor-and-patch group across 1 directory with 4 updates ([#174](https://github.com/dsw-nrp/eosc-fair-guide/pull/174))
+- chore\(deps\): Bump the minor-and-patch group with 3 updates ([#175](https://github.com/dsw-nrp/eosc-fair-guide/pull/175))
+- chore\(deps-dev\): Bump the minor-and-patch group with 4 updates ([#173](https://github.com/dsw-nrp/eosc-fair-guide/pull/173))
+- docs\(openspec\): plan unify-identity-model-and-api ([#172](https://github.com/dsw-nrp/eosc-fair-guide/pull/172))
+- Repair catalogue runtime for the pending source refreshes ([#180](https://github.com/dsw-nrp/eosc-fair-guide/pull/180))
+- Refresh the knav-tools snapshot ([#178](https://github.com/dsw-nrp/eosc-fair-guide/pull/178))
+- Refresh the fip-dashboard snapshot ([#177](https://github.com/dsw-nrp/eosc-fair-guide/pull/177))
+- Refresh the heslar snapshot ([#176](https://github.com/dsw-nrp/eosc-fair-guide/pull/176))
+- Refresh the nkr snapshot ([#168](https://github.com/dsw-nrp/eosc-fair-guide/pull/168))
+- chore\(deps-dev\): Bump @fission-ai/openspec from 1.16.0 to 2.0.0 ([#182](https://github.com/dsw-nrp/eosc-fair-guide/pull/182))
+- chore\(deps-dev\): Bump ruff from 0.17.4 to 0.17.5 in the minor-and-patch group ([#183](https://github.com/dsw-nrp/eosc-fair-guide/pull/183))
+- Separate catalogue identities and integrate glossary terms ([#181](https://github.com/dsw-nrp/eosc-fair-guide/pull/181))
+- chore: refresh AISCR delivery and OpenSpec 2 skills ([#185](https://github.com/dsw-nrp/eosc-fair-guide/pull/185))
+- chore\(health\): record limitations for three KNAV catalogue addresses ([#186](https://github.com/dsw-nrp/eosc-fair-guide/pull/186))
+- Refresh the nkr snapshot ([#184](https://github.com/dsw-nrp/eosc-fair-guide/pull/184))
+- perf\(page\): load requirement texts with the standards part ([#191](https://github.com/dsw-nrp/eosc-fair-guide/pull/191))
+- content\(licence\): adopt the NRP deposit licence manual ([#192](https://github.com/dsw-nrp/eosc-fair-guide/pull/192))
+- docs\(evaluators\): add the evaluator mapping review runbook ([#187](https://github.com/dsw-nrp/eosc-fair-guide/pull/187))
+- content\(lifecycle\): review the RDMkit Reuse to MaLDReTH Access correspondence ([#188](https://github.com/dsw-nrp/eosc-fair-guide/pull/188))
+- fix\(citation\): validate CFF with jsonschema and drop cffconvert ([#189](https://github.com/dsw-nrp/eosc-fair-guide/pull/189))
+
 
 ## [1.0.0-alpha.5] - 2026-11-01
 
