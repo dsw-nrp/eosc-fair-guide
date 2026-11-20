@@ -81,6 +81,18 @@ class CitationMetadataTests(unittest.TestCase):
         path.write_text(path.read_text("utf-8") + '\ntitle: "Hidden second title"\n', encoding="utf-8")
         self.assertIn("duplicate key", "\n".join(citation.check(self.root)))
 
+    def test_a_duplicate_key_inside_an_inline_merge_is_reported(self):
+        # A merge value is flattened into the merging mapping rather than constructed on its own.
+        path = self.root / "CITATION.cff"
+        path.write_text(path.read_text("utf-8") + '\n<<: {title: "First", title: "Second"}\n', encoding="utf-8")
+        self.assertIn("duplicate key", "\n".join(citation.check(self.root)))
+
+    def test_a_key_merged_from_another_source_may_be_overridden(self):
+        # An explicit key wins over a merged one on purpose; that is precedence, not a duplicate.
+        path = self.root / "CITATION.cff"
+        path.write_text('<<: {title: "Merged title"}\n' + path.read_text("utf-8"), encoding="utf-8")
+        self.assertEqual(citation.check(self.root), [])
+
     def test_yaml11_boolean_spellings_stay_text(self):
         # PyYAML's YAML 1.1 resolver would read an unquoted `NO` as False; CFF's country is the string "NO".
         self.edit_cff(

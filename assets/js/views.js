@@ -392,10 +392,12 @@
           channel ? " · " : null,
           FG.t("footer.version", { version: build.version, date: FG.formatDate(build.date) }),
           commit ? " · " : null,
-          commit
+          commit,
+          " · ",
+          h("a", { href: FG.href("page", "about") + "/credits" }, FG.t("footer.credits")),
+          " · ",
+          FG.t("footer.licence")
         ),
-        h("p", null, h("a", { href: FG.href("page", "about") + "/credits" }, FG.t("footer.credits"))),
-        h("p", null, FG.t("footer.licence")),
         h(
           "ul",
           null,

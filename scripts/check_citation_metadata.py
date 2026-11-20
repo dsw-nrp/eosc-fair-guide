@@ -211,9 +211,21 @@ class TextDates(yaml.SafeLoader):
 
     def construct_mapping(self, node, deep=False):
         """Refuse a duplicate explicit key instead of silently keeping the last value."""
+        self.refuse_duplicate_keys(node, deep=deep)
+        return super().construct_mapping(node, deep=deep)
+
+    def refuse_duplicate_keys(self, node, deep=False):
+        """Check one mapping as written, including a mapping spliced in as a merge value.
+
+        A merge flattens its sources into the merging mapping, so those nodes are never constructed
+        as mappings themselves and their own duplicates would go unseen. Precedence across sources
+        is YAML's intended behaviour and stays unnoticed: each source is checked on its own.
+        """
         seen = set()
-        for key_node, _ in node.value:
+        for key_node, value_node in node.value:
             if key_node.tag == "tag:yaml.org,2002:merge":
+                for source in self.merge_sources(value_node):
+                    self.refuse_duplicate_keys(source, deep=deep)
                 continue
             key = self.construct_object(key_node, deep=deep)
             try:
@@ -228,7 +240,15 @@ class TextDates(yaml.SafeLoader):
                     key_node.start_mark,
                 )
             seen.add(key)
-        return super().construct_mapping(node, deep=deep)
+
+    @staticmethod
+    def merge_sources(value_node):
+        """Name the mapping nodes a merge value supplies, one source at a time."""
+        if isinstance(value_node, yaml.MappingNode):
+            return [value_node]
+        if isinstance(value_node, yaml.SequenceNode):
+            return [source for source in value_node.value if isinstance(source, yaml.MappingNode)]
+        return []
 
 
 TEXT_SCALAR_TAGS = {"tag:yaml.org,2002:timestamp", "tag:yaml.org,2002:bool"}

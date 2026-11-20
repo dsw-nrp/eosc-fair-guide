@@ -17,3 +17,18 @@
   `npm run openspec:validate` passes 7 of 7, `reuse lint` passes, and all 36 repository checks pass in 250.3
   seconds under that environment; this entry was written afterwards and the documentation and agent-surface
   ownership checks were run again. The local `.venv` was left unchanged.
+
+## Update 2026-11-20 — review follow-up on PR 189
+
+- **When:** 2026-11-20
+- **Agent / runtime:** Kilo
+- **Model / backend:** e-infra-cz/deepseek-v4.1-flash-thinking
+- **What:** Fixes observation O1 of the PR 189 review. A duplicate key inside one inline YAML merge source was
+  flattened into the merging mapping unread, so its last value was kept silently. `TextDates` now scans every
+  mapping node spliced in as a merge value before `SafeConstructor` flattens it; precedence across merge sources,
+  and an explicit key overriding a merged one, stay as YAML defines them and are not refused.
+- **Impacted:** `scripts/check_citation_metadata.py`, `tests/test_citation_metadata.py` and this entry.
+- **Close-out:** `python -m unittest discover -s tests -p test_citation_metadata.py` passes 17 tests; the new
+  inline-merge test is refused by the loader while the previous construct_mapping accepted it (`{'x': 2}` kept).
+  `python -m unittest discover -s tests` passes 955 tests in 504 s, one skipped; its stdout also carries the
+  `FAILED duplicates:`/`FAILED content:` lines of tests that assert a failing check.
