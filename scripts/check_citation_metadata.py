@@ -209,6 +209,10 @@ PROFILE = {
 class TextDates(yaml.SafeLoader):
     """YAML as written: an unquoted date or YAML 1.1 boolean stays text, so the schema sees what the file says."""
 
+    def __init__(self, stream):
+        super().__init__(stream)
+        self.checked_mappings = set()
+
     def construct_mapping(self, node, deep=False):
         """Refuse a duplicate explicit key instead of silently keeping the last value."""
         self.refuse_duplicate_keys(node, deep=deep)
@@ -220,7 +224,14 @@ class TextDates(yaml.SafeLoader):
         A merge flattens its sources into the merging mapping, so those nodes are never constructed
         as mappings themselves and their own duplicates would go unseen. Precedence across sources
         is YAML's intended behaviour and stays unnoticed: each source is checked on its own.
+
+        Each mapping is checked once, before anything flattens it. Flattening rewrites a node in place,
+        putting the merged pairs before its own, so an anchored mapping that overrides a merged key would
+        read as a duplicate if it were checked again when a later mapping merges it.
         """
+        if node in self.checked_mappings:
+            return
+        self.checked_mappings.add(node)
         seen = set()
         for key_node, value_node in node.value:
             if key_node.tag == "tag:yaml.org,2002:merge":

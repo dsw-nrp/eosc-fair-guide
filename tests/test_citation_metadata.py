@@ -93,6 +93,14 @@ class CitationMetadataTests(unittest.TestCase):
         path.write_text('<<: {title: "Merged title"}\n' + path.read_text("utf-8"), encoding="utf-8")
         self.assertEqual(citation.check(self.root), [])
 
+    def test_a_mapping_that_overrides_a_merged_key_may_be_merged_again(self):
+        # Merging flattens the anchored mapping in place; checking it again afterwards would see its override as a
+        # duplicate. The loader reads the chain as YAML does, and still refuses a duplicate in an anchored mapping.
+        chained = "base: &b {x: 1}\nmid: &m {<<: *b, x: 2}\ntop: {<<: *m}\nlow: {<<: [*m, *b]}\n"
+        self.assertEqual(citation.yaml.load(chained, Loader=citation.TextDates), citation.yaml.safe_load(chained))
+        with self.assertRaisesRegex(citation.yaml.YAMLError, "duplicate key"):
+            citation.yaml.load("base: &b {x: 1, x: 2}\ntop: {<<: *b}\n", Loader=citation.TextDates)
+
     def test_yaml11_boolean_spellings_stay_text(self):
         # PyYAML's YAML 1.1 resolver would read an unquoted `NO` as False; CFF's country is the string "NO".
         self.edit_cff(

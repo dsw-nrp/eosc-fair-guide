@@ -32,3 +32,20 @@
   inline-merge test is refused by the loader while the previous construct_mapping accepted it (`{'x': 2}` kept).
   `python -m unittest discover -s tests` passes 955 tests in 504 s, one skipped; its stdout also carries the
   `FAILED duplicates:`/`FAILED content:` lines of tests that assert a failing check.
+
+## Update 2026-11-20 — second review round on PR 189
+
+- **When:** 2026-11-20
+- **Agent / runtime:** Claude Code
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** aiscr-verify
+- **What:** Reviewed head `0798e7d` with `/aiscr-review-pr` (not posted) and fixed its finding F1: the O1 repair
+  re-scanned an anchored merge source after PyYAML had flattened it in place, so a mapping that overrides a merged
+  key and is merged again was refused as a duplicate. `TextDates` now checks each mapping node once, before anything
+  flattens it. The review's process note on the footer change sharing commit `0798e7d` was accepted as fact.
+- **Impacted:** `scripts/check_citation_metadata.py`, `tests/test_citation_metadata.py` and this entry.
+- **Close-out:** `python -m unittest discover -s tests -p test_citation_metadata.py` passes 18 tests; the new
+  chained-override test errors with `found duplicate key 'x'` against the loader at `0798e7d` and passes after the
+  fix, which still refuses inline, nested, sequence-source and anchored duplicates. The citation check exits 0 and
+  `ruff check` and `ruff format --check` pass on both files. `python scripts/check_all.py` passes 36 of 36 in
+  229.0 s in the local `.venv`; this entry was completed afterwards and `check_docs` was run again.
